@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.49 2000/09/27 21:30:50 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.50 2000/09/27 21:57:43 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -62,6 +62,7 @@
 struct om_classic_ctx {
         short	flags;
         int	size;
+        int	filed;
 	union {
 		char	f_uname[MAXUNAMES][UT_NAMESIZE+1];
 		struct {
@@ -153,12 +154,12 @@ om_classic_init( int argc, char **argv, struct filed *f,
 	case '/':
 		(void)strncpy(ctx->f_un.f_fname, p, sizeof(ctx->f_un.f_fname));
 		ctx->f_un.f_fname[sizeof(ctx->f_un.f_fname) - 1] = 0;
-		if ((f->f_file = open(p, O_WRONLY|O_APPEND, 0)) < 0) {
+		if ((ctx->filed = open(p, O_WRONLY|O_APPEND, 0)) < 0) {
 			f->f_type = F_UNUSED;
 			logerror(p);
 			break;
 		}
-		if (isatty(f->f_file))
+		if (isatty(ctx->filed))
 			f->f_type = F_TTY;
 		else
 			f->f_type = F_FILE;
@@ -284,28 +285,28 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 				v->iov_len = 1;
 			}
 			again:
-			if (writev(f->f_file, iov, 6) < 0) {
+			if (writev(ctx->filed, iov, 6) < 0) {
 				int e = errno;
-				(void)close(f->f_file);
+				(void)close(ctx->filed);
 				/*
 				 * Check for errors on TTY's due to loss of tty
 				 */
 				if ((e == EIO || e == EBADF) && f->f_type != F_FILE) {
-					f->f_file = open(ctx->f_un.f_fname,
+					ctx->filed = open(ctx->f_un.f_fname,
 					    O_WRONLY|O_APPEND, 0);
-					if (f->f_file < 0) {
+					if (ctx->filed < 0) {
 						f->f_type = F_UNUSED;
 						logerror(ctx->f_un.f_fname);
 					} else
 						goto again;
 				} else {
 					f->f_type = F_UNUSED;
-					f->f_file = -1;
+					ctx->filed = -1;
 					errno = e;
 					logerror(ctx->f_un.f_fname);
 				}
 			} else if (flags & SYNC_FILE)
-				(void)fsync(f->f_file);
+				(void)fsync(ctx->filed);
 			break;
 
 		case F_USERS:
@@ -321,14 +322,17 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 
 
 int
-om_classic_close( struct filed *f, struct om_hdr_ctx *ctx) {
+om_classic_close( struct filed *f, struct om_hdr_ctx *context) {
 	int ret;
+	struct om_classic_ctx *ctx;
+
+	ctx = (struct om_classic_ctx *) context;
 
 	switch (f->f_type) {
 		case F_FILE:
 		case F_TTY:
 		case F_CONSOLE:
-			ret = close(f->f_file);
+			ret = close(ctx->filed);
 		case F_FORW:
 			if ((finet > -1) && (DaemonFlags & SYSLOGD_INET_IN_USE)
 					&& !(DaemonFlags & SYSLOGD_FINET_READ)) {
