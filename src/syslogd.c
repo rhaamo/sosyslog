@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.173 2001/02/26 22:43:35 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.174 2001/02/28 23:47:41 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.173 2001/02/26 22:43:35 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.174 2001/02/28 23:47:41 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -283,7 +283,39 @@ main(int argc, char **argv)
 		}
 	}
 
-	if ( Inputs.im_fd < 0 ) {
+	if ( Inputs.im_fd < 0 && Inputs.im_next == NULL ) {
+#ifdef	HAVE_LINUX_IMODULE
+		if (imodule_create(&Inputs, "linux") < 0) {
+			fprintf(stderr, "syslogd: WARNING error on "
+			    "linux input module\n");
+		}
+#elif	HAVE_BSD_IMODULE
+		if (imodule_create(&Inputs, "bsd") < 0) {
+			fprintf(stderr, "syslogd: WARNING error on "
+			    "bsd input module\n");
+		}
+#elif	HAVE_STREAMS_IMODULE
+		if (imodule_create(&Inputs, "streams") < 0) {
+			fprintf(stderr, "syslogd: WARNING error on "
+			    "streams input module\n");
+		}
+		if (imodule_create(&Inputs, "doors") < 0) {
+			fprintf(stderr, "syslogd: WARNING error on "
+			    "doors input module\n");
+		}
+#endif
+
+#ifndef	HAVE_STREAMS_IMODULE
+# ifdef	HAVE_UNIX_IMODULE
+		if (imodule_create(&Inputs, "unix") < 0) {
+			fprintf(stderr, "syslogd: WARNING error on "
+			    "unix input module\n");
+		}
+#endif /* ifdef HAVE_UNIX_IMODULE */
+#endif /* ifndef HAVE_STREAMS_IMODULE */
+	}
+
+	if ( Inputs.im_fd < 0 && Inputs.im_next == NULL ) {
 		dprintf(DPRINTF_SERIOUS)("syslogd: no inputs active\n");
 		usage();
 	}

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.75 2001/02/08 18:01:53 alejo Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.76 2001/02/22 20:10:27 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -65,6 +65,9 @@
 int
 im_bsd_init(struct i_module *I, char **argv, int argc)
 {
+
+	dprintf(DPRINTF_INFORMATIVE)("im_bsd_init: Entering\n");
+
 	if ((I->im_fd = open(_PATH_KLOG, O_RDONLY, 0)) < 0) {
 		dprintf(DPRINTF_SERIOUS)("can't open %s (%d)\n", _PATH_KLOG,
 		    errno);

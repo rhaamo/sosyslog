@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.88 2001/02/28 23:47:41 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.89 2001/03/01 00:46:01 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(config.h)dnl
@@ -146,6 +146,7 @@ AC_ARG_WITH(bsd,
 ],[
 	if test $with_bsd = "yes" ; then
 		MSRCS="$MSRCS im_bsd.c"
+		AC_DEFINE(HAVE_BSD_IMODULE)
 	fi
 ],[
 	if test "$UNAME" = "OpenBSD" -o "$UNAME" = "NetBSD" \
@@ -153,6 +154,7 @@ AC_ARG_WITH(bsd,
 	    -o "$UNAME"  = "386BSD"  -o "$UNAME" = "ArchBSD" \
 	    -o "$UNAME"  = "TrustedBSD" ; then
 		MSRCS="$MSRCS im_bsd.c"
+		AC_DEFINE(HAVE_BSD_IMODULE)
 	fi
 ])dnl
 
@@ -164,11 +166,13 @@ AC_ARG_WITH(linux,
 	if test "$with_linux" = "yes" ; then
 		MSRCS="$MSRCS im_linux.c"
 		MANPAGES="$MANPAGES im_linux.8"
+		AC_DEFINE(HAVE_LINUX_IMODULE)
 	fi
 ],[
 	AC_CHECK_HEADER(sys/klog.h, [
 		MSRCS="$MSRCS im_linux.c"
 		MANPAGES="$MANPAGES im_linux.8"
+		AC_DEFINE(HAVE_LINUX_IMODULE)
 	])dnl
 ])dnl
 
@@ -191,10 +195,12 @@ AC_ARG_WITH(unix,
 ],[
 	if test $with_unix = "yes" ; then
 		MSRCS="$MSRCS im_unix.c"
+		AC_DEFINE(HAVE_UNIX_IMODULE)
 	fi
 ],[
 	AC_CHECK_HEADER(sys/un.h, [
 		MSRCS="$MSRCS im_unix.c"
+		AC_DEFINE(HAVE_UNIX_IMODULE)
 	])dnl
 ])dnl
 
@@ -226,6 +232,7 @@ AC_ARG_WITH(streams,
 		MLIBS="$MLIBS -lpthread"
 		MANPAGES="$MANPAGES im_streams.8"
 		SYSLOGD_LIBS="$SYSLOGD_LIBS -lthread -ldoor"
+		AC_DEFINE(HAVE_STREAMS_IMODULE)
         	AC_MSG_RESULT(yes)
        	else
         	AC_MSG_RESULT(no)
@@ -237,6 +244,7 @@ AC_ARG_WITH(streams,
 		SYSLOGD_LIBS="$SYSLOGD_LIBS -lthread -ldoor"
 		MSRCS="$MSRCS im_doors.c"
 		MANPAGES="$MANPAGES im_doors.8"
+		AC_DEFINE(HAVE_STREAMS_IMODULE)
         	AC_MSG_RESULT(yes)
 	], AC_MSG_RESULT(no) )dnl
 ])

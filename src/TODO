@@ -1,4 +1,4 @@
-/*	$CoreSDI: TODO,v 1.68 2001/03/01 00:01:22 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.69 2001/03/01 00:48:49 alejo Exp $	*/
 
 Things to do:
 
@@ -8,7 +8,6 @@ Things to do:
 - Change strcpy and strncpy to strlcpy (same w/ strlcat)
 - define STYLE for names (ie. underscore or caps, indentation)
 - Check linux kernel 2.4 potential header problems
-- autodetect wich input module is needed automagically (ie im_unix + im_bsd)
 - redo parsing functions
 - CHECK LIBC and GLIBC's way to work
 - More docs on source code
