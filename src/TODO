@@ -1,4 +1,4 @@
-/*	$CoreSDI: TODO,v 1.51 2000/11/06 23:36:16 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.52 2000/11/10 23:17:43 alejo Exp $	*/
 
 Things to do:
 
@@ -12,6 +12,7 @@ Things to do:
 - CHECK LIBC and GLIBC's way to work
 - More docs on source code
 - unify documentation
+- move conditional.h to autoconf ?
 
 FOR FUTURE WORKING
 
