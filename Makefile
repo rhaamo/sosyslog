@@ -1,7 +1,7 @@
 #	$CoreSDI$
 
 CC	=	gcc
-CFLAGS	=	-O4 -Wall -ggdb
+CFLAGS	=	-O2 -Wall
 LDADD	=	-lc
 #-L/usr/local/lib/mysql -lmysqlclient
 COMPILE	=	$(CC) $(CFLAGS) -c $(.ALLSRC)
@@ -10,8 +10,7 @@ LINK	=	$(CC) $(CFLAGS) $(LDADD) -o $(.TARGET) $(.ALLSRC)
 
 all:	syslogd	\
 	peochk	\
-	man	\
-	tester
+	man
 
 syslogd:	syslogd.c\
 		ttymsg.c\
@@ -35,8 +34,7 @@ peo/om_peo.o peo/hash.o peo/rmd160.o:
 man:
 	@make -f Makeman
 
-tester:		tester.c
-
 clean:
-	@(cd peo && make clean);
-	@rm -f *.o syslogd tester
+	-@(cd peo && make clean);
+	-@rm -f core *.core *.o syslogd
+
