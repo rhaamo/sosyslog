@@ -858,7 +858,7 @@ if test "${with_msyslog_libdir+set}" = set; then
   withval="$with_msyslog_libdir"
   MSYSLOG_LIBDIR="$withval"
 else
-  MSYSLOG_LIBDIR="/usr/local/lib/alat"
+  MSYSLOG_LIBDIR="${prefix}/lib/alat"
 
 fi
 
