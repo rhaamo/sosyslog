@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.80 2000/05/30 19:29:38 claudio Exp $	*/
+/*	$CoreSDI: modules.c,v 1.81 2000/06/02 01:04:12 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -51,7 +51,6 @@ int	om_peo_doLog __P((struct filed *, int, char *, struct om_hdr_ctx *));
 int	om_peo_init __P((int, char **, struct filed *, char *,
 	    struct om_hdr_ctx **));
 int	om_peo_close __P((struct filed *, struct om_hdr_ctx *));
-int	om_peo_flush __P((struct filed *, struct om_hdr_ctx *));
 
 int	om_classic_doLog __P((struct filed *, int , char *,
 	    struct om_hdr_ctx *));
@@ -155,7 +154,7 @@ modules_load()
 	OModules[OM_PEO].om_doLog		= om_peo_doLog;
 	OModules[OM_PEO].om_init		= om_peo_init;
 	OModules[OM_PEO].om_close		= om_peo_close;
-	OModules[OM_PEO].om_flush		= om_peo_flush;
+	OModules[OM_PEO].om_flush		= NULL;
 
 	/* bsd kernel input module */
 	IModules[IM_BSD].im_name		= "bsd";
