@@ -9,7 +9,8 @@ LINK	=	$(CC) $(CFLAGS) $(LDADD) -o $(.TARGET) $(.ALLSRC)
 
 
 all:	syslogd	\
-	peochk
+	peochk \
+	tester
 
 syslogd:	syslogd.c\
 		ttymsg.c\
@@ -30,6 +31,8 @@ peochk:
 peo/om_peo.o peo/hash.o peo/rmd160.o:
 	@(cd peo && make om_peo);
 
+tester:		tester.c
+
 clean:
 	@(cd peo && make clean); rm -f *.o syslogd 
-	@rm -f *.o syslogd 
+	@rm -f *.o syslogd tester
