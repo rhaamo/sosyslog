@@ -1,8 +1,9 @@
-/*	$CoreSDI$	*/
+/*	$CoreSDI: TODO,v 1.17 2000/06/02 23:10:03 fgsch Exp $	*/
 
 Things to do:
 
-- check pager  stuff formats
+- do not generate coredumps (via resource limits)
+- check pager stuff formats
 - check M$ MAPI
 - thinker about wall mesages
 - abstract a *net.c fileall networking code ?
@@ -11,18 +12,14 @@ Things to do:
 - minimize global variables even more
 - CHECK LIBC and GLIBC's way to work
 - program execution module
-
 - finish modularization and classic module
 - change initialization, write modules om_init()
 - create 'program' module
 - redo parsing of config using isspace
 - change static linking to some configurable dynamic module handling
-
 - take out unused includes on syslogd.c
 - think some way to specify multiple modules on syslog.conf
-
 - Check configuration parsing, there is at least 1 buffer overflow
-
 - remove or at least integrate consfile using and creation
 
 FOR FUTURE WORKING
@@ -34,8 +31,7 @@ get in the exactly same state as before the error).
 Check for buffer overflows, as we now may get things from the outside world.
 
 - We need to change the decode function on syslogd.c and use the strcasecmp()
-function
-
+  function
 - Modules initialization should be dinamic
 - Kill filed structure
 - Optimize each input/output module
@@ -44,16 +40,15 @@ function
 - Udp input module from an arbitrary port
 - Allow not only one module type on each configuration line
 - Add linux extensions on selector field on configuration file
-- Add support to log on linux pseudo terminals (pts/x) (UPDATE: not really good)
-
+- Add support to log on linux pseudo terminals (pts/x)
+  (UPDATE: not really good)
 - We can't do select when im->path = NULL and im->fd >= 0 but the module
   should be called.
   We need to allow several others log methods like syscalls (ex.: im_linux)
   Problem: klogctl syscall con linux blocks until the kernel logs something,
   a signal should be used to stop this block
-
 - A script to generate a static_modules.h and set an array of structs there for
-   each static module.
-
-- Improve om_filter so it can rewrite messages. maybe resend to input. im_filter?
+  each static module.
+- Improve om_filter so it can rewrite messages. maybe resend to input.
+  im_filter?
 
