@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.51 2000/05/09 20:37:13 alejo Exp $
+/*	$Id: modules.c,v 1.52 2000/05/10 21:04:05 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -70,15 +70,15 @@ void    die __P((int));
 
 int parseParams(char ***, char *);
 
-extern struct OModule *OModules;
-extern struct IModule *IModules;
+extern struct OModule OModules[];
+extern struct IModule IModules[];
 
 int
 modules_load()
 {
 	/* initialize module function assignations */
-	memset(OModules, 0, sizeof(OModules));
-	memset(IModules, 0, sizeof(IModules));
+	memset(OModules, 0, MAX_N_OMODULES);
+	memset(IModules, 0, MAX_N_IMODULES);
 
 	/* classic module */
 	OModules[OM_CLASSIC].om_name 		= "classic";
@@ -339,10 +339,10 @@ parseParams(ret, c)
 
 		}
 
-		*ret[argc++] = strdup(p);
+		(*ret)[argc++] = strdup(p);
 		if ((argc % 20) == 18)
 		    *ret = (char **) realloc(*ret, sizeof(char *) * (argc + 20));
-		*ret[argc] = NULL;
+		(*ret)[argc] = NULL;
 	}
 	
 	free(line);
