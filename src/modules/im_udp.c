@@ -74,23 +74,109 @@ struct im_udp_ctx {
 /* prototypes */
 struct sockaddr *resolv_name(char *, char *, char *, socklen_t *);
 
+/*
+ * initialize udp input
+ *
+ *  this module takes a host argument (ie. 0.0.0.0, 0::0, server.example.com)
+ *  and a port/service ('syslog' or numerical)
+ */
+
+int
+im_udp_init(struct i_module *I, char **argv, int argc)
+{
+	struct im_udp_ctx	*c;
+	char   *host, *port;
+	int    ch, argcnt;
+
+  m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: entering\n");
+
+	if ( (I->im_ctx = calloc(1, sizeof(struct im_udp_ctx))) == NULL) {
+     m_dprintf(MSYSLOG_SERIOUS, "om_udp_init: cannot alloc memory");
+return (-1);
+  }
+
+	c = (struct im_udp_ctx *) I->im_ctx;
+
+	host = "0.0.0.0";
+	port = "syslog";
+
+	for (argcnt = 1;  /* skip module name */
+       (ch = getxopt(argc, argv, "h!host: p!port: a!addhost q!nofqdn", &argcnt)) != -1;
+       argcnt++ )
+  {
+		switch (ch) {
+		case 'h':
+			/* get addr to bind */
+			host = argv[argcnt];
+			break;
+		case 'p':
+			/* get remote host port */
+			port = argv[argcnt];
+			break;
+		case 'a':
+			c->flags |= M_USEMSGHOST;
+			break;
+		case 'q':
+			/* dont use domain in hostname (FQDN) */
+			c->flags |= M_NOTFQDN;
+			break;
+		default:
+			m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: parsing error [%c]\n", ch);
+			free(c);
+return (-1);
+		}
+	}
+
+  { /* get the udp socket */
+	  struct sockaddr		*sa;
+  	socklen_t		salen;
+
+  	I->im_fd = socket(AF_INET, SOCK_DGRAM, 0);
+
+  	if ((sa = resolv_name(host, port, "udp", &salen)) == NULL) {
+  		m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: error resolving host"
+  		    "[%s] and port [%s]", host, port);
+  		free(c);
+return (-1);
+  	}
+
+  	if (bind(I->im_fd, sa, salen) < 0) {
+  		m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: error binding to host"
+  		    "[%s] and port [%s]", host, port);
+  		free(c);
+return (-1);
+  	}
+ 	}
+
+	I->im_path = NULL;
+
+	add_fd_input(I->im_fd , I);
+
+	m_dprintf(MSYSLOG_INFORMATIVE, "im_udp: running\n");
+return (1);
+}
+
 
 /*
- * get messge
- *
+ * im_tcp_read: accept a connection and add it to the queue
+ * connections and modules are read in a round-robin so partial lines
+ * must persist across calls to the im_read functions for the
+ * various modules.
  */
 
 int
 im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 {
-	struct sockaddr_in	 frominet;
 	struct im_udp_ctx	*c;
-	char			*p;
-	int			 slen;
+	struct sockaddr_in	 frominet;
+	char   *p;
+	int    slen;
+
+  m_dprintf(MSYSLOG_INFORMATIVE, "im_udp_read: entering...\n");
 
 	if (ret == NULL) {
 		m_dprintf(MSYSLOG_SERIOUS, "im_udp: arg is null\n");
-		return (-1);
+return (-1);
 	}
 
 	ret->im_pid = -1;
@@ -103,7 +189,7 @@ im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 	    (socklen_t *)&slen)) < 1) {
 		if (ret->im_len < 0 && errno != EINTR)
 			logerror("recvfrom inet");
-		return (1);
+return (1);
 	}
 
 	ret->im_msg[ret->im_len] = '\0';
@@ -131,11 +217,11 @@ im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 		    ret->im_msg[n2] == '\0') {
 			m_dprintf(MSYSLOG_INFORMATIVE, "im_udp_read: skipped"
 			    " invalid message [%s]\n", ret->im_msg);
-			return (0);
+return (0);
 		}
 
 		if (ret->im_msg[n2] == '\0')
-			return (0);
+return (0);
 
 		/* remove host from message */
 		while (ret->im_msg[n2] != '\0')
@@ -168,82 +254,7 @@ im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 			*dot = '\0';
 	}
 
-	return (1);
-}
-
-/*
- * initialize udp input
- *
- */
-
-int
-im_udp_init(struct i_module *I, char **argv, int argc)
-{
-	struct sockaddr		*sa;
-	struct im_udp_ctx	*c;
-	char			*host, *port;
-	int			ch, argcnt;
-	socklen_t		salen;
-
-	if ( (I->im_ctx = calloc(1, sizeof(struct im_udp_ctx))) == NULL)
-		return (-1);
-
-	c = (struct im_udp_ctx *) I->im_ctx;
-
-	port = "syslog";
-	host = "0.0.0.0";
-
-	argcnt = 1; /* skip module name */
-
-	while ((ch = getxopt(argc, argv, "h!host: p!port: a!addhost q!nofqdn",
-	    &argcnt)) != -1) {
-		switch (ch) {
-		case 'h':
-			/* get addr to bind */
-			host = argv[argcnt];
-			break;
-		case 'p':
-			/* get remote host port */
-			port = argv[argcnt];
-			break;
-		case 'a':
-			c->flags |= M_USEMSGHOST;
-			break;
-		case 'q':
-			/* dont use domain in hostname (FQDN) */
-			c->flags |= M_NOTFQDN;
-			break;
-		default:
-			m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: parsing error"
-			    " [%c]\n", ch);
-			free(c);
-			return (-1);
-		}
-		argcnt++;
-	}
-
-	I->im_fd = socket(AF_INET, SOCK_DGRAM, 0);
-
-	if ((sa = resolv_name(host, port, "udp", &salen)) == NULL) {
-		m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: error resolving host"
-		    "[%s] and port [%s]", host, port);
-		free(c);
-		return (-1);
-	}
-
-	if (bind(I->im_fd, sa, salen) < 0) {
-		m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: error binding to host"
-		    "[%s] and port [%s]", host, port);
-		free(c);
-		return (-1);
-	}
-
-	I->im_path = NULL;
-
-	add_fd_input(I->im_fd , I);
-
-	m_dprintf(MSYSLOG_INFORMATIVE, "im_udp: running\n");
-	return (1);
+return (1);
 }
 
 int
@@ -252,5 +263,5 @@ im_udp_close(struct i_module *im)
 
 	close(im->im_fd);
 
-	return (0);
+return (0);
 }

@@ -115,13 +115,13 @@ int
 im_tcp_init(struct i_module *I, char **argv, int argc)
 {
 	struct im_tcp_ctx	*c;
-	char			*host, *port;
-	int			ch, argcnt;
+	char   *host, *port;
+	int    ch, argcnt;
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: entering\n");
 
 	if ( (I->im_ctx = calloc(1, sizeof(struct im_tcp_ctx))) == NULL) {
-		m_dprintf(MSYSLOG_SERIOUS, "om_tcp_init: cant alloc memory");
+		m_dprintf(MSYSLOG_SERIOUS, "om_tcp_init: cannot alloc memory");
 return (-1);
 	}
 
@@ -130,11 +130,10 @@ return (-1);
 	host = "0.0.0.0";
 	port = "syslog";
 
-	argcnt = 1; /* skip module name */
-
-	while ((ch = getxopt(argc, argv, "h!host: p!port: a!addhost q!nofqdn",
-	    &argcnt)) != -1) {
-
+	for ( argcnt = 1; /* skip module name */
+        (ch = getxopt(argc, argv, "h!host: p!port: a!addhost q!nofqdn", &argcnt)) != -1;
+        argcnt++ )
+  {
 		switch (ch) {
 		case 'h':
 			/* get addr to bind */
@@ -152,17 +151,17 @@ return (-1);
 			c->flags |= M_NOTFQDN;
 			break;
 		default:
-			m_dprintf(MSYSLOG_SERIOUS, "om_tcp_init: parsing error"
-			    " [%c]\n", ch);
+			m_dprintf(MSYSLOG_SERIOUS, "om_tcp_init: parsing error [%c]\n", ch);
 			free(c);
 return (-1);
 		}
-		argcnt++;
 	}
 
+  /* get the tcp socket */
 	if ( (I->im_fd = listen_tcp(host, port, &c->addrlen)) < 0) {
-		m_dprintf(MSYSLOG_SERIOUS, "im_tcp_init: error with listen_tcp() %s\n",
-		    strerror(errno));
+		m_dprintf(MSYSLOG_SERIOUS,
+        "im_tcp_init: error with listen_tcp(%s,%s,%d) %s\n",
+		    host, port, c->addrlen, strerror(errno));
 		free(c);
 return (-1);
 	}
@@ -172,7 +171,6 @@ return (-1);
 	add_fd_input(I->im_fd , I);
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: running\n");
-
 return (1);
 }
 
@@ -195,7 +193,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 
 	if (im == NULL || ret == NULL) {
 		m_dprintf(MSYSLOG_SERIOUS, "im_tcp_read: arg %s%s is null\n",
-		    ret? "ret":"", im? "im" : "");
+		    (ret ? "ret" : ""), (im ? "im" : "") );
 return (-1);
 	}
 
