@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_tcp.c,v 1.12 2001/03/23 00:12:30 alejo Exp $	*/
+/*	$CoreSDI: om_tcp.c,v 1.13 2001/04/20 00:50:54 alejo Exp $	*/
 /*
      Copyright (c) 2001, Core SDI S.A., Argentina
      All rights reserved
@@ -67,6 +67,9 @@ struct om_tcp_ctx {
 	int	fd;
 	char	*host;
 	char	*port;  /* either 'syslog' or number up to XXXXX */
+	char	*saved;
+	int	savesize;
+	int	savelen;
 	unsigned int	msec;	/* maximum seconds to wait until connection retry */
 	unsigned int	inc;	/* increase save */
 	time_t	savet;		/* saved time of last failed reconnect */
@@ -98,12 +101,6 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	int	ch;
 	char	statbuf[1024];
 
-	if (argv == NULL || argc != 5) {
-		dprintf(MSYSLOG_INFORMATIVE, "om_tcp_init: wrong param count"
-		    " %d, should be 5\n", argc);
-		return (-1);
-	}
-
 	dprintf(MSYSLOG_INFORMATIVE, "om_tcp init: Entering\n");
 
 	if ((*ctx = (void *) calloc(1, sizeof(struct om_tcp_ctx))) == NULL) {
@@ -118,7 +115,7 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 #ifdef HAVE_OPTRESET
 	optreset = 1;
 #endif
-	while ((ch = getopt(argc, argv, "h:p:m:")) != -1) {
+	while ((ch = getopt(argc, argv, "h:p:m:s:")) != -1) {
 		switch (ch) {
 		case 'h':
 			/* get remote host name/addr */
@@ -131,6 +128,11 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		case 'm':
 			/* get maximum seconds to wait on connect retry */
 			c->msec = (unsigned int) strtol(optarg, NULL, 10);
+			break;
+		case 's':
+			/* set saved buffer size */
+			c->savesize = strtol(optarg, NULL, 10);
+			c->saved = (char *) malloc(c->savesize);
 			break;
 		default:
 			dprintf(MSYSLOG_SERIOUS, "om_tcp_init: parsing error"
@@ -203,7 +205,8 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 	 */
 
 	/* If down or couldn't write, reconnect  */
-	 if ( c->fd < 0 || (write(c->fd, line, l) != l) ) {
+	 if ( c->fd < 0 || (c->savelen && (write(c->fd, c->saved, c->savelen)
+	    != c->savelen)) || (write(c->fd, line, l) != l) ) {
 		time_t t;
 
 		t = time(NULL);
@@ -220,6 +223,12 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 
 			if ((t - (c->msec - (c->msec / c->inc))) < c->savet ) {
 				dprintf(MSYSLOG_INFORMATIVE, "no!\n");
+				if (c->saved && l < (c->savesize - c->savelen
+				    - 1)) {
+					strncat(c->saved, line, c->savesize
+				   	    - 1 - c->savelen);
+					c->savelen = strlen(c->saved);
+				}
 				return(0);
 			}
 
@@ -235,7 +244,8 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 		if (c->fd > -1);
 			close(c->fd);
 		if ( ((c->fd = connect_tcp(c->host, c->port)) < 0) ||
-		    (write(c->fd, line, l) != l) ) {
+	 	    (c->savelen && (write(c->fd, c->saved, c->savelen)
+		    != c->savelen)) || (write(c->fd, line, l) != l) ) {
 
 			dprintf(MSYSLOG_SERIOUS, "still down! next retry "
 			    "in %i seconds\n", c->msec - (c->msec / c->inc));
@@ -248,14 +258,29 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 
 			place_signal(SIGPIPE, sigsave);
 
+			/* save this line too if posible */
+			if (c->saved && l < (c->savesize - c->savelen - 1)) {
+				strncat(c->saved, line, c->savesize - 1 -
+				    c->savelen);
+				c->savelen = strlen(c->saved);
+			}
+
 			return(0);
 
 		} else {
 			dprintf(MSYSLOG_SERIOUS, "reconnected!\n");
 			c->inc = 2;
 			c->savet = 0;
+			if (c->savelen) {
+				c->savelen = 0;
+				c->saved[0] = '\0';
+			}
 		}
+	} else if (c->savelen) {  /* yes this code is repeated, but CLEAR */
+		c->savelen = 0;
+		c->saved[0] = '\0';
 	}
+			
 
 	place_signal(SIGPIPE, sigsave);
 
