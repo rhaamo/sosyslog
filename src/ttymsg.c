@@ -66,11 +66,12 @@ static char rcsid[] = "$OpenBSD: ttymsg.c,v 1.3 1996/10/25 06:06:30 downsj Exp $
 char *
 ttymsg(struct iovec *iov, int iovcnt, char *line, int tmout)
 {
-	static char device[MAXNAMLEN] = _PATH_DEV;
+	static char device[MAXNAMLEN] = { _PATH_DEV };
 	static char errbuf[1024];
 	register int cnt, fd, left, wret;
 	struct iovec localiov[6];
 	int forked = 0;
+
 
 	if (iovcnt > sizeof(localiov) / sizeof(localiov[0]))
 		return ("too many iov's (change code in wall/ttymsg.c)");
@@ -83,12 +84,15 @@ ttymsg(struct iovec *iov, int iovcnt, char *line, int tmout)
 		return (NULL);
 
 	(void) strcpy(device + sizeof(_PATH_DEV) - 1, line);
+
+#ifndef HAVE_LINUX
 	if (strchr(device + sizeof(_PATH_DEV) - 1, '/')) {
 		/* A slash is an attempt to break security... */
 		(void) snprintf(errbuf, sizeof(errbuf), "'/' in \"%s\"",
 		    device);
 		return (errbuf);
 	}
+#endif
 
 	/*
 	 * open will fail on slip lines or exclusive-use lines

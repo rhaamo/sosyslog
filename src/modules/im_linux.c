@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.18 2000/06/09 20:50:10 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.19 2000/06/12 18:51:39 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -421,12 +421,14 @@ ksym_snprintf (buf, bufsize, raw)
 		break;
 	}
 
-	if (*raw)
+	if (*raw) {
 		/* kernel message without symbols */
 		if ( (i = snprintf(buf+printed, bufsize, "%s", raw)) < 0)
 			return(-1);
 		else
 			printed += i;
+	}
+
 	return(printed);
 }
 
