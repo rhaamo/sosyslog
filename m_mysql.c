@@ -90,17 +90,23 @@ m_mysql_doLog(f, flags, msg, context)
 	struct m_header *context;
 {
 	struct m_mysql_ctx *c;
-	char	*dummy, *y, *m, *d, *h;
+	char	*dummy, *y, *m, *d, *h, mymsg[1024];
 
+	dprintf("MySQL doLog: entering [%s] [%s]\n", msg, f->f_prevline);
 	if (f == NULL)
 		return (-1);
 
-	/* this module doesn't cache */
-	if (msg == NULL)
-		return(0);
-
 	c = (struct m_mysql_ctx *) context;
 	memset(c->query, 0, MAX_QUERY);
+
+        if (msg == NULL) {
+        	if (f->f_prevcount > 1) {
+                	sprintf(mymsg, "last message repeated %d times",
+                    			f->f_prevcount);
+		} else {
+                	sprintf(mymsg, "%s", f->f_prevline);
+        	}
+        }
 
 	/* get date and time */
 
@@ -114,9 +120,10 @@ m_mysql_doLog(f, flags, msg, context)
 	y = dummy + 16;
 
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, programname,  msg  */ 
-	if (snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s VALUES('%s-%s-%s', '%s',
-			'%s', '%s', '%s', '%s",
-			c->table, y, m, d, h, f->f_prevhost, msg) == MAX_QUERY - 2 ) {
+	if (snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s
+			VALUES('%s-%s-%s', '%s', '%s', '%s', '%s',
+			'%s", c->table, y, m, d, h, mymsg)
+			== MAX_QUERY - 2 ) {
 		/* force termination if msg filled the buffer */
 		c->query[MAX_QUERY - 2] = '\'';
 		c->query[MAX_QUERY - 1] = ')';
@@ -143,6 +150,8 @@ m_mysql_doLog(f, flags, msg, context)
  *
  */
 
+extern char *oprtarg;
+
 int
 m_mysql_init(argc, argv, f, prog, c)
 	int	argc;
@@ -157,22 +166,28 @@ m_mysql_init(argc, argv, f, prog, c)
 	int	port, client_flag, createTable;
 	int	ch, i;
 
+	dprintf("MySQL: entering initialization\n");
+
 	if (argv == NULL || *argv == NULL || argc < 2 || f == NULL ||
-			prog == NULL || c == NULL)
+			c == NULL)
 		return (-1);
 
+	h = (MYSQL *) calloc(1, sizeof(MYSQL));
 	user = NULL; passwd = NULL; db = NULL; port = 0;
 	client_flag = 0; createTable = 0;
 
 	/* parse line */
-	while ((ch = getopt(argc, argv, "s:u:p:b:t:c")) != -1) {
+	optreset = 1; optind = 0;
+	while ((ch = getopt(argc, argv, "s:u:p:d:t:c")) != -1) {
 		switch (ch) {
 			case 's':
 				/* get database host name and port */
-				if ((p = strstr(optarg, ":")) == NULL)
+				if ((p = strstr(optarg, ":")) == NULL) {
 					port = MYSQL_PORT;
-				else
+				} else {
+					*p = '\0';
 					port = atoi(++p);
+				}
 				host = strdup(optarg);
 				break;
 			case 'u':
@@ -199,14 +214,15 @@ m_mysql_init(argc, argv, f, prog, c)
 	if ( user == NULL || passwd == NULL || db == NULL || port == 0)
 		return (-3);
 
-	/* clean up the mess */
+	/* connect to the database */
 	if (!mysql_init(h)) {
 		dprintf("Error initializing handle\n");
 		return(-4);
 	}
 	if (!mysql_real_connect(h, host, user, passwd, db, port,
 			NULL, client_flag)) {
-		dprintf("Error connecting to db server [%s:%i] user [%s] db [%s]\n",
+		dprintf("MySQL module: Error connecting to db server"
+			" [%s:%i] user [%s] db [%s]\n",
 				host, port, user, db);
 		return(-5);
 	}

@@ -64,6 +64,10 @@ static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $"
 #include "syslogd.h"
 #include "modules.h"
 
+void	wallmsg __P((struct filed *, struct iovec *));
+char   *ttymsg __P((struct iovec *, int, char *, int));
+
+
 int
 m_classic_doLog(f, flags, msg, context)
 	struct filed *f;
@@ -309,5 +313,62 @@ m_classic_flush(f, context)
 	if (f->f_prevcount)
 		m_classic_doLog(f, 0, (char *)NULL, NULL);
 
+}
+
+/*
+ *  WALLMSG -- Write a message to the world at large
+ *
+ *	Write the specified message to either the entire
+ *	world, or a list of approved users.
+ */
+void
+wallmsg(f, iov)
+	struct filed *f;
+	struct iovec *iov;
+{
+	static int reenter;			/* avoid calling ourselves */
+	FILE *uf;
+	struct utmp ut;
+	int i;
+	char *p;
+	char line[sizeof(ut.ut_line) + 1];
+
+	if (reenter++)
+		return;
+	if ((uf = fopen(_PATH_UTMP, "r")) == NULL) {
+		logerror(_PATH_UTMP);
+		reenter = 0;
+		return;
+	}
+	/* NOSTRICT */
+	while (fread((char *)&ut, sizeof(ut), 1, uf) == 1) {
+		if (ut.ut_name[0] == '\0')
+			continue;
+		strncpy(line, ut.ut_line, sizeof(ut.ut_line));
+		line[sizeof(ut.ut_line)] = '\0';
+		if (f->f_type == F_WALL) {
+			if ((p = ttymsg(iov, 6, line, TTYMSGTIME)) != NULL) {
+				errno = 0;	/* already in msg */
+				logerror(p);
+			}
+			continue;
+		}
+		/* should we send the message to this user? */
+		for (i = 0; i < MAXUNAMES; i++) {
+			if (!f->f_un.f_uname[i][0])
+				break;
+			if (!strncmp(f->f_un.f_uname[i], ut.ut_name,
+			    UT_NAMESIZE)) {
+				if ((p = ttymsg(iov, 6, line, TTYMSGTIME))
+								!= NULL) {
+					errno = 0;	/* already in msg */
+					logerror(p);
+				}
+				break;
+			}
+		}
+	}
+	(void)fclose(uf);
+	reenter = 0;
 }
 

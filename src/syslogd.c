@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.10 2000/03/30 00:22:50 alejo Exp $
+/*	$Id: syslogd.c,v 1.11 2000/04/04 23:35:24 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -97,9 +97,9 @@ char	ctty[] = _PATH_CONSOLE;
  */
 int	repeatinterval[] = { 30, 120, 600 };	/* # of secs before flush */
 
-char	*TypeNames[7] = {
+char	*TypeNames[8] = {
 	"UNUSED",	"FILE",		"TTY",		"CONSOLE",
-	"FORW",		"USERS",	"WALL"
+	"FORW",		"USERS",	"WALL",		"MODULE"
 };
 
 struct	filed *Files;
@@ -128,9 +128,7 @@ void	logmsg __P((int, char *, char *, int));
 void	printline __P((char *, char *));
 void	printsys __P((char *));
 void	reapchild __P((int));
-char   *ttymsg __P((struct iovec *, int, char *, int));
 void	usage __P((void));
-void	wallmsg __P((struct filed *, struct iovec *));
 
 #define MAXFUNIX	21
 
@@ -594,62 +592,6 @@ doLog(f, flags, msg)
 	}
 }
 
-/*
- *  WALLMSG -- Write a message to the world at large
- *
- *	Write the specified message to either the entire
- *	world, or a list of approved users.
- */
-void
-wallmsg(f, iov)
-	struct filed *f;
-	struct iovec *iov;
-{
-	static int reenter;			/* avoid calling ourselves */
-	FILE *uf;
-	struct utmp ut;
-	int i;
-	char *p;
-	char line[sizeof(ut.ut_line) + 1];
-
-	if (reenter++)
-		return;
-	if ((uf = fopen(_PATH_UTMP, "r")) == NULL) {
-		logerror(_PATH_UTMP);
-		reenter = 0;
-		return;
-	}
-	/* NOSTRICT */
-	while (fread((char *)&ut, sizeof(ut), 1, uf) == 1) {
-		if (ut.ut_name[0] == '\0')
-			continue;
-		strncpy(line, ut.ut_line, sizeof(ut.ut_line));
-		line[sizeof(ut.ut_line)] = '\0';
-		if (f->f_type == F_WALL) {
-			if ((p = ttymsg(iov, 6, line, TTYMSGTIME)) != NULL) {
-				errno = 0;	/* already in msg */
-				logerror(p);
-			}
-			continue;
-		}
-		/* should we send the message to this user? */
-		for (i = 0; i < MAXUNAMES; i++) {
-			if (!f->f_un.f_uname[i][0])
-				break;
-			if (!strncmp(f->f_un.f_uname[i], ut.ut_name,
-			    UT_NAMESIZE)) {
-				if ((p = ttymsg(iov, 6, line, TTYMSGTIME))
-								!= NULL) {
-					errno = 0;	/* already in msg */
-					logerror(p);
-				}
-				break;
-			}
-		}
-	}
-	(void)fclose(uf);
-	reenter = 0;
-}
 
 void
 reapchild(signo)

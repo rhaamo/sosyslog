@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.17 2000/04/03 22:30:11 alejo Exp $
+/*	$Id: modules.c,v 1.18 2000/04/04 23:35:23 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -137,7 +137,8 @@ int modules_create(c, f, prog)
 
 				/* build argv and argc, modifies input p */
 				while (isspace(*p)) p++;
-				while (*p && *p!='%' && *p !='\n' && *p!='\r' && argc<sizeof(argv)/sizeof(argv[0])) { 
+				while (*p && *p!='%' && *p !='\n' && *p!='\r'
+						&& argc<sizeof(argv)/sizeof(argv[0])) { 
 				
 					(*p=='"' || *p=='\'')? quotes = *p++ : 0;
 						
