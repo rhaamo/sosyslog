@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.184 2001/03/23 00:12:28 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.185 2001/03/23 17:54:31 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.184 2001/03/23 00:12:28 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.185 2001/03/23 17:54:31 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -123,7 +123,7 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.184 2001/03/23 00:12:28 alejo Exp
 #include "modules.h"
 #include "syslogd.h"
 
-#ifdef PATH_MAX   
+#ifdef PATH_MAX
 #define PID_PATH_MAX PATH_MAX
 #else
 #ifdef _POSIX_PATH_MAX
@@ -153,6 +153,10 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.184 2001/03/23 00:12:28 alejo Exp
 /* #warning using 255 for NAME_MAX */
 #endif /* MAXNAMLEN */
 #endif /* NAME_MAX */
+
+#ifndef socklen_t
+# define socklen_t int
+#endif
 
 /*
  * Intervals at which we flush out "message repeated" messages,
@@ -290,7 +294,7 @@ main(int argc, char **argv)
 			break;
 		case 'p':	/* path */
 		case 'a':	/* additional im_unix socket */
-			snprintf(buf, sizeof(buf), "unix %s", optarg); 
+			snprintf(buf, sizeof(buf), "unix %s", optarg);
 			if (imodule_create(&Inputs, buf) < 0) {
 				fprintf(stderr, "syslogd: WARNING out of "
 				    "descriptors, ignoring %s\n", optarg);
@@ -384,7 +388,7 @@ main(int argc, char **argv)
 		}
 	} else
 		setlinebuf(stdout);
-	
+
 	gethostname(LocalHostName, sizeof(LocalHostName));
 	if ((p = strchr(LocalHostName, '.')) != NULL) {
 		*p++ = '\0';
@@ -629,14 +633,16 @@ usage(void)
  */
 void
 printline(char *hname, char *msg, size_t len, int flags)
-{ 
-	char *p, *q, line[len + 2];
-	unsigned char c;
+{
+	register char *p, *q;
+	register unsigned char c;
+	char line[len + 2];
 	int pri;
 
 	/* test for special codes */
 	pri = DEFUPRI;
 	p = msg;
+
 	if (*p == '<') {
 		pri = 0;
 		while (isdigit((int)*++p))
@@ -644,6 +650,7 @@ printline(char *hname, char *msg, size_t len, int flags)
 		if (*p == '>')
 			++p;
 	}
+
 	if (pri &~ (LOG_FACMASK|LOG_PRIMASK))
 		pri = DEFUPRI;
 
@@ -683,7 +690,7 @@ printline(char *hname, char *msg, size_t len, int flags)
 void
 logmsg(int pri, char *msg, char *from, int flags)
 {
-	struct filed *f;
+	register struct filed *f;
 	int fac, msglen, prilev, i;
 	sigset_t mask, omask;
  	char prog[NAME_MAX+1];
@@ -787,12 +794,20 @@ logmsg(int pri, char *msg, char *from, int flags)
 	for (f = Files; f; f = f->f_next) {
 		/* skip messages that are incorrect priority */
 		/* XXX */
-		if ( f->f_pmask[fac] < prilev ||
-		    f->f_pmask[fac] == INTERNAL_NOPRI )
+		if (f->f_pmask[fac] == TABLE_NOPRI) {
+printf("********* lo esquivo!!! 1 \n");
 			continue;
+		}
+		if ((f->f_pmask[fac] & (1<<prilev)) == 0) {
+printf("********* lo esquivo!!! 2 %d %d\n", f->f_pmask[fac], (1<<prilev));
+			continue;
+		}
+		if (f->f_pmask[fac] == INTERNAL_NOPRI) {
+printf("********* lo esquivo!!! 3 \n");
+			continue;
+		}
+printf("********* paso!!! \n");
 
-		/* skip messages with the incorrect program name */
-		/* XXX */
 		if (f->f_program)
 			if (strcmp(prog, f->f_program) != 0)
 				continue;
@@ -1209,33 +1224,40 @@ init(int signo)
  */
 void
 cfline(char *line, struct filed *f, char *prog) {
-	int i, pri;
-	char *bp, *p, *q;
-	char buf[MAXLINE], ebuf[100];
+	register int i, j;
+	int pri, singlpri, ignorepri;
+	register char *p, *q;
+	char *bp;
+	char buf[MAXLINE], ebuf[240];
 
 	dprintf(MSYSLOG_INFORMATIVE, "cfline(\"%s\", f, \"%s\")\n", line,
 	    prog);
 
 	errno = 0;	/* keep strerror() stuff out of logerror messages */
+	ignorepri = 0;
+	singlpri = 0;
 
 	/* clear out file entry */
 	memset(f, 0, sizeof(*f));
+
 	for (i = 0; i <= LOG_NFACILITIES; i++)
-		f->f_pmask[i] = INTERNAL_NOPRI;
+		f->f_pmask[i] = TABLE_NOPRI;
 
 	/* save program name if any */
 	if (!strcmp(prog, "*")) prog = NULL;
 		else f->f_program = strdup(prog);
 
 	/* scan through the list of selectors */
-	for (p = line; *p && *p != '\t';) {
+	for (p = line; *p && *p != '\t' && *p != ' ';) {
 
 		/* find the end of this facility name list */
 		for (q = p; *q && *q != '\t' && *q++ != '.'; )
 			continue;
 
+		pri = -1;
+
 		/* collect priority name */
-		for (bp = buf; *q && !strchr("\t,;", *q); )
+		for (bp = buf; *q && !strchr("\t, ;", *q); )
 			*bp++ = *q++;
 		*bp = '\0';
 
@@ -1243,44 +1265,124 @@ cfline(char *line, struct filed *f, char *prog) {
 		while (strchr(", ;", *q))
 			q++;
 
-		/* decode priority name */
-		if (*buf == '*')
-			pri = LOG_PRIMASK + 1;
-		else {
-			/* ignore trailing spaces */
-			for (i = strlen(buf) - 1; i >= 0 && buf[i] == ' ';
-			    i--) {
-				buf[i]='\0';
-			}
+		if (*buf == '!') {
+			ignorepri++;
+			for (bp = buf; *(bp + 1); bp++)
+				*bp = *(bp + 1); /* move back one */
+			*bp = '\0';
+		} else
+			ignorepri = 0;
 
+		if (*buf == '=') {
+			singlpri++;
+			pri = decode(&buf[1], prioritynames);
+			for (bp = buf; *(bp + 1); bp++)
+				*bp = *(bp + 1); /* move back one */
+			*bp = '\0';
+		} else {
+			singlpri = 0;
 			pri = decode(buf, prioritynames);
-			if (pri < 0) {
-				(void)snprintf(ebuf, sizeof ebuf,
-				    "unknown priority name \"%s\"", buf);
-				logerror(ebuf);
-				return;
-			}
 		}
 
-		/* scan facilities */
-		while (*p && !strchr("\t.;", *p)) {
-			for (bp = buf; *p && !strchr("\t,;.", *p); )
-				*bp++ = *p++;
+		if (pri < 0) {
+			snprintf(ebuf, sizeof ebuf, "unknown priority"
+			    " name \"%s\"", buf);
+			logerror(ebuf);
+			return;
+		}
+
+		/*
+		 * Heavily modified to fit sysklogd
+		 * This should be done with lex/yacc
+		 */
+                /* scan facilities */
+		while (*p && !strchr("\t .;", *p)) {
+			for (bp = buf; *p && !strchr("\t ,;.", *p); )
+			    *bp++ = *p++;
+
 			*bp = '\0';
-			if (*buf == '*')
-				for (i = 0; i < LOG_NFACILITIES; i++)
-					f->f_pmask[i] = pri;
-			else {
+
+			if (*buf == '*') {
+				for (i = 0; i <= LOG_NFACILITIES; i++) {
+					if (pri == INTERNAL_NOPRI) {
+						if (ignorepri)
+							f->f_pmask[i] =
+							    TABLE_ALLPRI;
+						else
+							f->f_pmask[i] =
+							    TABLE_NOPRI;
+					} else if (singlpri) {
+						if (ignorepri)
+							f->f_pmask[i] |=
+							    ~(1<<pri);
+						else
+							f->f_pmask[i] |=
+							    (1<<pri);
+					} else {
+						if (pri == TABLE_ALLPRI) {
+							if (ignorepri)
+								f->f_pmask[i] =
+								    TABLE_NOPRI;
+							else
+								f->f_pmask[i] =
+								    TABLE_ALLPRI;
+						} else {
+							if (ignorepri)
+								for (j = 0; j <= pri; ++j)
+									f->f_pmask[i] &= ~(1<<j);
+							else
+								for (j= 0; j <= pri; ++j)
+									f->f_pmask[i] |= (1<<j);
+						}
+					}
+				}
+			} else {
 				i = decode(buf, facilitynames);
+
 				if (i < 0) {
-					(void)snprintf(ebuf, sizeof(ebuf),
-					    "unknown facility name \"%s\"",
-					    buf);
+					snprintf(ebuf, sizeof(ebuf), "unknown"
+					    " facility name \"%s\"", buf);
 					logerror(ebuf);
 					return;
 				}
-				f->f_pmask[i >> 3] = pri;
+
+				if (pri == INTERNAL_NOPRI) {
+					if (ignorepri)
+						f->f_pmask[i >> 3] =
+						    TABLE_ALLPRI;
+					else
+						f->f_pmask[i >> 3] =
+						    TABLE_NOPRI;
+				} else if (singlpri) {
+					if (ignorepri)
+						f->f_pmask[i >> 3] &=
+						    ~(1<<pri);
+					else
+						f->f_pmask[i >> 3] |=
+						    (1<<pri);
+				} else {
+					if (pri == TABLE_ALLPRI) {
+						if (ignorepri)
+							f->f_pmask[i >> 3] =
+							    TABLE_NOPRI;
+						else
+							f->f_pmask[i >> 3] =
+							    TABLE_ALLPRI;
+					} else {
+						if (ignorepri)
+							for (j = 0; j <= pri;
+							    ++j)
+								f->f_pmask[i>>3]
+								    &= ~(1<<j);
+						else
+							for (j= 0; j <= pri;
+							    ++j)
+								f->f_pmask[i>>3]
+								    |= (1<<j);
+					}
+				}
 			}
+
 			while (*p == ',' || *p == ' ')
 				p++;
 		}
@@ -1337,6 +1439,9 @@ decode(const char *name, CODE *codetab) {
 	if (isdigit((int)*name))
 		return (atoi(name));
 
+	if (*name == '*')
+		return (TABLE_ALLPRI);
+
 	for (p = buf; *name && p < &buf[sizeof(buf) - 1]; p++, name++) {
 		if (isupper((int)*name))
 			*p = tolower((int)*name);
@@ -1366,7 +1471,7 @@ int
 add_fd_input(int fd, struct i_module *im)
 {
 
-	if ( fd < 0 || im == NULL) {
+	if (fd < 0 || im == NULL) {
 		dprintf(MSYSLOG_INFORMATIVE, "add_fd_input: error on params"
 		    " %d%s\n", fd, im ? "" : " null im");
 		return (-1);
@@ -1400,7 +1505,7 @@ add_fd_input(int fd, struct i_module *im)
 	fd_inputs[fd_in_count].events = POLLIN;
 	fd_inputs_mod[fd_in_count] = im;
 	fd_in_count++;
-	
+
 	return(1);
 }
 
@@ -1411,7 +1516,7 @@ remove_fd_input(int fd)
 
 	for (i = 0; i < fd_in_count && fd_inputs[i].fd != fd; i++);
 
-	if ( i == fd_in_count || fd != fd_inputs[i].fd )
+	if (i == fd_in_count || fd != fd_inputs[i].fd)
 		return; /* not found */
 
 	for (;i < fd_in_count; i++) {

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.97 2001/03/23 00:12:29 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.98 2001/03/27 20:55:04 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -175,6 +175,13 @@ struct imodule {
 #define DEFAULT_INTEG_FACILITY	I_NONE
 
 
+#ifndef TABLE_NOPRI
+# define TABLE_NOPRI     0       /* Value to indicate no priority in f_pmask */
+#endif
+#ifndef TABLE_ALLPRI
+# define TABLE_ALLPRI    0xFF    /* Value to indicate all priorities in f_pmask */
+#endif
+
 /*
  * syslog types usualy in /usr/include/syslog.h but
  * some systems lack those, so we define them here
@@ -201,6 +208,7 @@ struct imodule {
 
 # define INTERNAL_NOPRI 0x10
 # define INTERNAL_MARK  LOG_MAKEPRI(LOG_NFACILITIES, 0) 
+
 
 typedef struct _code {
 	char *c_name;
