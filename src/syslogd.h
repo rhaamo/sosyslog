@@ -76,6 +76,7 @@
  */
 
 #define S_MODULE_KEYWORD "s_mod"
+#define MAX_MODULE_NAME_LEN 255
 
 /*
  * This structure represents main details for the output modules
@@ -128,7 +129,9 @@ struct filed {
 
 struct	m_functions {
 	char	*m_name;
+	short	m_type;
 	int	(*m_printlog) (struct filed *, int, char *, void *);
+	/* take care we get here anotherpointer!!!! */
 	int	(*m_init) (char *, struct filed *, char *, void *);
 	int	(*m_close) (struct filed *, void *);
 	int	(*m_flush) (struct filed *, void *);

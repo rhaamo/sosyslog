@@ -1,6 +1,11 @@
 			HOW TO WRITE A SYSLOGD MODULE
 			=============================
 
+Names
+-----
+
+Names used should be alphanumeric using '_' as separation.
+
 Functions
 ---------
 

@@ -571,9 +571,7 @@ fprintlog(f, flags, msg)
 {
 	struct	o_module *m;
 
-        if ( f->f_mod == NULL) {
-		m_classic_printlog(f, flags, msg);
-        } else for (m = f->f_mod; m; m = m->m_next) {
+        for (m = f->f_mod; m; m = m->m_next) {
 		if(!m->context) {
 			dprintf("module has no context, skipping. msg: "
 				"[%s] type [%i]\n", msg, m->m_type);
@@ -1011,19 +1009,8 @@ cfline(line, f, prog)
 	while (*p == '\t')
 		p++;
 
-	switch (*p)
-	{
-	case '%':
-		/* initialize this module */
-		modules_create(p, f, NULL, NULL);
-		break;
-	case '@':
-	case '/':
-	case '*':
-	default:
-		/* prog is already on this filed */
-		m_classic_init(p, f, NULL, NULL);
-		break;
+	if (modules_create(p, f, NULL, NULL) == -1) {
+		dprintf("Error initializing modules!\n");
 	}
 }
 

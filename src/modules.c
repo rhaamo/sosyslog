@@ -44,6 +44,7 @@ static char copyright[] =
  */
 
 #include <unistd.h>
+#include <ctype.h>
 #include <sys/syslog.h>
 #include "syslogd.h"
 #include "modules.h"
@@ -56,6 +57,7 @@ int modules_init ()
 
 	/* classic module */
 	m_functions[M_CLASSIC].m_name 		= "classic";
+	m_functions[M_CLASSIC].m_type 		= M_CLASSIC;
 	m_functions[M_CLASSIC].m_printlog 	= m_classic_printlog;
 	m_functions[M_CLASSIC].m_init 		= m_classic_init;
 	m_functions[M_CLASSIC].m_close 		= m_classic_close;
@@ -64,6 +66,7 @@ int modules_init ()
 #if 0
 	/* mysql module */
 	m_functions[M_MYSQL].m_name 		= "mysql";
+	m_functions[M_CLASSIC].m_type 		= M_MYSQL;
 	m_functions[M_MYSQL].m_printlog 	= m_mysql_printlog;
 	m_functions[M_MYSQL].m_init 		= m_mysql_init;
 	m_functions[M_MYSQL].m_close 		= m_mysql_close;
@@ -81,13 +84,61 @@ int modules_close(f)
 }
 
 /* create all necesary modules for a specific filed */
-int modules_create(line, f, prog)
-	char *line;
+int modules_create(p, f, prog)
+	char *p;
 	struct filed *f;
 	char *prog;
 {
+	char	name[MAX_MODULE_NAME_LEN + 1], *b;
+	char	line[LINE_MAX + 1];
+	struct o_module	*m;
+	struct m_functions	*mf;
+	int	i;
+
+	memset(name, 0, MAX_MODULE_NAME_LEN + 1);
+
+	if (p == NULL)
+		return (-1);
+
 	/* create context and initialize module for logging */
+	switch (*p)
+	{
+	case '%':
+		/* get this module name */
+		for (i = 0; p && i < MAX_MODULE_NAME_LEN &&
+				(isalpha(*p) || *p == '_'); p++, i++)
+			name[i] = *p;
+		if (!i)
+			return(-1);
+
+		/* concatenate a new module node */
+		for (m = f->f_mod; m;);
+		m = (struct o_module *) calloc(sizeof(struct o_module));
+
+		/* get this module function */
+		for (mf = m_functions; mf; mf++) {
+			if (strncmp(name, mf->m_name) == 0)
+				break;
+		}
+		/* no functions for this module where found */
+		if (!mf)
+			return(-1);
+
+		m->m_type = mf->m_type;
+
+		/* advance to module params */
+		while(isspace(*p)) p++;
+		(*mf->m_init)(p, f, prog, (void *) &(m->context));
+
+		break;
+	case '@':
+	case '/':
+	case '*':
+	default:
+		/* classic style */
+		/* prog is already on this filed */
+		m_classic_init(p, f, NULL, NULL);
+		break;
+	}
 }
-
-
 
