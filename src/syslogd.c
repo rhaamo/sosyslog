@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.33 2000/04/18 17:59:05 gera Exp $
+/*	$Id: syslogd.c,v 1.34 2000/04/18 20:08:06 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -269,7 +269,7 @@ main(argc, argv)
 		       }
 
 		       /* log it */
-		       printline(log->hostname, log->msg);
+		       printline(log.host, log.msg);
 		   }
 		}
 
