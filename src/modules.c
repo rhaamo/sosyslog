@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.12 2000/03/29 22:44:50 gera Exp $
+/*	$Id: modules.c,v 1.13 2000/03/30 00:22:49 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -61,7 +61,7 @@ int modules_init ()
 	/* classic module */
 	Modules[M_CLASSIC].m_name 		= "classic";
 	Modules[M_CLASSIC].m_type 		= M_CLASSIC;
-	Modules[M_CLASSIC].m_printlog 	= m_classic_printlog;
+	Modules[M_CLASSIC].m_doLog 	= m_classic_doLog;
 	Modules[M_CLASSIC].m_init 		= m_classic_init;
 	Modules[M_CLASSIC].m_close 		= m_classic_close;
 	Modules[M_CLASSIC].m_flush 		= m_classic_flush;
@@ -70,7 +70,7 @@ int modules_init ()
 	/* mysql module */
 	Modules[M_MYSQL].m_name 		= "mysql";
 	Modules[M_MYSQL].m_type 		= M_MYSQL;
-	Modules[M_MYSQL].m_printlog 	= m_mysql_printlog;
+	Modules[M_MYSQL].m_doLog 	= m_mysql_doLog;
 	Modules[M_MYSQL].m_init 		= m_mysql_init;
 	Modules[M_MYSQL].m_close 		= m_mysql_close;
 	Modules[M_MYSQL].m_flush 		= m_mysql_flush;

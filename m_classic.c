@@ -65,7 +65,7 @@ static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $"
 #include "modules.h"
 
 int
-m_classic_printlog(f, flags, msg, context)
+m_classic_doLog(f, flags, msg, context)
 	struct filed *f;
 	int flags;
 	char *msg;
@@ -307,7 +307,7 @@ m_classic_flush(f, context)
 {
 	/* flush any pending output */
 	if (f->f_prevcount)
-		fprintlog(f, 0, (char *)NULL);
+		m_classic_doLog(f, 0, (char *)NULL, NULL);
 
 }
 

@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.9 2000/03/29 20:08:56 gera Exp $
+/*	$Id: syslogd.c,v 1.10 2000/03/30 00:22:50 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -121,7 +121,7 @@ char   *cvthname __P((struct sockaddr_in *));
 int	decode __P((const char *, CODE *));
 void	die __P((int));
 void	domark __P((int));
-void	fprintlog __P((struct filed *, int, char *));
+void	doLog __P((struct filed *, int, char *));
 void	init __P((int));
 void	logerror __P((char *));
 void	logmsg __P((int, char *, char *, int));
@@ -500,7 +500,7 @@ logmsg(pri, msg, from, flags)
 		f->f_file = open(ctty, O_WRONLY, 0);
 
 		if (f->f_file >= 0) {
-			fprintlog(f, flags, msg);
+			doLog(f, flags, msg);
 			(void)close(f->f_file);
 			f->f_file = -1;
 		}
@@ -543,13 +543,13 @@ logmsg(pri, msg, from, flags)
 			 * in the future.
 			 */
 			if (now > REPEATTIME(f)) {
-				fprintlog(f, flags, (char *)NULL);
+				doLog(f, flags, (char *)NULL);
 				BACKOFF(f);
 			}
 		} else {
 			/* new line, save it */
 			if (f->f_prevcount)
-				fprintlog(f, 0, (char *)NULL);
+				doLog(f, 0, (char *)NULL);
 			f->f_repeatcount = 0;
 			f->f_prevpri = pri;
 			(void)strncpy(f->f_lasttime, timestamp, 15);
@@ -559,11 +559,11 @@ logmsg(pri, msg, from, flags)
 			if (msglen < MAXSVLINE) {
 				f->f_prevlen = msglen;
 				(void)strcpy(f->f_prevline, msg);
-				fprintlog(f, flags, (char *)NULL);
+				doLog(f, flags, (char *)NULL);
 			} else {
 				f->f_prevline[0] = 0;
 				f->f_prevlen = 0;
-				fprintlog(f, flags, msg);
+				doLog(f, flags, msg);
 			}
 		}
 	}
@@ -571,7 +571,7 @@ logmsg(pri, msg, from, flags)
 }
 
 void
-fprintlog(f, flags, msg)
+doLog(f, flags, msg)
         struct filed *f;
         int flags;
         char *msg;
@@ -579,15 +579,15 @@ fprintlog(f, flags, msg)
 	struct	o_module *m;
 
         for (m = f->f_mod; m; m = m->m_next) {
-		if(Modules[m->m_type].m_printlog == NULL) {
+		if(Modules[m->m_type].m_doLog == NULL) {
 			dprintf("Unsupported module type [%i] "
 			        "for message [%s]\n", m->m_type, msg);
 			continue;
 		};
 
-		/* call this module printlog */
-		if((*(Modules[m->m_type].m_printlog))(f,flags,msg,m->context) != 0) {
-			dprintf("printlog error with module type [%i] "
+		/* call this module doLog */
+		if((*(Modules[m->m_type].m_doLog))(f,flags,msg,m->context) != 0) {
+			dprintf("doLog error with module type [%i] "
 			        "for message [%s]\n",
 				m->m_type, msg);
 		}
@@ -714,7 +714,7 @@ domark(signo)
 			dprintf("flush %s: repeated %d times, %d sec.\n",
 			    TypeNames[f->f_type], f->f_prevcount,
 			    repeatinterval[f->f_repeatcount]);
-			fprintlog(f, 0, (char *)NULL);
+			doLog(f, 0, (char *)NULL);
 			BACKOFF(f);
 		}
 	}
@@ -753,7 +753,7 @@ die(signo)
 	for (f = Files; f != NULL; f = f->f_next) {
 		/* flush any pending output */
 		if (f->f_prevcount)
-			fprintlog(f, 0, (char *)NULL);
+			doLog(f, 0, (char *)NULL);
 	}
 	Initialized = was_initialized;
 	if (signo) {
@@ -792,7 +792,7 @@ init(signo)
 	for (f = Files; f != NULL; f = next) {
 		/* flush any pending output */
 		if (f->f_prevcount)
-			fprintlog(f, 0, (char *)NULL);
+			doLog(f, 0, (char *)NULL);
 
 		for (m = f->f_mod; m; m = m->m_next) {
 			/* flush any pending output */

@@ -65,7 +65,7 @@ static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $"
 #include "modules.h"
 
 int
-m_peo_printlog(f, flags, msg, context)
+m_peo_doLog(f, flags, msg, context)
 	struct filed *f;
 	int flags;
 	char *msg;

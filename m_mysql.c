@@ -83,30 +83,17 @@ struct m_mysql_ctx {
 
 
 int
-m_mysql_printlog(f, flags, msg, context)
+m_mysql_doLog(f, flags, msg, context)
 	struct filed *f;
 	int flags;
 	char *msg;
 	struct m_header *context;
 {
 	struct m_mysql_ctx *c;
-	char	*p, *q;
-	char	*msgbuf;
 
 	c = (struct m_mysql_ctx *) context;
 	memset(c->query, 0, MAX_QUERY);
 	msgbuf = (char *) calloc(1, strlen(msg + 1));
-
-	/* get args names */
-
-	/* find if some funny thing is going on here for bangin' SQL */
-	for (p = msg, q = msgbuf; p; p++, q++) {
-		if (iscntrl(*p) || *p == '\'' || *p == ';')
-			*q = 'X';
-		else
-			*q = *p;
-	}
-	*++q = '\0';
 
 	/* get args names */
 

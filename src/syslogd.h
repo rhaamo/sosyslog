@@ -131,7 +131,7 @@ struct filed {
 struct	Modules {
 	char	*m_name;
 	short	m_type;
-	int	(*m_printlog) (struct filed *, int, char *, void *);
+	int	(*m_doLog) (struct filed *, int, char *, void *);
 	int	(*m_init) (int, char **, struct filed *, char *, struct m_header **);
 	int	(*m_close) (struct filed *, struct m_header **);
 	int	(*m_flush) (struct filed *, void *);
