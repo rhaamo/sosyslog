@@ -1,4 +1,4 @@
-/*      $Id: peochk.c,v 1.12 2000/05/02 21:10:59 claudio Exp $
+/*      $Id: peochk.c,v 1.13 2000/05/03 22:00:54 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
@@ -49,7 +49,7 @@ char	*default_logfile = "/var/log/messages";
 char	*keyfile;
 char	*key0file;
 char	*logfile;
-char	*hashedlogfile;
+char	*macfile;
 int	 method;
 int	 use_stdin;
 
@@ -68,8 +68,8 @@ release()
 		free(key0file);
 	if (logfile != default_logfile)
 		free(logfile);
-	if (hashedlogfile)
-		free(hashedlogfile);
+	if (macfile)
+		free(macfile);
 }
 
 
@@ -143,7 +143,7 @@ check()
 {
 	int  i;
 	int  input;
-	int  hfd;
+	int  mfd;
 	char key[41];
 	int  keylen;
 	char lastkey[41];
@@ -159,10 +159,10 @@ check()
 	else if ( (input = open(logfile, O_RDONLY, 0)) == -1)
 		err(1, logfile);
 
-	/* open hashed log file */
-	if (hashedlogfile)
-		if ( (hfd = open(hashedlogfile, O_RDONLY, 0)) == -1)
-			err(1, hashedlogfile);
+	/* open macfile */
+	if (macfile)
+		if ( (mfd = open(macfile, O_RDONLY, 0)) == -1)
+			err(1, macfile);
 
 	/* read initial key */
 	if ( (i = open(key0file, O_RDONLY, 0)) == -1)
@@ -191,19 +191,19 @@ check()
 	/* check it */
 	line = 1;
 	while( (i = readline(input, msg, MAXLINE)) > 0) {
-		if (hashedlogfile) {
-			hash(SHA1, key, keylen, msg, mkey1);
-			if (readline(hfd, mkey2, 40) < 0)
-				err(1, hashedlogfile);
+		if (macfile) {
+			mac(SHA1, key, keylen, msg, mkey1);
+			if (readline(mfd, mkey2, 40) < 0)
+				err(1, macfile);
 			if (strncmp(mkey2, mkey1, 40))
 				errx(1, "%s file corrupted on line %i\n", logfile, line);
 			line++;
 		}
-		keylen = hash(method, key, keylen, msg, key);
+		keylen = mac(method, key, keylen, msg, key);
 	}
 
-	if (hashedlogfile)
-		close(hfd);
+	if (macfile)
+		close(mfd);
 
 	if (i < 0)
 		errx(1, "error reading logs form %s", (use_stdin) ? "standard input" : logfile);
@@ -216,7 +216,8 @@ check()
 
 
 /*
- * generate: generate initial key and write it on keyfile and key0file
+ * generate:
+ *	generate initial key and write it on keyfile and key0file
  */
 void
 generate()
@@ -228,7 +229,7 @@ generate()
 	time_t	 t;
 
 	time(&t);
-	len = hash(method, NULL, 0, ctime(&t), newkey);
+	len = mac(method, NULL, 0, ctime(&t), newkey);
 	if ( (fkey = open(keyfile, O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR)) == -1) {
 		release();
 		err(1, keyfile);
@@ -258,15 +259,14 @@ main (argc, argv)
 {
 	int	 action;
 	int	 ch;
-	int	 hlf;
 
 	/* integrity check mode */
 	action = 0;
 
 	/* default values */
 	use_stdin = 1;
-	hashedlogfile = NULL;
-	hlf = 0;
+	macfile = NULL;
+	mcd = 0;
 	logfile = default_logfile;
 	keyfile = default_keyfile;
 	key0file = NULL;
@@ -308,7 +308,7 @@ main (argc, argv)
 				}
 				break;
 			case 'l':
-				hlf = 1;
+				macfile = (char*)1;
 				break;
 			case 'm':
 				/* hash method */
@@ -358,14 +358,14 @@ main (argc, argv)
 		strcat(key0file, "0");
 	}
 
-	/* create hashed log file */
-	if (hlf) {
-		if ( (hashedlogfile = (char*)calloc(1, strlen(keyfile)+4)) == NULL) {
+	/* create macfile */
+	if (macfile) {
+		if ( (macfile = (char*)calloc(1, strlen(keyfile)+4)) == NULL) {
 		release();
-		err(1, "hashedlogfile");
+		err(1, "macfile");
 		}
-		strcpy(hashedlogfile, keyfile);
-		strcat(hashedlogfile, ".msg");
+		strcpy(macfile, keyfile);
+		strcat(macfile, ".msg");
 	}
 
 	/* check integrity */

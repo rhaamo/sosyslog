@@ -39,11 +39,11 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.6 2000/05/02 21:10:58 claudio Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.7 2000/05/03 22:00:54 claudio Exp $";
 #endif /* not lint */
 
 /*
- *  om_peo -- peo autentication
+ * om_peo -- peo autentication
  *
  * Author: Claudio Castiglia for Core-SDI SA
  *
@@ -73,7 +73,7 @@ struct om_peo_ctx {
 
 	int	hash_method;
 	char	*keyfile;
-	char	*hashedlogfile;
+	char	*macfile;
 };
 
 int
@@ -85,12 +85,12 @@ om_peo_doLog(f, flags, msg, context)
 {
 	struct om_peo_ctx *c;
 	int	 fd;
-	int	 hfd;
-	u_char	 mkey[41];
 	u_char	 key[41];
 	int	 keylen;
 	int	 len;
 	char	*m;
+	int	 mfd;
+	u_char	 mkey[41];
 
 	dprintf ("peo output module: doLog\n");
 	
@@ -119,20 +119,19 @@ om_peo_doLog(f, flags, msg, context)
 
 	dprintf ("last key: %s\n", key);
 
-	/* open hashedlogfile and write hashed msg */
-	if ( (hfd = open(c->hashedlogfile, O_WRONLY, 0)) == -1) {
-		fclose(fd);
+	/* open macfile and write mac'ed msg */
+	if ( (mfd = open(c->macfile, O_WRONLY, 0)) == -1) {
+		close(fd);
 		return (-1);
 	}
-	hash(SHA1, key, keylen, m, mkey);
-	lseek(hfd, 0, SEEK_END);
-	write(hfd, mkey, 40);
-	close(hfd);
-
-	dprintf ("hashed msg logged\n");
+	lseek(mfd, 0, SEEK_END);
+	write(mfd, mkey, mac2(key, keylen, m, mkey));
+	close(mfd);
+	
+	dprintf ("macfile: %s\n", (c->macfile) ? "new entry added" : "no");
 
 	/* generate new key and save it on keyfile */
-	keylen = hash(c->hash_method, key, keylen, m, key);
+	keylen = mac(c->hash_method, key, keylen, m, key);
 	lseek(fd, 0, SEEK_SET);
 	ftruncate(fd, 0);
 	write(fd, key, keylen);
@@ -153,7 +152,7 @@ om_peo_doLog(f, flags, msg, context)
  * 
  *	-k <keyfile>		(default: /var/ssyslog/.var.log.messages)
  *	-l			line number corruption detect
- *				(generates a strcat(keyfile, ".msg") file)
+ *				(generates a strcat(keyfile, ".mac") file)
  *	-m <hash_method>	sha1 or md5 (default: sha1)
  *
  */
@@ -161,21 +160,30 @@ om_peo_doLog(f, flags, msg, context)
 extern char	*optarg;
 extern int	 optind,
 		 optreset;
+char		*keyfile;
+char		*macfile;
+
+void
+release()
+{
+	if (keyfile != default_keyfile)
+		free(keyfile);
+	if (macfile)
+		free(macfile);
+}
 
 int
 om_peo_init(argc, argv, f, prog, context)
-	int argc;
-	char **argv;
-	struct filed *f;
-	char *prog;
-	struct om_header_ctx **context;
+	int			  argc;
+	char			**argv;
+	struct filed		 *f;
+	char			 *prog;
+	struct om_header_ctx	**context;
 {
 	int	 ch;
-	int	 hash_method;
-	int	 hlf;
-	char	*keyfile;
-	char	*hashedlogfile;
 	struct	 om_peo_ctx *c;
+	int	 hash_method;
+	int	 mfd;
 
 	dprintf("peo output module init: called by %s\n", prog);
 	
@@ -186,8 +194,8 @@ om_peo_init(argc, argv, f, prog, context)
 	/* default values */
 	hash_method = SHA1;
 	keyfile = default_keyfile;
-	hashedlogfile = NULL;
-	hlf = 0;
+	macfile = NULL;
+	mfd = 0;
 
 	/* parse command line */
 	optreset = 1; optind = 0;
@@ -195,66 +203,60 @@ om_peo_init(argc, argv, f, prog, context)
 		switch(ch) {
 			case 'k':
 				/* set keyfile */
+				release();
 				if ( (keyfile = strdup(optarg)) == NULL)
 					return (-1);
 				break;
 			case 'l':
-				/* set hashedlog file */
-				hlf = 1;
+				/* set macfile */
+				mfd = 1;
 				break;
 			case 'm':
 				/* set method */
 				if ( (hash_method = gethash(optarg)) < 0) {
-					if (keyfile != default_keyfile)
-						free(keyfile);
+					release();
 					errno = EINVAL;
 					return (-1);
 				}
 				break;
 			default:
-				if (keyfile != default_keyfile)
-					free(keyfile);
+				release();
 				errno = EINVAL;
 				return (-1);
 		}
 	}
 
-	/* set hashed log file */
-	if (hlf) {
-		if ( (hashedlogfile = (char*) calloc(1, strlen(keyfile)+4)) == NULL) {
-			if (keyfile != default_keyfile)
-				free (keyfile);
+	/* set macfile */
+	if (mfd) {
+		if ( (macfile = strmac(keyfile)) == NULL) {
+			release();
 			return (-1);
 		}
-		strcpy(hashedlogfile, keyfile);
-		strcat(hashedlogfile, ".msg");
 
-		if (! (hlf = open(hashedlogfile, O_CREAT, S_IRUSR|S_IWUSR))) {
-			if (errno != EEXIST)
+		if (! (mfd = open(macfile, O_CREAT, S_IRUSR|S_IWUSR))) {
+			if (errno != EEXIST) {
+				release();
 				return (-1);
+			}
 		}
-		else close(hlf);
-		
+		else close(mfd);
 	}
 
 	/* save data on context */
 	if ( (c = (struct om_peo_ctx*)
 		calloc (1, sizeof(struct om_peo_ctx))) == NULL) {
-			if (keyfile != default_keyfile)
-				free (keyfile);
-			if (hlf)
-				free(hashedlogfile);
+			release();
 			return (-1);
-		}
+	}
 
 	c->size = sizeof(struct om_peo_ctx);
 	c->hash_method = hash_method;
 	c->keyfile = keyfile; 
-	c->hashedlogfile = hashedlogfile;
+	c->macfile = macfile;
 	*context = (struct om_header_ctx*) c;
 
-	dprintf ("method: %d\nkeyfile: %s\nhashedlogfile: %s\n",
-		hash_method, keyfile, hashedlogfile);
+	dprintf ("method: %d\nkeyfile: %s\nmacfile: %s\n",
+		hash_method, keyfile, macfile);
 
 	return (0);
 }
@@ -272,8 +274,8 @@ om_peo_close(f, context)
 	c = (struct om_peo_ctx*) *context;
 	if (c->keyfile != default_keyfile)
 		free(c->keyfile);
-	if (c->hashedlogfile)
-		free(c->hashedlogfile);
+	if (c->macfile)
+		free(c->macfile);
 	free (*context);
 	*context = NULL;
 	return (0);
@@ -287,4 +289,5 @@ om_peo_flush(f, context)
 	/* no data to flush */
 	return (0);
 }
+
 
