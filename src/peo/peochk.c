@@ -1,4 +1,4 @@
-/*	$CoreSDI: peochk.c,v 1.49 2001/04/06 00:51:44 alejo Exp $	*/
+/*	$CoreSDI: peochk.c,v 1.50 2001/04/06 17:27:47 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -70,9 +70,6 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 
-#ifdef HAVE_ERR_H
-#include <err.h>
-#endif
 #include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>

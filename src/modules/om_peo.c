@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.69 2001/04/05 20:56:25 alejo Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.70 2001/04/06 18:00:50 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -53,9 +53,6 @@
 #include <sys/param.h>
 
 #include <ctype.h>
-#ifdef HAVE_ERR_H
-#include <err.h>
-#endif
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -87,11 +84,11 @@ struct om_peo_ctx {
 int
 om_peo_write(struct filed *f, int flags, char *msg, void *ctx)
 {
-	struct om_peo_ctx *c;
-	int	 fd, mfd, len, keylen, newkeylen;
-	u_char	 key[41], mkey[41];
-	unsigned char	 m[MAXBUF], newkey[41];
-	char	time_buf[16];
+	struct om_peo_ctx	*c;
+	int			 fd, mfd, len, keylen, newkeylen;
+	u_char			 key[41], mkey[41];
+	unsigned char		 m[MAXBUF], newkey[41];
+	char			 time_buf[16];
 
 	dprintf(MSYSLOG_INFORMATIVE, "om_peo_write: Entering\n");
 	
@@ -102,8 +99,8 @@ om_peo_write(struct filed *f, int flags, char *msg, void *ctx)
 
 	strftime(time_buf, sizeof(time_buf), "%b %d %H:%M:%S", &f->f_tm);
 	time_buf[15] = '\0';
-	len = snprintf((char *) m, MAXBUF, "%s %s %s\n", time_buf, f->f_prevhost,
-	    msg ? msg : f->f_prevline) - 1;
+	len = snprintf((char *) m, MAXBUF, "%s %s %s\n", time_buf,
+	    f->f_prevhost, msg ? msg : f->f_prevline) - 1;
 
 	dprintf(MSYSLOG_INFORMATIVE, "om_peo_write: len = %i, msg = %s\n ",
 	    len, m);
@@ -169,24 +166,23 @@ char		*keyfile;
 char		*macfile;
 void
 
-/* XXX remove this! */
 release(void)
 {
 	if (keyfile != default_keyfile)
 		free(keyfile);
-	if (macfile)
+	if (macfile != NULL)
 		free(macfile);
 }
 
 int
 om_peo_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
-    char **status)
+	    char **status)
 {
-	int	 ch;
-	struct	 om_peo_ctx *c;
-	int	 hash_method;
-	int	 mfd;
-	char	statbuf[2048];
+	int			 ch;
+	struct om_peo_ctx	*c;
+	int			 hash_method;
+	int			 mfd;
+	char			 statbuf[2048];
 
 	dprintf(MSYSLOG_INFORMATIVE, "om_peo_init: Entering, called by %s\n",
 	    prog);
@@ -235,7 +231,7 @@ om_peo_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 
 	/* set macfile */
 	if (mfd) {
-		if ( (macfile = (char*)strmac(keyfile)) == NULL) {
+		if ( (macfile = (char *) strmac(keyfile)) == NULL) {
 			release();
 			return (-1);
 		}
@@ -244,13 +240,13 @@ om_peo_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 				release();
 				return (-1);
 			}
-		}
-		else close(mfd);
+		} else
+			close(mfd);
 	}
 
 	/* save data on context */
 	if ( (c = (struct om_peo_ctx*)
-	    calloc (1, sizeof(struct om_peo_ctx))) == NULL) {
+	    calloc(1, sizeof(struct om_peo_ctx))) == NULL) {
 		release();
 		return (-1);
 	}
@@ -280,7 +276,7 @@ om_peo_close(struct filed *f, void *ctx)
 
 	if (c->keyfile != default_keyfile)
 		free(c->keyfile);
-	if (c->macfile)
+	if (c->macfile != NULL)
 		free(c->macfile);
 	return (0);
 }
