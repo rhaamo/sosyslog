@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.146 2000/11/03 22:15:52 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.147 2000/11/06 18:32:25 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.146 2000/11/03 22:15:52 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.147 2000/11/06 18:32:25 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -433,14 +433,16 @@ main(int argc, char **argv) {
 				memset(&log, 0,sizeof(struct im_msg));
 
 				if ( !(im->im_func->im_getLog) || (i =
-						(*im->im_func->im_getLog)(im, &log)) < 0) {
-					dprintf("Syslogd: Error calling input module"
-		       			    " %s, for fd %d\n", im->im_name, im->im_fd);
+				    (*im->im_func->im_getLog)(im, &log)) < 0) {
+					dprintf("Syslogd: Error calling input "
+					    "module %s, for fd %d\n",
+					    im->im_name, im->im_fd);
 				}
 
 				/* log it if normal (1), (2) already logged */
 				if (i == 1) {
-					printline(log.im_host, log.im_msg, im->im_flags);
+					printline(log.im_host, log.im_msg,
+					    im->im_flags);
 				}
 			}
 
@@ -452,7 +454,7 @@ main(int argc, char **argv) {
 				char line[MAXLINE];
 
 				recvfrom(finet, line, MAXLINE, 0,
-						(struct sockaddr *)&frominet, &len);
+				    (struct sockaddr *) &frominet, &len);
 			}
 
 		}
@@ -659,7 +661,8 @@ logmsg(int pri, char *msg, char *from, int flags) {
 			f->f_prevhost[sizeof(f->f_prevhost) - 1] = '\0';
 			if (msglen < MAXSVLINE) {
 				f->f_prevlen = msglen;
-				strncpy(f->f_prevline, msg, sizeof(f->f_prevline) - 1);
+				strncpy(f->f_prevline, msg,
+				    sizeof(f->f_prevline) - 1);
 				f->f_prevline[sizeof(f->f_prevline) - 1] = '\0';
 				doLog(f, flags, NULL);
 			} else {
@@ -692,7 +695,8 @@ doLog(struct filed *f, int flags, char *message) {
 	for (om = f->f_omod; om; om = om->om_next) {
 		if (!om->om_func || !om->om_func->om_doLog) {
 			dprintf("doLog: error, no doLog function in output "
-			    "module [%s], message [%s]\n", om->om_func->om_name, msg);
+			    "module [%s], message [%s]\n",
+			    om->om_func->om_name, msg);
 			continue;
 		};
 
@@ -962,7 +966,8 @@ init(int signo)
 				break;
 
 			case F_USERS:
-				for (i = 0; i < MAXUNAMES && *f->f_un.f_uname[i]; i++)
+				for (i = 0; i < MAXUNAMES &&
+				     *f->f_un.f_uname[i]; i++)
 					printf("%s, ", f->f_un.f_uname[i]);
 				break;
 			case F_MODULE:
