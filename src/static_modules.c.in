@@ -15,7 +15,6 @@ extern struct omodule *omodules;
 int
 modules_load()
 {
-	int i;
-	if ( (imodules = (struct imodule*)calloc(INPUT_MODULES, sizeof(struct imodule))) == NULL ||
-	     (omodules = (struct omodule*)calloc(OUTPUT_MODULES, sizeof(struct omodule))) == NULL)
+	if ( (INPUT_MODULES && (imodules = (struct imodule*)calloc(INPUT_MODULES, sizeof(struct imodule))) == NULL) ||
+	     (OUTPUT_MODULES && (omodules = (struct omodule*)calloc(OUTPUT_MODULES, sizeof(struct omodule))) == NULL))
 		return(-1);
