@@ -67,7 +67,6 @@ static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $"
 #include "/usr/local/include/mysql/mysql.h"
 
 #define MAX_QUERY	8192
-#define SQL_BADCHARS	",);\"'"
 
 struct m_mysql_ctx {
 	short	flags;
@@ -92,33 +91,23 @@ m_mysql_printlog(f, flags, msg, context)
 {
 	struct m_mysql_ctx *c;
 	char	badchars[] = SQL_BADCHARS;
-	char	*p, *q, *r;
+	char	*p, *q;
 	char	*msgbuf;
-	int	i;
 
 	c = (struct m_mysql_ctx *) context;
 	memset(c->query, 0, MAX_QUERY);
-	msgbuf = (char *) calloc(1, strlen(msg + 10));
+	msgbuf = (char *) calloc(1, strlen(msg + 1));
 
 	/* get args names */
 
-	/* find if some funny thing is going on here bangin' SQL */
-	for (p = msg, i = 0, r = msgbuf; p; p++, r++) {
-
-		if (iscntrl(*p)) {
-			*r = 'X';
-			i++;
-			break;
-		}
-
-		for (q = badchars; q; q++) {
-			if ( *p == *q ) {
-				*r = 'X';
-				i++;
-				break;
-			}
-		}
+	/* find if some funny thing is going on here for bangin' SQL */
+	for (p = msg, q = msgbuf; p; p++, r++) {
+		if (iscntrl(*p) || *p == '\'' || *p == ';')
+			*q = 'X';
+		else
+			*q = *p;
 	}
+	*++r = '\0';
 
 	/* get args names */
 
