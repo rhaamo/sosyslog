@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.29 2000/06/21 22:14:59 alejo Exp $	*/
+/*	$CoreSDI: modules.h,v 1.30 2000/06/28 21:22:38 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -69,8 +69,9 @@ struct i_module {
 	struct	 i_module *im_prev;
 	struct	 imodule *im_func; /* where are this puppy's functions? */
 	int	 im_fd;	/*  for use with select() */
-	int	 im_flags;  /* input module should initialize this */
+	int	 im_flags;  /* 1 to 8 are reserved */
 #define IMODULE_FLAG_KERN	0x01
+#define IMODULE_FLAG_CONN	0x02
 	char	*im_name;
 	char	*im_path;
 	char	 im_buf[MAXLINE + 1];
