@@ -18,7 +18,11 @@ static char rcsid[] = "$OpenBSD: sha1hl.c,v 1.2 1999/08/17 09:13:12 millert Exp 
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
-#include <sha1.h>
+
+/* changed */
+/* #include <sha1.h> */
+#include "sha1.h"
+
 
 /* ARGSUSED */
 char *
