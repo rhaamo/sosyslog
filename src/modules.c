@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.119 2000/08/22 18:38:57 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.120 2000/08/22 19:43:38 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -79,8 +79,6 @@ struct omodule *addOmodule(char *);
 struct omodule *omodules;
 struct imodule *imodules;
 
-extern struct sglobals *sglobals;
-
 /* assign module functions to generic pointer */
 int
 imodule_init (struct i_module *I, char *line) {
@@ -126,7 +124,7 @@ imodule_init (struct i_module *I, char *line) {
 		}
 
 	/* got it, now try to initialize it */
-	if ((*(im->im_func->im_init))(im, argv, argc, sglobals) < 0) {
+	if ((*(im->im_func->im_init))(im, argv, argc) < 0) {
 	   	dprintf("Error initializing input module %s [%s]\n", argv[0], line);
 		die(0);
 	}
@@ -217,7 +215,7 @@ omodule_create(char *c, struct filed *f, char *prog) {
 				break;
 		}
 		if ((*(om->om_func->om_init))(argc, argv, f,
-				prog, (void *) &(om->ctx), sglobals) < 0) {
+				prog, (void *) &(om->ctx)) < 0) {
 			dprintf("Error initializing dynamic output module "
 								"%s [%s]\n", argv[0], line);
 			die(0);

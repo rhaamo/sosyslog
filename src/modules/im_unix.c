@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.30 2000/07/04 16:44:07 alejo Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.31 2000/07/04 18:56:39 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -60,7 +60,7 @@
  */
 
 int
-im_unix_getLog(struct i_module *im, struct im_msg  *ret, struct sglobals *sglobals) {
+im_unix_getLog(struct i_module *im, struct im_msg  *ret) {
 	struct sockaddr_un fromunix;
 	int slen;
 
@@ -73,9 +73,9 @@ im_unix_getLog(struct i_module *im, struct im_msg  *ret, struct sglobals *sgloba
 	    (struct sockaddr *)&fromunix, (socklen_t *)&slen);
 	if (ret->im_len > 0) {
 		ret->im_msg[ret->im_len] = '\0';
-		strncpy(ret->im_host, sglobals->LocalHostName, sizeof(ret->im_host));
+		strncpy(ret->im_host, LocalHostName, sizeof(ret->im_host));
 	} else if (ret->im_len < 0 && errno != EINTR) {
-		sglobals->logerror("recvfrom unix");
+		logerror("recvfrom unix");
 		ret->im_msg[0] = '\0';
 		ret->im_len = 0;
 		ret->im_host[0] = '\0';
@@ -91,7 +91,7 @@ im_unix_getLog(struct i_module *im, struct im_msg  *ret, struct sglobals *sgloba
  */
 
 int
-im_unix_init(struct i_module *I, char **argv, int argc, struct sglobals *sglobals) {
+im_unix_init(struct i_module *I, char **argv, int argc) {
 	struct sockaddr_un sunx;
 
 	dprintf ("\nim_unix_init...\n");
@@ -113,7 +113,7 @@ im_unix_init(struct i_module *I, char **argv, int argc, struct sglobals *sglobal
 	    chmod(argv[1], 0666) < 0) {
 		(void) snprintf(I->im_buf, sizeof(I->im_buf),
 		    "cannot create %s", argv[1]);
-		sglobals->logerror(I->im_buf);
+		logerror(I->im_buf);
 		dprintf("cannot create %s (%d)\n", argv[1], errno);
 		return (-1);
 	}
@@ -122,7 +122,7 @@ im_unix_init(struct i_module *I, char **argv, int argc, struct sglobals *sglobal
 }
 
 int
-im_unix_close( struct i_module *im, struct sglobals *sglobals) {
+im_unix_close( struct i_module *im) {
 	close(im->im_fd);
 
 	if (im->im_path)

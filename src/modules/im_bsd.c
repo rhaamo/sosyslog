@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.61 2000/08/22 18:38:57 alejo Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.62 2000/08/24 19:59:11 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -61,8 +61,7 @@
 
 
 int
-im_bsd_init(struct i_module *I, char **argv, int argc,
-		struct sglobals *sglobals) {
+im_bsd_init(struct i_module *I, char **argv, int argc) {
 
 	if ((I->im_fd = open(_PATH_KLOG, O_RDONLY, 0)) < 0) {
 		dprintf("can't open %s (%d)\n", _PATH_KLOG, errno);
@@ -84,7 +83,7 @@ im_bsd_init(struct i_module *I, char **argv, int argc,
  */
 
 int
-im_bsd_getLog(struct i_module *im, struct im_msg *ret, struct sglobals *sglobals) {
+im_bsd_getLog(struct i_module *im, struct im_msg *ret) {
 	char *p, *q, *lp;
 	int i, c;
 
@@ -117,14 +116,14 @@ im_bsd_getLog(struct i_module *im, struct im_msg *ret, struct sglobals *sglobals
 			    q < (ret->im_msg+sizeof ret->im_msg))
 				*q++ = c;
 			*q = '\0';
-			strncpy(ret->im_host, sglobals->LocalHostName,
+			strncpy(ret->im_host, LocalHostName,
 			    sizeof(ret->im_host) - 1);
 			ret->im_len = strlen(ret->im_msg);
-			sglobals->logmsg(ret->im_pri, ret->im_msg, ret->im_host,
+			logmsg(ret->im_pri, ret->im_msg, ret->im_host,
 			    ret->im_flags);
 		}
 	} else if (i < 0 && errno != EINTR) {
-		sglobals->logerror("im_bsd_getLog");   
+		logerror("im_bsd_getLog");   
 		im->im_fd = -1;
 	}
 
@@ -133,7 +132,7 @@ im_bsd_getLog(struct i_module *im, struct im_msg *ret, struct sglobals *sglobals
 }
 
 int
-im_bsd_close (struct i_module *im, struct sglobals *sglobals) {
+im_bsd_close (struct i_module *im) {
 	if (im->im_fd >= 0)
 		close(im->im_fd);
 
@@ -143,7 +142,7 @@ im_bsd_close (struct i_module *im, struct sglobals *sglobals) {
 
 
 int
-im_bsd_timer(struct i_module *im, struct im_msg *ret, struct sglobals *sglobals) {
+im_bsd_timer(struct i_module *im, struct im_msg *ret) {
 	dprintf("im_bsd_timer: called! \n");
 	gettimeofday(&(im->im_nextcall), NULL);
 	im->im_nextcall.tv_sec += 3;

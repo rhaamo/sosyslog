@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.70 2000/07/21 21:26:49 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.71 2000/07/26 21:00:38 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -99,7 +99,7 @@
 #endif /* LOG_PRI */
 
 
-#define	dprintf		if (sglobals->Debug) printf
+#define	dprintf		if (Debug) printf
 
 #define MAXUNAMES	20	/* maximum number of user names */
 
@@ -148,20 +148,20 @@ struct filed {
 	struct	o_module *f_omod;			/* module details */
 };
 
-struct sglobals {
-	char	*TypeNames[9];		/* names for f_types */
-	char	*ctty;
-	char	LocalHostName[MAXHOSTNAMELEN];	/* our hostname */
-	char	*LocalDomain;	/* our domain */
-	int	finet;		/* Internet datagram socket */
-	int	LogPort;	/* port number for INET connections */
-	int	Debug;			/* debug flag */
-	int	InetInuse;		/* non-zero if INET sockets are open */
-	void	(*logerror)(char *);
-	void	(*logmsg)(int, char *, char *, int);
-	void	(*die)(int);
-	char * (*ttymsg)(struct iovec *, int , char *, int );
-};
+extern char	*TypeNames[9];		/* names for f_types */
+extern char	*ctty;
+extern char	LocalHostName[];	/* our hostname */
+extern char	*LocalDomain;	/* our domain */
+extern int	finet;		/* Internet datagram socket */
+extern int	LogPort;	/* port number for INET connections */
+extern int	Debug;			/* debug flag */
+extern int	InetInuse;		/* non-zero if INET sockets are open */
+
+void logerror(char *);
+void logmsg(int, char *, char *, int);
+void die(int);
+char *ttymsg(struct iovec *, int , char *, int);
+void wallmsg (struct filed *, struct iovec *);
 
 /* standard output module header variables in context */
 struct om_hdr_ctx {
@@ -176,22 +176,22 @@ struct omodule {
 	struct	omodule *om_next;
 	char	*om_name;
 	int	(*om_init) (int, char **, struct filed *, char *,
-		struct om_hdr_ctx **, struct sglobals *);
+		struct om_hdr_ctx **);
 	int	(*om_doLog) (struct filed *, int, char *,
-		struct om_hdr_ctx *, struct sglobals *);
-	int	(*om_flush) (struct filed *, struct om_hdr_ctx *, struct sglobals *);
-	int	(*om_close) (struct filed *, struct om_hdr_ctx *, struct sglobals *);
-	int	(*om_timer) (struct filed *, struct om_hdr_ctx *, struct sglobals *);
+		struct om_hdr_ctx *);
+	int	(*om_flush) (struct filed *, struct om_hdr_ctx *);
+	int	(*om_close) (struct filed *, struct om_hdr_ctx *);
+	int	(*om_timer) (struct filed *, struct om_hdr_ctx *);
 	void	*h;  /* handle to open dynamic library */
 };
 
 struct imodule {
 	struct	imodule *im_next;
 	char   *im_name;
-	int	(*im_init) (struct i_module *, char **, int, struct sglobals *);
-	int	(*im_close) (struct i_module *, struct sglobals *);
-	int	(*im_getLog) (struct i_module *, struct im_msg *, struct sglobals *);
-	int	(*im_timer) (struct i_module *, struct im_msg *, struct sglobals *);
+	int	(*im_init) (struct i_module *, char **, int);
+	int	(*im_close) (struct i_module *);
+	int	(*im_getLog) (struct i_module *, struct im_msg *);
+	int	(*im_timer) (struct i_module *, struct im_msg *);
 	void	*h;  /* handle to open dynamic library */
 };
 

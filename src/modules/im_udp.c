@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.39 2000/07/04 16:44:06 alejo Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.40 2000/07/04 18:56:38 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -70,7 +70,7 @@ struct im_udp_ctx {
  */
 
 int
-im_udp_getLog(struct imodule *im, struct im_msg *ret, struct sglobals *sglobals) {
+im_udp_getLog(struct imodule *im, struct im_msg *ret) {
 	struct sockaddr_in frominet;
 	struct hostent *hent;
 	int slen;
@@ -85,7 +85,7 @@ im_udp_getLog(struct imodule *im, struct im_msg *ret, struct sglobals *sglobals)
 	ret->im_flags = 0;
 
 	slen = sizeof(frominet);
-	ret->im_len = recvfrom(sglobals->finet, ret->im_msg, MAXLINE, 0,
+	ret->im_len = recvfrom(finet, ret->im_msg, MAXLINE, 0,
 		(struct sockaddr *)&frominet, (socklen_t *)&slen);
 	if (ret->im_len > 0) {
 		ret->im_msg[ret->im_len] = '\0';
@@ -98,7 +98,7 @@ im_udp_getLog(struct imodule *im, struct im_msg *ret, struct sglobals *sglobals)
 			strncpy(ret->im_host, inet_ntoa(frominet.sin_addr),
 			    sizeof(ret->im_host));
 	} else if (ret->im_len < 0 && errno != EINTR)
-		sglobals->logerror("recvfrom inet");
+		logerror("recvfrom inet");
 
 	return(1);
 }
@@ -109,7 +109,7 @@ im_udp_getLog(struct imodule *im, struct im_msg *ret, struct sglobals *sglobals)
  */
 
 int
-im_udp_init(struct i_module *I, char **argv, int argc, struct sglobals *sglobals) {
+im_udp_init(struct i_module *I, char **argv, int argc) {
 	struct sockaddr_in sin;
 	struct servent *sp;
 
@@ -118,34 +118,34 @@ im_udp_init(struct i_module *I, char **argv, int argc, struct sglobals *sglobals
         	return(-1);
         }
 
-        if (sglobals->finet > -1) {
+        if (finet > -1) {
 		dprintf("im_udp_init: already opened!\n");
 		return(-1);
         }
-        sglobals->finet = socket(AF_INET, SOCK_DGRAM, 0);
+        finet = socket(AF_INET, SOCK_DGRAM, 0);
 
 	sp = getservbyname("syslog", "udp");
 	if (sp == NULL) {
 		errno = 0;
-		sglobals->logerror("syslog/udp: unknown service");
-		sglobals->die(0);
+		logerror("syslog/udp: unknown service");
+		die(0);
 	}
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;
 	if (argc == 2  && argv[1])
 		sin.sin_port = htons(atoi(argv[1]));
 	else
-		sin.sin_port = sglobals->LogPort = sp->s_port;
+		sin.sin_port = LogPort = sp->s_port;
 
-	if (bind(sglobals->finet, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
-		sglobals->logerror("bind");
-		if (!sglobals->Debug)
-		sglobals->die(0);
+	if (bind(finet, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+		logerror("bind");
+		if (!Debug)
+		die(0);
 	} else {
-		sglobals->InetInuse = 1;
+		InetInuse = 1;
 	}
 
         I->im_path = NULL;
-        I->im_fd   = sglobals->finet;
+        I->im_fd   = finet;
         return(1);
 }

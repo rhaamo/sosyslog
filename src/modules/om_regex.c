@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.12 2000/07/04 18:56:40 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.13 2000/07/04 19:28:49 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -73,7 +73,7 @@ struct om_regex_ctx {
  */
 int
 om_regex_init(int argc, char ** argv, struct filed *f, char *prog,
-		struct om_hdr_ctx **c, struct sglobals *sglobals) {
+		struct om_hdr_ctx **c) {
 	struct om_regex_ctx *ctx;
 	int ch;
 
@@ -143,14 +143,14 @@ om_regex_init(int argc, char ** argv, struct filed *f, char *prog,
 
 int
 om_regex_doLog(struct filed *f, int flags, char *msg,
-		struct om_hdr_ctx *context, struct sglobals *sglobals) {
+		struct om_hdr_ctx *context) {
 	struct om_regex_ctx *ctx;
 	int ret;
 
 	ctx = (struct om_regex_ctx *) context;
 
 	if (msg == NULL || !strcmp(msg, "")) {
-		sglobals->logerror("om_regex_doLog: no message!");
+		logerror("om_regex_doLog: no message!");
 		return(-1);
 	}
 
@@ -180,8 +180,7 @@ om_regex_doLog(struct filed *f, int flags, char *msg,
 
 
 int
-om_regex_close(struct filed *f, struct om_hdr_ctx *ctx,
-		struct sglobals *sglobals) {
+om_regex_close(struct filed *f, struct om_hdr_ctx *ctx) {
 	struct om_regex_ctx *c;
 
 	c = (struct om_regex_ctx *) ctx;

@@ -1,4 +1,4 @@
-dnl	$CoreSDI: aclocal.m4,v 1.10 2000/08/04 01:55:10 alejo Exp $
+dnl	$CoreSDI: aclocal.m4,v 1.11 2000/08/22 18:38:57 alejo Exp $
 
 dnl
 dnl MSYSLOG_GREP patt file comm
@@ -167,10 +167,8 @@ dnl	adds a new static output module
 dnl
 AC_DEFUN(MSYSLOG_ADD_om, [ 
 SMODULES_HEADER="$SMODULES_HEADER \
-int om_$1_init (int, char**, struct filed*, char*, struct om_hdr_ctx**, \
-struct sglobals*); \
-int om_$1_doLog (struct filed*, int, char*, struct om_hdr_ctx*, \
-struct sglobals*);"
+int om_$1_init (int, char**, struct filed*, char*, struct om_hdr_ctx**); \
+int om_$1_doLog (struct filed*, int, char*, struct om_hdr_ctx*);"
 
 SMODULES_LOAD="$SMODULES_LOAD \
 if ( (om = (struct omodule*)calloc(1, sizeof(struct omodule))) == NULL) \
@@ -194,15 +192,14 @@ SMODULES_LOAD="$SMODULES_LOAD \
 
 MSYSLOG_GREP(om_$1_flush, "$MODULES_DIR/$2", [
 SMODULES_HEADER="$SMODULES_HEADER \
-	int om_$1_flush (struct filed*, struct om_hdr_ctx*, \
-struct sglobals*);" 
+	int om_$1_flush (struct filed*, struct om_hdr_ctx*);" 
 SMODULES_LOAD="$SMODULES_LOAD \
 	olast->om_flush=om_$1_flush;"
 ]) 
 
 MSYSLOG_GREP(om_$1_close, "$MODULES_DIR/$2", [
 SMODULES_HEADER="$SMODULES_HEADER \
-	int om_$1_close (struct filed*, struct om_hdr_ctx*, struct sglobals*);"
+	int om_$1_close (struct filed*, struct om_hdr_ctx*);"
 SMODULES_LOAD="$SMODULES_LOAD \
 	olast->om_close=om_$1_close;" ])
 ])
@@ -214,10 +211,8 @@ dnl	adds a new static input module
 dnl
 AC_DEFUN(MSYSLOG_ADD_im, [
 SMODULES_HEADER="$SMODULES_HEADER \
-int im_$1_init (struct i_module*, char**, int, \
-struct sglobals*); \
-int im_$1_getLog (struct i_module*, struct im_msg*, \
-struct sglobals*);"
+int im_$1_init (struct i_module*, char**, int, ); \
+int im_$1_getLog (struct i_module*, struct im_msg*);"
 
 SMODULES_LOAD="$SMODULES_LOAD \
 if ( (im = (struct imodule*)calloc(1, sizeof(struct imodule))) == NULL) \
@@ -241,14 +236,13 @@ SMODULES_LOAD="$SMODULES_LOAD \
 
 MSYSLOG_GREP(im_$1_close, "$MODULES_DIR/$2", [
 SMODULES_HEADER="$SMODULES_HEADER \
-	int im_$1_close (struct i_module*, struct sglobals*);"
+	int im_$1_close (struct i_module*);"
 SMODULES_LOAD="$SMODULES_LOAD \
 	ilast->im_close=im_$1_close;" ])
 
 MSYSLOG_GREP(im_$1_timer, "$MODULES_DIR/$2", [
 SMODULES_HEADER="$SMODULES_HEADER \
-	int im_$1_timer (struct i_module*, struct im_msg*, \
-struct sglobals*);"
+	int im_$1_timer (struct i_module*, struct im_msg*);"
 SMODULES_LOAD="$SMODULES_LOAD \
 	ilast->im_timer=im_$1_timer;" ])
 ])

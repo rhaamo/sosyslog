@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.40 2000/07/11 19:38:16 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.41 2000/07/13 21:18:42 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -59,11 +59,9 @@
 #include "syslogd.h"
 #include "modules.h"
 
-void	wallmsg (struct filed *, struct iovec *, struct sglobals *);
-
 int
 om_classic_doLog(struct filed *f, int flags, char *msg,
-		struct om_hdr_ctx *context, struct sglobals *sglobals) {
+		struct om_hdr_ctx *context) {
 	struct iovec iov[6];
 	struct iovec *v;
 	int l;
@@ -72,7 +70,7 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 
 
 	if (msg == NULL || !strcmp(msg, "")) {
-		sglobals->logerror("om_classic_doLog: no message!");
+		logerror("om_classic_doLog: no message!");
 		return(-1);
 	}
 
@@ -107,7 +105,7 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 	v->iov_len = strlen(msg);
 	v++;
 
-	dprintf("Logging to %s", sglobals->TypeNames[f->f_type]);
+	dprintf("Logging to %s", TypeNames[f->f_type]);
 	f->f_time = now;
 
 	switch (f->f_type) {
@@ -121,11 +119,11 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 			    (char *) iov[0].iov_base, (char *) iov[4].iov_base);
 			if (l > MAXLINE)
 				l = MAXLINE;
-			if (sendto(sglobals->finet, line, l, 0,
+			if (sendto(finet, line, l, 0,
 			    (struct sockaddr *)&f->f_un.f_forw.f_addr,
 			    sizeof(f->f_un.f_forw.f_addr)) != l) {
 				f->f_type = F_UNUSED;
-				sglobals->logerror("sendto");
+				logerror("sendto");
 			}
 			break;
 
@@ -158,14 +156,14 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 					    O_WRONLY|O_APPEND, 0);
 					if (f->f_file < 0) {
 						f->f_type = F_UNUSED;
-						sglobals->logerror(f->f_un.f_fname);
+						logerror(f->f_un.f_fname);
 					} else
 						goto again;
 				} else {
 					f->f_type = F_UNUSED;
 					f->f_file = -1;
 					errno = e;
-					sglobals->logerror(f->f_un.f_fname);
+					logerror(f->f_un.f_fname);
 				}
 			} else if (flags & SYNC_FILE)
 				(void)fsync(f->f_file);
@@ -176,7 +174,7 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 			dprintf("\n");
 			v->iov_base = "\r\n";
 			v->iov_len = 2;
-			wallmsg(f, iov, sglobals);
+			wallmsg(f, iov);
 			break;
 	}
 	f->f_prevcount = 0;
@@ -191,7 +189,7 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
  */
 int
 om_classic_init( int argc, char **argv, struct filed *f,
-		char *prog, struct om_hdr_ctx **context, struct sglobals *sglobals) {
+		char *prog, struct om_hdr_ctx **context) {
 	struct hostent *hp;
 	int i;
 	char *p, *q;
@@ -203,7 +201,7 @@ om_classic_init( int argc, char **argv, struct filed *f,
 	switch (*p)
 	{
 	case '@':
-		if (!sglobals->InetInuse)
+		if (!InetInuse)
 			break;
 		(void)strncpy(f->f_un.f_forw.f_hname, ++p,
 		    sizeof(f->f_un.f_forw.f_hname)-1);
@@ -212,13 +210,13 @@ om_classic_init( int argc, char **argv, struct filed *f,
 		if (hp == NULL) {
 			extern int h_errno;
 
-			sglobals->logerror((char *)hstrerror(h_errno));
+			logerror((char *)hstrerror(h_errno));
 			break;
 		}
 		memset(&f->f_un.f_forw.f_addr, 0,
 		    sizeof(f->f_un.f_forw.f_addr));
 		f->f_un.f_forw.f_addr.sin_family = AF_INET;
-		f->f_un.f_forw.f_addr.sin_port = sglobals->LogPort;
+		f->f_un.f_forw.f_addr.sin_port = LogPort;
 		memmove(&f->f_un.f_forw.f_addr.sin_addr, hp->h_addr,
 		    sizeof(struct in_addr));
 		f->f_type = F_FORW;
@@ -229,14 +227,14 @@ om_classic_init( int argc, char **argv, struct filed *f,
 		f->f_un.f_fname[sizeof f->f_un.f_fname]=0;
 		if ((f->f_file = open(p, O_WRONLY|O_APPEND, 0)) < 0) {
 			f->f_type = F_UNUSED;
-			sglobals->logerror(p);
+			logerror(p);
 			break;
 		}
 		if (isatty(f->f_file))
 			f->f_type = F_TTY;
 		else
 			f->f_type = F_FILE;
-		if (strcmp(p, sglobals->ctty) == 0)
+		if (strcmp(p, ctty) == 0)
 			f->f_type = F_CONSOLE;
 		break;
 
@@ -265,8 +263,7 @@ om_classic_init( int argc, char **argv, struct filed *f,
 }
 
 int
-om_classic_close( struct filed *f, struct om_hdr_ctx *ctx,
-		struct sglobals *sglobals) {
+om_classic_close( struct filed *f, struct om_hdr_ctx *ctx) {
 	int ret;
 
 	ret = -1;
@@ -285,74 +282,12 @@ om_classic_close( struct filed *f, struct om_hdr_ctx *ctx,
 }
 
 int
-om_classic_flush(struct filed *f, struct om_hdr_ctx *context,
-		struct sglobals *sglobals) {
+om_classic_flush(struct filed *f, struct om_hdr_ctx *context) {
 	/* flush any pending output */
 	if (f->f_prevcount)
-		om_classic_doLog(f, 0, (char *)NULL, NULL, sglobals);
+		om_classic_doLog(f, 0, (char *)NULL, NULL);
 
 	return(1);
 
-}
-
-/*
- *  WALLMSG -- Write a message to the world at large
- *
- *	Write the specified message to either the entire
- *	world, or a list of approved users.
- */
-void
-wallmsg( struct filed *f, struct iovec *iov, struct sglobals *sglobals) {
-	static int reenter;			/* avoid calling ourselves */
-	FILE *uf;
-	struct utmp ut;
-	int i;
-	char *p;
-	char line[sizeof(ut.ut_line) + 1];
-
-	if (reenter++)
-		return;
-	if ( (uf = fopen(_PATH_UTMP, "r")) == NULL) {
-		sglobals->logerror(_PATH_UTMP);
-		reenter = 0;
-		return;
-	}
-	/* NOSTRICT */
-	while (fread(&ut, sizeof(ut), 1, uf) == 1) {
-
-#ifndef HAVE_LINUX
-		if (ut.ut_name[0] == '\0')
-#else
-		if ((ut.ut_type != USER_PROCESS && ut.ut_type != LOGIN_PROCESS) ||
-		    ut.ut_line[0] == ':' /* linux logs users that are not logged in (?!) */)
-#endif
-			continue;
-
-		strncpy(line, ut.ut_line, sizeof(ut.ut_line));
-		line[sizeof(ut.ut_line)] = '\0';
-		if (f->f_type == F_WALL) {
-			if ((p = sglobals->ttymsg(iov, 6, line, TTYMSGTIME)) != NULL) {
-				errno = 0;	/* already in msg */
-				sglobals->logerror(p);
-			}
-			continue;
-		}
-		/* should we send the message to this user? */
-		for (i = 0; i < MAXUNAMES; i++) {
-			if (!f->f_un.f_uname[i][0])
-				break;
-			if (!strncmp(f->f_un.f_uname[i], ut.ut_name,
-			    UT_NAMESIZE)) {
-				if ((p = sglobals->ttymsg(iov, 6, line, TTYMSGTIME))
-								!= NULL) {
-					errno = 0;	/* already in msg */
-					sglobals->logerror(p);
-				}
-				break;
-			}
-		}
-	}
-	(void)fclose(uf);
-	reenter = 0;
 }
 

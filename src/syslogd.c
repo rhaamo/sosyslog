@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.118 2000/08/23 20:58:33 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.119 2000/08/24 19:59:11 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.118 2000/08/23 20:58:33 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.119 2000/08/24 19:59:11 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -149,8 +149,6 @@ CODE prioritynames[] = {
 #endif
 
 
-struct sglobals *sglobals;
-
 /*
  * Intervals at which we flush out "message repeated" messages,
  * in seconds after previous message is logged.  After each flush,
@@ -169,6 +167,16 @@ char	*ConfFile = _PATH_LOGCONF;	/* configuration file */
 #define MAX_PIDFILE_LOCK_TRIES 5
 char pidfile[PATH_MAX];
 FILE *pidf;
+
+char *ctty = _PATH_CONSOLE;
+char *TypeNames[] = { "UNUSED", "FILE", "TTY", "CONSOLE", "FORW",
+	"USERS", "WALL", "MODULE", NULL };
+char *LocalDomain = NULL;
+int finet = -1;
+int LogPort = -1;
+int Debug = 0;
+int InetInuse = 0;
+char  LocalHostName[MAXHOSTNAMELEN];  /* our hostname */
 
 void    cfline(char *, struct filed *, char *);
 int     decode(const char *, CODE *);
@@ -200,26 +208,6 @@ main(int argc, char **argv) {
 	memset(&Inputs, 0, sizeof(Inputs));
 
 	Inputs.im_fd = -1;
-	sglobals = (struct sglobals *) calloc(1, sizeof(struct sglobals));
-	sglobals->ctty = strdup(_PATH_CONSOLE);
-	sglobals->TypeNames[0] = "UNUSED";
-	sglobals->TypeNames[1] = "FILE";
-	sglobals->TypeNames[2] = "TTY";
-	sglobals->TypeNames[3] = "CONSOLE";
-	sglobals->TypeNames[4] = "FORW";
-	sglobals->TypeNames[5] = "USERS";
-	sglobals->TypeNames[6] = "WALL";
-	sglobals->TypeNames[7] = "MODULE";
-	sglobals->TypeNames[8] = NULL;
-	sglobals->LocalDomain = NULL;
-	sglobals->finet = -1;
-	sglobals->LogPort = -1;
-	sglobals->Debug = 0;
-	sglobals->InetInuse = 0;
-	sglobals->logerror = logerror;
-	sglobals->logmsg = logmsg;
-	sglobals->die = die;
-	sglobals->ttymsg = ttymsg;
 
 	timeout.tv_sec = SYSLOG_TIMEOUT_SEC;
 	timeout.tv_usec = SYSLOG_TIMEOUT_USEC;
@@ -233,7 +221,7 @@ main(int argc, char **argv) {
 	while ((ch = getopt(argc, argv, "dubSf:m:p:a:i:h")) != -1)
 		switch (ch) {
 		case 'd':		/* debug */
-			sglobals->Debug++;
+			Debug++;
 			break;
 		case 'f':		/* configuration file */
 			ConfFile = optarg;
@@ -276,28 +264,28 @@ main(int argc, char **argv) {
 	if (((argc -= optind) != 0) || Inputs.im_fd < 0)
 		usage();
 
-	if (!sglobals->Debug)
+	if (!Debug)
 		(void)daemon(0, 0);
 	else
 		setlinebuf(stdout);
 
 	consfile.f_type = F_CONSOLE;
         /* this should get into Files and be way nicer */
-	if (omodule_create(sglobals->ctty, &consfile, NULL) == -1) {
+	if (omodule_create(ctty, &consfile, NULL) == -1) {
 		dprintf("Error initializing classic output module!\n");
 	}
 
-	(void)strncpy(consfile.f_un.f_fname, sglobals->ctty,
+	(void)strncpy(consfile.f_un.f_fname, ctty,
 			sizeof(consfile.f_un.f_fname) - 1);
-	(void)gethostname(sglobals->LocalHostName, sizeof(sglobals->LocalHostName));
-	if ((p = strchr(sglobals->LocalHostName, '.')) != NULL) {
+	(void)gethostname(LocalHostName, sizeof(LocalHostName));
+	if ((p = strchr(LocalHostName, '.')) != NULL) {
 		*p++ = '\0';
-		sglobals->LocalDomain = p;
+		LocalDomain = p;
 	} else
-		sglobals->LocalDomain = "";
+		LocalDomain = "";
 	(void)signal(SIGTERM, die);
-	(void)signal(SIGINT, sglobals->Debug ? die : SIG_IGN);
-	(void)signal(SIGQUIT, sglobals->Debug ? die : SIG_IGN);
+	(void)signal(SIGINT, Debug ? die : SIG_IGN);
+	(void)signal(SIGQUIT, Debug ? die : SIG_IGN);
 	(void)signal(SIGCHLD, reapchild);
 	(void)signal(SIGALRM, domark);
 	(void)alarm(TIMERINTVL);
@@ -305,7 +293,7 @@ main(int argc, char **argv) {
 	snprintf(pidfile, PATH_MAX, "%s/syslog.pid", PID_DIR);
 
 	/* took my process id away */
-	if (!sglobals->Debug) {
+	if (!Debug) {
 		struct flock fl;
 		int lfd, tries, status;
 		char buf[1024];
@@ -459,7 +447,7 @@ main(int argc, char **argv) {
 					im->im_nextcall.tv_usec < tnow.tv_usec) {
 
 				/* call this input module timer */
-				if ((*im->im_func->im_timer)(im, &log, sglobals) < 0) {
+				if ((*im->im_func->im_timer)(im, &log) < 0) {
 					dprintf("Error calling timer for [%s]\n", im->im_name);
 				}
 
@@ -478,7 +466,7 @@ main(int argc, char **argv) {
 				memset(&log, 0,sizeof(struct im_msg));
 
 				if ( !(im->im_func->im_getLog) || (i =
-						(*im->im_func->im_getLog)(im, &log, sglobals)) < 0) {
+						(*im->im_func->im_getLog)(im, &log)) < 0) {
 					dprintf("Syslogd: Error calling input module"
 		       				" %s, for fd %d\n", im->im_name, im->im_fd);
 				}
@@ -610,7 +598,7 @@ logmsg(int pri, char *msg, char *from, int flags) {
 	/* log the message to the particular outputs */
 	if (!Initialized) {
 		f = &consfile;
-		f->f_file = open(sglobals->ctty, O_WRONLY, 0);
+		f->f_file = open(ctty, O_WRONLY, 0);
 
 		if (f->f_file >= 0) {
 			doLog(f, flags, msg);
@@ -709,7 +697,7 @@ doLog(struct filed *f, int flags, char *message) {
 		};
 
 		/* call this module doLog */
-		ret = (*(om->om_func->om_doLog))(f,flags,msg,om->ctx, sglobals);
+		ret = (*(om->om_func->om_doLog))(f,flags,msg,om->ctx);
 		if (ret < 0) {
 			dprintf("doLog: error with module module [%s] "
 				"for message [%s]\n", om->om_func->om_name, msg);
@@ -737,14 +725,14 @@ domark(int signo) {
 	now = time((time_t *)NULL);
 	MarkSeq += TIMERINTVL;
 	if (MarkSeq >= MarkInterval) {
-		logmsg(LOG_INFO, "-- MARK --", sglobals->LocalHostName, ADDDATE|MARK);
+		logmsg(LOG_INFO, "-- MARK --", LocalHostName, ADDDATE|MARK);
 		MarkSeq = 0;
 	}
 
 	for (f = Files; f; f = f->f_next) {
 		if (f->f_prevcount && now >= REPEATTIME(f)) {
 			dprintf("flush %s: repeated %d times, %d sec.\n",
-			    sglobals->TypeNames[f->f_type], f->f_prevcount,
+			    TypeNames[f->f_type], f->f_prevcount,
 			    repeatinterval[f->f_repeatcount]);
 			doLog(f, 0, (char *)NULL);
 			BACKOFF(f);
@@ -767,7 +755,7 @@ logerror(char *type) {
 		(void)snprintf(buf, sizeof(buf), "syslogd: %s", type);
 	errno = 0;
 	dprintf("%s\n", buf);
-	logmsg(LOG_SYSLOG|LOG_ERR, buf, sglobals->LocalHostName, ADDDATE);
+	logmsg(LOG_SYSLOG|LOG_ERR, buf, LocalHostName, ADDDATE);
 }
 
 void
@@ -796,11 +784,11 @@ die(int signo) {
 
 	for (im = &Inputs; im; im = im->im_next)
 		if (im->im_func && im->im_func->im_close)
-			(*im->im_func->im_close)(im, sglobals);
+			(*im->im_func->im_close)(im);
 		else if (im->im_fd)
 			close(im->im_fd);
 
-	if (!sglobals->Debug) {
+	if (!Debug) {
 		struct flock fl;
 		int lfd;
 
@@ -847,11 +835,11 @@ init(int signo) {
 			/* flush any pending output */
 			if (f->f_prevcount &&
 			    om->om_func->om_flush != NULL) {
-				(*om->om_func->om_flush) (f,om->ctx, sglobals);
+				(*om->om_func->om_flush) (f,om->ctx);
 			}
 
 			if (om->om_func->om_close != NULL) {
-				(*om->om_func->om_close) (f,om->ctx, sglobals);
+				(*om->om_func->om_close) (f,om->ctx);
 			}
 		}
 		next = f->f_next;
@@ -927,14 +915,14 @@ init(int signo) {
 
 	Initialized = 1;
 
-	if (sglobals->Debug) {
+	if (Debug) {
 		for (f = Files; f; f = f->f_next) {
 			for (i = 0; i <= LOG_NFACILITIES; i++)
 				if (f->f_pmask[i] == INTERNAL_NOPRI)
 					printf("X ");
 				else
 					printf("%d ", f->f_pmask[i]);
-			printf("%s: ", sglobals->TypeNames[f->f_type]);
+			printf("%s: ", TypeNames[f->f_type]);
 			switch (f->f_type) {
 			case F_FILE:
 			case F_TTY:
@@ -961,7 +949,7 @@ init(int signo) {
 		}
 	}
 
-	logmsg(LOG_SYSLOG|LOG_INFO, "syslogd: restart", sglobals->LocalHostName, ADDDATE);
+	logmsg(LOG_SYSLOG|LOG_INFO, "syslogd: restart", LocalHostName, ADDDATE);
 	dprintf("syslogd: restarted\n");
 }
 
@@ -1081,5 +1069,66 @@ decode(const char *name, CODE *codetab) {
 			return (c->c_val);
 
 	return (-1);
+}
+
+/*
+ *  WALLMSG -- Write a message to the world at large
+ *
+ *	Write the specified message to either the entire
+ *	world, or a list of approved users.
+ */
+void
+wallmsg( struct filed *f, struct iovec *iov) {
+	static int reenter;			/* avoid calling ourselves */
+	FILE *uf;
+	struct utmp ut;
+	int i;
+	char *p;
+	char line[sizeof(ut.ut_line) + 1];
+
+	if (reenter++)
+		return;
+	if ( (uf = fopen(_PATH_UTMP, "r")) == NULL) {
+		logerror(_PATH_UTMP);
+		reenter = 0;
+		return;
+	}
+	/* NOSTRICT */
+	while (fread(&ut, sizeof(ut), 1, uf) == 1) {
+
+#ifndef HAVE_LINUX
+		if (ut.ut_name[0] == '\0')
+#else
+		if ((ut.ut_type != USER_PROCESS && ut.ut_type != LOGIN_PROCESS) ||
+		    ut.ut_line[0] == ':' /* linux logs users that are not logged in (?!) */)
+#endif
+			continue;
+
+		strncpy(line, ut.ut_line, sizeof(ut.ut_line));
+		line[sizeof(ut.ut_line)] = '\0';
+		if (f->f_type == F_WALL) {
+			if ((p = ttymsg(iov, 6, line, TTYMSGTIME)) != NULL) {
+				errno = 0;	/* already in msg */
+				logerror(p);
+			}
+			continue;
+		}
+		/* should we send the message to this user? */
+		for (i = 0; i < MAXUNAMES; i++) {
+			if (!f->f_un.f_uname[i][0])
+				break;
+			if (!strncmp(f->f_un.f_uname[i], ut.ut_name,
+			    UT_NAMESIZE)) {
+				if ((p = ttymsg(iov, 6, line, TTYMSGTIME))
+								!= NULL) {
+					errno = 0;	/* already in msg */
+					logerror(p);
+				}
+				break;
+			}
+		}
+	}
+	(void)fclose(uf);
+	reenter = 0;
 }
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.30 2000/07/06 19:01:00 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.31 2000/07/26 21:00:38 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -166,8 +166,7 @@ im_linux_set_console_loglevel (char *strlv)
  * Initialize linux input module
  */
 int
-im_linux_init (struct i_module *I, char **argv, int argc,
-	       struct sglobals *sglobals)
+im_linux_init (struct i_module *I, char **argv, int argc)
 {
 	int ch;
 	int current_optind;
@@ -271,9 +270,7 @@ im_linux_init (struct i_module *I, char **argv, int argc,
  * and log it.
  */
 int
-im_linux_getLog (struct i_module *im, struct im_msg *ret,
-		 struct sglobals *sglobals)
-{
+im_linux_getLog (struct i_module *im, struct im_msg *ret) {
 	int   i;
 	char *ptr;
 
@@ -295,7 +292,7 @@ im_linux_getLog (struct i_module *im, struct im_msg *ret,
 		i = read(im->im_fd, im->im_buf, sizeof(im->im_buf)-1);
 
 	if (i < 0 && errno != EINTR) {
-		sglobals->logerror("im_linux_getLog");
+		logerror("im_linux_getLog");
 		return(-1);
 	}
 
@@ -329,10 +326,10 @@ im_linux_getLog (struct i_module *im, struct im_msg *ret,
 			/* log msg */
 			if (ret->im_len < 0)
 				ret->im_len = sizeof(ret->im_msg);
-			strncpy(ret->im_host, sglobals->LocalHostName,
+			strncpy(ret->im_host, LocalHostName,
 				sizeof(ret->im_host));
 			ret->im_host[sizeof(ret->im_host)-1] = '\0';
-			sglobals->logmsg(ret->im_pri, ret->im_msg,
+			logmsg(ret->im_pri, ret->im_msg,
 					 ret->im_host, ret->im_flags);
 			ptr += i + 1;
 			i = 0;
@@ -346,7 +343,7 @@ im_linux_getLog (struct i_module *im, struct im_msg *ret,
  * Close linux input module
  */
 int
-im_linux_close (struct i_module *im, struct sglobals *sglobals)
+im_linux_close (struct i_module *im)
 {
 	ksym_close();
 	if (im->im_path != NULL) 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.16 2000/07/10 21:01:53 claudio Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.17 2000/08/22 19:43:38 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -78,8 +78,7 @@ struct om_pgsql_ctx {
 };
 
 int
-om_pgsql_doLog(struct filed *f, int flags, char *msg,
-	struct om_hdr_ctx *ctx, struct sglobals *sglobals) {
+om_pgsql_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *ctx) {
 	PGresult *r;
 	struct om_pgsql_ctx *c;
 	char    *dummy, *y, *mo, *d, *h, *host, *m;
@@ -170,7 +169,7 @@ extern int optreset;
 
 int
 om_pgsql_init(int argc, char **argv, struct filed *f, char *prog,
-	struct om_hdr_ctx **c, struct sglobals *sglobals) {
+	struct om_hdr_ctx **c) {
 	PGconn  *h;
 	PGresult *r;
 	struct  om_pgsql_ctx *ctx;
@@ -306,8 +305,7 @@ om_pgsql_destroy_ctx(ctx)
 }
 
 int
-om_pgsql_close(struct filed *f, struct om_hdr_ctx *ctx,
-		struct sglobals *sglobals) {
+om_pgsql_close(struct filed *f, struct om_hdr_ctx *ctx) {
 	PQfinish(((struct om_pgsql_ctx *)ctx)->h);
 	om_pgsql_destroy_ctx(ctx);
 

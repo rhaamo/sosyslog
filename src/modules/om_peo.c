@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.45 2000/07/03 22:23:18 claudio Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.46 2000/07/04 16:44:08 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -74,8 +74,7 @@ struct om_peo_ctx {
 };
 
 int
-om_peo_doLog (struct filed *f, int flags, char *msg,
-		struct om_hdr_ctx *ctx, struct sglobals *sglobals) {
+om_peo_doLog (struct filed *f, int flags, char *msg, struct om_hdr_ctx *ctx) {
 	struct om_peo_ctx *c;
 	int	 fd;
 	u_char	 key[41];
@@ -173,7 +172,7 @@ release()
 
 int
 om_peo_init (int argc, char **argv, struct filed *f, char *prog,
-		struct om_hdr_ctx **ctx, struct sglobals *sglobals) {
+		struct om_hdr_ctx **ctx) {
 	int	 ch;
 	struct	 om_peo_ctx *c;
 	int	 hash_method;
@@ -259,8 +258,7 @@ om_peo_init (int argc, char **argv, struct filed *f, char *prog,
 
 
 int
-om_peo_close (struct filed *f, struct om_hdr_ctx *ctx,
-		struct sglobals *sglobals) {
+om_peo_close (struct filed *f, struct om_hdr_ctx *ctx) {
 	struct om_peo_ctx *c;
 
 	c = (struct om_peo_ctx *) ctx;
