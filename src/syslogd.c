@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.42 2000/04/19 22:04:30 alejo Exp $
+/*	$Id: syslogd.c,v 1.43 2000/04/24 23:23:58 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -475,12 +475,21 @@ logmsg(pri, msg, from, flags)
 }
 
 void
-doLog(f, flags, msg)
+doLog(f, flags, message)
         struct filed *f;
         int flags;
-        char *msg;
+        char *message;
 {
 	struct	o_module *m;
+	char	repbuf[80], *msg;
+
+	if (!message && (f->f_prevcount > 1)) {
+		msg = repbuf;
+		sprintf(repbuf, "last message repeated %d times",
+			f->f_prevcount);
+	} else {
+		msg = message;
+	}
 
         for (m = f->f_mod; m; m = m->om_next) {
 		if(OModules[m->om_type].om_doLog == NULL) {

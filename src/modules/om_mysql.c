@@ -85,7 +85,7 @@ om_mysql_doLog(f, flags, msg, context)
 	struct om_header_ctx *context;
 {
 	struct om_mysql_ctx *c;
-	char	*dummy, *y, *m, *d, *h, *host, mymsg[1024];
+	char	*dummy, *y, *m, *d, *h, *host;
 	int	mn;
 
 	dprintf("MySQL doLog: entering [%s] [%s]\n", msg, f->f_prevline);
@@ -94,15 +94,6 @@ om_mysql_doLog(f, flags, msg, context)
 
 	c = (struct om_mysql_ctx *) context;
 	memset(c->query, 0, MAX_QUERY);
-
-	if (msg == NULL) {
-		if (f->f_prevcount > 1) {
-				sprintf(mymsg, "last message repeated %d times",
-							f->f_prevcount);
-		} else {
-				sprintf(mymsg, "%s", f->f_prevline);
-		}
-	}
 
 	host = f->f_prevhost;
 
@@ -131,7 +122,7 @@ om_mysql_doLog(f, flags, msg, context)
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
 	snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s"
 			" VALUES('%s-%.2d-%s', '%s', '%s', '%s')",
-			c->table, y, mn, d, h, host, mymsg);
+			c->table, y, mn, d, h, host, msg);
 
 	free(dummy);
 	free(y);

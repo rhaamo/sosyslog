@@ -72,7 +72,7 @@ om_classic_doLog(f, flags, msg, context)
 	struct iovec iov[6];
 	struct iovec *v;
 	int l;
-	char line[MAXLINE + 1], repbuf[80], greetings[500];
+	char line[MAXLINE + 1], greetings[500];
 
 	v = iov;
 	if (f->f_type == F_WALL) {
@@ -101,17 +101,8 @@ om_classic_doLog(f, flags, msg, context)
 	v->iov_len = 1;
 	v++;
 
-	if (msg) {
-		v->iov_base = msg;
-		v->iov_len = strlen(msg);
-	} else if (f->f_prevcount > 1) {
-		v->iov_base = repbuf;
-		v->iov_len = sprintf(repbuf, "last message repeated %d times",
-		    f->f_prevcount);
-	} else {
-		v->iov_base = f->f_prevline;
-		v->iov_len = f->f_prevlen;
-	}
+	v->iov_base = msg;
+	v->iov_len = strlen(msg);
 	v++;
 
 	dprintf("Logging to %s", TypeNames[f->f_type]);

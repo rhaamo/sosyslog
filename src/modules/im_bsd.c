@@ -68,7 +68,7 @@ im_bsd_getLog(im, ret)
 	struct i_module *im;
         struct im_msg  *ret;
 {
-	char *p, line[MSG_BSIZE + 1], outLine[MAXLINE + 1], *q, *lp;
+	char *p, line[MAXLINE + 1], outLine[MAXLINE + 1], *q, *lp;
         int i, c;
 
 	(void)strcpy(outLine, _PATH_UNIX);
