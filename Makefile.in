@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.18 2000/07/06 01:21:51 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.19 2000/08/22 19:43:38 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -49,7 +49,7 @@ install-recursive:
 
 .PHONY: clean distclean install
 clean: clean-recursive
-install: install-recursive
+install: all install-recursive
 
 distclean: distclean-recursive
 	-rm -f Makefile config.cache config.log config.status
