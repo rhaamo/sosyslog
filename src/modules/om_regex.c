@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.13.2.6 2000/09/04 21:03:37 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.13.2.7 2000/09/04 21:22:34 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -177,12 +177,6 @@ om_regex_doLog(struct filed *f, int flags, char *msg,
 		return(-1);
 	}
 
-	/* get message time and separate date and time */
-	if ((c->filters & OM_FILTER_DATE) || (c->filters & OM_FILTER_TIME)) {
-		strncpy(c->date, f->f_lasttime, sizeof(c->date));
-		c->date[6] = 0;
-	}
-
 	/* return:
 			 1  match  -> successfull
 			 0  nomatch -> stop logging it
@@ -196,6 +190,13 @@ om_regex_doLog(struct filed *f, int flags, char *msg,
 			regexec(c->host_exp, f->f_prevhost, 0, NULL, 0)) {
 		goto nomatch;
 	}
+
+	/* get message time and separate date and time */
+	if ((c->filters & OM_FILTER_DATE) || (c->filters & OM_FILTER_TIME)) {
+		strncpy(c->date, f->f_lasttime, sizeof(c->date));
+		c->date[6] = 0;
+	}
+
 	if ((c->filters & OM_FILTER_DATE) &&
 			regexec(c->date_exp, c->date, 0, NULL, 0)) {
 		goto nomatch;
