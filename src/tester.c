@@ -22,20 +22,19 @@ void usage(char *);
 #define dprintf		if (Debug) printf
 
 int
-main(argc, argv)
-	int	 argc;
-	char	*argv[];
-{
-  int l, o, f, ch, started, m, Debug;
+main(int argc, char *argv[]) {
+  int c = 0, l = 0, o = 0, f = 0, ch = 0, started = 0, m = 0, Debug = 0, i;
   char *pname, msg[512];
   extern char *optarg;
   extern int optind;
 
-  l = 0; o = 0; f = 0; started = 0; m = 0; Debug = 0;
   pname = strdup(argv[0]);
 
-  while ((ch = getopt(argc, argv, "l:o:f:m:d")) != -1) {
+  while ((ch = getopt(argc, argv, "c:l:o:f:m:d")) != -1) {
           switch (ch) {
+              case 'c':
+                      c = atoi(optarg);
+                      break;
               case 'l':
                       l = atoi(optarg);
                       started++;
@@ -78,8 +77,11 @@ main(argc, argv)
   if ( started == 3) {
       openlog("SuperMegaTest", loption[o], lfacility[f]);
       dprintf("%s: going to log l %i, o %i, f %i\n", pname, l, o, f);
-      syslog(level[l], "%s level = [%i]"
-	      " option = [%i] facility = [%i]", msg, l, o, f);
+      for(i = 0; i < c; i++) {
+      	syslog(level[l], "%s level = [%i]"
+		      " option = [%i] facility = [%i]", msg, l, o, f);
+        dprintf("%s: count %i going to log l %i, o %i, f %i\n", pname, i, l, o, f);
+      }
       closelog();
   } else if (started > 0) {
       dprintf("You nust specify ALL args or none\n");
@@ -129,7 +131,7 @@ void
 usage(pname)
 	char *pname;
 {
-  printf("Usage:  %s <-l level> <-o option> <-f facility> "
+  printf("Usage:  %s <-c count> <-l level> <-o option> <-f facility> "
          " <-m 'message'> <-d>\n"
 	 "        you may specify multiple options\n"
 	 "        or\n"
