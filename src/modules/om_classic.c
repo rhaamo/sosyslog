@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.31.2.8.2.4 2000/09/14 00:56:26 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.45 2000/09/14 01:01:14 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -301,7 +301,7 @@ om_classic_close( struct filed *f, struct om_hdr_ctx *ctx) {
 			return(close(f->f_file));
 		case F_FORW:
 			if ((finet > -1) && (DaemonFlags & SYSLOGD_INET_IN_USE)
-					&& !(DaemonFlags & SYSLOGD_INET_READ)) {
+					&& !(DaemonFlags & SYSLOGD_FINET_READ)) {
 				return(close(finet));
 			}
 		default:
