@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.174 2001/02/28 23:47:41 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.175 2001/03/01 01:41:05 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.174 2001/02/28 23:47:41 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.175 2001/03/01 01:41:05 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -180,24 +180,24 @@ int	 DaemonFlags = 0;
 
 char	*libdir = NULL;
 
-RETSIGTYPE domark (int);
-RETSIGTYPE reapchild (int);
-RETSIGTYPE init (int);
-RETSIGTYPE die (int);
+RETSIGTYPE domark(int);
+RETSIGTYPE reapchild(int);
+RETSIGTYPE init(int);
+RETSIGTYPE die(int);
 RETSIGTYPE signal_handler (int);
-void	cfline (char *, struct filed *, char *);
-int	decode (const char *, CODE *);
-void	markit (void);
-void	doLog (struct filed *, int, char *);
-void	printline (char *, char *, size_t, int);
-void	usage (void);
-int	imodule_create (struct i_module *, char *);
-int	omodule_create (char *, struct filed *, char *);
-int	omodules_destroy (struct omodule *);
-int	imodules_destroy (struct imodule *);
-void	logerror (char *);
-void	logmsg (int, char *, char *, int);
-int	getmsgbufsize (void);
+void	cfline(char *, struct filed *, char *);
+int	decode(const char *, CODE *);
+void	markit(void);
+void	doLog(struct filed *, int, char *);
+void	printline(char *, char *, size_t, int);
+void	usage(void);
+int	imodule_create(struct i_module *, char *);
+int	omodule_create(char *, struct filed *, char *);
+int	omodules_destroy(struct omodule *);
+int	imodules_destroy(struct imodule *);
+void	logerror(char *);
+void	logmsg(int, char *, char *, int);
+int	getmsgbufsize(void);
 void	*main_lib;
 
 extern struct	omodule *omodules;
