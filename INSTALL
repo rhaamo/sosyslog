@@ -1,4 +1,4 @@
-$Id: INSTALL,v 1.2 2000/07/11 00:11:40 alejo Exp $
+$Id: INSTALL,v 1.3 2000/07/11 00:44:23 claudio Exp $
 ==============================================================================
                          Modular Syslog package
                              INSTALL file
@@ -66,9 +66,10 @@ following example:
   When you want a specific module, you have to put the word 'static'
 or 'dynamic' on it's value. Dynamic modules are useful for vendor
 specific modules, or to save memory on systems with more than one
-msyslog daemon running.
+msyslog daemon running; if you won't a module, just leave it without
+asignment.
 
-  Then, you must run the script "configure" to prepare the compilation heders
+  Then, you must run the script "configure" to prepare the compilation headers
 and Makefiles for your system.
 
   NOTE: If you are compiling on a new OS you may want to start a new
@@ -97,8 +98,11 @@ official distribution (see note on contacting us below).
 
 2.a Linux
 
-  Under Linux you need to have 'linux' module activated (either static or dynamic,
-to log kernel messages.
+  Under Linux you need to have 'LINUX' module activated (either static or
+  dynamic) to log kernel messages; this module replaces the deprecated
+  klogd daemon so, you should kill that before run msyslog.
+  The 'BSD' module is the kernel logguer on bsd-like system, you should
+  not to activate it on Linux.
 
 
 3. MODULE SPECIFIC NOTES
@@ -112,11 +116,12 @@ to log kernel messages.
 
   If your libmysqlclient library isn't in your linker path, you must
 add the corresponding directory on the shell variable LD_PATH.
-
   See manpage details for proper setup instructions.
 
 3.c PostgreSQL
 
+  If your libpq library isn't in your linker path, you must add the
+corresponding directory on the shell variable LD_PATH.
   See manpage details for proper setup instructions.
 
 
@@ -141,7 +146,7 @@ or send a message to majordomo@core-sdi.com with the text:
 subscribe list-name
 
 in the message body, replacing list-name by the name of the
-choosen list. You can alsosend an email to  the developers only
+choosen list. You can also send an email to  the developers only
 at core.devel.alat@core-sdi.com.
 
 
