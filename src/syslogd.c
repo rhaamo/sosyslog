@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.161 2001/01/12 01:48:31 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.162 2001/01/27 01:04:18 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.161 2001/01/12 01:48:31 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.162 2001/01/27 01:04:18 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -477,9 +477,6 @@ main(int argc, char **argv) {
 		if (DaemonFlags && SYSLOGD_MARK)
 			markit();
 
-		dprintf(DPRINTF_INFORMATIVE)("main: going to check pollfd "
-		    "array\n");
-
 		for (i = 0, done = 0; done < count; i++) {
 			if (fd_inputs[i].revents && POLLIN) {
 				int val = -1;
@@ -501,7 +498,7 @@ main(int argc, char **argv) {
 				} else if (!fd_inputs_mod[i]->im_func ||
 				    !fd_inputs_mod[i]->im_func->im_read ||
 				    (val = (*fd_inputs_mod[i]->im_func->im_read)
-				    (fd_inputs_mod[i], &log) < 0)) {
+				    (fd_inputs_mod[i], &log)) < 0) {
 					dprintf(DPRINTF_SERIOUS)("Syslogd: "
 					    "Error calling input module %s, "
 					    "for fd %d\n", fd_inputs_mod[i]->im_name,
@@ -513,7 +510,6 @@ main(int argc, char **argv) {
 					    fd_inputs_mod[i]->im_flags);
 
 				done++; /* one less */
-
 			}
 
 		}
@@ -604,8 +600,8 @@ logmsg(int pri, char *msg, char *from, int flags) {
 	time_t now;
 	struct tm timestamp;
 
-	dprintf(DPRINTF_INFORMATIVE2)("logmsg: pri 0%o, flags 0x%x, from %s,
-	    msg %s\n", pri, flags, from, msg);
+	dprintf(DPRINTF_INFORMATIVE2)("logmsg: pri 0%o, flags 0x%x, from %s,"
+	    " msg %s\n", pri, flags, from, msg);
 
 	sigemptyset(&mask);
 	sigaddset(&mask, SIGALRM);

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.58 2000/12/14 00:16:44 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.59 2001/01/27 01:04:19 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -216,6 +216,7 @@ om_classic_write(struct filed *f, int flags, char *msg, void *context)
 		break;
 	}
 	f->f_prevcount = 0;
+
 	return (1);
 }
 
