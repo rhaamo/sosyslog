@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.142 2000/11/01 18:18:02 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.143 2000/11/01 19:13:18 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.142 2000/11/01 18:18:02 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.143 2000/11/01 19:13:18 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -79,6 +79,7 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.142 2000/11/01 18:18:02 alejo Exp
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/sysctl.h>
+#include <sys/socket.h>
 
 #include <ctype.h>
 #include <errno.h>
