@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.56 2000/06/09 20:38:43 gera Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.57 2000/06/16 00:26:56 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -44,6 +44,8 @@
 #define TTYMSGTIME	1		/* timeout passed to ttymsg */
 #define MAX_N_OMODULES	20		/* maximum types of out modules */
 #define MAX_N_IMODULES	10		/* maximum types of in  modules */
+
+#define VERSION		"1.0"
 
 #ifdef HAVE_PATHS_H
 #include <paths.h>

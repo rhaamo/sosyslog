@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.94 2000/06/16 00:26:55 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.95 2000/06/16 19:47:38 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -256,6 +256,122 @@ parseParams(char ***ret, char *c)
 }
 
 struct imodule *
+addImFunc(name)
+	char *name;
+{
+	struct imodule *im;
+	char path[128], *c;
+	int len;
+
+	if (name == NULL)
+		return(NULL);
+
+	if (imodules == NULL) {
+		imodules = (struct imodule *) calloc(1, sizeof(*im));
+		im = imodules;
+	} else {
+		for(im = imodules; im->im_next; im = im->im_next)
+		im->im_next = (struct imodule *) calloc(1, sizeof(*im));
+		im = im->im_next;
+	}
+
+	snprintf(path, 127, "lib%s.so.%s", name, VERSION);
+
+	if ((im->h = dlopen(path, DL_LAZY)) == NULL) {
+	   	dprintf("Error [%s]\n", dlerror());
+	   	return(NULL);
+	}
+
+	if ((im->im_init = dlsym(im->h, "im_init")) == NULL ||
+			(im->im_getLog = dlsym(im->h, "im_getLog")) == NULL ||
+			(im->im_close = dlsym(im->h, "im_close")) == NULL ) {
+	   	dprintf("Error [%s]\n", dlerror());
+	   	return(NULL);
+	}
+
+	im->im_name = strdup(name);
+
+	return(im);
+
+}
+
+int
+imoduleDestroy(im)
+	struct imodule *im;
+{
+	if (im == NULL || im->h == NULL || im->im_next)
+		return(-1);
+
+	if (dlclose(im->h) < 0) {
+	   	dprintf("Error [%s]\n", dlerror());
+		return(-1);
+	}
+	free(im->im_name);
+	free(im->im_init);
+	free(im->im_getLog);
+	free(im->im_close);
+
+	return(1);
+}
+
+struct omodule *
+addOmFunc(name)
+	char *name;
+{
+	struct omodule *om;
+	char path[256];
+	int len;
+
+	if (name == NULL)
+		return(NULL);
+
+	if (omodules == NULL) {
+		omodules = (struct omodule *) calloc(1, sizeof(*om));
+		om = omodules;
+	} else {
+		for(om = omodules; om->om_next; om = om->om_next)
+		om->om_next = (struct omodule *) calloc(1, sizeof(*om));
+		om = om->om_next;
+	}
+
+	snprintf(path, 127, "lib%s.so.%s", name, VERSION);
+
+	if ((om->h = dlopen(path, DL_LAZY)) == NULL) {
+	   	dprintf("Error [%s]\n", dlerror());
+	   	return(NULL);
+	}
+
+	if ((om->om_init = dlsym(om->h, "om_init")) == NULL ||
+			(om->om_doLog = dlsym(om->h, "om_getLog")) == NULL ||
+			(om->om_close = dlsym(om->h, "om_close")) == NULL ) {
+	   	dprintf("Error [%s]\n", dlerror());
+	   	return(NULL);
+	}
+
+	om->om_name = strdup(name);
+
+	return(om);
+
+}
+
+int
+omoduleDestroy(om)
+	struct omodule *om;
+{
+	if (om == NULL || om->h == NULL || om->om_next)
+		return(-1);
+
+	if (dlclose(om->h) < 0) {
+	   	dprintf("Error [%s]\n", dlerror());
+		return(-1);
+	}
+
+	free(om->om_name);
+
+	return(1);
+}
+
+struct imodule *
 getImFunc(name)
 	char *name;
 {
@@ -289,111 +405,4 @@ getOmFunc(name)
 	return(om);
 }
 
-
-struct imodule *
-addImFunc(name)
-	char *name;
-{
-	struct imodule *im;
-	char path[256];
-	int len;
-
-	if (name == NULL)
-		return(NULL);
-
-	if (imodules == NULL) {
-		imodules = (struct imodule *) calloc(1, sizeof(*im));
-		im = imodules;
-	} else {
-		for(im = imodules; im->im_next; im = im->im_next)
-		im->im_next = (struct imodule *) calloc(1, sizeof(*im));
-		im = im->im_next;
-	}
-
-	if ((im->h = dlopen(path, RTLD_LAZY)) == NULL) {
-	   	dprintf("Error [%s]\n", dlerror());
-	   	return(NULL);
-	}
-
-	if ((im->im_init = dlsym(im->h, "im_init")) == NULL ||
-			(im->im_getLog = dlsym(im->h, "im_getLog")) == NULL ||
-			(im->im_close = dlsym(im->h, "im_close")) == NULL ) {
-	   	dprintf("Error [%s]\n", dlerror());
-	   	return(NULL);
-	}
-
-	im->im_name = strdup(name);
-
-	return(im);
-
-}
-
-int
-imoduleDestroy(im)
-	struct imodule *im;
-{
-	if (im == NULL || im->h == NULL || im->im_next)
-		return(-1);
-
-	if (dlclose(im->h) < 0) {
-	   	dprintf("imoduleDestory: Error [%s]\n", dlerror());
-		return(-1);
-	}
-
-	free(im->im_name);
-
-	return(1);
-}
-
-struct omodule *
-addOmFunc(name)
-	char *name;
-{
-	struct omodule *om;
-	char path[256];
-	int len;
-
-	if (name == NULL)
-		return(NULL);
-
-	if (omodules == NULL) {
-		omodules = (struct omodule *) calloc(1, sizeof(*om));
-		om = omodules;
-	} else {
-		for(om = omodules; om->om_next; om = om->om_next)
-		om->om_next = (struct omodule *) calloc(1, sizeof(*om));
-		om = om->om_next;
-	}
-
-	if ((om->h = dlopen(path, RTLD_LAZY)) == NULL) {
-	   	dprintf("Error [%s]\n", dlerror());
-	   	return(NULL);
-	}
-
-	if ((om->om_init = dlsym(om->h, "om_init")) == NULL ||
-			(om->om_doLog = dlsym(om->h, "om_getLog")) == NULL ||
-			(om->om_close = dlsym(om->h, "om_close")) == NULL ) {
-	   	dprintf("Error [%s]\n", dlerror());
-	   	return(NULL);
-	}
-	om->om_flush = dlsym(om->h, "om_flush");
-	om->om_name = strdup(name);
-
-	return(om);
-
-}
-
-int
-omoduleDestroy(om)
-	struct omodule *om;
-{
-	if (om == NULL || om->h == NULL || om->om_next)
-		return(-1);
-	if (dlclose(om->h) < 0) {
-	   	dprintf("Error [%s]\n", dlerror());
-		return(-1);
-	}
-	free(om->om_name);
-	return(1);
-}
 

@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.8 2000/06/09 20:16:33 gera Exp $
+# $CoreSDI: Makefile.in,v 1.9 2000/06/16 00:26:54 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -59,6 +59,19 @@ all: $(PROG)
 
 modules.o: config.h
 
+<<<<<<< Makefile.in
+$(PROG): 
+	ifndef STATICSI
+	$(SH) ./statics_headers_create.sh imodules.c im bsd unix udp
+	else
+	$(SH) ./statics_headers_create.sh imodules.c im $(STATICSI)
+	endif
+	ifndef STATICSO
+	$(SH) ./statics_headers_create.sh omodules.c om classic peo regex
+	else
+	$(SH) ./statics_headers_create.sh omodules.c om $(STATICSO)
+	endif
+	$(OBJS)
 $(PROG): 
 	ifndef STATICSI
 	$(SH) ./statics_headers_create.sh imodules.c im bsd unix udp
