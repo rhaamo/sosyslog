@@ -583,42 +583,49 @@ main(int argc, char **argv)
 		}
 
 		for (i = 0, done = 0; done < count; i++) {
-			if (fd_inputs[i].revents & POLLIN) {
-				char	*mname;
-				int	fd;
-				int	val = -1;
+			char	*mname;
+			int	fd;
+			int	val = -1;
 
-				log.im_pid = 0;
-				log.im_pri = 0;
-				log.im_flags = 0;
+		  if (fd_inputs[i].revents & POLLIN) {
+    continue;
+      }
 
-				mname = fd_inputs_mod[i]->im_func->im_name;
-				fd = fd_inputs[i].fd;
+			log.im_pid = 0;
+			log.im_pri = 0;
+			log.im_flags = 0;
 
-				if (!fd_inputs_mod[i] ||
-				    !fd_inputs_mod[i]->im_func ||
-				    !fd_inputs_mod[i]->im_func->im_read ||
-				    (val = (*fd_inputs_mod[i]->im_func->im_read)
-				       (fd_inputs_mod[i], fd_inputs[i].fd, &log)) < 0) {
-					m_dprintf(MSYSLOG_SERIOUS, "syslogd: "
-					    "Error calling input module %s, "
-					    "for fd %i\n", mname, fd);
-				}
-        else if (val == 1) {
-          /* log it */
-					printline(log.im_host, log.im_msg, log.im_len, fd_inputs_mod[i]->im_flags);
-        }
-        else if (val == 0) { }
-        else if (val > 1) { }
+			mname = fd_inputs_mod[i]->im_func->im_name;
+			fd = fd_inputs[i].fd;
 
-				done++; /* one less */
+			if (!fd_inputs_mod[i] ||
+			    !fd_inputs_mod[i]->im_func ||
+			    !fd_inputs_mod[i]->im_func->im_read) {
+				m_dprintf(MSYSLOG_SERIOUS, "syslogd: "
+				    "Error calling input module %s, "
+				    "for fd %i\n", mname, fd);
+        done++;
+    continue;  /* try the next one */
+      }
+
+      val = (*fd_inputs_mod[i]->im_func->im_read) (fd_inputs_mod[i], fd_inputs[i].fd, &log);
+      if (val < 0) {        
+		 	  m_dprintf(MSYSLOG_SERIOUS, "syslogd: "
+			    "Error [%d] executing input module %s, "
+			    "for fd %i\n", val, mname, fd);
 			}
+      else if (val == 1) {   /* one message returned that needs logging */
+			  printline(log.im_host, log.im_msg, log.im_len, fd_inputs_mod[i]->im_flags);
+      }
+      else if (val == 0) { } /* input module logged the messages, or none need be logged */
+      else if (val > 1) { }  /* more than one message to print? not currently supported */
+
+			done++;
 		}
 	}
 
 	/* NOT REACHED */
 	return(1);
-
 }
 
 void

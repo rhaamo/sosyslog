@@ -79,11 +79,12 @@
 #endif
 
 struct tcp_conn {
-	struct tcp_conn *next;
-	int		 fd;
-	char		 name[MAXHOSTNAMELEN + 1];
-	char		 port[20];
-	char		 saveline[MAXLINE + 3]; /* maxline + cr lf */
+	struct tcp_conn *next;           /* next item in the singlely linked list */
+	int   fd;                        /* the socket (file) descriptor */
+	char  name[MAXHOSTNAMELEN + 1];  /* then hostname being listened for */
+	char  port[20];                  /* the port being listened on */
+  /* unprocessed bytes from socket, partial lines only */
+	char  saveline[MAXLINE + 3];    /* [maxline + cr + lf + null] */
 };
 
 struct im_tcp_ctx {
@@ -121,7 +122,7 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 
 	if ( (I->im_ctx = calloc(1, sizeof(struct im_tcp_ctx))) == NULL) {
 		m_dprintf(MSYSLOG_SERIOUS, "om_tcp_init: cant alloc memory");
-		return (-1);
+return (-1);
 	}
 
 	c = (struct im_tcp_ctx *) I->im_ctx;
@@ -154,7 +155,7 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 			m_dprintf(MSYSLOG_SERIOUS, "om_tcp_init: parsing error"
 			    " [%c]\n", ch);
 			free(c);
-			return (-1);
+return (-1);
 		}
 		argcnt++;
 	}
@@ -163,7 +164,7 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 		m_dprintf(MSYSLOG_SERIOUS, "im_tcp_init: error with listen_tcp() %s\n",
 		    strerror(errno));
 		free(c);
-		return (-1);
+return (-1);
 	}
 
 	I->im_path = NULL;
@@ -172,13 +173,15 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: running\n");
 
-	return (1);
+return (1);
 }
 
 
 /*
  * im_tcp_read: accept a connection and add it to the queue
- *
+ * connections and modules are read in a round-robin so partial lines 
+ * must persist across calls to the im_read functions for the
+ * various modules.
  */
 
 int
@@ -193,12 +196,12 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 	if (im == NULL || ret == NULL) {
 		m_dprintf(MSYSLOG_SERIOUS, "im_tcp_read: arg %s%s is null\n",
 		    ret? "ret":"", im? "im" : "");
-		return (-1);
+return (-1);
 	}
 
 	if ((c = (struct im_tcp_ctx *) im->im_ctx) == NULL) {
 		m_dprintf(MSYSLOG_SERIOUS, "im_tcp_read: null context\n");
-		return (-1);
+return (-1);
 	}
 
 	if (infd == im->im_fd) {
@@ -210,16 +213,19 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		    == NULL) {
 			m_dprintf(MSYSLOG_SERIOUS, "im_tcp_read: "
 			    "error allocating conn struct\n");
-			return (-1);
+return (-1);
 		}
 
-		/* accept it and add to queue */
+		/* accept it and add to queue (intializing the 'fd', 'name' and 'port' */
 		if ((con->fd = accept_tcp(infd, c->addrlen, con->name,
 		    sizeof(con->name), con->port, sizeof(con->port))) < 0) {
 			m_dprintf(MSYSLOG_SERIOUS, "im_tcp_read: couldn't accept\n");
 			free (con);
-			return (-1);
+return (-1);
 		}
+
+    /* initialize saveline */
+		con->saveline[0] = '\0';
 
 		/* add to queue */
 		if (c->last == NULL) {
@@ -229,15 +235,13 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		}
 		c->last = con;
 
-
 		m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: new conection from"
 		    " %s with fd %d\n", con->name, con->fd);
 
 		/* add to inputs list */
 		add_fd_input(con->fd , im);
 
-		return (0); /* 0 because there is no line to log */
-
+return (0); /* 0 because there is no line to log */
 	}
 
 	/* read connected socket */
@@ -252,11 +256,12 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		m_dprintf(MSYSLOG_SERIOUS, "im_tcp_read: no such connection "
 		    "fd %d !\n", infd);
 		remove_fd_input(infd);
-		return (-1);
+return (-1);
 	}
 
+
 	n = read(con->fd, im->im_buf, sizeof(im->im_buf) - 1);
-	if (n == 0) {
+	if (n == 0) {  /* no data read from this connection */
 		struct tcp_conn *prev;
 
 		m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: conetion from %s"
@@ -278,98 +283,111 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		}
 
 		if (con->saveline[0] != '\0')
-			printline(ret->im_host, con->saveline,
-			    strlen(con->saveline),  0);
+			printline(ret->im_host, con->saveline, strlen(con->saveline),  0);
 
 		free(con);
 	
-		return (0);
+return (0);
 
 	} else if (n < 0 && errno != EINTR) {
-		m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: conetion from %s"
+		m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: connection from %s"
 		    " closed with error [%s]\n", con->name, strerror(errno));
 		logerror("im_tcp_read");
 		con->fd = -1;
 		remove_fd_input(con->fd);
-		return (0);
-	} else {
-		char	*p, *nextline, *cr;
-
-		/* terminate it */
-		(im->im_buf)[n] = '\0';
-		p = &im->im_buf[0];
+return (0);
+	}
+ 
+  /* 'n' bytes of data were successfully read from socket */
+  {
+    char *endmark;
+    char *thisline;
+    char *nextline;
 
 		m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: read: %s [%s]",
 		    con->name, im->im_buf);
 
-		/* change non printable chars to X, just in case */
-		for(p = im->im_buf; *p != '\0'; p++)
-			if (!isprint((unsigned int) *p) && *p != '\n')
-				*p = 'X';
-		p = im->im_buf;
+		/* mark the end of the data received */
+		endmark = im->im_buf + n;
 
-		do {
-			char	*msg;
+    for( thisline = im->im_buf; ; thisline = nextline ) {
 
-			msg = p;
+      /* seek the end of the current line */
+      for( nextline = thisline; ; nextline++ ) {
+  			/* a new line indicates a complete message */
+  		  if (*nextline == '\n')  {
+          *nextline = '\0';
+          nextline++;
+        if (nextline >= endmark) {
+return (0);
+        }
+      break;
+        }
 
-			/* multiple lines ? */
-			if((nextline = strchr(p, '\n')) != NULL) {
-				/* terminate this line and advance */
-				*nextline++ = '\0';
-				if (*nextline == '\0')
-					nextline = NULL; /* no more lines */
-			} else {
-				/* save this partial line and return */
-				strncat(con->saveline, p,
-				    sizeof(con->saveline) - 1);
-				con->saveline[sizeof(con->saveline) - 1] = '\0';
-			}
+				/* Data not ending with a new line is a partial message. 
+         * Meaning, not all data has yet been received, save it for later.
+         */
+        if (nextline >= endmark) {
+          int position;
 
-			/* remove trailing carriage returns */
-			if ((cr = strchr(p, '\r')) != NULL)
-				*cr = '\0';
+          for( position = 0; (thisline + position) >= endmark; position++ ) {
+            con->saveline[position] = thisline[position];
+            if (position >= sizeof(con->saveline)) {
+					    m_dprintf(MSYSLOG_SERIOUS,
+					      "im_tcp_read: partial message too long [%d] [%s]\n",
+					      "message having no embedded host name [%s]\n",
+                sizeof(con->saveline), thisline);
+            }
+          }
+				  con->saveline[sizeof(con->saveline) - 1] = '\0';
+return (0);
+        }
 
-			if (*p == '\0') {
-				if (nextline != NULL) {
-					p = nextline;
-					continue;
-				} else
-					return (0);
-			}
+  			/* a carriage return indicates then end of a message */
+	  	  if (*nextline == '\r')  {
+          *nextline = '\0';
+          nextline++;
+      break;
+        }
+        /* change non printable chars to 'X', as you go */
+			  if (! isprint((unsigned int) *nextline)) {
+          *nextline = 'X';
+      continue;
+        }
+      }
+
+      /* append the current line with any prior partial line */
+  		if (con->saveline[0] != '\0') {
+  			strncat(con->saveline, thisline, sizeof(con->saveline) - 1);
+  			con->saveline[sizeof(con->saveline) - 1] = '\0';
+  			thisline = con->saveline;
+  		}
+
+      /* skip empty lines */
+      if (*thisline == '\0') {
+    continue;
+      }
+
+      /* process the message */
 
 			if (c->flags & M_USEMSGHOST) {
-				char	host[90];
+        /* recover the hostname from the message */
+				char host[90];
 				int	n1, n2;
 
-				if (con->saveline[0] != '\0') {
-					strncat(con->saveline, p,
-					    sizeof(con->saveline) - 1);
-					con->saveline[sizeof(con->saveline) - 1]
-					    = '\0';
-					msg = con->saveline;
-				} else {
-					msg = p;
-				}
-
-				/* extract hostname from message */
-				if ((sscanf(msg, "<%*d>%*3s %*i %*i:%*i:%*i %n%89s"
-				    " %n", &n1, host, &n2) != 1 &&
-				    sscanf(msg, "%*3s %*i %*i:%*i:%*i %n%89s %n",
-				    &n1, host, &n2) != 1 &&
-				    sscanf(msg, "%n%89s %n", &n1,
-				    host, &n2) != 1)
-				    || im->im_buf[n2] == '\0') {
+				/* extract hostname from the message line */
+				if ((sscanf(thisline, "<%*d>%*3s %*i %*i:%*i:%*i %n%89s %n",
+                    &n1, host, &n2) != 1 &&
+				     sscanf(thisline, "%*3s %*i %*i:%*i:%*i %n%89s %n",
+                    &n1, host, &n2) != 1 &&
+				     sscanf(thisline, "%n%89s %n",
+                    &n1, host, &n2) != 1)
+				    || im->im_buf[n2] == '\0')
+        {
 					m_dprintf(MSYSLOG_INFORMATIVE,
 					    "im_tcp_read: ignoring invalid "
-					    "message [%s]\n", msg);
-					if (nextline != NULL) {
-						p = nextline;
-						continue;
-					} else {
-						return (0);
-						con->saveline[0] = '\0';
-					}
+					    "message having no embedded host name [%s]\n", thisline);
+   continue;
 				}
 
 				/* remove host from message */
@@ -377,13 +395,12 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 					im->im_buf[n1++] = im->im_buf[n2++];
 				im->im_buf[n1] = '\0';
 
-				strncpy(ret->im_host, host,
-				    sizeof(ret->im_host) - 1);
+				strncpy(ret->im_host, host, sizeof(ret->im_host) - 1);
 				ret->im_host[sizeof(ret->im_host) - 1] = '\0';
 
 			} else {
-
 				/* get hostname from originating addr */
+
 				strncpy(ret->im_host, con->name,
 				    sizeof(ret->im_host) - 1);
 				ret->im_host[sizeof(ret->im_host) - 1] = '\0';
@@ -396,16 +413,19 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 					*dot = '\0';
 			}
 
-			printline(ret->im_host, msg,  strlen(msg),  0);
-			*msg = '\0';
+      /* invoke rules on this message */
+			printline(ret->im_host, thisline, strlen(thisline), im->im_flags);
 
-			p = nextline;
-
-		} while (nextline != NULL);
+      /* release prior partial line */
+  		con->saveline[0] = '\0';
+		}
 	}
-
-	return (0); /* we already logged the lines */
 }
+
+/*
+ * im_tcp_close: close the connection
+ *
+ */
 
 int
 im_tcp_close(struct i_module *im)
@@ -426,5 +446,5 @@ im_tcp_close(struct i_module *im)
 	im->im_ctx = NULL;
 
 	/* close listening socket */
-	return (close(im->im_fd));
+return (close(im->im_fd));
 }
