@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.37 2000/08/28 22:07:00 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.38 2000/08/29 01:17:39 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -162,19 +162,19 @@ install:
 	@if [ "$(DMYSQL)" -a -f "$(DMYSQL)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DMYSQL) $(INSTALL_LIBDIR)/$(DMYSQL:.$(MSYSLOG_VERSION)=); fi
 	@if [ "$(DPGSQL)" -a -f "$(DPGSQL)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DPGSQL) $(INSTALL LIBDIR)/$(DPGSQL:.$(MSYSLOG_VERSION)=); fi
 	@if [ "$(DREGEX)" -a -f "$(DREGEX)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DREGEX) $(INSTALL_LIBDIR)/$(DREGEX:.$(MSYSLOG_VERSION)=); fi
-	@if test -f libmsyslog_*.so.* ; \
+	if test -f libmsyslog_*.so.* ; \
 	then \
 		$(INSTALL) libmsyslog_*.so.* $(INSTALL_LIBDIR) ; \
-	fi
-	@echo updating run-time link database...
-	@if test "$(UNAME)" = "Linux"; \
-	then \
-		if test -z "`grep $(INSTALL_LIBDIR) /etc/ld.so.conf`"; \
+		echo updating run-time link database... \
+		if test "$(UNAME)" = "Linux" ; \
 		then \
-			echo "$(INSTALL_LIBDIR)" >> /etc/ld.so.conf; \
-		fi; \
-		ldconfig; \
-	else \
-		ldconfig $(LDCONFIG_FLAGS) $(INSTALL_LIBDIR); \
-	fi
+			if test -z "`grep $(INSTALL_LIBDIR) /etc/ld.so.conf`" ; \
+			then \
+				echo "$(INSTALL_LIBDIR)" >> /etc/ld.so.conf ; \
+			fi; \
+			ldconfig; \
+		else \
+			ldconfig $(LDCONFIG_FLAGS) $(INSTALL_LIBDIR); \
+	fi \
+	fi 
 
