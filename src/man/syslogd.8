@@ -1,4 +1,4 @@
-.\"	$CoreSDI: syslogd.8,v 1.8.2.1.2.1.4.2 2000/10/30 22:00:33 alejo Exp $
+.\"	$CoreSDI: syslogd.8,v 1.13 2000/10/31 19:42:14 alejo Exp $
 .\"
 .\" Copyright (c) 1983, 1986, 1991, 1993
 .\"	The Regents of the University of California.  All rights reserved.
@@ -35,7 +35,7 @@
 .Os Core-SDI
 .Sh NAME
 modular
-.Nm syslogd
+.Nm syslog daemon
 .Nd log systems messages
 .Sh SYNOPSIS
 .Nm syslogd
@@ -45,7 +45,6 @@ modular
 .Op Fl a Ar path
 .Op Fl p Ar log_socket
 .Op Fl i Ar input
-.Fl i Ar input
 .Sh DESCRIPTION
 Modular
 .Nm syslog
@@ -87,20 +86,9 @@ The primary use for this is to place additional log sockets in
 of various chroot filespaces. This option is predecated by
 .Fl i
 option.
-.It Fl i Ar input
-Enables the specified input modules; values for
-.Ar input
-are
-.Cm bsd,
-used on BSD like systems to log kernel messages (from
-.Pa /dev/klog
-),
-and 
-.Cm unix,
-used to log standard messages, you should specify the input socket
-pathname following a ``:'' character (historically
-.Pa /dev/log
-).
+.It Fl i Ar input_module [ module_arguments ]
+Enables the specified input modules, see
+.Xr im_* 8 .
 .El
 .Pp
 .Nm Syslogd
@@ -178,6 +166,10 @@ The kernel log device.
 .Xr services 5 ,
 .Xr syslog.conf 5 ,
 .Xr im_linux 8 ,
+.Xr im_bsd 8 ,
+.Xr im_unix 8 ,
+.Xr im_udp 8 ,
+.Xr om_classic 8 ,
 .Xr om_mysql 8 ,
 .Xr om_peo 8 ,
 .Xr om_pgsql 8 ,
