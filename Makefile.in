@@ -14,7 +14,7 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL = @INSTALL@
 
 protobjs = iolib.o modules.o ttymsg.o syslogd.o im_bsd.o im_udp.o \
-	   im_unix.o om_classic.o peo/om_peo.o peo/hash.o
+	   im_unix.o im_linux.o om_classic.o peo/om_peo.o peo/hash.o
 
 objs = $(protobjs) $(EXTRAOBJS)
 
