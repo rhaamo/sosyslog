@@ -1,4 +1,4 @@
-/*	$CoreSDI: ip_misc.c,v 1.13 2001/04/26 17:09:26 alejo Exp $	*/
+/*	$CoreSDI: ip_misc.c,v 1.14 2001/06/13 22:09:36 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -49,6 +49,7 @@
 # endif
 #endif
 #include <sys/types.h>
+#include <sys/uio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
@@ -75,48 +76,45 @@
 /*
  * resolv_addr: get a  host name from a generic sockaddr structure
  *
- * NOTE: you must free the string returned!
  */
 
-char *
-resolv_addr(struct sockaddr *addr, socklen_t addrlen)
+int
+resolv_addr(struct sockaddr *addr, socklen_t addrlen, char *host, int hlen,
+    char *port, int plen)
 {
-	struct hostent	*hp;
-	struct sockaddr_in *sin4;
-	char host[512];
-	int n;
-
-	host[0] = '\0';
-
 #ifdef HAVE_GETNAMEINFO
 
-	n = getnameinfo((struct sockaddr *) addr, addrlen,
-	    host, sizeof(host) - 1, NULL, 0, 0);
-#else /* old socket API */
+	if (getnameinfo((struct sockaddr *) addr, addrlen,
+	    host, hlen - 1, port, plen, 0) == 0)
+		return (1);
 
-	hp = NULL;
-	if (addr->sa_family == AF_INET) {
-		sin4 = (struct sockaddr_in *) addr;
-		hp = gethostbyaddr((char *) &sin4->sin_addr,
-		    sizeof(sin4->sin_addr), sin4->sin_family);
+#else /* no HAVE_GETNAMEINFO, old socket API */
+	struct hostent	*hp;
+	struct sockaddr_in *sin4;
+
+	sin4 = (struct sockaddr_in *) addr;
+
+	hp = gethostbyaddr((char *) &sin4->sin_addr,
+	    sizeof(sin4->sin_addr), sin4->sin_family);
+
+	if (hp) {
+		strncpy(host, hp->h_name, (unsigned) hlen - 1);
+		host[hlen] = '\0';
+		if (port)
+			snprintf(port, (unsigned) plen, "%u", sin4->sin_port);
+		return (1);
 	}
 
-	if (hp == NULL) {
-		n = -1; /* error */
-	} else {
-		strncpy(host, hp->h_name, sizeof(host) - 1);
-		host[sizeof(host) - 1] = '\0';
-		n = 0;
-	}
 #endif /* HAVE_GETNAMEINFO */
 
-	if (n != 0) {
-	       	dprintf(MSYSLOG_INFORMATIVE, "im_tcp: error resolving "
-		    "remote host name! [%d]\n", n);
-		return (NULL);
-	}
+	dprintf(MSYSLOG_INFORMATIVE, "ip_misc: error resolving "
+	     "remote host name!\n");
+	if (host)
+		host[0] = '\0';
+	if (port)
+		port[0] = '\0';
 
-	return (strdup(host));
+	return (-1);
 }
 
 
@@ -303,20 +301,18 @@ listen_tcp(const char *host, const char *port, socklen_t *addrlenp) {
  */
 
 int
-accept_tcp(int fd, const socklen_t addrlen, char **name) {
+accept_tcp(int fd, socklen_t addrlen, char *host, int hlen, char *port,
+    int plen)
+{
 	struct sockaddr *connsa;
-	socklen_t connsalen;
 	int connfd;
 
-	if ( addrlen < 1 || (connsa = (struct sockaddr *)
+	if (addrlen < 1 || (connsa = (struct sockaddr *)
 	    calloc(1, addrlen)) == NULL )
 		return (-1);
 
-	connsalen = addrlen;
-
-	*name = NULL;
-	if ( (connfd = accept(fd, connsa, &connsalen)) != -1)
-		*name = resolv_addr(connsa, connsalen);
+	if ((connfd = accept(fd, connsa, (socklen_t *) &addrlen)) != -1)
+		(void) resolv_addr(connsa, addrlen, host, hlen, port, plen);
 
 	free(connsa);
 
