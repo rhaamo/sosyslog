@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.57 2000/05/17 22:20:06 alejo Exp $
+/*	$Id: modules.c,v 1.58 2000/05/22 22:40:51 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -47,21 +47,21 @@
 #include "syslogd.h"
 #include "modules.h"
 
-int om_peo_doLog(struct filed *, int, char *, struct om_header_ctx *);
-int om_peo_init(int, char **, struct filed *, char *, struct om_header_ctx **);
-int om_peo_close(struct filed *, struct om_header_ctx **);
-int om_peo_flush(struct filed *, struct om_header_ctx *);
+int om_peo_doLog(struct filed *, int, char *, struct om_hdr_ctx *);
+int om_peo_init(int, char **, struct filed *, char *, struct om_hdr_ctx **);
+int om_peo_close(struct filed *, struct om_hdr_ctx *);
+int om_peo_flush(struct filed *, struct om_hdr_ctx *);
 
-int om_classic_doLog(struct filed *, int , char *, struct om_header_ctx *);
-int om_classic_init(int, char **, struct filed *, char *, struct om_header_ctx **);
-int om_classic_close(struct filed*, struct om_header_ctx **);
-int om_classic_flush(struct filed*, struct om_header_ctx *);
+int om_classic_doLog(struct filed *, int , char *, struct om_hdr_ctx *);
+int om_classic_init(int, char **, struct filed *, char *, struct om_hdr_ctx **);
+int om_classic_close(struct filed*, struct om_hdr_ctx *);
+int om_classic_flush(struct filed*, struct om_hdr_ctx *);
 
 #ifdef WANT_MYSQL
-	int om_mysql_doLog(struct filed *, int , char *, struct om_header_ctx *);
-	int om_mysql_init(int, char **, struct filed *, char *, struct om_header_ctx **);
-	int om_mysql_close(struct filed*, struct om_header_ctx **);
-	int om_mysql_flush(struct filed*, struct om_header_ctx *);
+	int om_mysql_doLog(struct filed *, int , char *, struct om_hdr_ctx *);
+	int om_mysql_init(int, char **, struct filed *, char *, struct om_hdr_ctx **);
+	int om_mysql_close(struct filed*, struct om_hdr_ctx *);
+	int om_mysql_flush(struct filed*, struct om_hdr_ctx *);
 #endif
 
 int im_bsd_init(struct i_module *, char **, int);
@@ -70,6 +70,9 @@ int im_bsd_close(struct i_module *);
 int im_unix_init(struct i_module *, char **, int);
 int im_unix_getLog(struct i_module *, struct im_msg *);
 int im_unix_close(struct i_module *);
+int im_udp_init(struct i_module *, char **, int);
+int im_udp_getLog(struct i_module *, struct im_msg *);
+int im_udp_close(struct i_module *);
 
 void    die __P((int));
 
@@ -123,6 +126,12 @@ modules_load()
 	IModules[IM_UNIX].im_getLog		= im_unix_getLog;
   	IModules[IM_UNIX].im_close		= im_unix_close;
 
+	IModules[IM_UNIX].im_name		= "udp";
+	IModules[IM_UNIX].im_type		= IM_UDP;
+	IModules[IM_UNIX].im_init		= im_udp_init;
+	IModules[IM_UNIX].im_getLog		= im_udp_getLog;
+  	IModules[IM_UNIX].im_close		= im_udp_close;
+
 	return(1);
 }
 
@@ -169,13 +178,38 @@ modules_init (I, line)
 }
 
 
-/* close all modules of a specific filed */
+/* close THIS input module */
 int
-modules_close(f)
-	struct filed *f;
+im_close(im)
+	struct i_module *im;
 {
-	/* close all modules */
-	return(-1);
+	int i;
+
+	for(i = 0; i < MAX_N_IMODULES &&
+			(IModules[i].im_type != im->im_type); i++);
+
+	if (i == MAX_N_IMODULES)
+		return(-1);
+
+	return(IModules[i].im_close(im));
+}
+
+/* close ALL output modules of a specific filed */
+int
+om_close(f, ctx)
+	struct filed *f;
+	struct om_hdr_ctx *ctx;
+{
+	struct o_module *om;
+	int ret;
+
+	ret = 0;
+	for(om = f->f_omod; om ; om = om->om_next) {
+		if (OModules[om->om_type].om_close(f, om->ctx) < 0)
+			ret--;
+	}
+
+	return(ret == 0? 1: ret);
 }
 
 /* create all necesary modules for a specific filed */
@@ -193,13 +227,13 @@ int omodule_create(c, f, prog)
 
 	/* create context and initialize module for logging */
 	while (*p) {
-		if (f->f_mod == NULL) {
-			f->f_mod = (struct o_module *) calloc(1, sizeof *f->f_mod);
-			m = f->f_mod;
+		if (f->f_omod == NULL) {
+			f->f_omod = (struct o_module *) calloc(1, sizeof *f->f_omod);
+			m = f->f_omod;
 			prev = NULL;
 		} else {
-			for (prev = f->f_mod; prev->om_next; prev = prev->om_next);
-			prev->om_next = (struct o_module *) calloc(1, sizeof *f->f_mod);
+			for (prev = f->f_omod; prev->om_next; prev = prev->om_next);
+			prev->om_next = (struct o_module *) calloc(1, sizeof *f->f_omod);
 			m = prev->om_next;
 		}
 
@@ -259,11 +293,11 @@ int omodule_create(c, f, prog)
 				break;
 		}
 		if ((OModules[m->om_type].om_init)(argc, argv, f,
-				prog, (void *) &(m->context)) < 0) {
+				prog, (void *) &(m->ctx)) < 0) {
 			free(m);
 			m = NULL;
 			if (prev == NULL) {
-				f->f_mod = NULL;
+				f->f_omod = NULL;
 			} else {
 				prev->om_next = NULL;
 			}

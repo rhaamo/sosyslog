@@ -1,4 +1,4 @@
-/*	$Id: om_classic.c,v 1.19 2000/05/17 17:33:05 gera Exp $
+/*	$Id: om_classic.c,v 1.20 2000/05/22 22:40:52 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -276,9 +276,9 @@ om_classic_init(argc, argv, f, prog, context)
 }
 
 int
-om_classic_close(f, context)
+om_classic_close(f, ctx)
 	struct filed *f;
-	struct om_header_ctx **context;
+	struct om_header_ctx *ctx;
 {
 	int ret;
 

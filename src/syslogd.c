@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.65 2000/05/17 22:20:07 alejo Exp $
+/*	$Id: syslogd.c,v 1.66 2000/05/22 22:40:52 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -115,10 +115,6 @@ int	MarkInterval = 20 * 60;	/* interval between marks in seconds */
 int	MarkSeq = 0;		/* mark sequence number */
 int	SecureMode = 1;		/* when true, speak only unix domain socks */
 
-int nfunix = 1;
-char *funixn[MAXFUNIX] = { _PATH_LOG };
-int funix[MAXFUNIX];
-
 void    cfline __P((char *, struct filed *, char *));
 int     decode __P((const char *, CODE *));
 void    die __P((int));
@@ -133,6 +129,7 @@ void    usage __P((void));
 
 struct  OModule OModules[MAX_N_OMODULES];
 struct  IModule IModules[MAX_N_IMODULES];
+struct	i_module *Inputs;
 
 int
 main(argc, argv)
@@ -142,7 +139,6 @@ main(argc, argv)
 	int ch;
 	FILE *fp;
 	char *p;
-	struct	i_module *Inputs;
 
 	Inputs = NULL;
 
@@ -157,9 +153,6 @@ main(argc, argv)
 		case 'm':		/* mark interval */
 			MarkInterval = atoi(optarg) * 60;
 			break;
-		case 'p':		/* path */
-			funixn[0] = optarg;
-			break;
 		case 'u':		/* allow udp input port */
 			SecureMode = 0;
 			break;
@@ -167,6 +160,7 @@ main(argc, argv)
 			if (modules_init(&Inputs, optarg) < 0)
 				exit(-1);
 			break;
+		case 'p':		/* path */
 		case 'a':		/* additional AF_UNIX socket name */
 			if (optarg != NULL) {
 			    char buf[512];
@@ -184,7 +178,7 @@ main(argc, argv)
 		default:
 			usage();
 		}
-	if ((argc -= optind) != 0)
+	if (((argc -= optind) != 0) || Inputs == NULL)
 		usage();
 
 	if (!Debug)
@@ -200,8 +194,8 @@ main(argc, argv)
 
 	consfile.f_type = F_CONSOLE;
         /* this should get into Files and be way nicer */
-        consfile.f_mod = (struct o_module *) calloc(1, sizeof(struct o_module));
-        consfile.f_mod->om_type = OM_CLASSIC;
+        consfile.f_omod = (struct o_module *) calloc(1, sizeof(struct o_module));
+        consfile.f_omod->om_type = OM_CLASSIC;
 
 	(void)strcpy(consfile.f_un.f_fname, ctty);
 	(void)gethostname(LocalHostName, sizeof(LocalHostName));
@@ -504,7 +498,7 @@ doLog(f, flags, message)
 		len = f->f_prevlen;
 	}
 
-	for (m = f->f_mod; m; m = m->om_next) {
+	for (m = f->f_omod; m; m = m->om_next) {
 		if(OModules[m->om_type].om_doLog == NULL) {
 			dprintf("Unsupported module type [%i] "
 				"for message [%s]\n", m->om_type, msg);
@@ -512,7 +506,7 @@ doLog(f, flags, message)
 		};
 
 		/* call this module doLog */
-		if((*(OModules[m->om_type].om_doLog))(f,flags,msg,m->context) != 0) {
+		if((*(OModules[m->om_type].om_doLog))(f,flags,msg,m->ctx) != 0) {
 			dprintf("doLog error with module type [%i] "
 				"for message [%s]\n",
 				m->om_type, msg);
@@ -584,24 +578,29 @@ die(signo)
 	struct filed *f;
 	int was_initialized = Initialized;
 	char buf[100];
-	int i;
+	struct i_module	*im;
 
 	Initialized = 0;		/* Don't log SIGCHLDs */
+
 	for (f = Files; f != NULL; f = f->f_next) {
 		/* flush any pending output */
 		if (f->f_prevcount)
 			doLog(f, 0, (char *)NULL);
 	}
+
 	Initialized = was_initialized;
+
 	if (signo) {
 		dprintf("syslogd: exiting on signal %d\n", signo);
 		(void)sprintf(buf, "exiting on signal %d", signo);
 		errno = 0;
 		logerror(buf);
 	}
-	for (i = 0; i < nfunix; i++)
-		if (funixn[i] && funix[i] != -1)
-			(void)unlink(funixn[i]);
+
+	for (im = Inputs; im; im = im->im_next)
+		if (im->im_type == IM_UNIX)
+			im_close(im);	
+
 	exit(0);
 }
 
@@ -631,15 +630,15 @@ init(signo)
 		if (f->f_prevcount)
 			doLog(f, 0, (char *)NULL);
 
-		for (m = f->f_mod; m; m = m->om_next) {
+		for (m = f->f_omod; m; m = m->om_next) {
 			/* flush any pending output */
 			if (f->f_prevcount &&
 			    OModules[m->om_type].om_flush != NULL) {
-				(*OModules[m->om_type].om_flush) (f,m->context);
+				(*OModules[m->om_type].om_flush) (f,m->ctx);
 			}
 
 			if (OModules[m->om_type].om_close != NULL) {
-				(*OModules[m->om_type].om_close) (f,&(m->context));
+				(*OModules[m->om_type].om_close) (f,m->ctx);
 			}
 		}
 		next = f->f_next;

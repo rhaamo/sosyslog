@@ -1,4 +1,4 @@
-/*      $Id: im_unix.c,v 1.13 2000/05/17 22:20:06 alejo Exp $
+/*      $Id: im_unix.c,v 1.14 2000/05/22 22:40:50 alejo Exp $
  *  im_unix -- classic behaviour module for BDS like systems
  *      
  * Author: Alejo Sanchez for Core-SDI SA
@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+#include <stdlib.h>
 #include <signal.h>
 
 #include <syslog.h>
@@ -99,6 +100,7 @@ im_unix_init(I, argv, argc)
 	}
 	I->im_type = IM_UNIX;
 	I->im_name = "unix";
+	I->im_path = strdup(argv[1]);
 	return(1);
 }
 
@@ -108,7 +110,12 @@ int
 im_unix_close(im)
 	struct i_module *im;
 {
-	return(close(im->im_fd));
+	int ret;
+
+	ret = unlink(im->im_name);
+	free(im->im_path);
+	free(im->im_name);
+	return(ret);
 }
 
 

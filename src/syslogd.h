@@ -1,4 +1,4 @@
-/*	$Id: syslogd.h,v 1.38 2000/05/11 17:13:34 claudio Exp $
+/*	$Id: syslogd.h,v 1.39 2000/05/22 22:40:53 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -118,21 +118,23 @@ struct filed {
         int     f_prevlen;                      /* length of f_prevline */
         int     f_prevcount;                    /* repetition cnt of prevline */
         int     f_repeatcount;                  /* number of "repeated" msgs */
-        struct	o_module *f_mod;			/* module details */
+        struct	o_module *f_omod;			/* module details */
 };
 
 int modules_load();
 int modules_init(struct i_module **, char *);
 int omodule_create(char *c, struct filed *, char *);
 int imodule_create(char *c, struct filed *, char *);
+int im_close(struct i_module *);
+int om_close(struct filed *, struct om_hdr_ctx *);
 
 struct  OModule {
         char    *om_name;
         short   om_type;
-        int     (*om_doLog) (struct filed *, int, char *, struct om_header_ctx *);
-        int     (*om_init) (int, char **, struct filed *, char *, struct om_header_ctx **);
-        int     (*om_close) (struct filed *, struct om_header_ctx **);
-        int     (*om_flush) (struct filed *, struct om_header_ctx *);
+        int     (*om_doLog) (struct filed *, int, char *, struct om_hdr_ctx *);
+        int     (*om_init) (int, char **, struct filed *, char *, struct om_hdr_ctx **);
+        int     (*om_close) (struct filed *, struct om_hdr_ctx *);
+        int     (*om_flush) (struct filed *, struct om_hdr_ctx *);
 };
 
 struct IModule {

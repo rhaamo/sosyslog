@@ -18,6 +18,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <string.h>
+#include <stdlib.h>
 
 void    logerror __P((char *));
 void    logmsg __P((int, char *, char *, int));
@@ -41,6 +42,7 @@ im_bsd_init(I, argv, argc)
 	
         I->im_type = IM_BSD;
         I->im_name = "bsd";
+        I->im_path = strdup(argv[1]);
         I->im_flags  ^= IMODULE_FLAG_KERN;
         return(I->im_fd);
 }
@@ -106,5 +108,11 @@ int
 im_bsd_close(im)
 	struct i_module *im;
 {
+	int ret;
+
+	ret = close(im->im_fd);
+	free(im->im_path);
+	free(im->im_name);
+
 	return(close(im->im_fd));
 }

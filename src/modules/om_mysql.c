@@ -78,11 +78,11 @@ struct om_mysql_ctx {
 
 
 int
-om_mysql_doLog(f, flags, msg, context)
+om_mysql_doLog(f, flags, msg, ctx)
 	struct filed *f;
 	int flags;
 	char *msg;
-	struct om_header_ctx *context;
+	struct om_header_ctx *ctx;
 {
 	struct om_mysql_ctx *c;
 	char	*dummy, *y, *m, *d, *h, *host;
@@ -92,7 +92,7 @@ om_mysql_doLog(f, flags, msg, context)
 	if (f == NULL)
 		return (-1);
 
-	c = (struct om_mysql_ctx *) context;
+	c = (struct om_mysql_ctx *) ctx;
 	memset(c->query, 0, MAX_QUERY);
 
 	host = f->f_prevhost;
@@ -159,7 +159,7 @@ om_mysql_init(argc, argv, f, prog, c)
 	struct om_header_ctx **c;
 {
 	MYSQL *h;
-	struct om_mysql_ctx	*context;
+	struct om_mysql_ctx	*ctx;
 	char	*host, *user, *passwd, *db, *table, *p, *query;
 	int	port, client_flag, createTable;
 	int	ch;
@@ -233,53 +233,49 @@ om_mysql_init(argc, argv, f, prog, c)
 	if (! (query = (char *) calloc(1, MAX_QUERY)))
 		return (-1);
 
-	context = (struct om_mysql_ctx *) *c;
-	context->size = sizeof(struct om_mysql_ctx);
-	context->h = h;
-	context->host = host;
-	context->port = port;
-	context->user = user;
-	context->passwd = passwd;
-	context->db = db;
-	context->table = table;
-	context->query = query;
+	ctx = (struct om_mysql_ctx *) *c;
+	ctx->size = sizeof(struct om_mysql_ctx);
+	ctx->h = h;
+	ctx->host = host;
+	ctx->port = port;
+	ctx->user = user;
+	ctx->passwd = passwd;
+	ctx->db = db;
+	ctx->table = table;
+	ctx->query = query;
 
 	return (1);
 }
 
 void
-om_mysql_destroy_ctx(context)
-	struct om_mysql_ctx *context;
+om_mysql_destroy_ctx(ctx)
+	struct om_mysql_ctx *ctx;
 {
-	free(context->h);
-	free(context->host);
-	free(context->user);
-	free(context->passwd);
-	free(context->db);
-	free(context->table);
-	free(context->query);
+	free(ctx->h);
+	free(ctx->host);
+	free(ctx->user);
+	free(ctx->passwd);
+	free(ctx->db);
+	free(ctx->table);
+	free(ctx->query);
 }
 
 int
-om_mysql_close(f, context)
+om_mysql_close(f, ctx)
 	struct filed *f;
-	struct om_header_ctx **context;
+	struct om_header_ctx *ctx;
 {
-	struct om_mysql_ctx *c;
 
-	c = (struct om_mysql_ctx *) *context;
-	mysql_close(c->h);
-	om_mysql_destroy_ctx(c);
-	free(*context);
-	context = NULL;
+	mysql_close(ctx->h);
+	om_mysql_destroy_ctx(ctx);
 
 	return (-1);
 }
 
 int
-om_mysql_flush(f, context)
+om_mysql_flush(f, ctx)
 	struct filed *f;
-	struct om_header_ctx *context;
+	struct om_header_ctx *ctx;
 {
 	/* this module doesn't need to "flush" data */
 	return (0);

@@ -1,0 +1,42 @@
+OpenBSD
+=======
+
+VERSION WARNING: only tested on 2.6 and above. Should work well on 2.2 and above.
+RUNNING WARNING: Now you MUST specify "-i bsd", it isn't default. comments?
+
+
+Uncompress modular_syslog-0.1.tar.gz and 
+
+FreeBSD
+=======
+
+No thorough testing yet, so no help available yet.
+
+NetBSD
+======
+
+No thorough testing yet, so no help available yet.
+
+RedHat GNU/Linux
+================
+
+No thorough testing yet, so no help available yet.
+
+Debian GNU/Linux
+================
+
+No thorough testing yet, so no help available yet.
+
+SuSe GNU/Linux
+==============
+
+No thorough testing yet, so no help available yet.
+
+SuSe GNU/Linux
+==============
+
+No thorough testing yet, so no help available yet.
+
+
+
+

@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.25 2000/05/17 19:25:56 claudio Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.26 2000/05/22 22:40:54 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -78,11 +78,11 @@ struct om_peo_ctx {
 };
 
 int
-om_peo_doLog(f, flags, msg, context)
+om_peo_doLog(f, flags, msg, ctx)
 	struct filed *f;
 	int flags;
 	char *msg;
-	struct om_header_ctx *context;
+	struct om_header_ctx *ctx;
 {
 	struct om_peo_ctx *c;
 	int	 fd;
@@ -97,10 +97,10 @@ om_peo_doLog(f, flags, msg, context)
 
 	dprintf ("peo output module: doLog\n");
 	
-	if (f == NULL || context == NULL)
+	if (f == NULL || ctx == NULL)
 		return (-1);
 
-	c = (struct om_peo_ctx*) context;
+	c = (struct om_peo_ctx*) ctx;
 
 	if (msg == NULL)
 		len = snprintf(m, MAXBUF, "%s %s %s\n", f->f_lasttime, f->f_prevhost, f->f_prevline)-1;
@@ -178,12 +178,12 @@ release()
 }
 
 int
-om_peo_init(argc, argv, f, prog, context)
+om_peo_init(argc, argv, f, prog, ctx)
 	int			  argc;
 	char			**argv;
 	struct filed		 *f;
 	char			 *prog;
-	struct om_header_ctx	**context;
+	struct om_header_ctx	**ctx;
 {
 	int	 ch;
 	struct	 om_peo_ctx *c;
@@ -192,7 +192,7 @@ om_peo_init(argc, argv, f, prog, context)
 
 	dprintf("peo output module init: called by %s\n", prog);
 	
-	if (argv == NULL || *argv == NULL || argc == 0 || f == NULL || context == NULL)
+	if (argv == NULL || *argv == NULL || argc == 0 || f == NULL || ctx == NULL)
 		return (-1);
 
 	/* default values */
@@ -259,7 +259,7 @@ om_peo_init(argc, argv, f, prog, context)
 	c->hash_method = hash_method;
 	c->keyfile = keyfile; 
 	c->macfile = macfile;
-	*context = (struct om_header_ctx*) c;
+	*ctx = (struct om_header_ctx*) c;
 
 	dprintf ("method: %d\nkeyfile: %s\nmacfile: %s\n", hash_method, keyfile, macfile);
 
@@ -268,28 +268,26 @@ om_peo_init(argc, argv, f, prog, context)
 
 
 int
-om_peo_close(f, context)
+om_peo_close(f, ctx)
 	struct filed *f;
-	struct om_header_ctx **context;
+	struct om_header_ctx *ctx;
 {
 	struct om_peo_ctx *c;
 
+	c = (struct om_peo_ctx *) ctx;
 	dprintf ("peo output module close\n");
 
-	c = (struct om_peo_ctx*) *context;
 	if (c->keyfile != default_keyfile)
 		free(c->keyfile);
 	if (c->macfile)
 		free(c->macfile);
-	free (*context);
-	*context = NULL;
 	return (0);
 }
 
 int
-om_peo_flush(f, context)
+om_peo_flush(f, ctx)
 	struct filed *f;
-	struct um_header_ctx *context;
+	struct um_header_ctx *ctx;
 {
 	/* no data to flush */
 	return (0);

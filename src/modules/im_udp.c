@@ -1,4 +1,4 @@
-/*	$Id: im_udp.c,v 1.16 2000/05/19 22:46:39 gera Exp $
+/*	$Id: im_udp.c,v 1.17 2000/05/22 22:40:50 alejo Exp $
  *  im_udp -- classic behaviour module for BDS like systems
  *      
  * Author: Alejo Sanchez for Core-SDI SA
@@ -123,5 +123,20 @@ im_udp_init(I, argv, argc)
 
         I->im_type = IM_UDP;
         I->im_name = "udp";
+        I->im_path = "";
         return(1);
 }
+
+int
+im_udp_close(im) 
+        struct i_module *im;
+{
+        int ret;   
+
+        ret = close(im->im_fd);
+        free(im->im_path);
+        free(im->im_name);
+        return(ret);
+}
+
+

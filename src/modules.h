@@ -49,7 +49,7 @@ extern int	repeatinterval[];
 /* standard input module header variables in context */
 
 /* standard output module header variables in context */
-struct om_header_ctx {
+struct om_hdr_ctx {
 	short	flags;
 #define M_FLAG_INITIALIZED 0x1
 #define M_FLAG_ERROR 0x2
@@ -65,7 +65,7 @@ struct om_header_ctx {
 struct o_module {
 	struct	o_module *om_next;
 	short	om_type;
-	struct  om_header_ctx	*context;
+	struct  om_hdr_ctx	*ctx;
 };
 
 /*
@@ -79,6 +79,7 @@ struct i_module {
 	int	 im_flags;  /* input module should initialize this */
 #define IMODULE_FLAG_KERN	0x01
 	char	*im_name;
+	char	*im_path;
 	char	 im_buf[MAXLINE + 1];
 };
 
@@ -96,6 +97,5 @@ struct im_msg {
 	int	im_len;
 	char	im_host[MAXHOSTNAMELEN + 1];
 };
-
 
 #endif
