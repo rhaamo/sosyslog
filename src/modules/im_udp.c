@@ -9,8 +9,12 @@
 
 #include <syslog.h>
 #include "modules.h"
+#include "syslogd.h"
 
-#include <
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <errno.h>
 
 
 
@@ -38,7 +42,8 @@ im_udp_getLog(buf, size, c, r)
 	struct im_msg	*r;
 {
 	struct sockaddr_in frominet;
-	int len;
+	int len, i;
+	char line[MAXLINE + 1];
 
 	len = sizeof(frominet);
 	i = recvfrom(finet, line, MAXLINE, 0,

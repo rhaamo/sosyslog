@@ -1,4 +1,4 @@
-/*	$Id: syslogd.h,v 1.25 2000/04/18 22:25:20 alejo Exp $
+/*	$Id: syslogd.h,v 1.26 2000/04/18 23:42:19 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -50,7 +50,6 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <utmp.h>
-#include <sys/socket.h>
 
 #ifdef HAVE_OPENBSD
 #include <sys/msgbuf.h>
