@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.19 2001/04/05 18:34:51 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.20 2001/04/05 19:09:26 alejo Exp $
 #
 # Copyright (c) 2001, Core SDI S.A., Argentina
 # All rights reserved
@@ -45,7 +45,7 @@ all: $(PROG) $(OBJS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 $(PROG): $(OBJS)
-	$(CC) $(OBJS) -o $@
+	$(CC) $(CFLAGS) $(OBJS) -o $@
 
 .PHONY: clean distclean
 clean:
