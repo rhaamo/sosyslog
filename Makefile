@@ -2,14 +2,15 @@
 
 CC	=	gcc
 CFLAGS	=	-O4 -Wall -ggdb
-LDADD=	-lc
+LDADD	=	-lc
 #-L/usr/local/lib/mysql -lmysqlclient
 COMPILE	=	$(CC) $(CFLAGS) -c $(.ALLSRC)
 LINK	=	$(CC) $(CFLAGS) $(LDADD) -o $(.TARGET) $(.ALLSRC)
 
 
 all:	syslogd	\
-	peochk \
+	peochk	\
+	man	\
 	tester
 
 syslogd:	syslogd.c\
@@ -30,6 +31,9 @@ peochk:
 
 peo/om_peo.o peo/hash.o peo/rmd160.o:
 	@(cd peo && make om_peo);
+
+man:
+	@make -f Makeman
 
 tester:		tester.c
 
