@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.44 2000/05/03 18:30:13 alejo Exp $
+/*	$Id: modules.c,v 1.45 2000/05/05 18:58:42 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -118,8 +118,11 @@ modules_load()
 int
 modules_init (I, args)
 	struct i_module **I;
-	char	*arg
+	char	*args;
 {
+	char **argv;
+	int argc;
+
 	/* create initial node for Inputs list */
 	*I = (struct i_module *) calloc(sizeof(struct i_module), 1);
 	(*I)->fd = -1;
@@ -296,4 +299,34 @@ int imodule_create(c, f, prog)
 	char *prog;
 {
 	return(-1);
+}
+
+/*
+ * Parse a line and return argc & argv
+ *
+ * space and tabs are separators
+ *
+ */
+
+int
+parseParams(ret, c)
+	char ***ret;
+	char *c;
+{
+	char	*line, *p, *last;
+	char	**argv;
+	int	argc, i, j, k;
+
+	line = strdup(c); p = line; prev = NULL; quotes = 0;
+
+	/* skip initial spaces */
+	while (isspace(*p)) p++;
+
+	for(i = 0, j = 0, k = 0; *p; *p++) {
+		if (
+
+		/* see how long this word is */
+		for(q = p, i = 0; !isspace(*q); i++, q++);
+	
+	return(argc);
 }
