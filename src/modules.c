@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.89.2.6.2.4 2000/09/14 19:51:21 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.126 2000/09/14 19:53:21 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -514,7 +514,7 @@ getOmodule(char *name) {
 		return(NULL);
 
 	for(om = omodules, len = strlen(name); om; om = om->om_next)
-		if (!strncmp(om->om_name, name, len))
+		if (!strcmp(om->om_name, name))
 			break;
 
 	return(om);
