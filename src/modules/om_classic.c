@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.37 2000/07/04 16:44:07 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.38 2000/07/04 18:56:39 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -60,7 +60,7 @@
 #include "modules.h"
 
 void	wallmsg (struct filed *, struct iovec *, struct sglobals *);
-char   *ttymsg (struct iovec *, int, char *, int);
+extern char   *ttymsg (struct iovec *, int, char *, int);
 
 int
 om_classic_doLog(struct filed *f, int flags, char *msg,

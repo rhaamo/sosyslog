@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.21 2000/06/30 22:04:09 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.22 2000/06/30 22:59:57 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -31,6 +31,7 @@
 CC=		@CC@
 CFLAGS=		@CFLAGS@
 LDFLAGS=	@LDFLAGS@
+LDDFLAGS=	@LDDFLAGS@
 CPPFLAGS=	-I.
 LIBS=		@LIBS@
 INSTALL_LIBDIR=	@INSTALL_LIBDIR@
@@ -52,7 +53,7 @@ all: $(PROG)
 modules.o: config.h
 
 $(PROG): $(OBJS) $(SOBJS) DYNAMIC_LIBS
-	$(CC) -o $@ $(OBJS) $(SOBJS:%=modules/%) $(SHASH_OBJS:%=modules/%) $(LDFLAGS) $(LIBS)
+	$(CC) -o $@ $(OBJS) $(SOBJS:%=modules/%) $(SHASH_OBJS:%=modules/%) $(LDFLAGS) $(LDDFLAGS) $(LIBS)
 
 $(SOBJS) DYNAMIC_LIBS:
 	@cd modules && make && cd ..

@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.22 2000/07/04 21:20:47 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.23 2000/07/05 21:27:25 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -32,6 +32,7 @@ CC=		@CC@
 LD=		ld
 CFLAGS=		@CFLAGS@
 LDFLAGS=	@LDFLAGS@
+LDDFLAGS=	@LDDFLAGS@
 CPPFLAGS=	-I. -I..
 LDCONFIG_FLAGS=	@LDCONFIG_FLAGS@
 INSTALL_LIBDIR=	@INSTALL_LIBDIR@
@@ -70,53 +71,53 @@ DMYSQL_OBJ=	${DMYSQL_SRC:.c=.o}
 DPGSQL_OBJ=	${DPGSQL_SRC:.c=.o}
 DREGEX_OBJ=	${DREGEX_SRC:.c=.o}
 
-DCC=	${CC} ${CFLAGS} ${CPPFLAGS} -fPIC -c
-DLK=	${LD} -Bshareable
+DCC=	${CC} ${CFLAGS} ${CPPFLAGS} ${DCCFLAGS} ${LDDFLAGS} -c
+LDK=	${LD} -Bshareable
 
 all: DYNAMIC_LIBS ${SOBJS}
 
 $(SOBJS) DYNAMIC_LIBS: ../config.h
 
 $(SOBJS):
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $(SSRCS) $(SHASH_SRCS:%=../peo/%)
+	${CC} ${CFLAGS} ${CPPFLAGS} -c ${SSRCS} ${SHASH_SRCS:%=../peo/%}
 
-DYNAMIC_LIBS:	$(DUNIX) $(DUDP) $(DBSD) $(DLINUX) \
-		$(DCLASSIC) $(DPEO) $(DMYSQL) $(DPGSQL) $(DREGEX)
+DYNAMIC_LIBS:	${DUNIX} ${DUDP} ${DBSD} ${DLINUX} \
+		${DCLASSIC} ${DPEO} ${DMYSQL} ${DPGSQL} ${DREGEX}
 
 ${DUNIX}:
 	${DCC} ${DUNIX_SRC}
 	${DLK} -o $@ ${DUNIX_OBJ}
 
 $(DUDP): 
-	${DCC} $(DUDP_SRC)
+	${DCC} ${DUDP_SRC}
 	${LDK} -o $@ $(DUDP_OBJ)
 
 $(DBSD):
-	${DCC} $(DBSD_SRC)
+	${DCC} ${DBSD_SRC}
 	${LDK} -o $@ $(DBSD_OBJ)
 
 $(DLINUX):
-	${DCC} $(DLINUX_SRC)
+	${DCC} ${DLINUX_SRC}
 	${LDK} -o $@ $(DLINUX_OBJ)
 
 $(DCLASSIC):
-	${DCC} $(DCLASSIC_SRC)
+	${DCC} ${DCLASSIC_SRC}
 	${LDK} -o $@ $(DCLASSIC_OBJ)
 
 $(DPEO):
-	${DCC} $(DPEO_SRC) $(DHASH_SRCS:%=../peo/%)
+	${DCC} ${DPEO_SRC} $(DHASH_SRCS:%=../peo/%)
 	${LDK} -o $@ $(DPEO_OBJ) $(DHASH_OBJS)
 
 $(DMYSQL):
-	${DCC} $(DMYSQL_SRC)
+	${DCC} ${DMYSQL_SRC}
 	${LDK} -o $@ $(DMYSQL_OBJ)
 
 $(DPGSQL):
-	${DCC} $(DPGSQL_SRC)
+	${DCC} ${DPGSQL_SRC}
 	${LDK} -o $@ $(DPGSQL_OBJ)
 
 $(DREGEX):
-	${DCC} $(DREGEX_SRC)
+	${DCC} ${DREGEX_SRC}
 	${LDK} -o $@ $(DREGEX_OBJ)
 
 .PHONY:	clean distclean
