@@ -1,0 +1,7 @@
+/*	$CoreSDI$	*/
+
+Release Notes:
+
+* Move to autoconf 
+* Reorganize the source tree
+* Fix an incorrect free that was causing syslogd to coredump on exit
