@@ -129,7 +129,7 @@ struct i_module {
  * This structure represents the return of the input modules
  */
 
-struct im_ret {
+struct im_msg {
 	int	pid;
 	int	pri;
 	int	flags;
