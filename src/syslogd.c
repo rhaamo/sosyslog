@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.105 2000/07/10 21:04:41 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.106 2000/07/10 22:11:57 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -122,6 +122,8 @@ int     omodule_create(char *, struct filed *, char *);
 void    logerror(char *);
 void    logmsg(int, char *, char *, int);
 void    die(int);
+char   *ttymsg (struct iovec *, int, char *, int);
+
 
 extern	struct  omodule *omodules;
 extern	struct  imodule *imodules;
@@ -155,6 +157,7 @@ main(int argc, char **argv)
 	sglobals->logerror = logerror;
 	sglobals->logmsg = logmsg;
 	sglobals->die = die;
+	sglobals->ttymsg = ttymsg;
 
 	/* assign functions and init input */
 	if ((ch = modules_load()) < 0) {

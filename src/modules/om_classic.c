@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.38 2000/07/04 18:56:39 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.39 2000/07/05 22:44:43 claudio Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -60,7 +60,6 @@
 #include "modules.h"
 
 void	wallmsg (struct filed *, struct iovec *, struct sglobals *);
-extern char   *ttymsg (struct iovec *, int, char *, int);
 
 int
 om_classic_doLog(struct filed *f, int flags, char *msg,
@@ -332,7 +331,7 @@ wallmsg( struct filed *f, struct iovec *iov, struct sglobals *sglobals) {
 		strncpy(line, ut.ut_line, sizeof(ut.ut_line));
 		line[sizeof(ut.ut_line)] = '\0';
 		if (f->f_type == F_WALL) {
-			if ((p = ttymsg(iov, 6, line, TTYMSGTIME)) != NULL) {
+			if ((p = sglobals->ttymsg(iov, 6, line, TTYMSGTIME)) != NULL) {
 				errno = 0;	/* already in msg */
 				sglobals->logerror(p);
 			}
@@ -344,7 +343,7 @@ wallmsg( struct filed *f, struct iovec *iov, struct sglobals *sglobals) {
 				break;
 			if (!strncmp(f->f_un.f_uname[i], ut.ut_name,
 			    UT_NAMESIZE)) {
-				if ((p = ttymsg(iov, 6, line, TTYMSGTIME))
+				if ((p = sglobals->ttymsg(iov, 6, line, TTYMSGTIME))
 								!= NULL) {
 					errno = 0;	/* already in msg */
 					sglobals->logerror(p);

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.63 2000/07/04 16:44:04 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.64 2000/07/04 18:56:35 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -128,6 +128,7 @@ struct sglobals {
 	void	(*logerror)(char *);
 	void	(*logmsg)(int, char *, char *, int);
 	void	(*die)(int);
+	char * (*ttymsg)(struct iovec *, int , char *, int );
 };
 
 /* standard output module header variables in context */
