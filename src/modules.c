@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.77 2000/05/29 22:04:36 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.78 2000/05/29 23:34:59 gera Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -76,20 +76,19 @@ int	im_unix_close __P((struct i_module *));
 int	im_udp_init __P((struct i_module *, char **, int));
 int	im_udp_getLog __P((struct i_module *, struct im_msg *));
 int	im_udp_close __P((struct i_module *));
-<<<<<<< modules.c
-#if 0
-=======
+
 #ifdef HAVE_LINUX
->>>>>>> 1.73
 int	im_linux_init __P((struct i_module *, char **, int));
 int	im_linux_getLog __P((struct i_module *, struct im_msg *));
 int	im_linux_close __P((struct i_module *));
 #endif
+
 #ifdef WANT_PGSQL
-      int om_pgsql_doLog(struct filed *, int , char *, struct om_hdr_ctx *);
-      int om_pgsql_init(int, char **, struct filed *, char *, struct om_hdr_ctx **);
-      int om_pgsql_close(struct filed*, struct om_hdr_ctx *);
-      int om_pgsql_flush(struct filed*, struct om_hdr_ctx *);
+int	om_pgsql_doLog(struct filed *, int , char *, struct om_hdr_ctx *);
+int	om_pgsql_init(int, char **, struct filed *, char *,
+	    struct om_hdr_ctx **);
+int	om_pgsql_close(struct filed*, struct om_hdr_ctx *);
+int	om_pgsql_flush(struct filed*, struct om_hdr_ctx *);
 #endif
 
 int	parseParams __P((char ***, char *));
@@ -162,11 +161,7 @@ modules_load()
 	IModules[IM_UDP].im_getLog		= im_udp_getLog;
   	IModules[IM_UDP].im_close		= im_udp_close;
 
-<<<<<<< modules.c
-#if 0
-=======
 #ifdef HAVE_LINUX
->>>>>>> 1.73
 	/* linux kernel input module */
 	IModules[IM_LINUX].im_name		= "linux";
 	IModules[IM_LINUX].im_type		= IM_LINUX;
@@ -226,25 +221,14 @@ modules_init (I, line)
 	    	dprintf("Error initializing module %s [%s]\n", argv[0], line);
 	        die(0);
 	    }
-<<<<<<< modules.c
-	} 
-#if 0
-	else if (!strncmp(argv[0], "linux", 5)) {
-=======
 #ifdef HAVE_LINUX
 	} else if (!strncmp(argv[0], "linux", 5)) {
->>>>>>> 1.73
 	    if (im_linux_init(im, argv, argc) < 0) {
 		dprintf("Error initializing module %s [%s]\n", argv[0], line);
 		die(0);
 	    }
-<<<<<<< modules.c
-	}
-#endif
-=======
 #endif
 	}
->>>>>>> 1.73
 
 	return(1);
 }
