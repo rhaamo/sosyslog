@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.44 2001/02/28 23:47:41 alejo Exp $	*/
+/*	$CoreSDI: modules.h,v 1.45 2001/03/07 21:35:12 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -80,7 +80,7 @@ struct im_msg {
 #define  SYSLOG_IM_HOST_CHECKED	0x02
 	char	*im_msg;
 	size_t	im_mlen; /* size of im_msg buffer */
-	size_t	im_len; /* size of contents of im_msg buffer */
+	int	im_len; /* size of contents of im_msg buffer */
 	char	im_host[SIZEOF_MAXHOSTNAMELEN + 1];
 };
 
