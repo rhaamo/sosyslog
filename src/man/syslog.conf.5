@@ -1,4 +1,4 @@
-.\"	$Id: syslog.conf.5,v 1.1 2000/05/19 19:48:09 claudio Exp $
+.\"	$Id: syslog.conf.5,v 1.2 2000/05/19 20:59:07 claudio Exp $
 .\" Copyright (c) 1990, 1991, 1993
 .\"	The Regents of the University of California.  All rights reserved.
 .\"
@@ -181,7 +181,7 @@ The
 field of each line specifies the action to be taken when the
 .Em selector
 field selects a message.
-There are five forms:
+There are four old forms:
 .Bl -bullet
 .It
 A pathname (beginning with a leading slash).
@@ -198,9 +198,15 @@ if they are logged in.
 .It
 An asterisk.
 Selected messages are written to all logged-in users.
+.El
+.Pp
+Because the new syslogd(8) daemon is now modularized, the last
+four forms are included into a ``classic'' module. The new
+modular form is as follows:
+.Bl -bullet
 .It
-A ``%'' character followed by a module name.
-Selected messages are forwarded to the specified modules.
+%classic \fIxxx\fP.
+Where \fIxxx\fP is one of the last four.
 .El
 .Pp
 Blank lines and lines whose first non-blank character is a hash (``#'')
@@ -211,39 +217,108 @@ beginning with (``!'').  This allows
 files to be shared with systems that don't recognise the (``!'') syntax.
 .Sh EXAMPLES
 .Pp
-A configuration file might appear as follows:
+A configuration file that doesn't include modules might appear as follows:
+.Bd -literal
+.in +3m
+# Log all kernel messages, authentication messages of
+# level notice or higher and anything of level err or
+# higher to the console.
+# Don't log private authentication messages!
+
+*.err;kern.*;auth.notice;authpriv.none	/dev/console
+
+
+# Log anything (except mail) of level info or higher.
+# Don't log private authentication messages!
+
+*.info;mail.none;authpriv.none		/var/log/messages
+
+
+# The authpriv file has restricted access.
+
+authpriv.*				/var/log/secure
+
+
+# Log all the mail messages in one place.
+
+mail.*					/var/log/maillog
+
+
+# Everybody gets emergency messages, plus log them on another
+# machine.
+
+*.emerg					*
+*.emerg					@arpa.berkeley.edu
+
+
+# Root and Eric get alert and higher messages.
+
+*.alert					root,eric
+
+
+# Save mail and news errors of level err and higher in a
+# special file.
+
+uucp,news.crit				/var/log/spoolerr
+  
+
+# Save ftpd transactions along with mail and news
+
+!ftpd
+*.*					/var/log/spoolerr
+.in -3m
+.Ed
+.Pp
+A configuration file using modules might appear as follows:
+.in +3m
 .Bd -literal
 # Log all kernel messages, authentication messages of
 # level notice or higher and anything of level err or
 # higher to the console.
 # Don't log private authentication messages!
-*.err;kern.*;auth.notice;authpriv.none	/dev/console
+
+*.err;kern.*;auth.notice;authpriv.none	%classic /dev/console
+
 
 # Log anything (except mail) of level info or higher.
 # Don't log private authentication messages!
-*.info;mail.none;authpriv.none		/var/log/messages
+
+*.info;mail.none;authpriv.none		%classic /var/log/messages
+
 
 # The authpriv file has restricted access.
-authpriv.*						/var/log/secure
+
+authpriv.*				%classic /var/log/secure
+
 
 # Log all the mail messages in one place.
-mail.*							/var/log/maillog
+
+mail.*					%classic /var/log/maillog
+
 
 # Everybody gets emergency messages, plus log them on another
 # machine.
-*.emerg							*
-*.emerg							@arpa.berkeley.edu
+
+*.emerg					%classic *
+*.emerg					%classic @arpa.berkeley.edu
+
 
 # Root and Eric get alert and higher messages.
-*.alert							root,eric
+
+*.alert					%classic root,eric
+
 
 # Save mail and news errors of level err and higher in a
 # special file.
-uucp,news.crit						/var/log/spoolerr
+
+uucp,news.crit				%classic /var/log/spoolerr
+
   
 # Save ftpd transactions along with mail and news
+
 !ftpd
-*.*                                                     /var/log/spoolerr
+*.*					%classic /var/log/spoolerr
+.in -3m
 .Ed
 .Sh FILES
 .Bl -tag -width /etc/syslog.conf -compact
@@ -253,9 +328,14 @@ The
 configuration file.
 .El
 .Sh BUGS
+.It
 The effects of multiple selectors are sometimes not intuitive.
 For example ``mail.crit,*.err'' will select ``mail'' facility messages at
 the level of ``err'' or higher, not at the level of ``crit'' or higher.
+.Pp
+.It
+It is not recomended to mix configuration lines that uses the old and the
+new modular method.
 .Sh SEE ALSO
 .Xr syslog 3 ,
 .Xr syslogd 8 ,
