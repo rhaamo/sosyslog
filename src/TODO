@@ -62,6 +62,7 @@ function
 7- Linux input module to eliminate klogd on that system
 8- Allow not only one module type on each configuration line
 9- Add linux extensions on selector field on configuration file
+10- Add support to log on linux pseudo terminals (pts/x)
 
 
 
