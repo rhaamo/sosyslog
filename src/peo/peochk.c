@@ -1,4 +1,4 @@
-/*      $Id: peochk.c,v 1.19 2000/05/05 21:47:51 claudio Exp $
+/*      $Id: peochk.c,v 1.20 2000/05/05 22:24:51 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
@@ -25,6 +25,8 @@
  *	3) If logfile is specified but not the keyfile, this will be
  *	   /var/ssyslog/xxx where xxx is the logfile with all '/'
  *	   replaced by '.'
+ *	4) If -l switch is specified, peochk detects the line number
+ *	   corrupted on logfile
  *
  */
 
