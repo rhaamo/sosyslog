@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.85 2000/06/06 16:04:29 fgsch Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.86 2000/06/06 17:06:27 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -66,6 +66,8 @@ static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $"
  * more extensive changes by Eric Allman (again)
  */
 
+#include "config.h"
+
 #include <sys/param.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
@@ -85,7 +87,6 @@ static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $"
 
 #define SYSLOG_NAMES
 #include <syslog.h>
-#include "config.h"
 #include "syslogd.h"
 
 char	ctty[] = _PATH_CONSOLE;
