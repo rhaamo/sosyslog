@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.147 2001/02/19 21:29:56 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.148 2001/02/19 23:42:01 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -39,6 +39,9 @@
 #include "../config.h"
 
 #include <sys/param.h>
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <sys/socket.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,93 +70,13 @@ struct omodule *addOmodule(char *);
 
 struct omodule *omodules;
 struct imodule *imodules;
-void *main_lib = NULL;
 
 extern char *libdir;
 extern int Debug;
 char err_buf[MAXLINE];
 
-/*
- * Here are declared needed libraries for our modules
- * and we count how many times was it needed.
- */
+extern void *main_lib;
 
-struct {
-	char	*mname;
-	char	*libname;
-	int	 used;
-	void	*h;
-} mlibs[] = {
-	{"om_mysql", "libmysqlclient.so", 0, NULL},
-	{"om_pgsql", "libpq.so", 0, NULL},
-	{ NULL, NULL, 0, NULL}
-};
-
-
-/*
- * Load main library
- */
-
-int
-modules_start() {
-	int i;
-	char buf[LIB_PATH_MAX];
-
-	/*
-	 * Load required libs
-	 */
-	for (i = 0; mlibs[i].mname; i++) {
-
-		if ((mlibs[i].h = dlopen(mlibs[i].libname, DLOPEN_FLAGS))
-		    == NULL) {
-			dprintf(DPRINTF_INFORMATIVE)("Error [%s] on file [%s],"
-			    " this may be due to a kludge for old config "
-			    "files\n", dlerror(), mlibs[i].libname);
-#if BREAK_ON_MODULE_DEPENENCIES
-			return(-1);
-#endif
-		} else
-			dprintf(DPRINTF_INFORMATIVE)("modules_start: loaded "
-			    "library %s for %s module\n", mlibs[i].libname,
-			    mlibs[i].mname);
-	}
-
-	snprintf(buf, sizeof(buf), "%s/" MLIBNAME_STR,
-	    libdir ? libdir : INSTALL_LIBDIR);
-
-	if ((main_lib = dlopen(buf, DLOPEN_FLAGS)) == NULL) {
-	   	dprintf(DPRINTF_CRITICAL)("Error opening main library, [%s] "
-		    "file [%s]\n", dlerror(), buf);
-	   	return(-1);
-	}
-
-	return (1);
-}
-
-/*
- * Unload main library
- */
-
-void
-modules_stop() {
-	int i;
-
-	if (main_lib) {
-		dlclose(main_lib);
-		dprintf(DPRINTF_INFORMATIVE)("modules_stop: unloaded main "
-		    "library\n");
-		
-	}
-
-	/*
-	 * Unload required libs
-	 *
-	 * This is an ugly kludge!
-	 */
-	for (i = 0; mlibs[i].mname; i++)
-		if (mlibs[i].h)
-			dlclose(mlibs[i].h);
-}
 
 /*
  * Prepare libraries for a module
@@ -167,31 +90,6 @@ prepare_module_libs(const char *modname, void **ret) {
 
 	dprintf(DPRINTF_INFORMATIVE)("prepare_module_libs: called for "
 	    "module:%s\n", modname);
-
-	/*
-	 * Load required libs for this module
-	 * if already open, mark them as used
-	 * by one more output.
-	 */
-	for (i = 0; mlibs[i].mname; i++) {
-		if(!strcmp(modname, mlibs[i].mname)) {
-			if (mlibs[i].h) {
-				mlibs[i].used++;
-			} else {
-				dprintf(DPRINTF_INFORMATIVE)("addImodule: "
-				    "going to open library %s for module %s\n",
-				    modname, mlibs[i].libname);
-				if ((mlibs[i].h = dlopen(mlibs[i].libname,
-				    DLOPEN_FLAGS)) == NULL) {
-					dprintf(DPRINTF_SERIOUS)("Error [%s] "
-					    "on file [%s]\n", dlerror(),
-					    mlibs[i].libname);
-					return(-1);
-				}
-				mlibs[i].used = 1;
-			}
-		}
-	}
 
 	snprintf(buf, sizeof(buf), "%s/" MLIBNAME_STR,
 	    libdir ? libdir : INSTALL_LIBDIR);
@@ -218,12 +116,9 @@ prepare_module_libs(const char *modname, void **ret) {
 
 int
 get_symbol(const char *modname, const char *funcname, void *h, void **ret) {
-	int i;
 	char buf[LIB_PATH_MAX];
 
 	snprintf(buf, sizeof(buf), SYMBOL_PREFIX "%s_%s", modname, funcname);
-
-	dprintf(DPRINTF_INFORMATIVE)("get_symbol: called to fetch %s\n", buf);
 
 	/*
 	 * Search for symbol on main library
@@ -235,18 +130,7 @@ get_symbol(const char *modname, const char *funcname, void *h, void **ret) {
 		dprintf(DPRINTF_INFORMATIVE)("get_symbol: func %s not found "
 		    "on main lib \n", buf);
 
-		for (i = 0; mlibs[i].mname; i++) {
-			if(!strcmp(modname, mlibs[i].mname)) {
-				if (mlibs[i].h && ( (*ret = dlsym(mlibs[i].h,
-				    buf)) != NULL || (*ret = dlsym(mlibs[i].h,
-				    buf + 1)) != NULL ))
-					return(1); /* found! */
-			}
-		}
 	}
-
-	dprintf(DPRINTF_INFORMATIVE)("get_symbol: func %s%s found %p\n", buf,
-	     *ret ? "":" not", *ret);
 
 	if (*ret == NULL && h && ( (*ret = dlsym(h, buf)) == NULL &&
 	    (*ret = dlsym(h, buf + 1)) == NULL) ) {
@@ -306,17 +190,6 @@ imodule_create(struct i_module *I, char *line)
 		goto imodule_create_bad;
 	}
 
-	/* check if module required libs are loaded */
-	for (i = 0; mlibs[i].mname; i++)
-		if(!strncmp("im_", mlibs[i].mname, 3) &&
-		    !strcmp(argv[0] + 3, mlibs[i].mname + 3) && !mlibs[i].h) {
-			dprintf(DPRINTF_SERIOUS)("imodule_create: library"
-			    " needed for module %s %s not loaded!\n",
-			    argv[0], mlibs[i].mname);
-			ret = -1;
-			goto imodule_create_bad;
-		}
-
 	/* is it already initialized ? searching... */
 	if ((im->im_func = getImodule(argv[0])) == NULL)
 		if ((im->im_func = addImodule(argv[0])) == NULL) {
@@ -356,7 +229,6 @@ imodule_create_bad:
 	/* free argv params if there */
 	if (argv != NULL) {
 		char *f;
-		int i;
 
 		for (i = 0; (f = argv[i]) != NULL ; i++)
 			free(f);
@@ -382,7 +254,7 @@ int
 omodule_create(char *c, struct filed *f, char *prog)
 {
 	char	*line, *p, quotes, *argv[20];
-	int	argc, i;
+	int	argc;
 	struct o_module	*om, *om_prev;
 
 	line = strdup(c); quotes = 0;
@@ -435,9 +307,9 @@ omodule_create(char *c, struct filed *f, char *prog)
 				    *p != '\r' && argc<sizeof(argv) /
 				    sizeof(argv[0])) { 
 				
-					(*p == '"' || *p == '\'') ?
-					    quotes = *p++ : 0;
-						
+					if (*p == '"' || *p == '\'')
+					    quotes = *p++;
+
 					argv[argc++] = p;
 					if (quotes) {
 						while (*p != '\0' &&
@@ -492,16 +364,6 @@ omodule_create(char *c, struct filed *f, char *prog)
 
 				break;
 		}
-
-		/* check if module required libs are loaded */
-		for (i = 0; mlibs[i].mname; i++)
-			if(!strncmp("om_", mlibs[i].mname, 3) &&
-			    !strcmp(argv[0] + 3, mlibs[i].mname + 3) && !mlibs[i].h) {
-				dprintf(DPRINTF_SERIOUS)("omodule_create: library"
-				    " needed for module %s%s %s not loaded!\n",
-				    "om_", argv[0], mlibs[i].mname);
-				goto omodule_create_bad;
-			}
 
 		if (!om->om_func->om_init ||
 		    (*(om->om_func->om_init))(argc, argv, f, prog, (void *)
@@ -715,7 +577,7 @@ struct imodule *
 getImodule(char *name)
 {
 	struct imodule *im;
-	int len;
+	unsigned int len;
 
 	if (imodules == NULL || name == NULL)
 		return (NULL);
@@ -730,7 +592,7 @@ getImodule(char *name)
 struct omodule *
 getOmodule(char *name) {
 	struct omodule *om;
-	int len;
+	unsigned int len;
 
 	if (omodules == NULL || name == NULL)
 		return (NULL);
@@ -755,9 +617,6 @@ imodules_destroy(struct imodule *i)
     struct imodule *im, *im_next, *last;
     
 	for (im = i, last = NULL; im; im = im_next) {
-#if BUGGY_LIBRARY_OPEN
-		int j;
-#endif
 
 		im_next = im->im_next;
 
@@ -768,22 +627,6 @@ imodules_destroy(struct imodule *i)
 
 		if (last)
 			last->im_next = im->im_next;
-
-#if BUGGY_LIBRARY_OPEN
-		for (j = 0; mlibs[j].mname; j++) {
-			if(!strncmp(mlibs[j].mname, "im_", 3) &&
-			    !strcmp(im->im_name, mlibs[j].mname + 3)) {
-				if (mlibs[j].used > 1) {
-					mlibs[j].used--;
-				} else {
-					dlclose(mlibs[j].h);
-					dprintf(DPRINTF_INFORMATIVE)(
-					    "imodule_destroy: dlclosed %s\n",
-					    mlibs[j].libname);
-				}
-			}
-		}
-#endif
 
 		dlclose(im->h);
 
@@ -811,9 +654,6 @@ omodules_destroy(struct omodule *o)
     struct omodule *om, *om_next, *last;
     
 	for (om = o, last = NULL; om; om = om_next) {
-#if BUGGY_LIBRARY_OPEN
-		int j;
-#endif
 
 		om_next = om->om_next;
 
@@ -824,22 +664,6 @@ omodules_destroy(struct omodule *o)
 
 		if (last)
 			last->om_next = om->om_next;
-
-#if BUGGY_LIBRARY_OPEN
-		for (j = 0; mlibs[j].mname; j++) {
-			if(!strncmp(mlibs[j].mname, "om_", 3) &&
-			    !strcmp(om->om_name, mlibs[j].mname + 3)) {
-				if (mlibs[j].used > 1) {
-					mlibs[j].used--;
-				} else {
-					dlclose(mlibs[j].h);
-					dprintf(DPRINTF_INFORMATIVE)(
-					    "omodule_destroy: dlclosed %s\n",
-					    mlibs[j].libname);
-				}
-			}
-		}
-#endif
 
 		dlclose(om->h);
 		free(om);

@@ -1,4 +1,4 @@
-dnl $CoreSDI: Id$
+dnl $CoreSDI: configure.in,v 1.86 2001/02/10 01:11:32 claudio Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(config.h)dnl
@@ -6,6 +6,7 @@ AC_CONFIG_HEADER(config.h)dnl
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
+AC_PROG_MAKE_SET
 
 dnl Checks for libraries.
 
@@ -15,16 +16,13 @@ AC_HEADER_DIRENT
 dnl This will be needed by later ports
 dnl AC_HEADER_STDC
 
-dnl This isn't needed
-dnl AC_HEADER_SYS_WAIT
+AC_HEADER_SYS_WAIT
 
 AC_CHECK_HEADERS(fcntl.h limits.h paths.h strings.h sys/ioctl.h \
     sys/time.h syslog.h unistd.h)dnl
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
-AC_TYPE_OFF_T
-AC_TYPE_SIZE_T
 AC_HEADER_TIME
 AC_STRUCT_TM
 
@@ -35,7 +33,7 @@ AC_TYPE_SIGNAL
 dnl It should have strftime!
 dnl AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS(gethostname regcomp poll select socket strdup strerror strstr strtoul )
+AC_CHECK_FUNCS(gethostname getaddrinfo regcomp poll select socket strdup strerror strstr strtoul )
 
 dnl 
 dnl Here are our checks...

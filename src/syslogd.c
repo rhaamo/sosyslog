@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.171 2001/02/22 20:10:27 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.172 2001/02/23 00:57:02 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.171 2001/02/22 20:10:27 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.172 2001/02/23 00:57:02 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -112,6 +112,7 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.171 2001/02/22 20:10:27 alejo Exp
 #include <string.h>
 #include <unistd.h>
 #include <poll.h>
+#include <dlfcn.h>
 
 #define SYSLOG_NAMES
 #include <syslog.h>
@@ -197,8 +198,7 @@ int	imodules_destroy (struct imodule *);
 void	logerror (char *);
 void	logmsg (int, char *, char *, int);
 int	getmsgbufsize (void);
-int	modules_start (void);
-void	modules_stop (void);
+void	*main_lib;
 
 extern struct	omodule *omodules;
 extern struct	imodule *imodules;
@@ -224,16 +224,17 @@ main(int argc, char **argv)
 	imodules = NULL;
 	omodules = NULL;
 
-	/* Load main modules library */
-	if (modules_start() < 0) {
-		dprintf(DPRINTF_CRITICAL)("Error starting modules!\n");
-		exit(-1);
-	}
+        if ((main_lib = dlopen(INSTALL_LIBDIR "/" MLIBNAME_STR,
+	    DLOPEN_FLAGS)) == NULL) {
+                dprintf(DPRINTF_CRITICAL)("Error opening main library, [%s] "
+                    "file [%s]\n", dlerror(), INSTALL_LIBDIR "/" MLIBNAME_STR);
+                return(-1);
+        }
 
 	/* use ':' at start to allow -d to be used without argument */
 	opterr = 0;
 
-	while ( (ch = getopt(argc, argv, ":d:ubSf:m:p:a:i:h")) != -1) {
+	while ( (ch = getopt(argc, argv, ":d:f:mui:p:a:h")) != -1) {
 		char buf[512];
 
 		switch (ch) {
@@ -311,6 +312,7 @@ main(int argc, char **argv)
 			case -1:
 				perror("fork");
 				exit(-1);
+				break;
 			case 0:
 				break;
 			default:
@@ -460,7 +462,7 @@ main(int argc, char **argv)
 			}
 
 			DaemonFlags |= SYSLOGD_LOCKED_PIDFILE;
-			if (ftruncate(lfd,0) < 0) {
+			if ( ftruncate( lfd, (off_t) 0) < 0) {
 				snprintf(buf, sizeof(buf), "Error truncating pidfile, %s",
 						strerror(errno));
 				logerror(buf);
@@ -498,7 +500,6 @@ main(int argc, char **argv)
 		if (finet != -1 && !(DaemonFlags & SYSLOGD_INET_READ))
 			add_fd_input(finet, NULL);
 
-for (i = 0; i < fd_in_count; i++) printf("** poll: %d fd %d **\n", i, fd_inputs[i].fd);
 		/* count will always be less than fd_in_count */
 		switch ( (count = poll(fd_inputs, fd_in_count, -1))) {
 		case 0:
@@ -512,11 +513,11 @@ for (i = 0; i < fd_in_count; i++) printf("** poll: %d fd %d **\n", i, fd_inputs[
 			continue;
 		}
 
-		if (DaemonFlags && SYSLOGD_MARK)
+		if (DaemonFlags & SYSLOGD_MARK)
 			markit();
 
 		for (i = 0, done = 0; done < count; i++) {
-			if (fd_inputs[i].revents && POLLIN) {
+			if (fd_inputs[i].revents & POLLIN) {
 				int val = -1;
 
 				log.im_pid = 0;
@@ -527,9 +528,10 @@ for (i = 0; i < fd_in_count; i++) printf("** poll: %d fd %d **\n", i, fd_inputs[
 					/* silently DROP what comes */
 					if (fd_inputs[i].fd == finet) {
 						struct sockaddr_in frominet;
-						int len = sizeof(frominet);
+						socklen_t len;
 						char line[MAXLINE];
 
+						len = sizeof(frominet);
 						recvfrom(finet, line, MAXLINE,
 						    0, (struct sockaddr *)
 						    &frominet, &len);
@@ -557,10 +559,8 @@ for (i = 0; i < fd_in_count; i++) printf("** poll: %d fd %d **\n", i, fd_inputs[
 		}
 	}
 
-	if (fd_inputs)
-		free(fd_inputs);
-	if (fd_inputs_mod)
-		free(fd_inputs_mod);
+	/* NOT REACHED */
+	return(1);
 
 }
 
@@ -759,8 +759,8 @@ logmsg(int pri, char *msg, char *from, int flags)
 		    !strcmp(from, f->f_prevhost)) {
 			memcpy(&f->f_tm, &timestamp, sizeof(f->f_tm));
 			f->f_prevcount++;
-			dprintf(DPRINTF_INFORMATIVE)("msg repeated %d times,
-			    %ld sec of %d\n", f->f_prevcount,
+			dprintf(DPRINTF_INFORMATIVE)("msg repeated %d times,"
+			    " %ld sec of %d\n", f->f_prevcount,
 			    (long)(now - f->f_time),
 			    repeatinterval[f->f_repeatcount]);
 			/*
@@ -969,7 +969,7 @@ die(int signo) {
 RETSIGTYPE
 init(int signo)
 {
-	int i, close_modules = 0;
+	int i;
 	FILE *cf;
 	struct filed *f, *next, **nextp;
 	char *p;
@@ -982,9 +982,6 @@ init(int signo)
 	/*
 	 *  Close all open log files.
 	 */
-
-	if (Initialized)
-		close_modules++;
 
 	Initialized = 0;
 
@@ -1021,16 +1018,17 @@ init(int signo)
 		free(f);
 	}
 
-#if BUGGY_LIBRARY_OPEN
-	if (close_modules) {
-		modules_stop();
-		/* Load main modules library */
-		if (modules_start() < 0) {
-			dprintf(DPRINTF_SERIOUS)("Error starting modules! \n");
-			exit(-1);
-		}
+	if (main_lib)
+		dlclose(main_lib);
+
+	/* Load main modules library */
+	if ((main_lib = dlopen( INSTALL_LIBDIR "/" MLIBNAME_STR,
+	    DLOPEN_FLAGS)) == NULL) {
+		dprintf(DPRINTF_CRITICAL)("Error opening main library,"
+		    " [%s] file [%s]\n", dlerror(), INSTALL_LIBDIR "/"
+		    MLIBNAME_STR);
+		exit(-1);
 	}
-#endif
 
 	/* list of filed is now empty */
 	Files = NULL;

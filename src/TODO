@@ -1,23 +1,19 @@
-/*	$CoreSDI: TODO,v 1.65 2001/02/12 17:19:37 claudio Exp $	*/
+/*	$CoreSDI: TODO,v 1.66 2001/02/16 00:34:52 alejo Exp $	*/
 
 Things to do:
 
-- REMOVE mlibs struct!!!
-- test TCP modules
 - AIX port
 - DB2 output module
 - let input modules return multiline in one read (maybe supply a function
   for parsing incoming lines)
-- fix signal for output reopen
-- Check "" errors on solaris
+- Check "" errors on solaris / support spaces intead the tabs on configfile
 - Change strcpy and strncpy to strlcpy (same w/ strlcat)
 - define STYLE for names (ie. underscore or caps, indentation)
 - Check linux kernel 2.4 potential header problems
-- Mejorar y corregir el uso de select. Y mantener una lista a la que
-  se agregan fds o se quitan. asi no hay que reagregar con cada loop del CD.
 - module configuration file so eliminate most command line options
 - autodetect wich input module is needed automagically (ie im_unix + im_bsd)
 - work out a random device for Solaris and others
+- modules should give status strings. (maybe a func)
 - redo parsing functions
 - CHECK LIBC and GLIBC's way to work
 - More docs on source code
