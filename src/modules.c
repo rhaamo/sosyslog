@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.46 2000/05/05 23:35:21 alejo Exp $
+/*	$Id: modules.c,v 1.47 2000/05/08 16:40:02 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -319,20 +319,34 @@ parseParams(ret, c)
 	line = strdup(c); p = line;
 
 	/* initialize arguments before starting */
-	*ret = (char **) calloc(2, sizeof(char *));
+	*ret = (char **) calloc(20, sizeof(char *));
 	argc = 0;
 
 	for(q = p; *p != '\0'; p = q) {
 		/* skip initial spaces */
 		while (isspace(*p)) p++;
-		if (*p++ == '\0')
+		if (*p == '\0')
 		    break;
 
-		/* see how long this word is, alloc, and copy */
-		for(q = p; q && !isspace(*q); q++);
-		*q++ = '\0';
-		*ret[argc] = strdup(p);
-		*ret = (char **) realloc(*ret, sizeof(char *) * (argc + 2));
+		if (*p == '\'') {
+		    for(q = ++p; *q != '\'' && *q != '\0') q++;
+
+		    if (*q != '\0') {
+		        *q++ = '\0';
+		    }
+
+		} else {
+		    /* see how long this word is, alloc, and copy */
+		    for(q = p; *q != '\0' && !isspace(*q); q++);
+		    if (*q != '\0') {
+		        *q++ = '\0';
+		    }
+
+		}
+
+		*ret[argc++] = strdup(p);
+		if ((argc % 20) = 18)
+		    *ret = (char **) realloc(*ret, sizeof(char *) * (argc + 20));
 		*ret[argc] = NULL;
 	}
 	
