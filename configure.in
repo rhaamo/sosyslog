@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.122 2001/04/09 18:50:18 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.123 2001/04/09 20:11:23 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -235,18 +235,19 @@ AC_ARG_WITH(linux,
 	])dnl
 ])dnl
 
+temp_res="no";
 AC_ARG_WITH(udp,
 [  --without-udp
 	Use udp socket input module. Activated by default.
-],[
-	if test $with_udp = "yes" ; then
-		MSRCS="$MSRCS im_udp.c"
-	fi
-],[
+],[ temp_res="$with_udp"; ],[
 	AC_CHECK_HEADER(sys/socket.h, [
-		MSRCS="$MSRCS im_udp.c"
+		temp_res="yes";
 	])dnl
 ])dnl
+if test "X$temp_res" = "Xyes" ; then
+	MSRCS="$MSRCS im_udp.c"
+	MANPAGES="$MANPAGES im_udp.8";
+fi
 
 temp_res="no";
 
