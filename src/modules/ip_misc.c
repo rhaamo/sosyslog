@@ -1,4 +1,4 @@
-/*	$CoreSDI: ip_misc.c,v 1.3 2001/03/06 21:49:43 alejo Exp $	*/
+/*	$CoreSDI: ip_misc.c,v 1.4 2001/03/07 21:35:15 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -38,6 +38,16 @@
 
 #include "config.h"
 
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -117,7 +127,7 @@ resolv_addr(struct sockaddr *addr, socklen_t addrlen)
  */
 
 struct sockaddr *
-resolv_name(const char *host, const char *port, int *salen)
+resolv_name(const char *host, const char *port, socklen_t *salen)
 {
 	struct sockaddr *sa;
 #ifdef HAVE_GETADDRINFO
