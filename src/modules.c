@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.131 2000/11/01 19:13:18 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.132 2000/11/03 19:54:53 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -60,6 +60,12 @@
 #define DLOPEN_FLAGS RTLD_LAZY | RTLD_GLOBAL
 #else
 #define DLOPEN_FLAGS RTLD_LAZY
+#endif
+
+#ifdef HAVE_OPENBSD
+#define SYMBOL_PREFIX "_"
+#else
+#define SYMBOL_PREFIX ""
 #endif
 
 void    logerror(char *);
@@ -403,10 +409,12 @@ addImodule(char *name)
 
 	for( i = 0; mlibs[i].name; i++) {
 		if(!strcmp(name, mlibs[i].name)) {
-			for(j = 0; (r = mlibs[i].libs[j]) && j < MLIB_MAX; j++) { 
+			for(j = 0; (r = mlibs[i].libs[j]) && j < MLIB_MAX;
+			    j++) { 
 				dprintf("addImodule: going to open library %s "
 				    "for module %s\n", name, r);
-				if ((im->ih[j] = dlopen(r, DLOPEN_FLAGS)) == NULL) {
+				if ((im->ih[j] = dlopen(r, DLOPEN_FLAGS))
+				    == NULL) {
 					dprintf("Error [%s] on file [%s]\n",
 							dlerror(), r);
 					goto addImod_bad;
@@ -415,7 +423,7 @@ addImodule(char *name)
 		}
 	}
 
-	snprintf(buf, LIB_PATH_MAX, "%s/libmsyslog_im_%s.so",
+	snprintf(buf, sizeof(buf), "%s/libmsyslog_im_%s.so",
 			libdir ? libdir : INSTALL_LIBDIR, name);
 
 	if ((im->h = dlopen(buf, DLOPEN_FLAGS)) == NULL) {
@@ -423,39 +431,28 @@ addImodule(char *name)
 	   	goto addImod_bad;
 	}
 
-#ifdef HAVE_LINUX
-	snprintf(buf, 127, "im_%s_init", name);
+	snprintf(buf, sizeof(buf), SYMBOL_PREFIX "im_%s_init", name);
+
 	if ((im->im_init = dlsym(im->h, buf)) == NULL) {
-	   	dprintf("addImodule: error linking %s function \n", buf);
+	   	dprintf("addImodule: error linking %s function %s\n", buf,
+		    dlerror());
 	   	goto addImod_bad;
 	}
 
-	snprintf(buf, 127, "im_%s_getLog", name);
+	snprintf(buf, sizeof(buf), SYMBOL_PREFIX "im_%s_getLog", name);
+
 	if ((im->im_getLog = dlsym(im->h, buf)) == NULL) {
-	   	dprintf("addImodule: error linking %s function \n", buf);
+	   	dprintf("addImodule: error linking %s function %s\n", buf,
+		    dlerror());
 	   	goto addImod_bad;
 	}
+
 
 	/* this one could be null */
-	snprintf(buf, 127, "im_%s_close", name);
-	im->im_close = dlsym(im->h, buf);
-#else
-	snprintf(buf, 127, "_im_%s_init", name);
-	if ((im->im_init = dlsym(im->h, buf)) == NULL) {
-	   	dprintf("addImodule: error linking %s function \n", buf);
-	   	goto addImod_bad;
-	}
+	snprintf(buf, sizeof(buf), SYMBOL_PREFIX "im_%s_close", name);
 
-	snprintf(buf, 127, "_im_%s_getLog", name);
-	if ((im->im_getLog = dlsym(im->h, buf)) == NULL) {
-	   	dprintf("addImodule: error linking %s function \n", buf);
-	   	goto addImod_bad;
-	}
-
-	/* this one could be null */
-	snprintf(buf, 127, "_im_%s_close", name);
 	im->im_close = dlsym(im->h, buf);
-#endif
+
 	im->im_name = strdup(name);
 
 	return (im);
@@ -469,7 +466,9 @@ addImod_bad:
 		if (i)
 			i->im_next = NULL;
 	}
+
 	free(im);
+
 	return(NULL);
 }
 
@@ -495,10 +494,12 @@ addOmodule(char *name)
 
 	for( i = 0; mlibs[i].name; i++) {
 		if(!strcmp(name, mlibs[i].name)) {
-			for(j = 0; (r = mlibs[i].libs[j]) && j < MLIB_MAX; j++) {
+			for(j = 0; (r = mlibs[i].libs[j]) && j < MLIB_MAX;
+			    j++) {
 				dprintf("addImodule: going to open library %s "
 				    "for module %s\n", name, r);
-				if ((om->oh[j] = dlopen(r, DLOPEN_FLAGS)) == NULL) {
+				if ((om->oh[j] = dlopen(r, DLOPEN_FLAGS))
+				    == NULL) {
 					dprintf("Error [%s] on file [%s]\n",
 							dlerror(), r);
 				goto addOmod_bad;
@@ -507,7 +508,7 @@ addOmodule(char *name)
 		}
 	}
 
-	snprintf(buf, LIB_PATH_MAX, "%s/libmsyslog_om_%s.so",
+	snprintf(buf, LIB_PATH_MAX, "%s/libmsyslog_om_%s.so.1.01",
 			libdir ? libdir : INSTALL_LIBDIR, name);
 
 	if ((om->h = dlopen(buf, DLOPEN_FLAGS)) == NULL) {
@@ -515,41 +516,26 @@ addOmodule(char *name)
 	   	goto addOmod_bad;
 	}
 
-#ifdef HAVE_LINUX
-	snprintf(buf, 127, "om_%s_init", name);
+	snprintf(buf, sizeof(buf), SYMBOL_PREFIX "om_%s_init", name);
+
 	if ((om->om_init = dlsym(om->h, buf)) == NULL) {
 	   	dprintf("addOmodule: error linking %s function \n", buf);
 	   	goto addOmod_bad;
 	}
-	snprintf(buf, 127, "om_%s_doLog", name);
+
+	snprintf(buf, sizeof(buf), SYMBOL_PREFIX "om_%s_doLog", name);
+
 	if ((om->om_doLog = dlsym(om->h, buf)) == NULL) {
 	   	dprintf("addOmodule: error linking %s function \n", buf);
 	   	goto addOmod_bad;
 	}
 
 	/* this ones could be null */
-	snprintf(buf, 127, "om_%s_close", name);
+	snprintf(buf, sizeof(buf), SYMBOL_PREFIX "om_%s_close", name);
 	om->om_close = dlsym(om->h, buf);
-	snprintf(buf, 127, "om_%s_flush", name);
+	snprintf(buf, sizeof(buf), SYMBOL_PREFIX "om_%s_flush", name);
 	om->om_flush = dlsym(om->h, buf);
-#else
-	snprintf(buf, 127, "_om_%s_init", name);
-	if ((om->om_init = dlsym(om->h, buf)) == NULL) {
-	   	dprintf("addOmodule: error linking %s function \n", buf);
-	   	goto addOmod_bad;
-	}
-	snprintf(buf, 127, "_om_%s_doLog", name);
-	if ((om->om_doLog = dlsym(om->h, buf)) == NULL) {
-	   	dprintf("addOmodule: error linking %s function \n", buf);
-	   	goto addOmod_bad;
-	}
 
-	/* this ones could be null */
-	snprintf(buf, 127, "_om_%s_close", name);
-	om->om_close = dlsym(om->h, buf);
-	snprintf(buf, 127, "_om_%s_flush", name);
-	om->om_flush = dlsym(om->h, buf);
-#endif
 	om->om_name = strdup(name);
 
 	return (om);
