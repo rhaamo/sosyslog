@@ -1,10 +1,10 @@
-/*	$CoreSDI: NEWS,v 1.2 2000/06/03 01:03:04 alejo Exp $	*/
+/*	$CoreSDI: NEWS,v 1.3 2000/06/05 23:47:31 fgsch Exp $	*/
 
 Release Notes:
 
 * Move to autoconf 
 * Reorganize the source tree
 * Fix an incorrect free that was causing syslogd to coredump on exit
-* New om_filter module to check regular expressions on messages
+* New om_regex module to check regular expressions on messages
 * PostgreSQL output module, colaboration from Oliver Teuber. 
 
