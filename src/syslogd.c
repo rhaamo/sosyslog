@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.177 2001/03/06 01:18:28 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.178 2001/03/06 21:49:42 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.177 2001/03/06 01:18:28 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.178 2001/03/06 21:49:42 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -370,12 +370,6 @@ main(int argc, char **argv)
 	} else
 		setlinebuf(stdout);
 	
-	/* this should get into Files and be way nicer */
-	if (omodule_create(ctty, &consfile, NULL) == -1) {
-		dprintf(DPRINTF_SERIOUS)("Error initializing console's output "
-		    "module!\n");
-	}
-
 	gethostname(LocalHostName, sizeof(LocalHostName));
 	if ((p = strchr(LocalHostName, '.')) != NULL) {
 		*p++ = '\0';
@@ -758,6 +752,8 @@ logmsg(int pri, char *msg, char *from, int flags)
 				free(consfile.f_omod->ctx);
 			if (consfile.f_omod->status)
 				free(consfile.f_omod->status);
+			free(consfile.f_omod);
+			consfile.f_omod = NULL;
 		}
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 		return;

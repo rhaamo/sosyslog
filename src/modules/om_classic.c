@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.69 2001/03/06 21:49:43 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.70 2001/03/06 21:56:02 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -373,12 +373,14 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 			logerror(p);
 			break;
 		}
-		if (isatty(c->fd))
-			c->f_type = F_TTY;
-		else
-			c->f_type = F_FILE;
-		if (strcmp(p, ctty) == 0)
-			c->f_type = F_CONSOLE;
+		if (!c->f_type) {
+			if (isatty(c->fd))
+				c->f_type = F_TTY;
+			else
+				c->f_type = F_FILE;
+			if (strcmp(p, ctty) == 0)
+				c->f_type = F_CONSOLE;
+		}
 		if (Debug)
 			snprintf(statbuf, sizeof(statbuf), "om_classic: "
 			    "saving messages to file %s", c->f_un.f_fname);
