@@ -1,5 +1,4 @@
-
-/*
+/*	$Id: syslogd.h,v 1.24 2000/04/18 21:05:44 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -35,6 +34,8 @@
 #ifndef SYSLOGD_H
 #define SYSLOGD_H
 
+#include "config.h"
+
 #define	MAXLINE		1024		/* maximum line length */
 #define	MAXSVLINE	120		/* maximum saved line length */
 #define DEFUPRI		(LOG_USER|LOG_NOTICE)
@@ -49,6 +50,14 @@
 #include <sys/uio.h>
 #include <sys/time.h>
 #include <sys/socket.h>
+
+#ifdef HAVE_OPENBSD
+#include <sys/msgbuf.h>
+#endif
+#ifdef HAVE_LINUX
+#include <sys/param.h>
+#include <rpc/types.h>
+#endif
 
 #include <netinet/in.h>
 #include <netdb.h>

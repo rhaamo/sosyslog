@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.38 2000/04/18 20:58:02 gera Exp $
+/*	$Id: syslogd.c,v 1.39 2000/04/18 21:05:43 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -30,8 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include "config.h"
 
 #ifndef lint
 static char copyright[] =
@@ -70,13 +68,6 @@ static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $"
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-#ifdef HAVE_OPENBSD
-#include <sys/msgbuf.h>
-#endif
-#ifdef HAVE_LINUX
-#include <sys/param.h>
-#include <rpc/types.h>
-#endif
 #include <sys/un.h>
 #include <sys/resource.h>
 

@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.26 2000/04/18 20:47:36 alejo Exp $
+/*	$Id: modules.c,v 1.27 2000/04/18 21:05:43 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -30,6 +30,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
+
+#include "config.h"
 
 #ifndef lint
 static char copyright[] =
