@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.123 2000/08/30 00:57:05 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.124 2000/08/30 23:19:44 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -185,8 +185,13 @@ omodule_create(char *c, struct filed *f, char *prog) {
 					(*p=='"' || *p=='\'')? quotes = *p++ : 0;
 						
 					argv[argc++] = p;
-					if (quotes) while (*p != quotes) p++;
-						else while ( *p != '\0' && !isspace((int)*p)) p++;
+
+					if (quotes) {
+						while (*p != '\0' && *p != quotes) p++;
+					} else {
+						while ( *p != '\0' && !isspace((int)*p)) p++;
+					}
+
 					if (*p == '\0')
 						break;
 					*p++ = 0;
