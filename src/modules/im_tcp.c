@@ -90,7 +90,6 @@ struct tcp_conn {
 struct im_tcp_ctx {
 	socklen_t	 addrlen;
 	struct tcp_conn	*first;
-	struct tcp_conn	*last;
 	int		flags;
 };
 
@@ -224,11 +223,7 @@ return (-1);
 		con->saveline[0] = '\0';
 
 		/* add to queue */
-		if (c->last == NULL) {
-			c->first = con;
-		} else {
-			c->last->next = con;
-		}
+		c->next = c->first;
 		c->last = con;
 
 		m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: new conection from"
@@ -257,7 +252,7 @@ return (-1);
 
 	n = read(con->fd, im->im_buf, sizeof(im->im_buf) - 1);
 	if (n == 0) {
-		struct tcp_conn *prev;
+		struct tcp_conn **prev;
 
 		m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: connection from %s closed\n", con->name);
 
@@ -266,16 +261,10 @@ return (-1);
 		/* connection closed, remove its tcp_con struct */
 		close (con->fd);
 
-		if (con == c->first) {
-			c->first = con->next;
-			if (con == c->last)
-				c->last = NULL;
-		}
-    else {
-			for(prev = c->first; prev->next != con;
-			    prev = prev->next);
-			prev->next = con->next;
-		}
+    /* remove node */
+    for (prev = &c->first; *prev != NULL ; prev = &prev->next)
+      if ((*prev)->next == con)
+        (*prev)->next == con->next;
 
     /* complete and print any previous partial message */
 		if (con->saveline[0] != '\0')
