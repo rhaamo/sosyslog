@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.1 2000/05/26 19:44:46 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.2 2000/05/29 20:35:42 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -38,22 +38,20 @@
 
 #include "config.h"
 
-#ifdef HAVE_PATHS_H
-#	include <paths.h>
-#else
-#	define _PATH_KLOG	"/proc/kmsg"
-#endif
-
-
 #include <sys/types.h>
 #include <sys/uio.h>
+#include <sys/klog.h>
+
+#include <ctype.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <paths.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
 #include <unistd.h>
+
 #include "syslogd.h"
 
 
@@ -92,54 +90,90 @@ im_linux_getLog(im, ret)
 	struct i_module *im;
 	struct im_msg  *ret;
 {
-/*
-	char *p, *q, *lp;
-	int i, c;
+	int readed;
+	int pri;
 
-	(void)strncpy(ret->im_msg, _PATH_UNIX, sizeof(ret->im_msg) - 3);
-	(void)strncat(ret->im_msg, ": ", 2);
-	lp = ret->im_msg + strlen(ret->im_msg);
+	if (im->im_fd < 0)
+		return (-1);
 
-	i = read(im->im_fd, im->im_buf, sizeof(im->im_buf) - 1);
-	if (i > 0) {
-		(im->im_buf)[i] = '\0';
-		for (p = im->im_buf; *p != '\0'; ) {
-			/* fsync file after write */
-			ret->im_flags = SYNC_FILE | ADDDATE;
-			ret->im_pri = DEFSPRI;
-			if (*p == '<') {
-				ret->im_pri = 0;
-				while (isdigit(*++p))
-				    ret->im_pri = 10 * ret->im_pri + (*p - '0');
-				if (*p == '>')
-				        ++p;
-			} else {
-				/* kernel printf's come out on console */
-				ret->im_flags |= IGN_CONS;
-			}
-			if (ret->im_pri &~ (LOG_FACMASK|LOG_PRIMASK))
-				ret->im_pri = DEFSPRI;
-			q = lp;
-			while (*p != '\0' && (c = *p++) != '\n' &&
-					q < (ret->im_msg+sizeof ret->im_msg))
-				*q++ = c;
-			*q = '\0';
-			strncat(ret->im_host, LocalHostName, sizeof(ret->im_host) - 1);
-			ret->im_len = strlen(ret->im_msg);
-			logmsg(ret->im_pri, ret->im_msg, ret->im_host, ret->im_flags);
+	/* read message from kernel */
+	if (im->im_path)
+		readed = read(im->im_fd, im->im_buf, sizeof(im->im_buf));
+	else
+		/* readed = sysklog(2, im->im_buf, sizeof(im->im_buf)); */ /* this blocks */
+		readed = sysklog(4, im->im_buf, sizeof(im->im_buf));/*this don't block,testing!*/
+
+	if (readed < 0)
+		if (errno != EINTR) {
+			logerror("im_linux_getLog");
+			return(-1);
 		}
 
-	} else if (i < 0 && errno != EINTR) {
-		logerror("im_bsd_getLog");   
-		im->im_fd = -1;
-	}
+	im->im_buf[readed-1] = '\0';
 
-*/
-	/* if ok return (2) wich means already logged */
-/*
-	return(im->im_fd == -1 ? -1: 2);
-*/
-	return(-1);
+	/* parse kernel and module symbols */
+	;;;
+	;;;
+
+	/* get priority */
+	if (readed >= 3 && im->im_buf[0] == '<' && im->im_buf[2] == '>' && isdigit(im_buf[1]))
+		pri = im->im_buf[1] - '9';
+	else
+		pri = LOG_WARNING;	/* from printk.c: DEFAULT_MESSAGE_LOGLEVEL */
+
+	/* log it */
+	ret->im_len = snprintf(ret->im_msg, sizeof(ret->im_msg), "%s: %s: %s",
+		_PATH_UNIX, LocalHostName, im->im_buf);
+	strncpy(ret->im_host, LocalHostName, sizeof(ret->im_host));
+	ret->im_host[sizeof(ret->im_host)-1] = '\0';
+
+	logmsg(ret->im_pri, ret->im_msg, ret->im_host, ret->im_flags);
+	return(0);
+
+//	char *p, *q, *lp;
+//	int i, c;
+//
+//	(void)strncpy(ret->im_msg, _PATH_UNIX, sizeof(ret->im_msg) - 3);
+//	(void)strncat(ret->im_msg, ": ", 2);
+//	lp = ret->im_msg + strlen(ret->im_msg);
+//
+//	i = read(im->im_fd, im->im_buf, sizeof(im->im_buf) - 1);
+//	if (i > 0) {
+//		(im->im_buf)[i] = '\0';
+//		for (p = im->im_buf; *p != '\0'; ) {
+//			/* fsync file after write */
+//			ret->im_flags = SYNC_FILE | ADDDATE;
+//			ret->im_pri = DEFSPRI;
+//			if (*p == '<') {
+//				ret->im_pri = 0;
+//				while (isdigit(*++p))
+//				    ret->im_pri = 10 * ret->im_pri + (*p - '0');
+//				if (*p == '>')
+//				        ++p;
+//			} else {
+//				/* kernel printf's come out on console */
+//				ret->im_flags |= IGN_CONS;
+//			}
+//			if (ret->im_pri &~ (LOG_FACMASK|LOG_PRIMASK))
+//				ret->im_pri = DEFSPRI;
+//			q = lp;
+//			while (*p != '\0' && (c = *p++) != '\n' &&
+//					q < (ret->im_msg+sizeof ret->im_msg))
+//				*q++ = c;
+//			*q = '\0';
+//			strncat(ret->im_host, LocalHostName, sizeof(ret->im_host) - 1);
+//			ret->im_len = strlen(ret->im_msg);
+//			logmsg(ret->im_pri, ret->im_msg, ret->im_host, ret->im_flags);
+//		}
+//
+//	} else if (i < 0 && errno != EINTR) {
+//		logerror("im_bsd_getLog");   
+//		im->im_fd = -1;
+//	}
+//
+//	/* if ok return (2) wich means already logged */
+//	return(im->im_fd == -1 ? -1: 2);
+//	return(-1);
 }
 
 

@@ -64,5 +64,12 @@ function
 9- Add linux extensions on selector field on configuration file
 10- Add support to log on linux pseudo terminals (pts/x)
 
+29-May-2000
+
+1- We can't do select when im->path = NULL and im->fd >= 0 but the module
+   should be called.
+   We need to allow several others log methods like syscalls (ex.: im_linux)
+   Problem: klogctl syscall con linux blocks until the kernel logs something,
+   a signal should be used to stop this block
 
 
