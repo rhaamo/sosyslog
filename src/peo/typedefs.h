@@ -1,4 +1,4 @@
-/* $CoreSDI: typedefs.h,v 1.3 2001/02/12 17:19:38 claudio Exp $
+/* $CoreSDI: typedefs.h,v 1.4 2001/03/27 22:50:26 alejo Exp $
  */
 
 #ifndef PEO_TYPEEFS_H
@@ -8,7 +8,7 @@
 # ifdef HAVE_UINT32_T
    typedef uint32_t u_int32_t;
 # elif defined(HAVE___UINT32_T)
-   typedef uint32_t __int32_t;
+   typedef uint32_t __uint32_t;
 # else
 #  error Could not determine unsigned int 32 typedef
 # endif
@@ -18,7 +18,7 @@
 # ifdef HAVE_UINT64_T
    typedef uint64_t u_int64_t;
 # elif defined(HAVE___UINT64_T)
-   typedef __uint64_t uint64_t;
+   typedef __uint64_t __uint64_t;
 # else
 #  error Could not determine unsigned int 64 typedef
 # endif
