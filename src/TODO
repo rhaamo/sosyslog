@@ -1,8 +1,7 @@
-/*	$CoreSDI: TODO,v 1.78 2001/04/03 21:38:32 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.79 2001/04/24 11:14:45 alejo Exp $	*/
 
 Things to do:
 
-- Fix FIFO crash
 - Use one function per module, with action as a parameter.
 - Check "" errors on solaris / support spaces intead the tabs on configfile
 - Change strcpy and strncpy to strlcpy (same w/ strlcat)
