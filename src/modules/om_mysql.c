@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.41 2000/09/15 00:10:33 fgsch Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.42 2000/09/15 21:50:10 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -91,8 +91,6 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *ctx)
 		dprintf("MySQL doLog: error, no connection\n");
 		return(-1);
 	}
-
-	memset(c->query, 0, MAX_QUERY);
 
 	if ((msg_q = to_sql(msg)) == NULL)
 		return -1;
