@@ -1,4 +1,4 @@
-/*      $Id: hash.h,v 1.5 2000/05/04 00:19:13 claudio Exp $
+/*      $Id: hash.h,v 1.6 2000/05/04 00:39:17 claudio Exp $
  *
  * hash -- some things used by both peo output module and peochk
  *
