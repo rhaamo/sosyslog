@@ -1,6 +1,6 @@
 	msyslog source code files have either traditional BSD license,
 on the cases of files based on previous BSD syslog (syslogd.c,
-syslogd.h, ttymsg.c and  om_classic.c), or a more permisive licence
+syslogd.h, ttymsg.c and  om_classic.c), or a more permisive license
 known as modified BSD license, or MIT  license, for the rest of the
 source files.
 	However, this licensing scheme may change in the future, as BSD license
