@@ -1,4 +1,4 @@
-/*	$CoreSDI: TODO,v 1.23 2000/09/05 22:36:04 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.24 2000/09/05 22:42:09 alejo Exp $	*/
 
 Things to do:
 
@@ -33,6 +33,8 @@ Check for buffer overflows, as we now may get things from the outside world.
 - Keep alive [remote] saying how many messages have been sent from the previous
   keep alive
 - optimize peochk (readline)
+- port to Solaris
+- port to Windows
 
 
 BUGS TO FIX
