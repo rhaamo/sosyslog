@@ -1,13 +1,12 @@
-/*	$CoreSDI: TODO,v 1.46 2000/11/01 20:34:39 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.47 2000/11/01 21:20:23 alejo Exp $	*/
 
 Things to do:
 
 - remove memory leaks (needs adding an optional destroy function)
 - define STYLE for names (ie. underscore or caps, indentation)
 - solaris port
-- module configuration file (ie. no more passwds in syslog.conf)
+- module configuration file so eliminate most command line options
 - no more static modules
-- decide on default command line options
 - redo parsing functions
 - CHECK LIBC and GLIBC's way to work
 
