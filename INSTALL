@@ -1,9 +1,9 @@
-$Id: INSTALL,v 1.14 2001/10/18 20:32:35 alejo Exp $
+$Id: INSTALL,v 1.15 2001/10/18 20:48:15 alejo Exp $
 ==============================================================================
                          Modular Syslog package
                              INSTALL file
 								
-                 (C)2000 Core-SDI. Buenos Aires, Argentina.
+                 (C)2000, 2001 Core-SDI. Buenos Aires, Argentina.
 ==============================================================================
 
   This file describes how to compile and install modular syslog.
