@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.96 2001/03/06 01:18:28 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.97 2001/03/23 00:12:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -185,6 +185,10 @@ struct imodule {
 
 # ifndef LOG_MAKEPRI
 #  define LOG_MAKEPRI(fac, pri) (((fac) << 3) | (pri))
+# endif
+
+# ifndef LOG_PRIMASK
+#  define LOG_PRIMASK	0x07	/* mask to extract priority part (internal) */
 # endif
 
 # ifndef LOG_PRI
