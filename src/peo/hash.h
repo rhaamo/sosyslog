@@ -1,5 +1,4 @@
-/*	$Id: hash.h,v 1.20 2002/09/17 05:20:29 alejo Exp $	*/
- */
+/*	$Id: hash.h,v 1.21 2002/09/17 06:29:25 alejo Exp $	*/
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
  * All rights reserved
