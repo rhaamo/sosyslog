@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.124 2000/09/13 23:51:41 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.125 2000/09/15 00:32:26 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.124 2000/09/13 23:51:41 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.125 2000/09/15 00:32:26 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -404,7 +404,7 @@ main(int argc, char **argv) {
 
 		/* get current time */
 		gettimeofday(&tnow, NULL);
-		if (finet > 0 && !(DaemonFlags & SYSLOGD_INET_READ))
+		if (finet > 0 && !(DaemonFlags & SYSLOGD_FINET_READ))
 			FD_SET(finet, &readfds);
 
 		if (nextcall.tv_sec == tnow.tv_sec &&
@@ -528,7 +528,7 @@ printline(char *hname, char *msg, int flags) {
 	q = line;
 
 	while ((c = *p++ & 0177) != '\0' && q < &line[sizeof(line) - 1]) {
-		if (iscntrl((int)c)) {
+		if (iscntrl(c)) {
 			if (c == '\n') {
 				*q++ = ' ';
 			} else if (c == '\t') {
