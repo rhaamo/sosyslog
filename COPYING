@@ -1,8 +1,11 @@
-msyslog source code files have either traditional BSD license, on the
-cases of files based on previous BSD syslog (syslogd.c, syslogd.h,
-ttymsg.c and  om_classic.c), or a quite similar licence for the rest
-of the source files. the only difference is that the later doesn't
-ask for acknowledge on advertizing materials.
+	msyslog source code files have either traditional BSD license,
+on the cases of files based on previous BSD syslog (syslogd.c,
+syslogd.h, ttymsg.c and  om_classic.c), or a more permisive licence
+known as modified BSD license, or MIT  license, for the rest of the
+source files.
+	However, this licensing scheme may change in the future, as BSD license
+has been changed by the Regent of the University of California. For more
+information on this, take a look at http://www.opensource.org/licenses
 
 the BSD license used is the following:
 
@@ -37,10 +40,7 @@ the BSD license used is the following:
      OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
      SUCH DAMAGE.
 
-This basically says "do whatever you please with this software except
-remove this notice or take advantage of the University's name".
-
-The other files use this similar licence:
+MIT license used is:
 
      Copyright (c) 2000, Core SDI S.A., Argentina
      All rights reserved
@@ -68,10 +68,4 @@ The other files use this similar licence:
      THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
      (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
      THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-Note the only difference is point 3 of the former is missing.
-
-
-msyslog's developers intend to keep it on this licence's spirit forever.
 
