@@ -1,10 +1,13 @@
-/*	$CoreSDI: NEWS,v 1.3 2000/06/05 23:47:31 fgsch Exp $	*/
+/*	$CoreSDI: NEWS,v 1.4 2000/06/09 19:45:14 fgsch Exp $	*/
 
 Release Notes:
 
 * Move to autoconf 
 * Reorganize the source tree
 * Fix an incorrect free that was causing syslogd to coredump on exit
-* New om_regex module to check regular expressions on messages
+* New om_regex module to filter and redirect depending on contents
+* New im_tcp module to use plain tcp syslogd to syslogd connections
+* New om_tcp module to use plain tcp syslogd to syslogd connections
+* New im_linux for handling linux kernel logging (like klogd)
 * PostgreSQL output module, colaboration from Oliver Teuber. 
 
