@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.78 2001/06/11 17:10:39 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.79 2001/06/11 17:25:46 alejo Exp $	*/
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
@@ -188,9 +188,11 @@ om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
 		    (char *) iov[0].iov_base, (char *) iov[4].iov_base);
 
 		if (sendto(finet, line, l, 0, &c->f_un.f_forw.f_addr,
+#ifdef AF_INET6
 		    c->f_un.f_forw.f_addr.sa_family == AF_INET6 ?
-		    sizeof(struct sockaddr_in6) :  sizeof(struct sockaddr_in))
-		    != l) {
+		    sizeof(struct sockaddr_in6) :
+#endif
+		    sizeof(struct sockaddr_in)) != l) {
 			c->f_type = F_UNUSED;
 			logerror("sendto");
 		}
