@@ -2130,7 +2130,7 @@ EOF
 	DCCFLAGS="-shared -IPA -fullwarn"
 	if test "x$GCC" != "xyes"
 	then
-	CFLAGS="$CFLAGS -g3 -Ofast -fullwarn -IPA -OPT:Olimit=0 -D_BSD_SIGNALS"
+	CFLAGS="-g3 -Ofast -fullwarn -IPA -OPT:Olimit=0 -D_BSD_SIGNALS"
 	fi
 elif test "$UNAME" = "AIX" ; then
 	cat >> confdefs.h <<\EOF
