@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.46 2000/06/01 22:37:12 claudio Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.47 2000/06/02 22:59:35 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -66,11 +66,11 @@ im_bsd_init(I, argv, argc)
 		dprintf("can't open %s (%d)\n", _PATH_KLOG, errno);
 	}
 	
-        I->im_type = IM_BSD;
-        I->im_name = strdup("bsd");
-        I->im_path = strdup(_PATH_KLOG);
-        I->im_flags |= IMODULE_FLAG_KERN;
-        return(I->im_fd);
+	I->im_type = IM_BSD;
+	I->im_name = strdup("bsd");
+	I->im_path = strdup(_PATH_KLOG);
+	I->im_flags |= IMODULE_FLAG_KERN;
+	return(I->im_fd);
 }
 
 
@@ -102,9 +102,10 @@ im_bsd_getLog(im, ret)
 			if (*p == '<') {
 				ret->im_pri = 0;
 				while (isdigit(*++p))
-				    ret->im_pri = 10 * ret->im_pri + (*p - '0');
+					ret->im_pri = 10 * ret->im_pri +
+					    (*p - '0');
 				if (*p == '>')
-				        ++p;
+					++p;
 			} else {
 				/* kernel printf's come out on console */
 				ret->im_flags |= IGN_CONS;
@@ -113,14 +114,15 @@ im_bsd_getLog(im, ret)
 				ret->im_pri = DEFSPRI;
 			q = lp;
 			while (*p != '\0' && (c = *p++) != '\n' &&
-					q < (ret->im_msg+sizeof ret->im_msg))
+			    q < (ret->im_msg+sizeof ret->im_msg))
 				*q++ = c;
 			*q = '\0';
-			strncat(ret->im_host, LocalHostName, sizeof(ret->im_host) - 1);
+			strncat(ret->im_host, LocalHostName,
+			    sizeof(ret->im_host) - 1);
 			ret->im_len = strlen(ret->im_msg);
-			logmsg(ret->im_pri, ret->im_msg, ret->im_host, ret->im_flags);
+			logmsg(ret->im_pri, ret->im_msg, ret->im_host,
+			    ret->im_flags);
 		}
-
 	} else if (i < 0 && errno != EINTR) {
 		logerror("im_bsd_getLog");   
 		im->im_fd = -1;
