@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.40 2000/11/24 21:55:25 alejo Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.41 2000/12/04 23:25:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -63,6 +63,7 @@
 # warning using socklen_t as int
 #endif
 
+#define DEFAULT_LOGGER "/dev/log"
 
 /*
  * get message
@@ -107,31 +108,39 @@ int
 im_unix_init(struct i_module *I, char **argv, int argc)
 {
 	struct sockaddr_un sunx;
+	char *logger;
 
 	dprintf ("\nim_unix_init...\n");
 
-	if (I == NULL || argv == NULL || argc != 2)
+	if (I == NULL || argv == NULL || (argc != 2 && argc != 1)) 
 		return (-1);
+
+	if (argc == 2)
+		logger = argv[1];
+	else
+		logger = DEFAULT_LOGGER;
 
 #ifndef SUN_LEN
 #define SUN_LEN(unp) (strlen((unp)->sun_path) + 2)
 #endif
-	(void) unlink(argv[1]);
+	(void) unlink(logger);
 
 	memset(&sunx, 0, sizeof(sunx));
 	sunx.sun_family = AF_UNIX;
-	(void)strncpy(sunx.sun_path, argv[1], sizeof(sunx.sun_path));
+	(void)strncpy(sunx.sun_path, logger, sizeof(sunx.sun_path));
 	I->im_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
 	if (I->im_fd < 0 ||
 	    bind(I->im_fd, (struct sockaddr *)&sunx, SUN_LEN(&sunx)) < 0 ||
-	    chmod(argv[1], 0666) < 0) {
+	    chmod(logger, 0666) < 0) {
 		(void) snprintf(I->im_buf, sizeof(I->im_buf),
-		    "cannot create %s", argv[1]);
+		    "cannot create %s", logger);
 		logerror(I->im_buf);
-		dprintf("cannot create %s (%d)\n", argv[1], errno);
+		dprintf("cannot create %s (%d)\n", logger, errno);
 		return (-1);
 	}
-	I->im_path = argv[1];
+
+	I->im_path = strdup(logger);
+
 	return (1);
 }
 
