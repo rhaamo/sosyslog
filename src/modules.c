@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.37 2000/04/26 20:17:32 gera Exp $
+/*	$Id: modules.c,v 1.38 2000/04/26 20:18:48 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -82,7 +82,7 @@ int modules_init (I, inputs)
 	OModules[OM_CLASSIC].om_close 		= om_classic_close;
 	OModules[OM_CLASSIC].om_flush 		= om_classic_flush;
 
-#ifndef WHAT_MYSQL
+#ifndef WANT_MYSQL
 	/* mysql module */
 	OModules[OM_MYSQL].om_name 		= "mysql";
 	OModules[OM_MYSQL].om_type 		= OM_MYSQL;

@@ -6,6 +6,7 @@ OBJS=	./peo/hash.o
 .PATH:	${.CURDIR}/../../usr.bin/wall
 MAN=	syslogd.8 syslog.conf.5
 DEBUG=	-ggdb -Wall
-LDADD= -L/usr/local/lib/mysql -lmysqlclient
+LDADD=	-L/usr/local/lib/mysql -lmysqlclient
+CFLAGS=	-D WANT_MYSQL
 
 .include <bsd.prog.mk>
