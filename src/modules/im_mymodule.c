@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_mymodule.c,v 1.3 2000/05/29 19:24:32 fgsch Exp $	*/
+/*	$CoreSDI: im_mymodule.c,v 1.4 2000/05/29 21:12:09 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -33,7 +33,6 @@
  * im_mymodule -- Give some description
  *      
  * Author: Alejo Sanchez for Core SDI S.A.
- *         from syslogd.c by Eric Allman and Ralph Campbell
  *    
  */
 
