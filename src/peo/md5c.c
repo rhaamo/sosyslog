@@ -23,7 +23,7 @@ documentation and/or software.
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$OpenBSD: md5c.c,v 1.12 2000/03/28 17:35:09 millert Exp $";
+/* static char rcsid[] = "$OpenBSD: md5c.c,v 1.12 2000/03/28 17:35:09 millert Exp $"; */
 #endif /* LIBC_SCCS and not lint */
 
 #include <string.h>
