@@ -61,7 +61,7 @@ then
 		with_mysql="/usr/local/mysql"	
 	fi
 	echo "Enabling MySQL support in $with_mysql"
-	EXTRA_SRCS="EXTRA_SRCS \$(MYSQL_SRCS)"
+	EXTRA_SRCS="$EXTRA_SRCS \$(MYSQL_SRCS)"
 	CFLAGS="$CFLAGS -I$with_mysql/include"
 	LDFLAGS="$LDFLAGS -L$with_mysql/lib"
 	LIBS="$LIBS -lmysql"
