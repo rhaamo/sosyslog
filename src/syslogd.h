@@ -138,7 +138,7 @@ struct	Modules {
 } Modules[MAX_N_MODULES];
 
 int modules_init();
-int modules_create(int, char **, struct filed *, char *);
+int modules_create(char *, struct filed *, char *);
 
 #define	MAXREPEAT ((sizeof(repeatinterval) / sizeof(repeatinterval[0])) - 1)
 #define	REPEATTIME(f)	((f)->f_time + repeatinterval[(f)->f_repeatcount])

@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.8 2000/03/29 20:09:50 gera Exp $
+/*	$Id: modules.c,v 1.9 2000/03/29 20:41:04 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -87,9 +87,8 @@ int modules_close(f)
 }
 
 /* create all necesary modules for a specific filed */
-int modules_create(argc, argv, f, prog)
-	int argc;
-	char **argv;
+int modules_create(line, f, prog)
+	char *line;
 	struct filed *f;
 	char *prog;
 {
@@ -121,7 +120,7 @@ int modules_create(argc, argv, f, prog)
 	case '%':
 		/* get this module name */
 		for (i = 0; p && i < MAX_MODULE_NAME_LEN &&
-				(isalpha(*p) || *p == '_'); p++, i++)
+				(isalnum(*p) || *p == '_'); p++, i++)
 			name[i] = *p;
 		if (!i)
 			return(-1);
