@@ -7,6 +7,8 @@ test -z "$LDFLAGS" && LDFLAGS=-s AC_SUBST(LDFLAGS)
 AC_PROG_CC
 AC_PROG_INSTALL
 
+AC_SUBST(CEFLAGS)
+
 AC_CHECK_HEADERS(paths.h)
 
 AC_CHECK_FUNC(MD5Init, AC_DEFINE(HAVE_MD5),
@@ -58,6 +60,7 @@ then
 	echo "Enabling mysql support in $with_mysql"
 	EXTRAOBJ="$EXTRAOBJ om_mysql.o"
 	LIBS="$LIBS -lmysql"
+	CEFLAGS="$CEFLAGS -I"
 	AC_DEFINE(MYSQL_ENABLE)
 else
 	echo 'Disabling mysql support...'

@@ -5,6 +5,8 @@ CFLAGS = @CFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 
+CEFLAGS = @CEFLAGS@
+
 EXTRAOBJ = @EXTRAOBJ@
 
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -17,6 +19,9 @@ protobjs = iolib.o modules.o ttymsg.o syslogd.o im_bsd.o im_udp.o \
 objs = $(protobjs) $(EXTRAOBJS)
 
 all: syslogd
+
+.c.o:
+	$(CC) $(CFLAGS) $(CEFLAGS) -c $< 
 
 syslogd: $(objs)
 	$(CC) $(objs) -o syslogd $(LIBS) $(LDFLAGS)
