@@ -1,6 +1,6 @@
-# $CoreSDI: BSDmakefile.in,v 1.8 2000/10/31 19:42:13 alejo Exp $
+# $CoreSDI: BSDmakefile.in,v 1.9 2000/11/15 18:44:27 alejo Exp $
 #
-# Copyright (c) 2000, Core SDI S.A., Argentina
+# Copyright (c) 2001, Core SDI S.A., Argentina
 # All rights reserved
 # 
 # Redistribution and use in source and binary forms, with or without

@@ -1,7 +1,7 @@
-/*	$CoreSDI: hash.h,v 1.15 2000/10/31 19:42:15 alejo Exp $
+/*	$CoreSDI: hash.h,v 1.16 2001/02/12 17:19:38 claudio Exp $
  */
 /*
- * Copyright (c) 2000, Core SDI S.A., Argentina
+ * Copyright (c) 2001, Core SDI S.A., Argentina
  * All rights reserved
  * 
  * Redistribution and use in source and binary forms, with or without

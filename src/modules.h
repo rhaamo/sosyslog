@@ -1,7 +1,7 @@
-/*	$CoreSDI: modules.h,v 1.43 2001/02/26 22:43:35 alejo Exp $	*/
+/*	$CoreSDI: modules.h,v 1.44 2001/02/28 23:47:41 alejo Exp $	*/
 
 /*
- * Copyright (c) 2000, Core SDI S.A., Argentina
+ * Copyright (c) 2001, Core SDI S.A., Argentina
  * All rights reserved
  * 
  * Redistribution and use in source and binary forms, with or without

@@ -1,7 +1,7 @@
-/*	$CoreSDI: sql_misc.h,v 1.1.2.1.4.3 2000/10/20 22:46:36 alejo Exp $	*/
+/*	$CoreSDI: sql_misc.h,v 1.2 2000/10/31 19:42:15 alejo Exp $	*/
 
 /*
- * Copyright (c) 2000, Core SDI S.A., Argentina
+ * Copyright (c) 2001, Core SDI S.A., Argentina
  * All rights reserved
  * 
  * Redistribution and use in source and binary forms, with or without

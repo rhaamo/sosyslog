@@ -1,6 +1,6 @@
-/*	$CoreSDI: om_tcp.c,v 1.9 2001/03/06 01:18:29 alejo Exp $	*/
+/*	$CoreSDI: om_tcp.c,v 1.10 2001/03/06 21:49:44 alejo Exp $	*/
 /*
-     Copyright (c) 2000, Core SDI S.A., Argentina
+     Copyright (c) 2001, Core SDI S.A., Argentina
      All rights reserved
    
      Redistribution and use in source and binary forms, with or without

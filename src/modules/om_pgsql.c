@@ -1,7 +1,7 @@
-/*	$CoreSDI: om_pgsql.c,v 1.37 2001/03/06 21:49:44 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.38 2001/03/06 21:56:02 alejo Exp $	*/
 
 /*
- * Copyright (c) 2000, Core SDI S.A., Argentina
+ * Copyright (c) 2001, Core SDI S.A., Argentina
  * All rights reserved
  * 
  * Redistribution and use in source and binary forms, with or without

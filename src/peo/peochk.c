@@ -1,7 +1,7 @@
-/*	$CoreSDI: peochk.c,v 1.43 2000/12/04 23:25:30 alejo Exp $	*/
+/*	$CoreSDI: peochk.c,v 1.44 2001/03/06 21:49:44 alejo Exp $	*/
 
 /*
- * Copyright (c) 2000, Core SDI S.A., Argentina
+ * Copyright (c) 2001, Core SDI S.A., Argentina
  * All rights reserved
  * 
  * Redistribution and use in source and binary forms, with or without

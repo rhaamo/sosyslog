@@ -1,7 +1,7 @@
-/*	$CoreSDI: im_unix.c,v 1.47 2001/02/22 20:10:28 alejo Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.48 2001/03/06 21:49:43 alejo Exp $	*/
 
 /*
- * Copyright (c) 2000, Core SDI S.A., Argentina
+ * Copyright (c) 2001, Core SDI S.A., Argentina
  * All rights reserved
  * 
  * Redistribution and use in source and binary forms, with or without
