@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.107 2000/07/03 17:18:42 claudio Exp $	*/
+/*	$CoreSDI: modules.c,v 1.108 2000/07/04 16:44:02 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -285,7 +285,7 @@ addImodule(name)
 		im = im->im_next;
 	}
 
-	snprintf(buf, 127, "libmsyslog%s.so.%1.1f", name, VERSION);
+	snprintf(buf, 127, "libmsyslog_%s.so.%1.1f", name, VERSION);
 
 	if ((im->h = dlopen(buf, RTLD_LAZY)) == NULL) {
 	   	dprintf("Error [%s] on file [%s]\n", dlerror(), buf);
@@ -347,7 +347,7 @@ addOmodule(char *name) {
 		om = om->om_next;
 	}
 
-	snprintf(buf, 127, "libmsyslog%s.so.%1.1f", name, VERSION);
+	snprintf(buf, 127, "libmsyslog_%s.so.%1.1f", name, VERSION);
 
 	if ((om->h = dlopen(buf, RTLD_LAZY)) == NULL) {
 	   	dprintf("Error [%s]\n", dlerror());
