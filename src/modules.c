@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.122 2000/08/29 23:59:26 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.123 2000/08/30 00:57:05 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -312,7 +312,7 @@ addImodule(char *name) {
 	}
 
 	snprintf(buf, LIB_PATH_MAX, "%slibmsyslog_im_%s.so",
-			libdir ? libdir: "/var/ssyslog/lib", name);
+			libdir ? libdir: INSTALL_LIBDIR, name);
 
 	if ((im->h = dlopen(buf, RTLD_LAZY)) == NULL) {
 	   	dprintf("Error [%s] on file [%s]\n", dlerror(), buf);

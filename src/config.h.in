@@ -1,4 +1,4 @@
-/*	$CoreSDI: config.h.in,v 1.13 2000/08/22 19:43:38 alejo Exp $	*/
+/*	$CoreSDI: config.h.in,v 1.14 2000/08/30 00:57:05 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -41,4 +41,6 @@
 
 #undef HAVE_CODE_TYPEDEF
 
-#undef MSYSLOG_LIBDIR
+#undef MSYSLOG_BASEDIR
+
+#undef INSTALL_LIBDIR
