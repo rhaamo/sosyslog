@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.120 2001/04/09 18:01:14 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.121 2001/04/09 18:32:15 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -292,16 +292,16 @@ fi
 AC_MSG_CHECKING(for streams module)
 AC_MSG_RESULT($temp_res)
 
+temp_res=no
 AC_ARG_WITH(classic,
 [  --without-classic
 	Use classic output module. Activated by default.
-],[
-	if test $with_classic = "yes" ; then
-		MSRCS="$MSRCS om_classic.c ttymsg.c"
-	fi
-],[
-	MSRCS="$MSRCS om_classic.c ttymsg.c"
+],[ temp_res="$with_unix"; ],[ temp_res="yes"; ],[
 ])
+if test "X$temp_res" = "Xyes" ; then
+	MSRCS="$MSRCS om_classic.c ttymsg.c"
+	MANPAGES="$MANPAGES om_classic.8"
+fi
 
 AC_ARG_WITH(tcp,
 [  --without-tcp
