@@ -43,26 +43,51 @@ static char copyright[] =
  * Author: Alejo Sanchez for Core-SDI S.A.
  */
 
+#include <unistd.h>
+#include <sys/syslog.h>
+#include "syslogd.h"
+#include "modules.h"
+
 /* assign module functions to generic pointer */
 int modules_init ()
 {
 	/* initialize module function assignations */
 	memset(m_functions, 0, sizeof(m_functions));
 
-	m_functions = {
-			{ "classic", m_classic_printlog, m_classic_init,
-				m_classic_close, m_classic_flush},
-			{ "mysql", m_mysql_printlog, m_mysql_init,
-				m_mysql_close, m_mysql_flush},
-			NULL
-			};
+	/* classic module */
+	m_functions[M_CLASSIC].m_name 		= "classic";
+	m_functions[M_CLASSIC].m_printlog 	= m_classic_printlog;
+	m_functions[M_CLASSIC].m_init 		= m_classic_init;
+	m_functions[M_CLASSIC].m_close 		= m_classic_close;
+	m_functions[M_CLASSIC].m_flush 		= m_classic_flush;
+
+#if 0
+	/* mysql module */
+	m_functions[M_MYSQL].m_name 		= "mysql";
+	m_functions[M_MYSQL].m_printlog 	= m_mysql_printlog;
+	m_functions[M_MYSQL].m_init 		= m_mysql_init;
+	m_functions[M_MYSQL].m_close 		= m_mysql_close;
+	m_functions[M_MYSQL].m_flush 		= m_mysql_flush;
+#endif
+
 }
 
-/* assign module functions to generic pointer */
-int module_create(line, f, prog)
+
+/* close all modules of a specific filed */
+int modules_close(f)
+	struct filed *f;
+{
+	/* close all modules */
+}
+
+/* create all necesary modules for a specific filed */
+int modules_create(line, f, prog)
 	char *line;
 	struct filed *f;
 	char *prog;
 {
 	/* create context and initialize module for logging */
 }
+
+
+

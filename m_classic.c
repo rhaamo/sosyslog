@@ -59,11 +59,13 @@ static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $"
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/syslog.h>
 
 #include "syslogd.h"
+#include "modules.h"
 
-void
-m_classic_fprintlog(f, flags, msg, context)
+int
+m_classic_printlog(f, flags, msg, context)
 	struct filed *f;
 	int flags;
 	char *msg;
@@ -193,7 +195,7 @@ m_classic_fprintlog(f, flags, msg, context)
 /*
  *  INIT -- Initialize m_classic
  *
- *  taken mostly from cfline
+ *  taken mostly from syslogd's cfline
  */
 int
 m_classic_init(line, f, prog, context)
@@ -209,84 +211,7 @@ m_classic_init(line, f, prog, context)
 
 	dprintf("m_classic init\n");
 
-	errno = 0;	/* keep strerror() stuff out of logerror messages */
-
-	for (i = 0; i <= LOG_NFACILITIES; i++)
-		f->f_pmask[i] = INTERNAL_NOPRI;
-
-	/* save program name if any */
-	if (!strcmp(prog, "*"))
-		prog = NULL;
-	else {
-		f->f_program = calloc(1, strlen(prog)+1);
-		if (f->f_program)
-			strcpy(f->f_program, prog);
-	}
-
-	/* scan through the list of selectors */
-	for (p = line; *p && *p != '\t';) {
-
-		/* find the end of this facility name list */
-		for (q = p; *q && *q != '\t' && *q++ != '.'; )
-			continue;
-
-		/* collect priority name */
-		for (bp = buf; *q && !strchr("\t,;", *q); )
-			*bp++ = *q++;
-		*bp = '\0';
-
-		/* skip cruft */
-		while (strchr(", ;", *q))
-			q++;
-
-		/* decode priority name */
-		if (*buf == '*')
-			pri = LOG_PRIMASK + 1;
-		else {
-			/* ignore trailing spaces */
-			int i;
-			for (i=strlen(buf)-1; i >= 0 && buf[i] == ' '; i--) {
-				buf[i]='\0';
-			}
-
-			pri = decode(buf, prioritynames);
-			if (pri < 0) {
-				(void)snprintf(ebuf, sizeof ebuf,
-				    "unknown priority name \"%s\"", buf);
-				logerror(ebuf);
-				return;
-			}
-		}
-
-		/* scan facilities */
-		while (*p && !strchr("\t.;", *p)) {
-			for (bp = buf; *p && !strchr("\t,;.", *p); )
-				*bp++ = *p++;
-			*bp = '\0';
-			if (*buf == '*')
-				for (i = 0; i < LOG_NFACILITIES; i++)
-					f->f_pmask[i] = pri;
-			else {
-				i = decode(buf, facilitynames);
-				if (i < 0) {
-					(void)snprintf(ebuf, sizeof(ebuf),
-					    "unknown facility name \"%s\"",
-					    buf);
-					logerror(ebuf);
-					return;
-				}
-				f->f_pmask[i >> 3] = pri;
-			}
-			while (*p == ',' || *p == ' ')
-				p++;
-		}
-
-		p = q;
-	}
-
-	/* skip to action part */
-	while (*p == '\t')
-		p++;
+	p = line;
 
 	switch (*p)
 	{
@@ -379,6 +304,6 @@ m_classic_flush(f, context)
 	struct filed *f;
 	void *context;
 {
-	return (DO FANCY FLUSH OF QUEUE AND FDs);
+	return (-1);
 }
 

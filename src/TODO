@@ -22,6 +22,11 @@
 4- redo parsing of config using isspace
 5- change static linking to some configurable dynamic module handling
 
+21-Mar-2000
+
+1- take out unused includes on syslogd.c
+
+
 FOR FUTURE WORKING
 
 For handling errors logging in a particular module, create a m_onerror

@@ -68,16 +68,9 @@ static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $"
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-#include <sys/socket.h>
 #include <sys/msgbuf.h>
-#include <sys/uio.h>
 #include <sys/un.h>
-#include <sys/time.h>
 #include <sys/resource.h>
-
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
 
 #include <ctype.h>
 #include <errno.h>
@@ -88,9 +81,26 @@ static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $"
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <utmp.h>
 
+#define SYSLOG_NAMES
+#include <sys/syslog.h>
 #include "syslogd.h"
+
+char	*ConfFile = _PATH_LOGCONF;
+char	*PidFile = _PATH_LOGPID;
+char	ctty[] = _PATH_CONSOLE;
+
+/*
+ * Intervals at which we flush out "message repeated" messages,
+ * in seconds after previous message is logged.  After each flush,
+ * we move to the next interval until we reach the largest.
+ */
+int	repeatinterval[] = { 30, 120, 600 };	/* # of secs before flush */
+
+char	*TypeNames[7] = {
+	"UNUSED",	"FILE",		"TTY",		"CONSOLE",
+	"FORW",		"USERS",	"WALL"
+};
 
 struct	filed *Files;
 struct	filed consfile;
@@ -106,11 +116,27 @@ int	MarkInterval = 20 * 60;	/* interval between marks in seconds */
 int	MarkSeq = 0;		/* mark sequence number */
 int	SecureMode = 1;		/* when true, speak only unix domain socks */
 
+void	cfline __P((char *, struct filed *, char *));
+char   *cvthname __P((struct sockaddr_in *));
+int	decode __P((const char *, CODE *));
+void	die __P((int));
+void	domark __P((int));
+void	fprintlog __P((struct filed *, int, char *));
+void	init __P((int));
+void	logerror __P((char *));
+void	logmsg __P((int, char *, char *, int));
+void	printline __P((char *, char *));
+void	printsys __P((char *));
+void	reapchild __P((int));
+char   *ttymsg __P((struct iovec *, int, char *, int));
+void	usage __P((void));
+void	wallmsg __P((struct filed *, struct iovec *));
+
+#define MAXFUNIX	21
+
 int nfunix = 1;
 char *funixn[MAXFUNIX] = { _PATH_LOG };
 int funix[MAXFUNIX];
-
-int	ClassicMode = 1;
 
 int
 main(argc, argv)
@@ -545,7 +571,7 @@ fprintlog(f, flags, msg)
 {
 	struct	o_module *m;
 
-        for(m = f->mod; m; m = m->m_next) {
+        for(m = f->f_mod; m; m = m->m_next) {
 		if(!m->context) {
 			dprintf("module has no context, skipping. msg: [%s] "
 			        "type [%i]\n", msg, m->m_type);
@@ -558,7 +584,7 @@ fprintlog(f, flags, msg)
 		};
 
 		/* call this module printlog */
-		if((*(m_functions[m->m_type].m_printlog))(f,flags,msg) != 0) {
+		if((*(m_functions[m->m_type].m_printlog))(f,flags,msg,m->context) != 0) {
 			dprintf("printlog error with module type [%i] "
 			        "for message [%s]\n",
 				m->m_type, msg);
@@ -749,37 +775,39 @@ init(signo)
 {
 	int i;
 	FILE *cf;
-	struct filed *f, **nextp;
+	struct filed *f, *next, **nextp;
 	char *p;
 	char cline[LINE_MAX];
  	char prog[NAME_MAX+1];
+	struct o_module *m;
 
 	dprintf("init\n");
 
 	/*
-	 *  Close all open log modules.
+	 *  Close all open log files.
 	 */
 	Initialized = 0;
-	for (f = Files; f != NULL; f = f->f_next) {
-		struct o_module *m;
+	for (f = Files; f != NULL; f = next) {
+		/* flush any pending output */
+		if (f->f_prevcount)
+			fprintlog(f, 0, (char *)NULL);
 
-		for (m = f->mod; m; m = m->m_next) {
+		for (m = f->f_mod; m; m = m->m_next) {
 			/* flush any pending output */
 			if (f->f_prevcount &&
 			    m_functions[m->m_type].m_flush != NULL) {
-				(*m_functions[m->m_type].m_flush) (f);
+				(*m_functions[m->m_type].m_flush) (f,m->context);
 			}
 
 			if (m_functions[m->m_type].m_close != NULL) {
-				(*m_functions[m->m_type].m_flush) (f);
+				(*m_functions[m->m_type].m_close) (f,m->context);
 			}
 		}
-		/* this should be obsoleted */
+		next = f->f_next;
 		if (f->f_program)
 			free(f->f_program);
 		free((char *)f);
 	}
-
 	Files = NULL;
 	nextp = &Files;
 
@@ -894,11 +922,106 @@ cfline(line, f, prog)
 	struct filed *f;
 	char *prog;
 {
-	/* check for classic usage  or module-like */
-	if(strstr(line, S_MODULE_KEYWORD) == NULL) {
-		m_classic_init(line, f, prog, NULL);
-	} else {
-		module_create(line, f, prog);
+	int i, pri;
+	char *bp, *p, *q;
+	char buf[MAXLINE], ebuf[100];
+
+	dprintf("cfline(\"%s\", f, \"%s\")\n", line, prog);
+
+	errno = 0;	/* keep strerror() stuff out of logerror messages */
+
+	/* clear out file entry */
+	memset(f, 0, sizeof(*f));
+	for (i = 0; i <= LOG_NFACILITIES; i++)
+		f->f_pmask[i] = INTERNAL_NOPRI;
+
+	/* save program name if any */
+	if (!strcmp(prog, "*"))
+		prog = NULL;
+	else {
+		f->f_program = calloc(1, strlen(prog)+1);
+		if (f->f_program)
+			strcpy(f->f_program, prog);
+	}
+
+	/* scan through the list of selectors */
+	for (p = line; *p && *p != '\t';) {
+
+		/* find the end of this facility name list */
+		for (q = p; *q && *q != '\t' && *q++ != '.'; )
+			continue;
+
+		/* collect priority name */
+		for (bp = buf; *q && !strchr("\t,;", *q); )
+			*bp++ = *q++;
+		*bp = '\0';
+
+		/* skip cruft */
+		while (strchr(", ;", *q))
+			q++;
+
+		/* decode priority name */
+		if (*buf == '*')
+			pri = LOG_PRIMASK + 1;
+		else {
+			/* ignore trailing spaces */
+			int i;
+			for (i=strlen(buf)-1; i >= 0 && buf[i] == ' '; i--) {
+				buf[i]='\0';
+			}
+
+			pri = decode(buf, prioritynames);
+			if (pri < 0) {
+				(void)snprintf(ebuf, sizeof ebuf,
+				    "unknown priority name \"%s\"", buf);
+				logerror(ebuf);
+				return;
+			}
+		}
+
+		/* scan facilities */
+		while (*p && !strchr("\t.;", *p)) {
+			for (bp = buf; *p && !strchr("\t,;.", *p); )
+				*bp++ = *p++;
+			*bp = '\0';
+			if (*buf == '*')
+				for (i = 0; i < LOG_NFACILITIES; i++)
+					f->f_pmask[i] = pri;
+			else {
+				i = decode(buf, facilitynames);
+				if (i < 0) {
+					(void)snprintf(ebuf, sizeof(ebuf),
+					    "unknown facility name \"%s\"",
+					    buf);
+					logerror(ebuf);
+					return;
+				}
+				f->f_pmask[i >> 3] = pri;
+			}
+			while (*p == ',' || *p == ' ')
+				p++;
+		}
+
+		p = q;
+	}
+
+	/* skip to action part */
+	while (*p == '\t')
+		p++;
+
+	switch (*p)
+	{
+	case '%':
+		/* initialize this module */
+		modules_create(p, f, NULL, NULL);
+		break;
+	case '@':
+	case '/':
+	case '*':
+	default:
+		/* prog is already on this filed */
+		m_classic_init(p, f, NULL, NULL);
+		break;
 	}
 }
 

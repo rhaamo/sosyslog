@@ -1,4 +1,36 @@
-/* agregar licencia y acknowledge */ 
+
+/*
+ * Copyright (c) 1983, 1988, 1993, 1994
+ *	The Regents of the University of California.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
 
 #define	MAXLINE		1024		/* maximum line length */
 #define	MAXSVLINE	120		/* maximum saved line length */
@@ -9,17 +41,18 @@
 #define MAX_N_MODULES	64		/* maximum types of modules */
 
 #include <paths.h>
+#include <utmp.h>
+#include <sys/uio.h>
+#include <sys/time.h>
+#include <sys/socket.h>
+
+#include <netinet/in.h>
+#include <netdb.h>
+#include <arpa/inet.h>
 
 #define	_PATH_KLOG	"/dev/klog"
 #define	_PATH_LOGCONF	"/etc/syslog.conf"
 #define	_PATH_LOGPID	"/var/run/syslog.pid"
-
-#define SYSLOG_NAMES
-#include <sys/syslog.h>
-
-char	*ConfFile = _PATH_LOGCONF;
-char	*PidFile = _PATH_LOGPID;
-char	ctty[] = _PATH_CONSOLE;
 
 #define	dprintf		if (Debug) printf
 
@@ -87,23 +120,17 @@ struct filed {
         int     f_prevlen;                      /* length of f_prevline */
         int     f_prevcount;                    /* repetition cnt of prevline */
         int     f_repeatcount;                  /* number of "repeated" msgs */
-        struct	o_module *mod;			/* module details */
+        struct	o_module *f_mod;			/* module details */
 };
 
 struct	m_functions {
 	char	*m_name;
-	int	(*m_printlog) (struct filed *, int, char *, void*);
-	int	(*m_init) (struct filed *, int, char *, void*);
-	int	(*m_close) (struct filed *, void*);
-	int	(*m_flush) (struct filed *, void*);
-} *m_functions[];
+	int	(*m_printlog) (struct filed *, int, char *, void *);
+	int	(*m_init) (char *, struct filed *, char *, void *);
+	int	(*m_close) (struct filed *, void *);
+	int	(*m_flush) (struct filed *, void *);
+} m_functions[MAX_N_MODULES];
 
-/*
- * Intervals at which we flush out "message repeated" messages,
- * in seconds after previous message is logged.  After each flush,
- * we move to the next interval until we reach the largest.
- */
-int	repeatinterval[] = { 30, 120, 600 };	/* # of secs before flush */
 #define	MAXREPEAT ((sizeof(repeatinterval) / sizeof(repeatinterval[0])) - 1)
 #define	REPEATTIME(f)	((f)->f_time + repeatinterval[(f)->f_repeatcount])
 #define	BACKOFF(f)	{ if (++(f)->f_repeatcount > MAXREPEAT) \
@@ -119,15 +146,9 @@ int	repeatinterval[] = { 30, 120, 600 };	/* # of secs before flush */
 #define F_USERS		5		/* list of users */
 #define F_WALL		6		/* everyone logged on */
 
-char	*TypeNames[7] = {
-	"UNUSED",	"FILE",		"TTY",		"CONSOLE",
-	"FORW",		"USERS",	"WALL"
-};
-
 /* values for m_type */
 #define	M_CLASSIC	1
 #define	M_SQL		2
-#define	M_PROGRAM	3
 
 /* values for integrity facilities */
 #define I_NONE		0
@@ -138,22 +159,5 @@ char	*TypeNames[7] = {
 #define DEFAULT_INTEG_FACILITY	I_NONE
 
 
-void	cfline __P((char *, struct filed *, char *));
-char   *cvthname __P((struct sockaddr_in *));
-int	decode __P((const char *, CODE *));
-void	die __P((int));
-void	domark __P((int));
-void	fprintlog __P((struct filed *, int, char *));
-void	init __P((int));
-void	logerror __P((char *));
-void	logmsg __P((int, char *, char *, int));
-void	readline __P((char *, char *));
-void	printline __P((char *, char *));
-void	printsys __P((char *));
-void	reapchild __P((int));
-char   *ttymsg __P((struct iovec *, int, char *, int));
-void	usage __P((void));
-void	wallmsg __P((struct filed *, struct iovec *));
-
-#define MAXFUNIX	21
+time_t now;
 
