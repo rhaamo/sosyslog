@@ -1,0 +1,138 @@
+$Id: INSTALL,v 1.1 2000/07/11 00:08:43 alejo Exp $
+==============================================================================
+                         Modular Syslog package
+                             INSTALL file
+								
+                 (C)2000 Core-SDI. Buenos Aires, Argentina.
+==============================================================================
+
+  This file describes how to compile and install modular syslog both auditor
+and server.	
+
+
+         ------- WARNING: THIS IS A PRE-RELEASE VERSION ---------
+
+  Altought this system has been tested for a while on several platforms,
+it still considered to be on a beta stage. If you are seriously considering
+using it on a exposed enviroment, wait for a release version.
+
+		
+  Msyslog has been tested on the following platforms:
+
+	- OpenBSD 2.6, 2.7
+	- Linux RedHat 6.2
+	- Caldera OpenLinux 2.2
+
+
+1. Compiling
+============
+ 
+1.a. Getting the last version
+
+  The last version of the secure syslog package will always be available
+at http://www.core-sdi.com/english/freesoft.html. You may want to check
+out for a new release before installing.
+  The distribution file should look like 'msyslog-X.XX.tar.gz'. Where
+X.XX stands for version number (i.e. 'msyslog-0.99.tar.gz'). You will
+need also the GNU gunzip command in order to decompress it.
+
+
+1.b. Extracting the sources 
+  
+  Change directory to a directory you have write permissions on and type:
+		
+		gunzip msyslog-X.XX.tar.gz
+		tar xvf msyslog-X.XX.tar
+
+  The words msyslog-X.XX.tar.gz and msyslog-X.XX.tar should be replaced
+with full pathnames, if necesary.
+
+
+1.c. Configuring 
+
+  Edit the file named modules.conf to match your criteria. Look at the
+following example:
+
+	UNIX=static
+	BSD=static
+	LINUX=
+	UDP=static
+	CLASSIC=static
+	PEO=static
+	REGEX=static
+	MYSQL=
+	PGSQL=
+
+  When you want a specific module, you have to put the word 'static'
+or 'dynamic' on it's value. Dynamic modules are useful for vendor
+specific modules, or to save memory on systems with more than one
+msyslog daemon running.
+
+  Then, you must run the script "configure" to prepare the compilation heders
+and Makefiles for your system.
+
+  NOTE: If you are compiling on a new OS you may want to start a new
+configuration file, using the autoconf package available at
+http://www.gnu.org/. We would like to help new plataform ports, please
+contact the developer's mailing list (see note on mailing-lists).
+
+
+1.d. Compiling
+
+  If you are compiling both client auditor and server.
+  Execute:
+		make clean
+		make
+
+  Login as root and execute:
+		make install
+
+  If you successfully compile on a new platform not listed above,
+please contact the developers in order to include the changes in the 
+official distribution (see note on contacting us below).
+
+	
+2. PLATAFORM SPECIFIC NOTES
+===========================
+
+2.a Linux
+
+  Under Linux you need to have 'linux' module activated (either static or dynamic,
+to log kernel messages.
+
+
+3. MODULE SPECIFIC NOTES
+===========================
+
+3.a PEO
+
+3.b MySQL
+
+3.c PostgreSQL
+
+
+4. HOW TO CONTACT US AND RELATED MAILING LISTS
+==============================================
+
+  There are two mailing lists for msyslog:
+
+    msyslog-usr 
+        This mailing list is for general discussions about the
+        modular syslog system.
+
+    msyslog-dev 
+        This mailing list is for technical discussions about
+        the modular syslog system.  It's intended for
+        developers or any other person interested in the inner
+        working parts of msyslog.
+
+To subscribe to any of this lists click on the choosen list above
+or send a message to majordomo@core-sdi.com with the text:
+
+subscribe list-name
+
+in the message body, replacing list-name by the name of the
+choosen list. You can alsosend an email to  the developers only
+at core.devel.alat@core-sdi.com.
+
+
