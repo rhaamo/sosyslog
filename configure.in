@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.39 2000/07/04 19:37:36 alejo Exp $
+dnl	$CoreSDI: configure.in,v 1.40 2000/07/04 19:58:16 alejo Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -273,10 +273,10 @@ CHECK_MODULE(classic, $classic, om_classic.c, om)
 CHECK_MODULE(peo, $peo, om_peo.c, om)
 if test "x$peo" = "xstatic"
 then
-	SHASH_SRCS=$HASH_SRCS
+	SHASH_SRCS="$HASH_SRCS"
 elif test "x$peo" = "xdynamic"
 then
-	DHASH_SRCS=$DHASH_SRCS
+	DHASH_SRCS="$HASH_SRCS"
 fi
 CHECK_MODULE(mysql, $mysql, om_mysql.c sql_misc.c, om)
 if test "x$mysql" = "xstatic" -o "x$mysql" = "xdynamic"
