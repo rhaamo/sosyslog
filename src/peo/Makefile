@@ -2,7 +2,7 @@
 
 CC	=	gcc
 CFLAGS	=	-Wall -ggdb
-LDADD=	-lc
+LDADD	=	-lc
 COMPILE	=	$(CC) $(CFLAGS) -c $(.ALLSRC)
 LINK	=	$(CC) $(CFLAGS) $(LDADD) -o $(.TARGET) $(.ALLSRC)
 
