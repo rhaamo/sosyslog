@@ -76,7 +76,7 @@ else
 	echo "Disabling MySQL support..."
 fi
 
-if test `/usr/bin/uname` = "Linux"
+if test `uname` = "Linux"
 then
 	echo "Enabling Linux input module..."
 	EXTRAOBJ="$EXTRAOBJ im_linux.o"
