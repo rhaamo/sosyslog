@@ -78,7 +78,7 @@ im_bsd_getLog(im, ret)
 	                }
 	                if (ret->pri &~ (LOG_FACMASK|LOG_PRIMASK))
 	                        ret->pri = DEFSPRI;
-	                ret->msg = strdup(line);
+	                ret->msg = strdup(p);
 	        }
 
 	} else if (i < 0 && errno != EINTR) {
@@ -90,11 +90,32 @@ im_bsd_getLog(im, ret)
 }
 
 
+/*
+ * send messge
+ *
+ */
 
+int
+im_bsd_sendLog(im, msg)
+	struct i_module im;
+        struct im_ret  *msg;
+{
+	char *p, *q, *lp, line[MAXLINE + 1];
 
+	if (im == NULL || msg == NULL || msg->msg)
+	    return(-1);
+	(void)strcpy(line, _PATH_UNIX);
+	(void)strcat(line, ": ");
+	lp = line + strlen(line);
+	p = msg;
 
+	q = lp;
+	while (*p != '\0' && (c = *p++) != '\n' &&
+	    q < &line[MAXLINE])
+	        *q++ = c;
+	*q = '\0';
+	logmsg(pri, line, LocalHostName, flags);
 
-	
+	return(1);
 }
-
 
