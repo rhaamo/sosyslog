@@ -1,4 +1,4 @@
-/*      $Id: hash.c,v 1.15 2000/05/13 01:41:49 claudio Exp $
+/*      $Id: hash.c,v 1.16 2000/05/22 19:24:00 claudio Exp $
  *
  * hash -- few things used by both peo output module and peochk 
  *
@@ -209,7 +209,7 @@ strallocat (s1, s2)
 	int   size;
 
 	if ( (dest = (char*) calloc(1, (size = strlen(s1) + strlen(s2) + 1))) != NULL)
-		snprintf (dest, size, "%s%s", s1, s2);
+		snprintf (dest, size, "%s%s", (s1) ? s1 : "", (s2) ? s2 : "");
 
 	return (dest);
 }
@@ -241,6 +241,9 @@ return strallocat(s, "0");
  *	Buffer lenght = string lenght / 2
  *	(2 byte string "ab" is translated to 1 byte buffer 0xab)
  */
+
+#define ASC2BIN(x)	((x <= '9') ? x-'0' : x-'a'+10)
+
 unsigned char*
 asc2bin (dst, src)
 	unsigned char       *dst;
@@ -250,17 +253,15 @@ asc2bin (dst, src)
 	int   		 j;
 	unsigned char	*tmp;
 
-	if (dst == NULL || (tmp = (dst == src) ? strdup(src) : (char*)src) == NULL)
+	if (src == NULL || dst == NULL || (strlen(src) & 1))
 		return (NULL);
 
-	for (i = 0; tmp[i+i] != '\0'; i++) {
-		dst[i] = 0;
-		for (j = 0; j < 2; j++)
-			if (tmp[i+i+j] <= '9')
-				dst[i] |= (tmp[i+i+j]-'0') << ((j) ? 0: 4);
-			else
-				dst[i] |= (tolower(tmp[i+i+j])-'a'+10) << ((j) ? 0 : 4);
-		}
+	if (dst == src)
+		if ( (tmp = strdup(src)) == NULL)
+			return (NULL);
+
+	for (j = i = 0; tmp[i] != '\0'; i+=2, j++)
+		dst[j] = (ASC2BIN(tmp[i]) << 4) | ASC2BIN(tmp[i+1]);
 
 	if (dst == src)
 		free(tmp);
