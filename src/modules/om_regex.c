@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.33 2001/03/07 21:35:15 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.34 2001/03/23 00:12:30 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -170,7 +170,7 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 			return (-1);
 		}
 
-		if (regcomp(creg, optarg, REG_EXTENDED) != 0) {
+		if (regcomp(creg, optarg, REG_EXTENDED | REG_NOSUB) != 0) {
 			dprintf(MSYSLOG_SERIOUS, "om_regex: error compiling "
 			    "regular expression [%s] for message\n", optarg);
 			free(*ctx);
