@@ -42,3 +42,9 @@
  * better signal handlig with audit[d]
  * poll() instead of select()
 
+1.09
+ * im_file module updated, introduces non-poll file
+ * im_serial module introduced
+ * im_directory module introduced
+ * im_regex handles substitution
+

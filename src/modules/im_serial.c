@@ -1,4 +1,4 @@
-/*	$Netarx: im_pipe.c,v 1.12 2002/03/01 07:31:02 phreed Exp $	*/
+/*	$Netarx: im_serial.c,v 1.12 2002/03/01 07:31:02 phreed Exp $	*/
 
 /*
  * Copyright (c) 2001, Netarx Inc. USA
@@ -30,7 +30,7 @@
  */
 
 /*
- * im_pipe -- read from a log pipe being written by other program
+ * im_serial -- read from a log serial being written by other program
  *
  * Author: Fred Eisele for Netarx Inc.
  *
@@ -56,45 +56,45 @@
 
 void printline(char *, char *, size_t, int);
 
-struct im_pipe_ctx {
+struct im_serial_ctx {
 	int   start;       /* start position of timestamp in the message */
 	char  *timefmt;    /* the format to use in extracting the timestamp */
-	char  *path;       /* the pathname of the pipe to open */
-	char  *name;       /* the alias for the pipe (hostname) */
-	struct stat stat;  /* the pipe statistics (useful in determining if reg pipe, pipe, or whatever */
+	char  *path;       /* the pathname of the serial to open */
+	char  *name;       /* the alias for the serial (hostname) */
+	struct stat stat;  /* the serial statistics (useful in determining if reg serial, serial, or whatever */
 	char  saveline[MAXLINE + 3];   /* if the message is not complete, preserve it */
 };
 
 /*
- * initialize pipe input
+ * initialize serial input
  */
 
 int
-im_pipe_init(struct i_module *im, char **argv, int argc)
+im_serial_init(struct i_module *im, char **argv, int argc)
 {
-	struct im_pipe_ctx	*c;
+	struct im_serial_ctx	*c;
 	int    ch, argcnt;
 
-	m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_init: Entering\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "im_serial_init: Entering\n");
 
 
-	if ((im->im_ctx = malloc(sizeof(struct im_pipe_ctx))) == NULL) {
-		m_dprintf(MSYSLOG_SERIOUS, "im_pipe_init: error allocating context!\n");
+	if ((im->im_ctx = malloc(sizeof(struct im_serial_ctx))) == NULL) {
+		m_dprintf(MSYSLOG_SERIOUS, "im_serial_init: error allocating context!\n");
 return (-1);
 	}
-	c = (struct im_pipe_ctx *) im->im_ctx;
+	c = (struct im_serial_ctx *) im->im_ctx;
 	c->start = 0;
 	c->saveline[0] = '\0';
 
 	/* parse command line */
 	for ( argcnt = 1;	/* skip module name */
         (ch = getxopt(argc, argv,
-          "f!pipe: n!program: t!timeformat: s!startpos:", &argcnt)) != -1;
+          "f!serial: n!program: t!timeformat: s!startpos:", &argcnt)) != -1;
         argcnt++ )
   {
 		switch (ch) {
 		case 'f':
-			/* pipe to read */
+			/* serial to read */
 			c->path = argv[argcnt];
 			break;
 		case 'n':
@@ -110,33 +110,33 @@ return (-1);
 			break;
 		default:
 			m_dprintf(MSYSLOG_SERIOUS,
-          "im_pipe_init: command line error, at arg %c [%s]\n", ch,
+          "im_serial_init: command line error, at arg %c [%s]\n", ch,
 			    argv[argcnt]? argv[argcnt]: "");
 return (-1);
 		}
 	}
 
 	if (c->start && c->timefmt == NULL) {
-		m_dprintf(MSYSLOG_SERIOUS, "im_pipe_init: start specified for time string but no format!\n");
+		m_dprintf(MSYSLOG_SERIOUS, "im_serial_init: start specified for time string but no format!\n");
 return (-1);
 	}
 
 	if (c->path == NULL) {
-		m_dprintf(MSYSLOG_SERIOUS, "im_pipe_init: no pipe to read\n");
+		m_dprintf(MSYSLOG_SERIOUS, "im_serial_init: no serial to read\n");
 return (-1);
 	}
 
 	if (stat( c->path, &c->stat )) {
   	m_dprintf(MSYSLOG_SERIOUS,
-        "im_pipe_init: could not stat pipe [%s] due to [%s]\n", 
+        "im_serial_init: could not stat serial [%s] due to [%s]\n", 
         strerror( errno ), c->path);
 return (-1);
  	}
 
 	if (S_ISREG(c->stat.st_rdev)) {
-    /* regular pipe cannot be successfully polled */
+    /* regular serial cannot be successfully polled */
     /* a separate mechanism will need to be used */
-		m_dprintf(MSYSLOG_SERIOUS, "im_pipe_init: regular pipes not supported: [%s]\n", c->path);
+		m_dprintf(MSYSLOG_SERIOUS, "im_serial_init: regular serials not supported: [%s]\n", c->path);
 return (-1);
 	}
 
@@ -144,16 +144,16 @@ return (-1);
 
 	watch_fd_input('p', im->im_fd , im);
 
- 	m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_init: completed\n");
+ 	m_dprintf(MSYSLOG_INFORMATIVE, "im_serial_init: completed\n");
 return (1);
 }
 
 /*
- * poll pipe descriptor
- *  the im_pipe_poll subroutine knows how to poll its own pipe descriptor.
+ * poll serial descriptor
+ *  the im_serial_poll subroutine knows how to poll its own serial descriptor.
  */
 int
-im_pipe_read(struct i_module *im)
+im_serial_read(struct i_module *im)
 {
 return( 0 );
 }
@@ -163,7 +163,7 @@ return( 0 );
  */
 
 int
-im_pipe_read(struct i_module *im, int infd, struct im_msg  *ret)
+im_serial_read(struct i_module *im, int infd, struct im_msg  *ret)
 {
 	char *thisline = NULL;
 	char *nextline = NULL;
@@ -172,12 +172,12 @@ im_pipe_read(struct i_module *im, int infd, struct im_msg  *ret)
 	char *qtr = NULL;
   int wchr;
 	int nx;
-	struct im_pipe_ctx	*c = (struct im_pipe_ctx *) (im->im_ctx);
+	struct im_serial_ctx	*c = (struct im_serial_ctx *) (im->im_ctx);
 	RETSIGTYPE (*sigsave)(int);
 
- 	m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: entering...\n");
+ 	m_dprintf(MSYSLOG_INFORMATIVE, "im_serial_read: entering...\n");
 
-  /* ignore sigpipes */
+  /* ignore sigserials */
   /*
   sigsave = place_signal(SIGPIPE, SIG_IGN);
   */
@@ -186,15 +186,15 @@ im_pipe_read(struct i_module *im, int infd, struct im_msg  *ret)
 	nx = read(im->im_fd, im->im_buf, sizeof(im->im_buf) - 1);
 
   if (nx < 0 && errno != EINTR) {
- 	  m_dprintf(MSYSLOG_SERIOUS, "im_pipe_read: error: [%d]\n", errno);
-		logerror("im_pipe_read");
+ 	  m_dprintf(MSYSLOG_SERIOUS, "im_serial_read: error: [%d]\n", errno);
+		logerror("im_serial_read");
 	  place_signal(SIGPIPE, sigsave);
 return -1;
 	}
 
 	endmark = im->im_buf + nx;
 	*endmark = '\0';
-  m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: bytes: [%d] [%s]\n", nx, im->im_buf);
+  m_dprintf(MSYSLOG_INFORMATIVE, "im_serial_read: bytes: [%d] [%s]\n", nx, im->im_buf);
 
   /* step through the lines read */
   for( thisline = im->im_buf; nextline < endmark; thisline = nextline ) {
@@ -220,34 +220,34 @@ return -1;
     continue;
        }
     }
-	 	m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: bytes remaining B: [%d]\n", (endmark - nextline));
+	 	m_dprintf(MSYSLOG_INFORMATIVE, "im_serial_read: bytes remaining B: [%d]\n", (endmark - nextline));
 
     if ( nextline < endmark ) {
-      m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: current line: [%s]\n", thisline);
+      m_dprintf(MSYSLOG_INFORMATIVE, "im_serial_read: current line: [%s]\n", thisline);
       nextline++;
     }
     else {
       /* then end of the read buffer was reached */
       if ( strlen(thisline) == 0 ) {
-        m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: end of transmission\n");
+        m_dprintf(MSYSLOG_INFORMATIVE, "im_serial_read: end of transmission\n");
       }
       else {
         /* Preseve any partial message */
         int position;
         int save_end = strlen(c->saveline);
 
-        m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: partial message: [%s] [%s]\n",
+        m_dprintf(MSYSLOG_INFORMATIVE, "im_serial_read: partial message: [%s] [%s]\n",
                         thisline, c->saveline );
         for( position = 0; (thisline + position) < endmark; position++ )
         {
            c->saveline[save_end + position] = thisline[position];
            if (save_end + position >= sizeof(c->saveline)) {
-             m_dprintf(MSYSLOG_SERIOUS, "im_pipe_read: partial message too long: [%d] [%s]\n",
+             m_dprintf(MSYSLOG_SERIOUS, "im_serial_read: partial message too long: [%d] [%s]\n",
                              sizeof(c->saveline), thisline);
            }
         }
         c->saveline[save_end + position] = '\0';
-        m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: partial message: [%s]\n", c->saveline);
+        m_dprintf(MSYSLOG_INFORMATIVE, "im_serial_read: partial message: [%s]\n", c->saveline);
       }
 return (0);
     }
@@ -255,7 +255,7 @@ return (0);
     /* append the current line with any prior partial line */
     if (c->saveline != NULL && c->saveline[0] != '\0') {
       m_dprintf(MSYSLOG_INFORMATIVE,
-          "im_pipe_read: append current line with prior partial message: [%s] [%s]\n",
+          "im_serial_read: append current line with prior partial message: [%s] [%s]\n",
           c->saveline, thisline);
       strncat(c->saveline, thisline, sizeof(c->saveline) - 1);
       c->saveline[sizeof(c->saveline) - 1] = '\0';
@@ -264,7 +264,7 @@ return (0);
 
     /* skip empty lines */
     if (*thisline == '\0') {
-      m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: empty line\n");
+      m_dprintf(MSYSLOG_INFORMATIVE, "im_serial_read: empty line\n");
   continue;
     }
 
@@ -272,19 +272,19 @@ return (0);
 			struct tm tm;
 			char   *start, *end;
 
-      m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: current message: [%s]\n", thisline);
+      m_dprintf(MSYSLOG_INFORMATIVE, "im_serial_read: current message: [%s]\n", thisline);
 
       /* presume it does not contain a timestamp nor a host */
 	  	ret->im_flags = ADDDATE | ADDHOST;
   		ret->im_pri = DEFSPRI;
 
-			c = (struct im_pipe_ctx *) im->im_ctx;
+			c = (struct im_serial_ctx *) im->im_ctx;
 
       if (c->timefmt) {  /* reform/insert the timestamp */
         if ((end = strptime((thisline + c->start), c->timefmt, &tm)) == NULL)
         {
 			  	m_dprintf(MSYSLOG_WARNING,
-              "im_pipe_read: error locating timestamp from [%s] using format [%s]!\n",
+              "im_serial_read: error locating timestamp from [%s] using format [%s]!\n",
               thisline, c->timefmt);
 		  	}
         else {
@@ -294,7 +294,7 @@ return (0);
 
 				  if (strftime(ret->im_msg, sizeof(ret->im_msg) - 1, "%b %e %H:%M:%S ", &tm) == 0)
           {
-				   	m_dprintf(MSYSLOG_WARNING, "im_pipe_read: error rewriting timestamp!\n");
+				   	m_dprintf(MSYSLOG_WARNING, "im_serial_read: error rewriting timestamp!\n");
 		 		  }
           else {
 				  	ret->im_flags &= !ADDDATE;
@@ -313,7 +313,7 @@ return (0);
       /* put the hostname into the message */
 		  strncat(ret->im_msg, c->name, sizeof(ret->im_msg) - 1);
 	  	strncat(ret->im_msg, ":", sizeof(ret->im_msg) - 1);
-	  	m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: reformed header: [%s]\n", ret->im_msg);
+	  	m_dprintf(MSYSLOG_INFORMATIVE, "im_serial_read: reformed header: [%s]\n", ret->im_msg);
 
 	  	if (ret->im_pri &~ (LOG_FACMASK|LOG_PRIMASK)) ret->im_pri = DEFSPRI;
 	  	qtr = ret->im_msg + strlen(ret->im_msg);
@@ -326,7 +326,7 @@ return (0);
 		  ret->im_len = strlen(ret->im_msg);
 
       printline( ret->im_host, thisline, strlen(thisline), im->im_flags );
-	  	m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: bytes remaining: [%d]\n", (endmark - nextline));
+	  	m_dprintf(MSYSLOG_INFORMATIVE, "im_serial_read: bytes remaining: [%d]\n", (endmark - nextline));
 		}
 	}
 	/* restore previous SIGPIPE handler */
@@ -337,13 +337,13 @@ return (0);
 }
 
 /*
- * close the pipe descriptor and release all resources
+ * close the serial descriptor and release all resources
  */
 
 int
-im_pipe_close( struct i_module *im)
+im_serial_close( struct i_module *im)
 {
-	struct im_pipe_ctx	*c = (struct im_pipe_ctx *) (im->im_ctx);
+	struct im_serial_ctx	*c = (struct im_serial_ctx *) (im->im_ctx);
 
 	if (c->timefmt != NULL) free(c->timefmt);
 	if (c->name != NULL) free(c->name);

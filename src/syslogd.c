@@ -283,11 +283,11 @@ main(int argc, char **argv)
 	 * -p -path -a 		[additional unix input module in /dev/log]
 	 */
 
-
 	for ( argcnt = 1;	/* skip argv[0] getxopt() */
         ((ch = getxopt(argc, argv, "d!debug: i!input: f!conf:"
 	       " m!markinterval: P!pidfile: c!console A!localdomain"
-	       " n!nodefault h!help", &argcnt)) != -1);
+	       " n!nodefault h!help"
+	       " u!udp p!path a!add", &argcnt)) != -1);
         argcnt++ )
   {
 		char buf[512];

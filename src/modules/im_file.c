@@ -90,7 +90,7 @@ return (-1);
 	/* parse command line */
 	for ( argcnt = 1;	/* skip module name */
         (ch = getxopt(argc, argv,
-          "f!file: p!pipe: n!program: t!timeformat: s!startpos:", &argcnt)) != -1;
+          "f!file: n!program: t!timeformat: s!startpos:", &argcnt)) != -1;
         argcnt++ )
   {
 		switch (ch) {
@@ -136,7 +136,7 @@ return (-1);
   c->stat.st_size = 0;
 
 	if (! S_ISREG(c->stat.st_mode)) {
-		m_dprintf(MSYSLOG_SERIOUS, "im_file_init: random access files only, try im_pipe: [%s]\n", c->path);
+		m_dprintf(MSYSLOG_SERIOUS, "im_file_init: random access files only, try im_serial: [%s]\n", c->path);
 return (-1);
 	}
 
@@ -357,9 +357,11 @@ return (0);
 		  }
 
       /* put the hostname into the message */
+      /*
 		  strncat(ret->im_msg, c->name, sizeof(ret->im_msg) - 1);
 	  	strncat(ret->im_msg, ":", sizeof(ret->im_msg) - 1);
 	  	m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: reformed header: [%s]\n", ret->im_msg);
+      */
 
 	  	if (ret->im_pri &~ (LOG_FACMASK|LOG_PRIMASK)) ret->im_pri = DEFSPRI;
 	  	qtr = ret->im_msg + strlen(ret->im_msg);

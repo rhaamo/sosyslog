@@ -28,13 +28,13 @@
 .\" SUCH DAMAGE.
 .\"
 .Dd Nov 06, 2001
-.Dt IM_PIPE 8
+.Dt IM_SERIAL 8
 .Os Netarx
 .Sh NAME
-.Nm PIPE input module
+.Nm SERIAL input module
 .Nd
 .Xr syslogd 8
-input module for character files such as character special files and pipes.
+input module for character files such as character special files and serials.
 .Sh SYNOPSIS
 .Nm file
 .Op Fl f Ar file path
@@ -42,7 +42,7 @@ input module for character files such as character special files and pipes.
 .Op Fl s Ar start
 .Op Fl t Ar time format
 .Sh DESCRIPTION
-Reads the log messages from a pipe written by another program
+Reads the log messages from a serial written by another program
 for processing by the
 .Xr syslogd 8
 daemon.
@@ -83,9 +83,9 @@ Same as above, but sets the name to 'myapp':
 .El
 .Bl -bullet
 .It
-Same as above, but on /some/named/pipe pipe instead of the file:
+Same as above, but on /some/named/serial serial instead of the file:
 .Pp
-.Dl syslogd -i 'file -n myapp -f /some/named/pipe'
+.Dl syslogd -i 'file -n myapp -f /some/named/serial'
 .El
 .Sh SEE ALSO
 .Xr syslog 3 ,

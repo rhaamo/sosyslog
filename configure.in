@@ -289,14 +289,14 @@ if test "X$temp_res" = "Xyes" ; then
 		MANPAGES="$MANPAGES im_file.8"
 fi
 
-AC_ARG_WITH(pipe,
-[  --without-pipe
-	Use pipe input module. Activated by default.
-],[ temp_res="$with_pipe"; ])
+AC_ARG_WITH(serial,
+[  --without-serial
+	Use serial input module. Activated by default.
+],[ temp_res="$with_serial"; ])
 if test "X$temp_res" = "Xyes" ; then
-		MSRCS="$MSRCS im_pipe.c"
+		MSRCS="$MSRCS im_serial.c"
 		AC_DEFINE(HAVE_FILE_IMODULE)
-		MANPAGES="$MANPAGES im_pipe.8"
+		MANPAGES="$MANPAGES im_serial.8"
 fi
 
 dnl Doors should only be used with streams
