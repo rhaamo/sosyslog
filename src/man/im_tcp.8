@@ -1,4 +1,4 @@
-.\"	$CoreSDI: im_tcp.8,v 1.3 2001/04/09 20:12:08 alejo Exp $
+.\"	$CoreSDI: im_tcp.8,v 1.4 2001/05/23 23:18:46 alejo Exp $
 .\"
 .\" Copyright (c) 2001
 .\"	Core-SDI SA. All rights reserved.
@@ -37,7 +37,7 @@
 input module used to receive from tcp connections
 .Sh SYNOPSIS
 .Nm tcp
-.Op Ar host
+.Op Ar <host>
 .Op Ar port
 .Sh DESCRIPTION
 .Nm tcp input module 
@@ -50,9 +50,18 @@ daemon to use tcp IPC.
 The following command installs
 .Xr syslogd 8
 daemon and activates tcp system accepting remote connections on local
-addres machinename.somedomainexample.com port 3210:
+address machinename.example.com port 3210:
 .Pp
 .Dl syslogd -i 'tcp machinename.somedomainexample.com 3210'
+.El
+.Bl -bullet
+.It
+The following command installs
+.Xr syslogd 8
+daemon and activates tcp system accepting remote connections on all local
+addresses port 3210:
+.Pp
+.Dl syslogd -i 'tcp 3210'
 .El
 .Pp
 .Sh BUGS

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.15 2001/03/23 00:12:29 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.16 2001/03/27 23:21:07 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -106,21 +106,28 @@ int accept_tcp(int, socklen_t, char **);
 int
 im_tcp_init(struct i_module *I, char **argv, int argc)
 {
-	struct im_tcp_ctx *c;
+	struct im_tcp_ctx	*c;
+	char			*host, *port;
 
         dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: entering\n");
-        if (argc != 3) {
+        if (argc == 2) {
+			host = NULL;
+			port = argv[1];
+        } else if (argc == 3) {
+			host = argv[1];
+			port = argv[2];
+        } else {
         	dprintf(MSYSLOG_SERIOUS, "im_tcp: error on params! %d, should "
 		    "be 3\n", argc);
         	return (-1);
-        }
+	}
 
 	if ( (I->im_ctx = calloc(1, sizeof(struct im_tcp_ctx))) == NULL)
         	return (-1);
 
 	c = (struct im_tcp_ctx *) I->im_ctx;
 
-	if ( (I->im_fd = listen_tcp(argv[1], argv[2], &c->addrlen)) < 0) {
+	if ( (I->im_fd = listen_tcp(host, port, &c->addrlen)) < 0) {
         	dprintf(MSYSLOG_SERIOUS, "im_tcp: error with listen_tcp()\n");
 		return (-1);
 	}
