@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.170 2001/02/19 23:42:01 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.171 2001/02/22 20:10:27 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.170 2001/02/19 23:42:01 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.171 2001/02/22 20:10:27 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -71,10 +71,17 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.170 2001/02/19 23:42:01 alejo Exp
 #include "../config.h"
 
 #include <sys/param.h>
-#include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/wait.h>
+#if HAVE_SYS_WAIT_H
+# include <sys/wait.h>
+#endif
+#ifndef WEXITSTATUS
+# define WEXITSTATUS(stat_val) ((unsigned)(stat_val) >> 8)
+#endif
+#ifndef WIFEXITED
+# define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
+#endif
 #include <sys/un.h>
 
 #if TIME_WITH_SYS_TIME
