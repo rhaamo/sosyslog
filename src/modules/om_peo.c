@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.38 2000/06/06 00:36:36 fgsch Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.39 2000/06/06 00:37:28 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -233,7 +233,7 @@ om_peo_init(argc, argv, f, prog, ctx)
 
 	/* set macfile */
 	if (mfd) {
-		if ( (macfile = strmac(keyfile)) == NULL) {
+		if ( (macfile = (char*)strmac(keyfile)) == NULL) {
 			release();
 			return (-1);
 		}

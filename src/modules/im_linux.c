@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.7 2000/06/05 22:59:23 fgsch Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.8 2000/06/05 23:21:46 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -55,6 +55,13 @@
 #include "syslogd.h"
 
 
+#define	TRANSLATE_KSYMBOLS	0x01
+#define USE_SYSCALL		0x02
+int flags;
+
+int parseCommandLine(int, char**);
+
+
 /*
  * kernel symbols
  */
@@ -76,7 +83,7 @@ FILE	*ksym_fd = NULL;
 Symbol	*symbol_table = NULL;
 
 int	 ksym_init(struct i_module*);
-int	 ksym_close();
+void	 ksym_close();
 Symbol	*ksym_lookup(Symbol*, char*);
 int	 ksym_getSymbol(Symbol*);
 int	 ksym_parseLine(char*, Symbol*);
@@ -94,18 +101,35 @@ im_linux_init(I, argv, argc)
 	int	argc;
 {
 	dprintf ("im_linux_init...\n");
-	if ((I->im_fd = open(_PATH_KLOG, O_RDONLY, 0)) >= 0)
-        	I->im_path = _PATH_KLOG;
-	else if (errno == ENOENT) {
-		I->im_path = NULL;
-		I->im_fd = 0;
-	} else 
-		dprintf("can't open %s: %s\n", _PATH_KLOG, strerror(errno));
 
+	flags = TRANSLATE_KSYMBOLS;
+	if (!parseCommandLine(argc, argv))
+		return(-1);
+	I->im_path = NULL;
+	I->im_fd = 0;
+	if (flags & ~USE_SYSCALL) {
+		if ((I->im_fd = open(_PATH_KLOG, O_RDONLY, 0)) >= 0)
+			I->im_path = _PATH_KLOG;
+		else if (errno != ENOENT) {
+			dprintf("can;t open %s: %s\n", _PATH_KLOG, strerror(errno));
+			return(-1);
+		}
+	}
         I->im_type = IM_LINUX;
         I->im_name = "linux";
         I->im_flags |= IMODULE_FLAG_KERN;
         return(I->im_fd);
+}
+
+int
+parseCommandLine(argc, argv)
+	int    argc;
+	char **argv;
+{
+	int i;
+	for (i = 0; i < argc; i++)
+		dprintf("%i: %s\n", argv[i]);
+	return(-1);
 }
 
 
@@ -255,7 +279,7 @@ ksym_close()
 		ksym_fd = NULL;
 	}
 	if (symbol_table != NULL) {
-		free(symbol_table)
+		free(symbol_table);
 		symbol_table = NULL;
 		symbols = 0;
 	}
@@ -281,7 +305,7 @@ ksym_lookup(sym, addr)
 		fseek(ksym_fd, 0, SEEK_SET);
 
 	/* search for symbol */
-	while(ksym_getSymbol(1, sym))
+	while(ksym_getSymbol(sym))
 		if (!strcasecmp(sym->addr, addr))
 			return(sym);
 
@@ -294,18 +318,17 @@ ksym_lookup(sym, addr)
  */
 
 int
-ksym_getSymbol(sym)
+ksym_getSymbol (sym)
 	Symbol *sym;
 {
-	int readed;
 	char msg[MAXLINE];
 
 	if (ksym_fd != NULL) {
 		if (offset == symbols)
 			return(0);
-		sym = symbol_table[offset++];
+		*sym = symbol_table[offset++];
 	} else {
-		if ( (readed = fgets(msg, MAXLINE, ksym_fd)) <= 0)
+		if ( fgets(msg, sizeof(msg), ksym_fd) == NULL)
 			return(0);
 		return(ksym_parseLine(msg, sym));
 	}
