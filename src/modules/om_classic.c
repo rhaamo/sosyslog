@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.80 2001/06/13 20:45:21 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.81 2001/09/07 07:26:26 alejo Exp $	*/
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
@@ -112,7 +112,7 @@ struct om_classic_ctx {
 
 void wallmsg (struct filed *, struct iovec *, struct om_classic_ctx *c);
 char *ttymsg(struct iovec *, int , char *, int);
-struct sockaddr	*resolv_name(const char *, const char *, size_t *);
+struct sockaddr	*resolv_name(char *, char *, char *, size_t *);
 
 
 /*
@@ -329,10 +329,11 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 
 			finet = socket(AF_INET, SOCK_DGRAM, 0);
 
-			if ((sa = resolv_name("syslog", "udp", &salen))
-			    == NULL) {
+			if ((sa = resolv_name("0.0.0.0", "syslog", "udp",
+			    &salen)) == NULL) {
 				errno = 0;
-				logerror("syslog/udp: unknown service");
+				dprintf(MSYSLOG_SERIOUS, "om_classic_init: "
+				    "can't bind udp port");
 				free(*ctx);
 				*ctx = NULL;
    				return (-1);
@@ -352,8 +353,9 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		    sizeof(c->f_un.f_forw.f_hname) - 1);
 		c->f_un.f_forw.f_hname[sizeof(c->f_un.f_forw.f_hname) - 1]
 		    = '\0';
-		if ((sa = resolv_name(c->f_un.f_forw.f_hname, "udp", &salen))
-		    == NULL) {
+
+		if ((sa = resolv_name(c->f_un.f_forw.f_hname, "syslog", "udp",
+		    &salen)) == NULL) {
                         dprintf(MSYSLOG_SERIOUS, "Error resolving host "
 			    "%s\n", c->f_un.f_forw.f_hname);
 			logerror("om_classic: couldn't resolv host");
