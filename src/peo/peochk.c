@@ -1,4 +1,4 @@
-/*	$CoreSDI: peochk.c,v 1.48 2001/04/05 20:56:26 alejo Exp $	*/
+/*	$CoreSDI: peochk.c,v 1.49 2001/04/06 00:51:44 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -133,7 +133,7 @@ release(void)
  * usage
  */
 void
-usage()
+usage(void)
 {
 	fprintf (stderr,
 		"Usage:\n"
@@ -198,7 +198,7 @@ eexit (int status, char *fmt, ...)
  * check: read logfile and check it
  */
 void
-check()
+check(void)
 {
 	int   i;
 	int   input;
@@ -334,7 +334,7 @@ check()
  *	in the last file data is written as ascii string
  */
 void
-generate()
+generate(void)
 {
 	int	 kfd;
 	int	 k0fd;
