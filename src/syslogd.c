@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.143 2000/11/01 19:13:18 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.144 2000/11/03 19:54:21 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.143 2000/11/01 19:13:18 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.144 2000/11/03 19:54:21 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -78,8 +78,11 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.143 2000/11/01 19:13:18 alejo Exp
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#if !(__svr4__ && __sun__)
 #include <sys/sysctl.h>
+#endif
 #include <sys/socket.h>
+#include <limits.h>
 
 #include <ctype.h>
 #include <errno.h>
@@ -94,11 +97,11 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.143 2000/11/01 19:13:18 alejo Exp
 #define SYSLOG_NAMES
 #include <syslog.h>
 #include "syslogd.h"
+#include "conditional.h"
 
 #ifdef PATH_MAX   
 #define PID_PATH_MAX PATH_MAX
 #else
-#include <limits.h>
 #ifdef _POSIX_PATH_MAX
 #define PID_PATH_MAX _POSIX_PATH_MAX
 #warning Using _POSIX_PATH_MAX as maximum pidfile name length
@@ -109,8 +112,18 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.143 2000/11/01 19:13:18 alejo Exp
 
 #ifndef _PATH_CONSOLE
 #define _PATH_CONSOLE "/dev/console"
-#warning Using _PATH_CONSOLE as "/dev/console"
+#warning Using "/dev/console" for _PATH_CONSOLE
 #endif /* _PATH_CONSOLE */
+
+#ifndef NAME_MAX
+#ifdef MAXNAMLEN
+#define NAME_MAX MAXNAMLEN
+#warning using MAXNAMLEN for NAME_MAX
+#else
+#define NAME_MAX 255
+#warning using 255 for NAME_MAX
+#endif /* MAXNAMLEN */
+#endif /* NAME_MAX */
 
 /*
  * Intervals at which we flush out "message repeated" messages,
@@ -189,6 +202,7 @@ main(int argc, char **argv) {
 		if (setrlimit(RLIMIT_CORE, &r)) {
 			logerror("ERROR setting limits for coredump");
 		}
+
 	}
 
 	while ((ch = getopt(argc, argv, "dubSf:m:p:a:i:h")) != -1)
@@ -236,13 +250,33 @@ main(int argc, char **argv) {
 		usage();
 
 	if (!Debug) {
+		int fd;
 
-		/* go daemon */
-		daemon(0, 0);
+		/* go daemon and mimic daemon() */
+		switch (fork()) {
+			case -1:
+        		        perror("fork");
+        		        exit(-1);
+			case 0:
+		                break;
+			default:
+				exit(0);
+		}
 
-	} else {
+		/* child */
+		if (setsid() == -1)
+			return (-1);
+
+		chdir("/");
+		if ((fd = open(_PATH_DEVNULL, O_RDWR, 0)) != -1) {
+			dup2(fd, STDIN_FILENO);
+			dup2(fd, STDOUT_FILENO);
+			dup2(fd, STDERR_FILENO);
+			if (fd > 2)
+				close(fd);
+		}
+	} else
 		setlinebuf(stdout);
-	}
 	
 	consfile.f_type = F_CONSOLE;
 	/* this should get into Files and be way nicer */
@@ -296,7 +330,7 @@ main(int argc, char **argv) {
 						    "fcntl lock error status %d"
 						    " on %s %d %s", status,
 						    pidfile, lfd,
-						    sys_errlist[errno]);
+						    strerror(errno));
 						logerror(buf);
 						die(0);
 					}
@@ -308,7 +342,7 @@ main(int argc, char **argv) {
 			if (errno != 0) {
 				snprintf(buf, sizeof(buf), "Cannot lock %s fd "
 				    "%d in %d tries %s", pidfile, lfd,
-				    tries + 1, sys_errlist[errno]);
+				    tries + 1, strerror(errno));
 				logerror(buf);
 
 				/* who is hogging this lock */
@@ -705,7 +739,9 @@ domark(int signo) {
 			BACKOFF(f);
 		}
 	}
-	(void)alarm(TIMERINTVL);
+	signal(SIGALRM, domark);
+#warning What is this for, Art?
+	alarm(TIMERINTVL);
 }
 
 /*

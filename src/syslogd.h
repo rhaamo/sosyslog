@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.52.2.6.2.1.4.8 2000/10/23 23:54:33 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.80 2000/10/31 19:42:12 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -84,6 +84,12 @@
  * maximum number of unix sockets
  */
 #define MAXFUNIX	21
+
+/* if UT_NAMESIZE doesn't exist, define it as 32 */
+#ifndef UT_NAMESIZE
+#define UT_NAMESIZE 32
+#warning Using 32 for UT_NAMESIZE
+#endif
 
 /*
  * This structure represents the files that will have log
