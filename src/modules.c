@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.14 2000/04/03 15:52:05 gera Exp $
+/*	$Id: modules.c,v 1.15 2000/04/03 16:08:39 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -120,12 +120,12 @@ int modules_create(p, f, prog)
 
 				*p++=0;
 
-				/* get this module function */
+				/* find for matching module */
 				for (mf = Modules; mf; mf++) {
 					if (strncmp(argv[0], mf->m_name, MAX_MODULE_NAME_LEN) == 0)
 						break;
 				}
-				/* no functions for this module where found */
+				/* no matching module */
 				if (!mf)
 					return(-1);
 
@@ -156,11 +156,11 @@ int modules_create(p, f, prog)
 				argv[argc++]="auto_classic";
 				argv[argc++]=p;
 				p+=strlen(p);
-				m_classic_init(argc, argv, f, NULL, NULL);
+				m->m_type = M_CLASSIC;
 				
 				break;
 		}
-		(Modules[m->m_type]->m_init)(argc, argv, f, prog, (void *) &(m->context));
+		(Modules[m->m_type].m_init)(argc, argv, f, prog, (void *) &(m->context));
 	}
 }
 
