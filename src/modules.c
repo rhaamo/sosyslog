@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.157 2001/05/03 21:37:21 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.158 2001/05/03 22:33:12 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -144,6 +144,10 @@ get_symbol(const char *modname, const char *funcname, void *h, void **ret) {
 		    "%s, %s\n", buf, dlerror());
 	   	return(-1);
 	}
+
+	/* not on main lib, not on this module's lib */
+	if (*ret == NULL)
+		return(-1);
 
 	return(1);
 
