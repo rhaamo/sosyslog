@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.33 2000/07/04 16:44:07 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.34 2000/07/10 22:11:58 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -80,11 +80,17 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *ctx,
 		return(-1);
 	}
 
-	dprintf("MySQL doLog: entering [%s] [%s]\n", msg, f->f_prevline);
 	if (f == NULL)
 		return (-1);
 
 	c = (struct om_mysql_ctx *) ctx;
+	if (!c->h) {
+		dprintf("MySQL doLog: error, handle\n");
+		return(-1);
+	}
+
+	dprintf("MySQL doLog: entering [%s] [%s]\n", msg, f->f_prevline);
+
 	memset(c->query, 0, MAX_QUERY);
 
 	host = f->f_prevhost;
@@ -261,8 +267,10 @@ om_mysql_destroy_ctx(ctx)
 int
 om_mysql_close(struct filed *f, struct om_hdr_ctx *ctx,
 		struct sglobals *sglobals) {
-	mysql_close(((struct om_mysql_ctx*)ctx)->h);
-	om_mysql_destroy_ctx((struct om_mysql_ctx*)ctx);
+	if (((struct om_mysql_ctx*)ctx)->h) {
+		mysql_close(((struct om_mysql_ctx*)ctx)->h);
+		om_mysql_destroy_ctx((struct om_mysql_ctx*)ctx);
+	}
 
 	return (-1);
 }
