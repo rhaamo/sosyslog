@@ -1,4 +1,4 @@
-/*      $Id: peochk.c,v 1.25 2000/05/09 19:18:40 claudio Exp $
+/*      $Id: peochk.c,v 1.26 2000/05/09 21:10:04 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
@@ -105,14 +105,14 @@ usage()
 		"is used and data is readed from that file.\n"
 		"If the logfile is specified but not the keyfile, the default key"
 		"file is\n"
-		"/var/ssyslog/xxx where xxx is the logfile with all '/' "
+		"/var/ssyslog/key.xxx where xxx is the logfile with all '/' "
 		"replaced by '.'\n\n"
 		"Default values:\n"
 		"\tlogfile    : /var/log/messages\n"
-		"\tkeyfile    : /var/ssyslog/.var.log.messages.key\n"
+		"\tkeyfile    : /var/ssyslog/key.var.log.messages\n"
 		"\tkey0file   : strcat(keyfile, \"0\");\n"
 		"\thash_method: sha1\n\n"
-		"\tIf -l switch is specified, the mac'ed log file is "
+		"If -l switch is specified, the mac'ed log file is "
 		"strcat(keyfile, \".mac\");\n");
 	exit(-1);
 }
