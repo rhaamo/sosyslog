@@ -1,4 +1,4 @@
-/*	$CoreSDI: TODO,v 1.49 2000/11/02 16:23:54 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.50 2000/11/04 00:02:17 alejo Exp $	*/
 
 Things to do:
 
@@ -52,5 +52,6 @@ Check for buffer overflows, as we now may get things from the outside world.
 - src/Makefile should warn if modules.conf changed to use ./configure
 - Check why messages to console take a while to pop up
 - Support Linux's ! != etc syslog.conf format
+- A bug report form
 - check M$ MAPI
 - check pager stuff formats
