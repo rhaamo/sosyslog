@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.22 2000/06/02 01:04:13 alejo Exp $	*/
+/*	$CoreSDI: modules.h,v 1.23 2000/06/05 15:42:19 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -79,7 +79,6 @@ struct om_hdr_ctx {
 #define OM_FLAG_INITIALIZED 0x1
 #define OM_FLAG_ERROR	0x2
 #define OM_FLAG_LOCKED	0x4
-#define OM_FLAG_REVERSE	0x8
 	int	size;
 };
 

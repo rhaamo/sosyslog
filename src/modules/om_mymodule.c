@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mymodule.c,v 1.6 2000/05/30 00:08:59 alejo Exp $	*/
+/*	$CoreSDI: om_mymodule.c,v 1.7 2000/06/05 22:16:59 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -68,7 +68,7 @@ om_mymodule_doLog(f, flags, msg, context)
 
 	/*  here you must do your loggin
 	    take care with repeats and if message was repeated
-	    increase f_prevcount, else set f_prevcount to 0.
+	    increase f->f_prevcount, else set f->f_prevcount to 0.
 	 */
 
 	/* return:

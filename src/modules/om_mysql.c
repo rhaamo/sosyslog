@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.23 2000/06/05 23:00:29 gera Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.24 2000/06/05 23:02:36 gera Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -80,6 +80,7 @@ om_mysql_doLog(f, flags, msg, ctx)
 	struct om_mysql_ctx *c;
 	char	*dummy, *y, *m, *d, *h, *host;
 	int	mn;
+	time_t now;
 
 	dprintf("MySQL doLog: entering [%s] [%s]\n", msg, f->f_prevline);
 	if (f == NULL)
@@ -93,18 +94,14 @@ om_mysql_doLog(f, flags, msg, ctx)
 	/* mysql needs 2000-01-25 like format */
 	dummy = strdup(f->f_lasttime);
 	*(dummy + 3)  = '\0'; *(dummy + 6)  = '\0';
-	*(dummy + 15) = '\0'; *(dummy + 20) = '\0';
+	*(dummy + 15) = '\0';
 	m = dummy;
 	d = dummy + 4;
 	h = dummy + 7;
-	y = strdup(dummy + 16);
 
-	if(strcmp(y, "") == 0) {
-		time_t now;
 
-		(void) time(&now);
-		y = strdup(ctime(&now) + 20);
-	}
+	(void) time(&now);
+	y = strdup(ctime(&now) + 20);
 
 	*(y + 4) = '\0';
 	if (*d == ' ')
@@ -158,8 +155,7 @@ om_mysql_init(argc, argv, f, prog, c)
 	MYSQL *h;
 	struct om_mysql_ctx	*ctx;
 	char	*host, *user, *passwd, *db, *table, *p, *query;
-	int	port, client_flag, createTable;
-	int	ch;
+	int	port, client_flag, createTable, ch;
 
 	dprintf("MySQL: entering initialization\n");
 

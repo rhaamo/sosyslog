@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_filter.c,v 1.3 2000/06/05 21:35:46 fgsch Exp $	*/
+/*	$CoreSDI: om_filter.c,v 1.4 2000/06/05 21:43:22 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -53,34 +53,16 @@
 extern time_t now;
 
 struct om_filter_ctx {
-	short			 flags;
-	int				 size;
-	struct regexp	*exp;
+	short		 flags;
+	int		 size;
+	regex_t		*exp;
+	int		 filters;
+#define	OM_FILTER_INVERSE	0x01
+#define	OM_FILTER_MESSAGE	0x02
+#define	OM_FILTER_HOST		0x04
+#define	OM_FILTER_DATE		0x08
+#define	OM_FILTER_TIME		0x10
 };
-
-
-int
-om_filter_doLog(f, flags, msg, context)
-	struct filed	*f;
-	int				 flags;
-	char			*msg;
-	struct om_hdr_ctx *context; /* our context */
-{
-	struct om_filter_ctx *ctx;
-
-	ctx = (struct om_filter_ctx *) context;
-
-	if (msg == NULL || !strcmp(msg, "")) {
-		logerror("om_filter_doLog: no message!");
-		return(-1);
-	}
-
-	/* return:
-			 1  match  -> successfull
-			 0  nomatch -> stop logging it
-	 */
-	return(regexec(ctx->exp, msg));
-}
 
 
 /*
@@ -96,17 +78,11 @@ om_filter_init(argc, argv, f, prog, c)
 	struct om_hdr_ctx **c; /* our context */
 {
 	struct om_filter_ctx *ctx;
+	int ch;
 
 	/* for debugging purposes */
 	dprintf("om_filter init\n");
 
-	/*
-	 * Parse your options with getopt(3)
-	 *
-	 * we give an example for a -s argument
-	 * -v flag means REVERSE matching
-	 *
-	 */
 
 	if (argc < 2 || argv == NULL || argv[1] == NULL) {
 		dprintf("om_filter: error on initialization\n");
@@ -117,19 +93,107 @@ om_filter_init(argc, argv, f, prog, c)
 			calloc(1, sizeof(struct om_filter_ctx))))
 		return (-1);
 
+	/*
+	 * Parse options with getopt(3)
+	 *
+	 * we give an example for a -s argument
+	 * -v flag means INVERSE matching
+	 * -m flag match message (default)
+	 * -h flag match host
+	 * -d flag match date
+	 * -t flag match time
+	 *
+	 */
+	optind = 1;
+#ifdef HAVE_OPTRESET
+	optreset = 1;
+#endif
+	while ((ch = getopt(argc, argv, "vmhdt")) != -1) {
+		switch (ch) {
+			case 'v':
+				ctx->filters |= OM_FILTER_INVERSE;
+				break;
+			case 'm':
+				ctx->filters |= OM_FILTER_MESSAGE;
+				break;
+			case 'h':
+				ctx->filters |= OM_FILTER_HOST;
+				break;
+			case 'd':
+				ctx->filters |= OM_FILTER_DATE;
+				break;
+			case 't':
+				ctx->filters |= OM_FILTER_TIME;
+				break;
+			default:
+				dprintf("om_filter: unknown parameter [%c]\n", ch);
+				return(-1);
+				break;
+		}
+	}
+
 
 	ctx = (struct om_filter_ctx *) *c;
 	ctx->size = sizeof(struct om_filter_ctx);
-	ctx->exp = regcomp(argv[argc - 1]);
-
-	if (argc == 3) {
-		if (!strncmp(argv[1], "-v", 2))
-			ctx->flags |= OM_FLAG_REVERSE;
+	ctx->exp = (regex_t *) calloc(1, sizeof(regex_t));
+	ch = REG_EXTENDED;
+	if (regcomp(ctx->exp, argv[argc - 1], ch) != 0) {
+		dprintf("om_filter: error compiling  regular expression [%s]\n",
+				argv[argc - 1]);
+		return(-1);
 	}
 
-	
 	return(1);
 }
+
+int
+om_filter_doLog(f, flags, msg, context)
+	struct filed	*f;
+	int		 flags;
+	char		*msg;
+	struct om_hdr_ctx *context; /* our context */
+{
+	struct om_filter_ctx *ctx;
+	int ret1, ret2, ret3;
+	char *host, *date, *time;
+
+	ctx = (struct om_filter_ctx *) context;
+
+	if (msg == NULL || !strcmp(msg, "")) {
+		logerror("om_filter_doLog: no message!");
+		return(-1);
+	}
+
+	if (ctx->filters & OM_FILTER_MESSAGE)	
+		if ((ret1 = regexec(ctx->exp, msg, 0, NULL, 0)) == 0)
+			goto match;
+
+	if (ctx->filters & OM_FILTER_HOST)	
+		if (regexec(ctx->exp, host, 0, NULL, 0) == 0)
+			goto match;
+
+	if (ctx->filters & OM_FILTER_DATE)	
+		if (regexec(ctx->exp, date, 0, NULL, 0) == 0)
+			goto match;
+
+	if (ctx->filters & OM_FILTER_TIME)	
+		if (regexec(ctx->exp, time, 0, NULL, 0) == 0)
+			goto match;
+
+	/* return:
+			 1  match  -> successfull
+			 0  nomatch -> stop logging it
+	 */
+match:
+	if (ctx->filters & OM_FILTER_INVERSE)
+
+catched:
+	if (ctx->filters & OM_FILTER_INVERSE)
+		return(!ret1);
+	else
+		return(ret1);
+}
+
 
 int
 om_filter_close(f, ctx)
