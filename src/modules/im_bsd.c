@@ -64,6 +64,8 @@ im_bsd_getLog(im, ret)
 	(void)strncat(ret->im_msg, ": ", 2);
 	lp = ret->im_msg + strlen(ret->im_msg);
 
+#error   CHECKEA cuando hay que usar im_buf y cuando im_msg
+#error   segun wari esto no funciona
 	i = read(im->im_fd, im->im_buf, sizeof(im->im_buf) - 1);
 	if (i > 0) {
 		(ret->im_buf)[i] = '\0';
