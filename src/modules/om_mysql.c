@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.36.2.4.2.3 2000/09/14 01:07:29 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.40 2000/09/14 01:11:25 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -69,18 +69,21 @@ struct om_mysql_ctx {
 };
 
 int
-om_mysql_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *ctx) {
+om_mysql_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *ctx)
+{
 	struct om_mysql_ctx *c;
-	char	*dummy, *y, *m, *d, *h, *host, *msg_q;
+	struct tm *t;
+	char	*msg_q;
 
 	if (!ctx) {
 		dprintf("MySQL doLog: error, no context\n");
 		return(-1);
 	}
 
-	dprintf("MySQL doLog: entering [%s] [%s]\n", msg, f->f_prevline);
 	if (f == NULL)
 		return (-1);
+
+	dprintf("MySQL doLog: entering [%s] [%s]\n", msg, f->f_prevline);
 
 	c = (struct om_mysql_ctx *) ctx;
 
@@ -91,40 +94,18 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *ctx) {
 
 	memset(c->query, 0, MAX_QUERY);
 
-	host = f->f_prevhost;
-
-	/* mysql needs 2000-01-25 like format */
-	if (NULL==(dummy = strdup(f->f_lasttime))) return -1;
-	*(dummy + 3)  = '\0'; *(dummy + 6)  = '\0';
-	*(dummy + 15) = '\0';
-	m = dummy;
-	d = dummy + 4;
-	h = dummy + 7;
-
-
-	(void) time(&now);
-	if (NULL==(y = strdup(ctime(&now) + 20))) {
-		free(dummy);
+	if ((msg_q = to_sql(msg)) == NULL)
 		return -1;
-	}
 
-	*(y + 4) = '\0';
-	if (*d == ' ')
-		*d = '0';
+	tp = localtime(f->f_time);
 
-	if (NULL==(msg_q=to_sql(msg))) {
-		free(dummy);
-		free(y);
-		return -1;
-	}
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
-	snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s"
-			" VALUES('%s-%.2d-%s', '%s', '%s', '%s')",
-			c->table, y, month_number(m), d, h, host, msg_q);
+	snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s "
+	    "VALUES('%d-%02d-%02d', '%02d:%02d:%02d', '%s', '%s')",
+	    c->table, t->tm_year + 1900, t->tm_mon + 1, t->tm_day,
+	    t->tm_hour, t->tm_min, t->tm_sec, f->f_prevhost, msg_q);
 
 	free(msg_q);
-	free(dummy);
-	free(y);
 
 	return (mysql_query(c->h, c->query) < 0? -1 : 1);
 }
