@@ -29,5 +29,5 @@ clean:
 	-rm -f *.core core $(objs) syslogd
 
 distclean: clean
-	-rm -f Makefile config.cache config.status config.log
+	-rm -f Makefile config.h config.cache config.status config.log
 
