@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.45 2000/09/14 01:01:14 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.46 2000/09/15 21:06:01 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -106,7 +106,6 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 	v++;
 
 	dprintf("Logging to %s", TypeNames[f->f_type]);
-	f->f_time = now;
 
 	switch (f->f_type) {
 		case F_UNUSED:

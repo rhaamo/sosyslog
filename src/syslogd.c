@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.131 2000/09/16 00:41:22 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.132 2000/09/18 19:30:51 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.131 2000/09/16 00:41:22 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.132 2000/09/18 19:30:51 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -519,8 +519,9 @@ usage(void) {
  */
 void
 printline(char *hname, char *msg, int flags) {
-	int c, pri;
 	char *p, *q, line[MAXLINE + 1];
+	unsigned char c;
+	int pri;
 
 	/* test for special codes */
 	pri = DEFUPRI;
@@ -543,19 +544,21 @@ printline(char *hname, char *msg, int flags) {
 
 	q = line;
 
-	while ((c = *p++ & 0177) != '\0' && q < &line[sizeof(line) - 1]) {
-		if (iscntrl(c)) {
-			if (c == '\n') {
-				*q++ = ' ';
-			} else if (c == '\t') {
-				*q++ = '\t';
-			} else if (q < &line[sizeof(line) - 2]) {
-				*q++ = '^';
-				*q++ = c ^ 0100;
-			} /* else we can't pass this control */
-		} else {
-			*q++ = c;
+	while ((c = *p++) && q < &line[sizeof(line) - 1]) {
+		if (c == '\n')
+			*q++ = ' ';
+		else if (c < 040 && q < &line[sizeof(line) - 2]) {
+			*q++ = '^';
+			*q++ = c ^ 0100;
+		} else if ((c == 0177 || (c & 0177) < 040) &&
+		     q < &line[sizeof(line) - 4]) {
+			*q++ = '\\';
+			*q++ = '0' + ((c & 0300) >> 6);
+			*q++ = '0' + ((c & 0070) >> 3);
+			*q++ = '0' + (c & 0007);
 		}
+		else
+			*q++ = c;
 	}
 
 	*q = '\0';
@@ -713,6 +716,8 @@ doLog(struct filed *f, int flags, char *message) {
 		msg = f->f_prevline;
 		len = f->f_prevlen;
 	}
+
+	f->f_time = now;
 
 	for (om = f->f_omod; om; om = om->om_next) {
 		if(!om->om_func || !om->om_func || !om->om_func->om_doLog) {
