@@ -1,4 +1,4 @@
-dnl	$CoreSDI: aclocal.m4,v 1.22 2000/11/03 19:16:57 alejo Exp $
+dnl	$CoreSDI: aclocal.m4,v 1.23 2000/11/03 19:24:28 alejo Exp $
 
 
 dnl
@@ -202,14 +202,14 @@ SMODULES_LOAD="$SMODULES_LOAD \
 	olast->om_init=om_$1_init; \
 	olast->om_doLog=om_$1_doLog;"
 
-MSYSLOG_GREP(om_$1_flush, "$MODULES_DIR/$2", [
+MSYSLOG_GREP(om_$1_flush, $MODULES_DIR/$2, [
 SMODULES_HEADER="$SMODULES_HEADER \
 	int om_$1_flush (struct filed*, void *);" 
 SMODULES_LOAD="$SMODULES_LOAD \
 	olast->om_flush=om_$1_flush;"
 ]) 
 
-MSYSLOG_GREP(om_$1_close, "$MODULES_DIR/$2", [
+MSYSLOG_GREP(om_$1_close, $MODULES_DIR/$2, [
 SMODULES_HEADER="$SMODULES_HEADER \
 	int om_$1_close (struct filed*, void *);"
 SMODULES_LOAD="$SMODULES_LOAD \
@@ -246,13 +246,13 @@ SMODULES_LOAD="$SMODULES_LOAD \
 	ilast->im_init=im_$1_init; \
 	ilast->im_getLog=im_$1_getLog;"
 
-MSYSLOG_GREP(im_$1_close, "$MODULES_DIR/$2", [
+MSYSLOG_GREP(im_$1_close, $MODULES_DIR/$2, [
 SMODULES_HEADER="$SMODULES_HEADER \
 	int im_$1_close (struct i_module*);"
 SMODULES_LOAD="$SMODULES_LOAD \
 	ilast->im_close=im_$1_close;" ])
 
-MSYSLOG_GREP(im_$1_timer, "$MODULES_DIR/$2", [
+MSYSLOG_GREP(im_$1_timer, $MODULES_DIR/$2, [
 SMODULES_HEADER="$SMODULES_HEADER \
 	int im_$1_timer (struct i_module*, struct im_msg*);"
 SMODULES_LOAD="$SMODULES_LOAD \
