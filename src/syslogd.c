@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.103 2000/07/04 16:44:03 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.104 2000/07/04 18:56:35 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -515,7 +515,8 @@ doLog(struct filed *f, int flags, char *message)
 		};
 
 		/* call this module doLog */
-		ret = (*(om->om_func->om_doLog))(f,flags,msg,om->ctx, sglobals);
+		ret = om->om_func->om_doLog?
+			(*(om->om_func->om_doLog))(f,flags,msg,om->ctx, sglobals): -1;
 		if (ret < 0) {
 			dprintf("doLog: error with module module [%s] "
 				"for message [%s]\n", om->om_func->om_name, msg);
