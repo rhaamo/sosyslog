@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_mysql.8,v 1.9 2000/10/31 19:42:13 alejo Exp $
+.\"	$CoreSDI: om_mysql.8,v 1.10 2001/03/07 21:35:13 alejo Exp $
 .\"
 .\" Copyright (c) 2001
 .\"	Core-SDI SA. All rights reserved.
@@ -37,6 +37,7 @@
 output module used to log on MySQL servers
 .Sh SYNOPSIS
 .Nm mysql
+.Op Fl D
 .Op Fl s Ar host
 .Op Fl u Ar username
 .Op Fl p Ar password
@@ -55,6 +56,8 @@ must have enough permissions to insert on the specified database and table.
 .It Fl p Ar password
 The plaintext password for this MySQL user. Thus it is recommended NOT to
 leave
+.It Fl D
+Do DELAYED inserts. See your MySQL documentation.
 .Xr syslog.conf 5
 world readable if this module is used.
 .It Fl d Ar database
