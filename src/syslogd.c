@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.144 2000/11/03 19:54:21 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.145 2000/11/03 21:36:35 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.144 2000/11/03 19:54:21 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.145 2000/11/03 21:36:35 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -739,8 +739,10 @@ domark(int signo) {
 			BACKOFF(f);
 		}
 	}
-	signal(SIGALRM, domark);
+
 #warning What is this for, Art?
+	signal(SIGALRM, domark);
+
 	alarm(TIMERINTVL);
 }
 

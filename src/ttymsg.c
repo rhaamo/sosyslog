@@ -55,6 +55,12 @@ static char rcsid[] = "$OpenBSD: ttymsg.c,v 1.3 1996/10/25 06:06:30 downsj Exp $
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <strings.h>
+
+#ifndef _PATH_DEV
+#define _PATH_DEV "/dev/"
+#warning Using "/dev/" for _PATH_DEV
+#endif
 
 /*
  * Display the contents of a uio structure on a terminal.  Used by wall(1),
@@ -133,6 +139,7 @@ ttymsg(struct iovec *iov, int iovcnt, char *line, int tmout)
 		}
 		if (errno == EWOULDBLOCK) {
 			int cpid, off = 0;
+			sigset_t sig_set;
 
 			if (forked) {
 				(void) close(fd);
@@ -153,7 +160,21 @@ ttymsg(struct iovec *iov, int iovcnt, char *line, int tmout)
 			/* wait at most tmout seconds */
 			(void) signal(SIGALRM, SIG_DFL);
 			(void) signal(SIGTERM, SIG_DFL); /* XXX */
-			(void) sigsetmask(0);
+
+			/* replace sigsetmask with sigprocmask */
+			sigemptyset(&sig_set);
+			if (sigprocmask(SIG_SETMASK, &sig_set, NULL) != 0) {
+				(void) snprintf(errbuf, sizeof(errbuf),
+				    "sigprocmask: %s", strerror(errno));
+				(void) close(fd);
+				return (errbuf);
+			} else {
+				(void) snprintf(errbuf, sizeof(errbuf),
+				    "sigprocmask success: %s", strerror(errno));
+				(void) close(fd);
+				return (errbuf);
+			}
+
 			(void) alarm((u_int)tmout);
 			(void) fcntl(fd, O_NONBLOCK, &off);
 			continue;
