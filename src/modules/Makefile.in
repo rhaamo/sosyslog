@@ -1,4 +1,4 @@
-# $CoreSDI: Id$
+# $CoreSDI: Makefile.in,v 1.7 2000/06/26 23:36:00 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -42,8 +42,8 @@ DBSD=		@DBSD@
 DLINUX=		@DLINUX@
 DCLASSIC=	@DCLASSIC@
 DPEO=		@DPEO@
-HASH_EXTRA=	@HASH_EXTRA@
-HASH_OJBS=	$(HASH_EXTRA:.c=.o)
+HASH_SRCS=	@HASH_SRCS@
+HASH_OJBS=	$(HASH_SRCS:.c=.o)
 DMYSQL=		@DMYSQL@
 DPGSQL=		@DPGSQL@
 DREGEX=		@DREGEX@
@@ -78,7 +78,7 @@ DYNAMIC_LIBS:	$(DUNIX) $(DUDP) $(DBSD) $(DLINUX) \
 
 $(DUNIX):
 	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DUNIX_SRC)
-	$(LD) -Bshareable -o $@ $(notdir $(DUNIX_OBJ))
+	$(LD) -Bshareable -o $@ $(DUNIX_OBJ)
 
 $(DUDP): 
 	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DUDP_SRC)
@@ -90,15 +90,15 @@ $(DBSD):
 
 $(DLINUX):
 	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DLINUX_SRC)
-	$(LD) -Bshareable -o $@ $(notdir $(DLINUX_OBJ))
+	$(LD) -Bshareable -o $@ $(DLINUX_OBJ)
 
 $(DCLASSIC):
 	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DCLASSIC_SRC)
-	$(LD) -Bshareable -o $@ $(notdir $(DCLASSIC_OBJ))
+	$(LD) -Bshareable -o $@ $(DCLASSIC_OBJ)
 
 $(DPEO):
-	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DPEO_SRC) $(addprefix ../peo/, $(HASH_OBJS))
-	$(LD) -Bshareable -o $@ $(notdir $(DPEO_OBJ)) $(addprefix ../peo/, $(HASH_OBJS))
+	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DPEO_SRC) $(HASH_SRCS:%=../peo/%)
+	$(LD) -Bshareable -o $@ $(DPEO_OBJ) $(HASH_OBJS:%=../peo/%)
 
 $(DMYSQL):
 	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DMYSQL_SRC)

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.7 2000/06/07 23:00:45 fgsch Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.8 2000/06/26 23:23:10 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -74,7 +74,7 @@ struct om_regex_ctx {
  */
 int
 om_regex_init(int argc, char ** argv, struct filed *f, char *prog,
-		struct om_hdr_ctx *c) {
+		struct om_hdr_ctx **c) {
 	struct om_regex_ctx *ctx;
 	int ch;
 
@@ -87,7 +87,7 @@ om_regex_init(int argc, char ** argv, struct filed *f, char *prog,
 		return(-1);
 	}
 
-	if (! (*c = (struct om_hdr_ctx *)
+	if (! (c = (struct om_hdr_ctx *)
 			calloc(1, sizeof(struct om_regex_ctx))))
 		return (-1);
 
@@ -158,7 +158,7 @@ om_regex_doLog(struct filed *f, int flags, char *msg,
 		return(-1);
 	}
 
-	if (ctx->filters & OM_FILTER_INVERSE)
+	if (ctx->filters & OM_FILTER_INVERSE) {
 		ret = !(((ctx->filters & OM_FILTER_MESSAGE) &&
 						!regexec(ctx->exp, msg, 0, NULL, 0))
 				|| ((ctx->filters & OM_FILTER_HOST) &&

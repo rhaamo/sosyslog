@@ -86,15 +86,16 @@ AC_SUBST(INSTALL_DIR)
 #	echo "Disabling MySQL support..."
 #fi
 
-VERSION=`grep VESION src/syslogd.h | sed '/#define VERSION/s///'`
+VERSION=`grep VERSION src/syslogd.h | sed '/#define VERSION/s///'`
 
+HASH_SRCS="hash.c"
 AC_CHECK_FUNC(MD5Init, AC_DEFINE(HAVE_MD5),
-	HASH_EXTRA="$HASH_EXTRA md5c.c")
+	HASH_SRCS="$HASH_SRCS md5c.c")
 AC_CHECK_FUNC(SHA1Init, AC_DEFINE(HAVE_SHA1),
-	HASH_EXTRA="$HASH_EXTRA sha1.c")
+	HASH_SRCS="$HASH_SRCS sha1.c")
 AC_CHECK_FUNC(RMD160Init, AC_DEFINE(HAVE_RMD160),
-	HASH_EXTRA="$HASH_EXTRA rmd160.c")
-AC_SUBST(HASH_EXTRA)
+	HASH_SRCS="$HASH_SRCS rmd160.c")
+AC_SUBST(HASH_SRCS)
 
 unix=""
 udp=""
@@ -164,7 +165,7 @@ then
 		SSRCS="$SSRCS $SRC"
 	else
 		DCLASSIC_SRC="$DSRCS $SRC"
-		DCLASSIC="libom_classic.so$VERSION"
+		DCLASSIC="libom_classic.so"$VERSION
 	fi
 fi
 
