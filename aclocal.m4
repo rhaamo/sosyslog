@@ -1,4 +1,4 @@
-dnl	$CoreSDI: aclocal.m4,v 1.9 2000/07/26 21:00:37 alejo Exp $
+dnl	$CoreSDI: aclocal.m4,v 1.10 2000/08/04 01:55:10 alejo Exp $
 
 dnl
 dnl MSYSLOG_GREP patt file comm
@@ -30,7 +30,7 @@ do
 	then
 		echo "Need mysqlclient library to enable mysql module"
 		exit
-	elif test "`ls $i | grep mysqlclient`"
+	elif test "`ls $i 2>/dev/null | grep mysqlclient`"
 	then
 		break
 	fi
@@ -41,11 +41,11 @@ MYSQL_CPPFLAGS="$MYSQL_CPPFLAGS -L$i"
 CPPFLAGS_save="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS $MYSQL_CPPFLAGS"
 AC_CHECK_LIB(mysqlclient, mysql_real_connect, [
-	     MYSQL_LIBS="-lmysqlclient"
-	     AC_DEFINE_UNQUOTED(HAVEmysqlclient)
-             ] , [
-	     echo "Need mysqlclient library to enable mysql module"
-	     exit ])
+		MYSQL_LIBS="-lmysqlclient"
+		AC_DEFINE_UNQUOTED(HAVEmysqlclient)
+		] , [
+		echo "Need mysqlclient library to enable mysql module"
+		exit ])
 CPPFLAGS="$CPPFLAGS_save"
 
 AC_ARG_WITH(mysql-inc,
@@ -86,7 +86,7 @@ do
 	then
 		echo "Need pq library to enable pgsql module"
 		exit
-	elif test "`ls $i | grep libpq`"
+	elif test "`ls $i 2>/dev/null | grep libpq`"
 	then
 		break
 	fi
@@ -97,11 +97,11 @@ PGSQL_CPPFLAGS="$PGSQL_CPPFLAGS -L$i"
 CPPFLAGS_save="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS $PGSQL_CPPFLAGS"
 AC_CHECK_LIB(pq, PQsetdbLogin, [
-	     PGSQL_LIBS="-lpq"
-	     AC_DEFINE_UNQUOTED(HAVEpq)
-             ] , [
-	     echo "Need pq library to enable pgsql module"
-	     exit ])
+		PGSQL_LIBS="-lpq"
+		AC_DEFINE_UNQUOTED(HAVEpq)
+		] , [
+		echo "Need pq library to enable pgsql module"
+		exit ])
 
 AC_ARG_WITH(pgsql-inc,
 	    [--with-pgsql-inc=DIR        specify pgsql include dir],

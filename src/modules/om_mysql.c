@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.34 2000/07/10 22:11:58 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.35 2000/08/08 01:16:27 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -84,7 +84,7 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *ctx,
 		return (-1);
 
 	c = (struct om_mysql_ctx *) ctx;
-	if (!c->h) {
+	if (!(c->h)) {
 		dprintf("MySQL doLog: error, handle\n");
 		return(-1);
 	}

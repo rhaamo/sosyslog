@@ -83,7 +83,8 @@ ttymsg(struct iovec *iov, int iovcnt, char *line, int tmout)
 	    || (strncmp(line, "uucp", 4) == 0))
 		return (NULL);
 
-	(void) strcpy(device + sizeof(_PATH_DEV) - 1, line);
+	(void) strncpy(device + sizeof(_PATH_DEV) - 1, line,
+			sizeof(device) - sizeof(_PATH_DEV) - 1);
 
 #ifndef HAVE_LINUX
 	if (strchr(device + sizeof(_PATH_DEV) - 1, '/')) {

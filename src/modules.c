@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.117 2000/08/07 23:20:48 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.118 2000/08/08 00:37:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -368,7 +368,7 @@ imoduleDestroy(struct imodule *im) {
 struct omodule *
 addOmodule(char *name) {
 	struct omodule *om;
-	char buf[256], *r;
+	char buf[LIB_PATH_MAX], *r;
 	int i, j;
 
 	if (name == NULL)
@@ -397,7 +397,7 @@ addOmodule(char *name) {
 		om = om->om_next;
 	}
 
-	snprintf(buf, 127, "libmsyslog_om_%s.so.%1.1f", name, VERSION);
+	snprintf(buf, LIB_PATH_MAX, "libmsyslog_om_%s.so", name);
 
 	if ((om->h = dlopen(buf, RTLD_LAZY)) == NULL) {
 	   	dprintf("Error [%s] on file [%s]\n", dlerror(), buf);

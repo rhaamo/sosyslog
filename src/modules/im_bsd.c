@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.59 2000/07/18 01:02:50 alejo Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.60 2000/07/26 21:00:38 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -63,6 +63,7 @@
 int
 im_bsd_init(struct i_module *I, char **argv, int argc,
 		struct sglobals *sglobals) {
+
 	if ((I->im_fd = open(_PATH_KLOG, O_RDONLY, 0)) < 0) {
 		dprintf("can't open %s (%d)\n", _PATH_KLOG, errno);
 		return (-1);

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.114 2000/07/26 21:00:37 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.115 2000/08/03 01:18:12 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -40,8 +40,8 @@ static char copyright[] =
 #endif /* not lint */
 
 #ifndef lint
-/*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $";
+/*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.107 2000/07/11 19:38:14 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -64,7 +64,7 @@ static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $"
  * Author: Eric Allman
  * extensive changes by Ralph Campbell
  * more extensive changes by Eric Allman (again)
- * more extensive changes by Alejo Sanchez for Core-SDI
+ * extensive changes by Alejo Sanchez for Core-SDI
  *
  */
 
@@ -421,6 +421,7 @@ main(int argc, char **argv) {
 		nfds = select(nfds+1, &readfds, (fd_set *)NULL,
 			(fd_set *)NULL, &timeout);
 
+		usleep(1000000);
 		if (nfds < 0) {
 			if (errno != EINTR)
 				logerror("select");
@@ -1056,7 +1057,7 @@ decode(const char *name, CODE *codetab) {
 
 	for (p = buf; *name && p < &buf[sizeof(buf) - 1]; p++, name++) {
 		if (isupper((int)*name))
-			*p = tolower(*name);
+			*p = tolower((int)*name);
 		else
 			*p = *name;
 	}
