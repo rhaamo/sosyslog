@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.215 2001/10/24 08:12:22 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.216 2001/10/25 23:06:00 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.215 2001/10/24 08:12:22 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.216 2001/10/25 23:06:00 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -1363,7 +1363,7 @@ cfline(char *line, struct filed *f, char *prog) {
 							    TABLE_NOPRI;
 					} else if (singlpri) {
 						if (ignorepri)
-							f->f_pmask[i] |=
+							f->f_pmask[i] &=
 							    ~(1<<pri);
 						else
 							f->f_pmask[i] |=
