@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.17 2000/06/09 20:03:11 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.18 2000/06/09 20:50:10 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -233,7 +233,6 @@ im_linux_init(I, argv, argc)
  * take input line from _PATH_KLOG or klogctl(2)
  * and log it.
  */
-
 int
 im_linux_getLog(im, ret)
 	struct i_module *im;
@@ -246,10 +245,15 @@ im_linux_getLog(im, ret)
 		return (-1);
 
 	/* read message from kernel */
+
+/* syscall not supported yet */
+#if 0
 	if (im->im_path == NULL || flags & KLOG_USE_SYSCALL)
 		/* i = klogctl(2, im->im_buf, sizeof(im->im_buf)); */ /* this blocks */
 		i = klogctl(4, im->im_buf, sizeof(im->im_buf));	/* ;;;this don't block... testing */
 	else
+#endif
+
 		i = read(im->im_fd, im->im_buf, sizeof(im->im_buf));
 
 	if (i < 0 && errno != EINTR) {
@@ -417,7 +421,7 @@ ksym_snprintf (buf, bufsize, raw)
 		break;
 	}
 
-	if (*raw )
+	if (*raw)
 		/* kernel message without symbols */
 		if ( (i = snprintf(buf+printed, bufsize, "%s", raw)) < 0)
 			return(-1);
@@ -445,7 +449,7 @@ ksym_lookup (sym, addr)
 		fseek(ksym_fd, 0, SEEK_SET);
 
 	/* search for symbol */
-	while(!ksym_getSymbol(sym))
+	while (!ksym_getSymbol(sym))
 		if (!strcasecmp(sym->addr, addr))
 			return(sym);
 
