@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.38 2000/04/26 20:18:48 gera Exp $
+/*	$Id: modules.c,v 1.39 2000/04/27 17:04:24 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -52,10 +52,13 @@ int om_classic_init(int, char **, struct filed *, char *, struct om_header_ctx *
 int om_classic_close(struct filed*, struct om_header_ctx **);
 int om_classic_flush(struct filed*, struct om_header_ctx *);
 
-int om_mysql_doLog(struct filed *, int , char *, struct om_header_ctx *);
-int om_mysql_init(int, char **, struct filed *, char *, struct om_header_ctx **);
-int om_mysql_close(struct filed*, struct om_header_ctx **);
-int om_mysql_flush(struct filed*, struct om_header_ctx *);
+#ifdef WANT_MYSQL
+	int om_mysql_doLog(struct filed *, int , char *, struct om_header_ctx *);
+	int om_mysql_init(int, char **, struct filed *, char *, struct om_header_ctx **);
+	int om_mysql_close(struct filed*, struct om_header_ctx **);
+	int om_mysql_flush(struct filed*, struct om_header_ctx *);
+#endif
+
 int im_bsd_init(struct i_module *);
 int im_bsd_getLog(struct i_module *, struct im_msg *);
 int im_bsd_close(struct i_module *);
@@ -82,7 +85,7 @@ int modules_init (I, inputs)
 	OModules[OM_CLASSIC].om_close 		= om_classic_close;
 	OModules[OM_CLASSIC].om_flush 		= om_classic_flush;
 
-#ifndef WANT_MYSQL
+#ifdef WANT_MYSQL
 	/* mysql module */
 	OModules[OM_MYSQL].om_name 		= "mysql";
 	OModules[OM_MYSQL].om_type 		= OM_MYSQL;
