@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.107 2000/07/11 19:38:14 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.108 2000/07/13 21:18:40 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -135,7 +135,7 @@ main(int argc, char **argv)
 	int ch;
 	FILE *fp;
 	char *p;
-	struct timeval timeout;
+	struct timeval timeout, tnow;
 
 	memset(&Inputs, 0, sizeof(Inputs));
 
@@ -277,33 +277,42 @@ main(int argc, char **argv)
 		nfds = select(nfds+1, &readfds, (fd_set *)NULL,
 			(fd_set *)NULL, &timeout);
 
-		if (nfds == 0) {
-			continue;
-		}
-
 		if (nfds < 0) {
 			if (errno != EINTR)
 				logerror("select");
 			continue;
 		}
 
-		if (nfds > 0) {
-			/* dprintf("got a message (%d, %#x)\n", nfds, readfds); */
-			for (im = &Inputs; im ; im = im->im_next) {
-				if (im->im_fd != -1 && FD_ISSET(im->im_fd, &readfds)) {
-					int i = 0;
-	
-					memset(&log, 0,sizeof(struct im_msg));
-	
-					if ( !(im->im_func->im_getLog) || (i =
-							(*im->im_func->im_getLog)(im, &log, sglobals)) < 0) {
-						dprintf("Syslogd: Error calling input module"
-			       				" %s, for fd %d\n", im->im_name, im->im_fd);
-					}
-	
-					/* log it if normal (1), (2) already logged */
-					if (i == 1)
-						printline(log.im_host, log.im_msg, im->im_flags);
+		/* dprintf("got a message (%d, %#x)\n", nfds, readfds); */
+		for (im = &Inputs; im ; im = im->im_next) {
+
+			/* get current time each pass */
+			gettimeofday(&tnow, NULL);
+
+			if (im->im_func->im_timer &&
+					im->im_nextcall.tv_sec < tnow.tv_sec &&
+					im->im_nextcall.tv_usec < tnow.tv_usec) {
+
+				/* call this input module timer */
+				if ((*im->im_func->im_timer)(im, &log, sglobals) < 0) {
+					dprintf("Error calling timer for [%s]\n", im->im_name);
+				}
+			}
+
+			if (im->im_fd != -1 && FD_ISSET(im->im_fd, &readfds)) {
+				int i = 0;
+
+				memset(&log, 0,sizeof(struct im_msg));
+
+				if ( !(im->im_func->im_getLog) || (i =
+						(*im->im_func->im_getLog)(im, &log, sglobals)) < 0) {
+					dprintf("Syslogd: Error calling input module"
+		       				" %s, for fd %d\n", im->im_name, im->im_fd);
+				}
+
+				/* log it if normal (1), (2) already logged */
+				if (i == 1) {
+					printline(log.im_host, log.im_msg, im->im_flags);
 				}
 			}
 		}

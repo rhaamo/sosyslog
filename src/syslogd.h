@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.65 2000/07/11 19:38:15 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.66 2000/07/13 21:18:41 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -165,8 +165,6 @@ struct imodule {
 	int	(*im_getLog) (struct i_module *, struct im_msg *, struct sglobals *);
 	int	(*im_timer) (struct i_module *, struct im_msg *, struct sglobals *);
 	void	*h;  /* handle to open dynamic library */
-	struct timeval delay;  /* delay between calls */
-	struct timeval next;  /* next time we'll be called */
 };
 
 	
