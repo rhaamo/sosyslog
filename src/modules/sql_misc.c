@@ -1,4 +1,4 @@
-/*	$CoreSDI: sql_misc.c,v 1.4 2000/09/14 21:35:26 alejo Exp $	*/
+/*	$CoreSDI: sql_misc.c,v 1.5 2000/09/15 00:00:02 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -47,17 +47,17 @@ to_sql(s)
 	char *p, *b;
 	int ns;
 
-	if(s == NULL)
+	if (s == NULL)
 		return NULL;
 	
-	for(p=s, ns=1+strlen(s); *p; p++) 
-		if(*p=='\'') ns++;
+	for (p=s, ns=1+strlen(s); *p; p++) 
+		if (*p=='\'') ns++;
 
-	if(NULL==(b=malloc(ns))) return NULL;
+	if (NULL==(b=malloc(ns))) return NULL;
 
 	p=b; 
-	for(;*s; s++) {
-		if(*s=='\'') *p++='\\';
+	for (;*s; s++) {
+		if (*s=='\'') *p++='\\';
 		*p++=*s;
 	}
 	*p=0;
