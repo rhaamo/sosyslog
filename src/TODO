@@ -1,9 +1,10 @@
-/*	$CoreSDI: TODO,v 1.38 2000/09/25 22:06:06 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.39 2000/09/26 00:12:08 alejo Exp $	*/
 
 Things to do:
 
 - solaris port
 - do not generate coredumps (via resource limits)
+- divide classic in om_file, om_udp, om_console, om_wall, om_user.
 - warn the when ignoring a line
 - tell about -i linux in syslogd(8)
 - fix time and date usage on syslogd.c and modules. it is UGLY.
