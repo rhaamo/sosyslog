@@ -1,7 +1,7 @@
-# BLOCK logs NOT containing the string 'connection reset by peer' to next module
+# PASS only logs NOT containing the string 'connection reset by peer' to next module
 *.emerg %regex -v -m 'connection reset by peer' %classic root
 
-# PASS ONLY logs containing the string 'disk full' to next module
+# PASS only logs containing the string 'disk full' to next module
 *.emerg %regex -m 'disk full' %classic root
 
 # PASS ONLY logs with host matching 'www'
