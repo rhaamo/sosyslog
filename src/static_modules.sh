@@ -77,9 +77,11 @@ do
 	if [ "$FIRST_CHAR" != "#" ] && [ $NAME ]; then
 		if [ "$TYPE" = "output" ] && [ "$MODE" = "static" ]; then
 			add_output
+			printf "%s " $NAME.o
 
  		elif [ "$TYPE" = "input" ] && [ "$MODE" = "static" ]; then
 			add_input
+			printf "%s " $NAME.o
 
  		elif ( [ "$TYPE" != "input" ] && [ "$TYPE" != "output" ] ) ||
  		     ( [ "$MODE" != "static" ] && [ "$MODE" != "dynamic" ] ); then
