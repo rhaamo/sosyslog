@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.1 2000/04/26 23:34:43 alejo Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.2 2000/04/26 23:58:44 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -62,9 +62,9 @@ static char rcsid[] = "$Id: om_peo.c,v 1.1 2000/04/26 23:34:43 alejo Exp $";
 #include <unistd.h>
 #include <sys/syslog.h>
 
-#include "syslogd.h"
-#include "modules.h"
-#include "peo/hash.h"
+#include "../syslogd.h"
+#include "../modules.h"
+#include "hash.h"
 
 struct om_peo_ctx {
 	short	flags;
