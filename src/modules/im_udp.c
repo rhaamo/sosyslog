@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.43 2000/09/14 00:52:04 alejo Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.44 2000/09/14 00:53:58 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -147,7 +147,7 @@ im_udp_init(struct i_module *I, char **argv, int argc) {
 		DaemonFlags |= SYSLOGD_FINET_READ;
         }
 
-	dprintf("im_udp_init: running.\n");
+	dprintf("im_udp: running.\n");
         return(1);
 }
 
@@ -158,7 +158,7 @@ im_udp_close(struct i_module *im) {
 		close(im->im_fd);
 		finet = im->im_fd;
 		DaemonFlags &= ~SYSLOGD_INET_IN_USE;
-		DaemonFlags &= ~SYSLOGD_INET_READ;
+		DaemonFlags &= ~SYSLOGD_FINET_READ;
 	} else {
 		close(im->im_fd);
 	}
