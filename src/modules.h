@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.23 2000/06/05 15:42:19 alejo Exp $	*/
+/*	$CoreSDI: modules.h,v 1.24 2000/06/06 00:14:04 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -60,7 +60,6 @@ extern int	MarkSeq;		/* mark sequence number */
 extern char	*TypeNames[];		/* names for f_types */
 
 extern char	*ConfFile;
-extern char	*PidFile;
 extern char	ctty[];
 
 extern int	repeatinterval[];

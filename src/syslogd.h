@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.49 2000/05/29 19:24:35 fgsch Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.50 2000/05/29 21:10:56 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -64,7 +64,6 @@
 #endif
 
 #define	_PATH_LOGCONF	"/etc/syslog.conf"
-#define	_PATH_LOGPID	"/var/run/syslog.pid"
 
 #define	dprintf		if (Debug) printf
 

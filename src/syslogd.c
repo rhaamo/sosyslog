@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.82 2000/06/05 23:14:25 fgsch Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.83 2000/06/05 23:22:04 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -84,12 +84,12 @@ static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $"
 #include <unistd.h>
 
 #define SYSLOG_NAMES
-#include <sys/syslog.h>
+#include <syslog.h>
 #include "config.h"
 #include "syslogd.h"
 
 char	*ConfFile = _PATH_LOGCONF;
-char	*PidFile = _PATH_LOGPID;
+char	PidFile[PATH_MAX];
 char	ctty[] = _PATH_CONSOLE;
 
 /*
@@ -218,6 +218,8 @@ main(argc, argv)
 	(void)signal(SIGCHLD, reapchild);
 	(void)signal(SIGALRM, domark);
 	(void)alarm(TIMERINTVL);
+
+	snprintf(PidFile, PATH_MAX, "%s/syslog.pid", PID_DIR);
 
 	/* tuck my process id away */
 	if (!Debug) {
