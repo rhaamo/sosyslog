@@ -95,14 +95,14 @@ om_mysql_doLog(f, flags, msg, context)
 	c = (struct om_mysql_ctx *) context;
 	memset(c->query, 0, MAX_QUERY);
 
-        if (msg == NULL) {
-        	if (f->f_prevcount > 1) {
-                	sprintf(mymsg, "last message repeated %d times",
-                    			f->f_prevcount);
+	if (msg == NULL) {
+		if (f->f_prevcount > 1) {
+				sprintf(mymsg, "last message repeated %d times",
+							f->f_prevcount);
 		} else {
-                	sprintf(mymsg, "%s", f->f_prevline);
-        	}
-        }
+				sprintf(mymsg, "%s", f->f_prevline);
+		}
+	}
 
 	host = f->f_prevhost;
 
