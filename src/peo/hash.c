@@ -1,4 +1,4 @@
-/*      $Id: hash.c,v 1.14 2000/05/09 19:18:39 claudio Exp $
+/*      $Id: hash.c,v 1.15 2000/05/13 01:41:49 claudio Exp $
  *
  * hash -- few things used by both peo output module and peochk 
  *
@@ -188,7 +188,7 @@ strdot (s)
 {
 	char *b;
 
-	if ( (b = s) == NULL)
+	if ( (b = s) != NULL)
 		while ( (b = strchr(b, '/')) != NULL)
 			*b = '.';
 	return (s);

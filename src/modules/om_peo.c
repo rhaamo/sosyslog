@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.17 2000/05/12 20:48:13 claudio Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.18 2000/05/13 01:41:49 claudio Exp $";
 #endif /* not lint */
 
 /*
@@ -109,11 +109,14 @@ om_peo_doLog(f, flags, msg, context)
 	}
 
 	/* open keyfile and read last key */
-	if ( (fd = open(c->keyfile, O_RDWR, 0)) == -1)
+	if ( (fd = open(c->keyfile, O_RDWR, 0)) == -1) {
+		dprintf ("opening keyfile: %s: %s\n", c->keyfile, strerror(errno));
 		return (-1);
+	}
 	bzero(key, 41);
 	if ( (keylen = read(fd, key, 40)) == -1) {
 		close(fd);
+		dprintf ("reading form: %s: %s\n", c->keyfile, strerror(errno));
 		return(-1);
 	}
 
@@ -121,11 +124,12 @@ om_peo_doLog(f, flags, msg, context)
 	if (c->macfile) {
 		if ( (mfd = open(c->macfile, O_WRONLY, 0)) == -1) {
 			close(fd);
-			dprintf ("%s: %s\n", c->macfile, strerror(errno));
+			dprintf ("opening macfile: %s: %s\n", c->macfile, strerror(errno));
 			return (-1);
 		}
 		lseek(mfd, 0, SEEK_END);
 		write(mfd, mkey, mac2(key, keylen, m, len, mkey));
+		dprintf ("write to macfile ok\n");
 		close(mfd);
 	}
 
@@ -134,6 +138,7 @@ om_peo_doLog(f, flags, msg, context)
 	ftruncate(fd, 0);
 	if ( (newkeylen = mac(c->hash_method, key, keylen, m, len, newkey)) == -1) {
 		close(fd);
+		dprintf ("generating key[i+1]: keylen = %i: %s\n", newkeylen, strerror(errno));
 		return (-1);
 	}
 	write(fd, newkey, newkeylen);

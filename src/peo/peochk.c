@@ -1,4 +1,4 @@
-/*      $Id: peochk.c,v 1.29 2000/05/12 20:48:14 claudio Exp $
+/*      $Id: peochk.c,v 1.30 2000/05/13 01:41:50 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
@@ -14,7 +14,7 @@
  *
  * defaults:
  *	logfile: 	/var/log/messages
- *	keyfile:	/var/ssyslog/var.log.messages.key
+ *	keyfile:	/var/ssyslog/.var.log.messages.key
  *	hash_method:	sha1
  *
  * NOTES:
@@ -109,7 +109,7 @@ usage()
 		"replaced by '.'\n\n"
 		"Default values:\n"
 		"\tlogfile    : /var/log/messages\n"
-		"\tkeyfile    : /var/ssyslog/var.log.messages.key\n"
+		"\tkeyfile    : /var/ssyslog/.var.log.messages.key\n"
 		"\tkey0file   : keyfile+\"0\"\n"
 		"\thash_method: sha1\n\n"
 		"If -l switch is specified, the mac'ed log file is "
@@ -405,17 +405,17 @@ main (argc, argv)
 	if (keyfile == default_keyfile && logfile != default_logfile) {
 		char *tmp;
 
-		if ( (tmp = strallocat("/var/log/ssyslog", logfile)) == NULL) {
+		if ( (tmp = strallocat("/var/ssyslog/", logfile)) == NULL) {
 			release();
 			err(-1, "buffer for keyfile");
 		}
+		strdot(tmp+13);
 		if ( (keyfile = strallocat(tmp, ".key")) == NULL) {
 			free(tmp);
 			release();
 			err(-1, "buffer for keyfile");
 		}
 		free(tmp);
-		strdot(&keyfile[16]);
 	}
 
 	/* if key0file was not specified create one */
