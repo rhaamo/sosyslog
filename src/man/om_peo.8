@@ -76,10 +76,49 @@ like this:
 .Pp
 When you want to check the protected file integrity you should use the
 peochk(8) command.
+.Sh BUGS
+Since the peo module is used to determine if a logfile is corrupted, care
+must be taken on the configuration file (syslog.conf(5)), the following
+is not correct:
+.Pp
+.in +3m
+.ll -3m
+*.err	/var/log/messages
+.sp 0i
+*.err	%peo -k /var/ssyslog/.var.log.messages
+.Pp
+.in -3m
+.ll +3m
+the following is wrong either:
+.Pp
+.in +3m
+.ll -3m
+*.err	%classic /var/log/messages
+.sp 0i
+*.err	%peo -k /var/ssyslog/.var.log.messages
+.Pp
+.in -3m
+.ll +3m
+The correct sentence is:
+.Pp
+.in +3m
+.ll -3m
+*.err	%classic /var/log/messages  %peo -k /var/ssyslog/.var.log.messages
+.Pp
+.in -3m
+.ll +3m
+or
+.Pp
+.in +3m
+.ll -3m
+*.err	%peo -k /var/ssyslog/.var.log.messages  %classic /var/log/messages
+.in -3m
+.ll +3m
 .Sh SEE ALSO
 .Xr om_classic 8 ,
 .Xr peochk 8 ,
 .Xr syslogd 8 ,
-.Xr syslog.conf 5
+.Xr syslog.conf 5 ,
+.Xr peo-1 7
 .Sh BUGS
 if you found bugs, please report them to syslog-bugs@core-sdi.com
