@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.41 2001/04/05 20:56:26 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.42 2001/05/29 22:13:59 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -294,7 +294,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	optreset = 1;
 #endif
 
-	while ((ch = getopt(argc, argv, "s:u:p:d:t:")) != -1) {
+	while ((ch = getopt(argc, argv, "s:u:p:d:t:c")) != -1) {
 		switch (ch) {
 		case 's':
 			/* get database host name and port */
@@ -318,7 +318,13 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 		case 't':
 			table = optarg;
 			break;
+		case 'c':
+			dprintf(MSYSLOG_INFORMATIVE, "(om_pgsql_init: "
+			    "ignoring 'c')\n");
+			break;
 		default:
+			dprintf(MSYSLOG_INFORMATIVE, "(om_pgsql_init: "
+			    "error on parameter '%c')\n", ch);
 			return (-1);
 		}
 	}
