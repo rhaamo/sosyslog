@@ -840,7 +840,10 @@ Optional Packages:
 	Use unix socket domain input module. Activated by default.
 
   --without-file
-	Use file/pip input module. Activated by default.
+	Use file input module. Activated by default.
+
+  --without-serial
+	Use serial input module. Activated by default.
 
   --without-streams
 	Use streams input module. Activated by default.
@@ -4524,9 +4527,9 @@ _ACEOF
 		#! .
 		m_dprintf
 		logerror
-		add_fd_input
+		watch_fd_input
 		place_signal
-		remove_fd_input
+		unwatch_fd_input
 		printline
 		EOF
 
@@ -4715,6 +4718,7 @@ fi
 
 
 fi;
+
 
 temp_res="no";
 
@@ -4981,6 +4985,38 @@ _ACEOF
 		MANPAGES="$MANPAGES im_file.8"
 fi
 
+
+# Check whether --with-serial or --without-serial was given.
+if test "${with_serial+set}" = set; then
+  withval="$with_serial"
+   temp_res="$with_serial";
+fi;
+if test "X$temp_res" = "Xyes" ; then
+		MSRCS="$MSRCS im_serial.c"
+		cat >>confdefs.h <<\_ACEOF
+#define HAVE_FILE_IMODULE 1
+_ACEOF
+
+		MANPAGES="$MANPAGES im_serial.8"
+fi
+
+
+# AC_ARG_WITH(doors,
+# [  --without-doors
+# 	Use doors kernel input module. Automatically detected.
+# ],[
+# 	if test "$with_doors" = "yes" ; then
+# 		MSRCS="$MSRCS im_doors.c"
+# 		MANPAGES="$MANPAGES im_doors.8"
+# 		AC_DEFINE(HAVE_LINUX_IMODULE)
+# 	fi
+# ],[
+# 	AC_CHECK_HEADER(sys/klog.h, [
+# 		MSRCS="$MSRCS im_doors.c"
+# 		MANPAGES="$MANPAGES im_doors.8"
+# 		AC_DEFINE(HAVE_LINUX_IMODULE)
+# 	])
+# ])
 
 temp_res=no
 

@@ -152,12 +152,12 @@ return (1);
  * poll serial descriptor
  *  the im_serial_poll subroutine knows how to poll its own serial descriptor.
  */
-int
+/* int
 im_serial_read(struct i_module *im)
 {
 return( 0 );
 }
-
+*/
 /*
  * read message
  */

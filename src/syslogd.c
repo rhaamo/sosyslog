@@ -578,10 +578,8 @@ exit(-1);
 		if (DaemonFlags & SYSLOGD_MARK) markit();
 		if (WantDie) die(WantDie);
 
-		if (poll_fd == NULL) {
-			m_dprintf(MSYSLOG_CRITICAL, "no input struct");
-exit(-1);
-		}
+		if (poll_fd == NULL)
+			m_dprintf(MSYSLOG_WARNING, "no pollable input module");
 
     /* examine/process each of the input modules */
 		/* count will always be less than poll_fd_cnt */
