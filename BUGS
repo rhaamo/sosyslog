@@ -1,0 +1,7 @@
+Bugs to fix
+-----------
+
+- check permissions on syslogd.conf and all other files
+- thinker a bit more about mysql and pgsql passwords
+- repeats on doLog and not other places
+
