@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.85 2000/06/05 23:14:24 fgsch Exp $	*/
+/*	$CoreSDI: modules.c,v 1.86 2000/06/05 23:22:03 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -247,7 +247,8 @@ modules_init (I, line)
 }
 
 /* create all necesary modules for a specific filed */
-int omodule_create(c, f, prog)
+int
+omodule_create(c, f, prog)
 	char *c;
 	struct filed *f;
 	char *prog;
