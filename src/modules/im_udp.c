@@ -73,8 +73,10 @@ im_udp_getLog( i, ret)
 
 	ret->pid = -1;
 	ret->pri = -1;
-	ret->pid = -1;
-	ret->pid = -1;
+	ret->flags = 0;
+	ret->len = strlen(line);
+	ret->msg = strdup(line);
+	ret->host = NULL;
 	return(-1);
 
 }
