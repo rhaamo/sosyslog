@@ -1,4 +1,4 @@
-/*      $Id: hash.c,v 1.12 2000/05/06 00:58:22 claudio Exp $
+/*      $Id: hash.c,v 1.13 2000/05/08 21:11:32 claudio Exp $
  *
  * hash -- few things used by both peo output module and peochk 
  *
@@ -209,7 +209,7 @@ strallocat (s1, s2)
 	int   size;
 
 	if ( (dest = (char*) calloc(1, (size = strlen(s1) + strlen(s2) + 1))) != NULL)
-		snprintf (dest, size-1, "%s%s", s1, s2);
+		snprintf (dest, size, "%s%s", s1, s2);
 
 	return (dest);
 }

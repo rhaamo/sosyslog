@@ -1,4 +1,4 @@
-/*      $Id: peochk.c,v 1.22 2000/05/08 20:25:18 claudio Exp $
+/*      $Id: peochk.c,v 1.23 2000/05/08 21:11:32 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
@@ -159,17 +159,17 @@ qerr (int quiet, int op, int eval, char *fmt, ...)
 {
 	va_list	ap;
 
-	if (quiet) {
-		va_start(ap, fmt);
-		switch(op) {
-			case ERR:  /* err */
-				verr(eval, fmt, ap);
-			case ERRX: /* errx */
-			default:
-				verrx(eval, fmt, ap);
-		}
+	if (quiet)
+		exit(eval);
+
+	va_start(ap, fmt);
+	switch(op) {
+		case ERR:  /* err */
+			verr(eval, fmt, ap);
+		case ERRX: /* errx */
+		default:
+			verrx(eval, fmt, ap);
 	}
-	exit(eval);
 }
 
 
@@ -255,7 +255,7 @@ check()
 	if (memcmp(lastkey, key, keylen)) 
 		qerr(actionf & QUIET, ERRX, 1, "%s %s\n", logfile, corrupted);
 
-	if (actionf & QUIET)
+	if (!(actionf & QUIET))
 		fprintf(stderr, "%s file is ok\n", logfile);
 }
 
@@ -391,12 +391,13 @@ main (argc, argv)
 		}
 
 	/* if keyfile was not specified converted logfile is used instead */
-	if (keyfile == default_keyfile && logfile != default_logfile)
+	if (keyfile == default_keyfile && logfile != default_logfile) {
 		if ( (keyfile = strallocat("/var/log/ssyslog/", logfile)) == NULL) {
 			release();
 			qerr(0, ERR, -1, "buffer for keyfile");
 		}
-	strdot(&keyfile[17]);
+		strdot(&keyfile[17]);
+	}
 
 	/* if key0file was not specified create one */
 	if (key0file == NULL)
