@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.4 2000/05/30 18:57:20 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.5 2000/05/30 22:29:47 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -55,6 +55,7 @@
 #include "syslogd.h"
 
 
+
 /*
  * initialize linux kernel input
  */
@@ -65,6 +66,7 @@ im_linux_init(I, argv, argc)
 	char	**argv;
 	int	argc;
 {
+	dprintf ("im_linux_init...\n");
 	if ((I->im_fd = open(_PATH_KLOG, O_RDONLY, 0)) >= 0)
         	I->im_path = strdup(_PATH_KLOG);
 	else if (errno == ENOENT) {
@@ -72,7 +74,7 @@ im_linux_init(I, argv, argc)
 		I->im_fd = 0;
 	} else 
 		dprintf("can't open %s (%d)\n", _PATH_KLOG, errno);
-	
+
         I->im_type = IM_LINUX;
         I->im_name = strdup("linux");
         I->im_flags |= IMODULE_FLAG_KERN;
@@ -80,32 +82,6 @@ im_linux_init(I, argv, argc)
 }
 
 
-
-/*
- * readline
- */
-int
-readline (fd, buf, len)
-	int     fd;
-	char   *buf;
-	size_t  len;
-{
-	int readed;
-	int r;
-
-	readed = 0;
-	while (len) {
-		if ( (r = read(fd, buf, 1)) == -1)
-			return (-1);
-		if (!r || *buf == '\n')
-			break;
-		buf++;
-		readed++;
-		len--;
-	}
-	*buf = '\0';
-	return readed;
-}
 
 /*
  * get kernel messge
@@ -126,7 +102,7 @@ im_linux_getLog(im, ret)
 
 	/* read message from kernel */
 	if (im->im_path)
-		readed = readline(im->im_fd, im->im_buf, sizeof(im->im_buf));
+		readed = read(im->im_fd, im->im_buf, sizeof(im->im_buf));
 	else
 		/* readed = klogctl(2, im->im_buf, sizeof(im->im_buf)); */ /* this blocks */
 		readed = klogctl(4, im->im_buf, sizeof(im->im_buf));/*this don't block,testing!*/
@@ -137,9 +113,7 @@ im_linux_getLog(im, ret)
 			return(-1);
 		}
 
-	/* only when not using readline 
 	im->im_buf[readed-1] = '\0';
-	*/
 
 	/* parse kernel and module symbols (include priority) */
 	;;;
@@ -227,3 +201,170 @@ im_linux_close(im)
 
 	return(0);
 }
+
+
+
+/*
+ * Kernel Symbols Management
+ */
+
+#define PATH_KSYM	"/proc/ksyms"
+#define MAX_ADDR_LEN	16
+#define MAX_NAME_LEN	80
+#define MAX_MNAME_LEN	20
+
+typedef struct Symbol {
+	char addr[MAX_ADDR_LEN];
+	char name[MAX_NAME_LEN];
+	char mname[MAX_MNAME_LEN];
+};
+
+int symbols = 0;
+FILE *ksym_fd = NULL;
+Symbol *symbol_table = NULL;
+
+
+/* open/init symbol table */
+int
+ksym_init(I)
+	struct i_module *I;
+{
+	ksym_close();
+	if ( (ksym_fd = fopen(PATH_KSYM, "r")) < 0) {
+		/* leer la ksym a mano */
+	}
+	return(0);
+}
+
+
+/* close/delete symbol table */
+void
+ksym_close()
+{
+	if (ksym_fd != NULL) {
+		fclose(ksym_fd);
+		ksym_fd = NULL;
+	}
+	if (symbol_table != NULL) {
+		free(symbol_table)
+		symbol_table = NULL;
+		symbols = 0;
+	}
+}
+
+
+/* lookup symbol */
+Symbol*
+ksym_lookup(sym, addr)
+	Symbol *sym;
+	char *addr;
+{
+	while (ksym_getSymbol(sym)) {
+		if (!ksym_getSymbol(sym))
+			break;
+		if (!strcasecmp(sym->addr, addr))
+			return(sym);
+	}
+	return(NULL);
+}
+
+
+/*
+ * Get a symbol from file or table
+ *
+ * int
+ * ksym_getSymbol(op, sym)
+ *	int op;
+ *	Symbol *sym;
+ *
+ * op = 0 => reset, get first symbol on table
+ *    = 1 => get next symbol
+ *
+ * returns: 0 => no more symbols on table
+ *	    1 => symbol loaded on sym
+ */
+int
+ksym_getSymbol(op, sym)
+	int op;
+	Symbol *sym;
+{
+	static int offset = 0;
+	int readed;
+	char msg[MAXLINE];
+
+	switch(op) {
+		case 0: /* reset, and get first symbol */
+			if (ksym_fd < 0)
+				offset = 0;
+			else
+				fseek(ksym_fd, 0, SEEK_SET);
+
+		case 1: /* get next symbol */
+		default:
+			if (ksym_fd != NULL) {
+				if (++offset == symbols)
+					return(0);
+				sym = symbol_table[offset];
+			} else {
+				if ( (readed = fgets(msg, MAXLINE, ksym_fd)) <= 0)
+					return(0);
+				if (!ksym_parseLine(msg, sym))
+					
+			}
+	}
+	return(1);
+}
+
+
+/*
+ * ksym_parseLine (readed from ksyms file)
+ * returns 1 on success and 0 on error
+ */
+int
+ksym_parseLine (msg, sym)
+	char *msg;
+	Symbol *sym;
+{
+	int addr_offset;
+	int name_offset;
+	int module_offset;
+	char *p;
+
+	if (sym == NULL || msg == NULL || msg[0] == '\0')
+		return(0);
+
+	addr_offset = 0;
+	name_offset = 0;
+	module_offset = 0;
+	p = msg;
+
+	/* search beginning of address */
+	while(isblank(*p) || *p == '\0' || *p == '\n')
+		p++;
+	if (*p == '\0' || *p == '\n')
+		return(0);
+	addr_offset = (int)(p - msg - 1);
+
+	/* search beginning of symbol name */
+	while(!isblank(*p) && *p == '\0' && *p == '\n')
+		p++;
+	if (*p == '\0' || *p == '\n')
+		return(0);
+	*(p-1) = '\0';
+	while(isblank(*p) || *p == '\0' || *p == '\n')
+		p++;
+	name_offset = (int)(p - msg - 1);
+
+	/* search beginning of module symbol name */
+	while(!isblank(*p) && *p == '\0' && *p == '\n')
+		p++;
+
+
+		HACER BIEN ESTO!
+
+
+	}
+
+	return(0);
+}
+
