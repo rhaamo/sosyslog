@@ -75,6 +75,7 @@ struct om_regex_ctx {
 #define	OM_FILTER_DATE		0x04
 #define	OM_FILTER_TIME		0x08
 #define	OM_FILTER_INVERSE	0x10
+#define	OM_FILTER_SUBST   0x20
 	regex_t		msg_exp;
 	regex_t		host_exp;
 	regex_t		date_exp;
@@ -134,12 +135,17 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 
 	for (argcnt = 1;   /* skip module name */
        (ch = getxopt(argc, argv, 
-         "v!reverse!inverse m!message: h!host: d!date: t!time:",
+      "v!reverse!inverse m!message: h!host: d!date: t!time: s!subst:",
           &argcnt)) != -1;
        argcnt++) {
 
 		switch (ch) {
 		case 'v':
+      if (c->filters & OM_FILTER_SUBST) {
+			  m_dprintf(MSYSLOG_SERIOUS, "om_regex: error compiling "
+			    "inverse regular expression incompatible with substitution\n");
+			break;
+      }
 			c->filters |= OM_FILTER_INVERSE;
 			statbuf_len += snprintf(statbuf + statbuf_len,
 			    sizeof(statbuf) - statbuf_len, ", inverse");
@@ -167,6 +173,18 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 			c->filters |= OM_FILTER_TIME;
 			creg = &c->time_exp;
 			p = ", time";
+			break;
+
+		case 's':
+      if (c->filters & OM_FILTER_INVERSE) {
+			  m_dprintf(MSYSLOG_SERIOUS, "om_regex: error compiling "
+			    "substitution incompatible with inverse regular expression\n");
+			break;
+      }
+		  m_dprintf(MSYSLOG_SERIOUS, "om_regex: error compiling "
+			    "substitution not yet implemented\n");
+			break;
+			c->filters |= OM_FILTER_SUBST;
 			break;
 
 		default:

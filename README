@@ -1,6 +1,4 @@
 /*	$CoreSDI: README,v 1.20 2002/03/04 21:47:14 claudio Exp $	*/
-
-
   
   
 SPECIAL NOTE
@@ -29,7 +27,7 @@ syslog daemon implementation, with many improvements (ie. log hash protection).
 This project is intended as a whole revision of previous Secure Syslogd
 project (wich is unsupported by now). It has all functionalities and some
 more. The remaining things are Solaris support and Audit compatibility
-(on the works).
+(in the works).
 
 There are also a few lines taken from the sysklogd project, wich got them
 modified from BSD. Specifically the '!', '=' use on configuration.
@@ -40,18 +38,12 @@ Reporting Bugs
 Submit bugs at this project's Sourceforge Bug reporting system at:
 http://sourceforge.net/tracker/?func=add&group_id=25741&atid=385117
 
-You may also report them directly to the authors; send an email to
-core.devel.alat@corest.com, describing the problem the most you can,
-containing also machine description, hardware description, the
-configuration file (/etc/syslog.conf), the OS description, and the
-invoking command line.
-
 The more you describe the bug, the faster we can fix it.
 
 Known Bugs
 ----------
 
-- If a module blocks on I/O the hole daemon blocks, and messages can get lost
+- If a module blocks on I/O the whole daemon blocks, and messages can get lost
   on extremely busy hosts.
 
 
