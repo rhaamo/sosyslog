@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.157 2000/12/19 21:25:06 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.158 2001/01/02 21:42:57 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.157 2000/12/19 21:25:06 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.158 2001/01/02 21:42:57 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -211,18 +211,6 @@ main(int argc, char **argv) {
 	imodules = NULL;
 	omodules = NULL;
 
-	if (!Debug) {
-		struct rlimit r;
-
-		/* no core dumping */
-		r.rlim_cur = 0;
-		r.rlim_max = 0;
-		if (setrlimit(RLIMIT_CORE, &r)) {
-			logerror("ERROR setting limits for coredump");
-		}
-
-	}
-
 	/* Load main modules library */
 	if (modules_start() < 0) {
 		dprintf(DPRINTF_CRITICAL)("Error starting modules! \n");
@@ -286,6 +274,18 @@ main(int argc, char **argv) {
 
 	if (((argc -= optind) != 0) || Inputs.im_fd < 0)
 		usage();
+
+	if (!Debug) {
+		struct rlimit r;
+
+		/* no core dumping */
+		r.rlim_cur = 0;
+		r.rlim_max = 0;
+		if (setrlimit(RLIMIT_CORE, &r)) {
+			logerror("ERROR setting limits for coredump");
+		}
+
+	}
 
 	if (!Debug) {
 		int fd;

@@ -1,4 +1,4 @@
-/*      $CoreSDI: im_streams.c,v 1.5 2000/12/04 23:25:29 alejo Exp $   */
+/*      $CoreSDI: im_streams.c,v 1.6 2000/12/14 00:16:44 alejo Exp $   */
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -184,7 +184,6 @@ int do_streams_init (I)
 		return (-1);
 	} else {
 		struct strioctl ioctbuf;
-		struct stat     statbuf;
 
 		memset (&ioctbuf, 0, sizeof(ioctbuf));
 

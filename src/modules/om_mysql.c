@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.57 2000/12/14 00:16:45 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.58 2001/01/02 21:42:57 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -251,8 +251,14 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 	    || ctx->port == 0 || ctx->host == NULL || ctx->table == NULL)
 		goto om_mysql_init_bad;
 
+	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: calling "
+	    "mysql_init %p\n", mysql_init);
+
+	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: params %p\n",
+	    ctx->h);
+
 	/* connect to the database */
-	if (!mysql_init(ctx->h)) {
+	if (! (ctx->h = mysql_init(NULL))) {
 
 		snprintf(err_buf, sizeof(err_buf), "om_mysql_init: Error "
 		    "initializing handle");
@@ -260,7 +266,11 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 		goto om_mysql_init_bad;
 	}
 
-	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: calling mysql_real_connect\n");
+	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: mysql_init returned %p\n",
+	    ctx->h);
+
+	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: calling "
+	    "mysql_real_connect %p\n", mysql_real_connect);
 
 	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: params %p %s %s %s %s %i \n",
 	    ctx->h, ctx->host, ctx->user, ctx->passwd, ctx->db, ctx->port);
