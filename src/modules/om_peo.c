@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.32 2000/05/29 23:48:00 claudio Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.33 2000/06/02 22:33:02 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -97,16 +97,15 @@ om_peo_doLog(f, flags, msg, ctx)
 
 	c = (struct om_peo_ctx*) ctx;
 
-	if (msg == NULL)
-		len = snprintf(m, MAXBUF, "%s %s %s\n", f->f_lasttime, f->f_prevhost, f->f_prevline)-1;
-	else
-		len = snprintf(m, MAXBUF, "%s %s %s\n", f->f_lasttime, f->f_prevhost, msg)-1;
+	len = snprintf(m, MAXBUF, "%s %s %s\n", f->f_lasttime, f->f_prevhost,
+	    msg ? msg : f->f_prevline) - 1;
 
 	dprintf ("len = %i, msg = %s\n ", len, m);
 
 	/* open keyfile and read last key */
 	if ( (fd = open(c->keyfile, O_RDWR, 0)) == -1) {
-		dprintf ("opening keyfile: %s: %s\n", c->keyfile, strerror(errno));
+		dprintf ("opening keyfile: %s: %s\n", c->keyfile,
+		    strerror(errno));
 		return (-1);
 	}
 	bzero(key, 41);
@@ -189,7 +188,8 @@ om_peo_init(argc, argv, f, prog, ctx)
 
 	dprintf("peo output module init: called by %s\n", prog);
 	
-	if (argv == NULL || *argv == NULL || argc == 0 || f == NULL || ctx == NULL)
+	if (argv == NULL || *argv == NULL || argc == 0 || f == NULL ||
+	    ctx == NULL)
 		return (-1);
 
 	/* default values */
@@ -258,7 +258,8 @@ om_peo_init(argc, argv, f, prog, ctx)
 	c->macfile = macfile;
 	*ctx = (struct om_header_ctx*) c;
 
-	dprintf ("method: %d\nkeyfile: %s\nmacfile: %s\n", hash_method, keyfile, macfile);
+	dprintf ("method: %d\nkeyfile: %s\nmacfile: %s\n", hash_method,
+	    keyfile, macfile);
 
 	return (1);
 }
@@ -280,14 +281,3 @@ om_peo_close(f, ctx)
 		free(c->macfile);
 	return (0);
 }
-
-int
-om_peo_flush(f, ctx)
-	struct filed *f;
-	struct um_header_ctx *ctx;
-{
-	/* no data to flush */
-	return (0);
-}
-
-
