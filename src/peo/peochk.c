@@ -1,4 +1,4 @@
-/*	$CoreSDI: peochk.c,v 1.35.2.2 2000/09/05 23:42:39 alejo Exp $	*/
+/*	$CoreSDI: peochk.c,v 1.40 2000/10/31 19:42:15 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -68,7 +68,9 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 
+#if !((__svr4__ && __sun__) || sgi)
 #include <err.h>
+#endif
 #include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>
@@ -197,21 +199,29 @@ check()
 	/* open logfile */
 	if (actionf & ST_IN)
 		input = STDIN_FILENO;
-	else if ( (input = open(logfile, O_RDONLY, 0)) == -1)
-		err(-1, logfile);
+	else if ( (input = open(logfile, O_RDONLY, 0)) == -1) {
+		perror(logfile);
+		exit(-1);
+	}
 
 	mfd = 0;	/* shutup gcc */
 
 	/* open macfile */
 	if (macfile)
-		if ( (mfd = open(macfile, O_RDONLY, 0)) == -1)
-			err(-1, macfile);
+		if ( (mfd = open(macfile, O_RDONLY, 0)) == -1) {
+			perror(macfile);
+			exit(-1);
+		}
 
 	/* read initial key (as ascii string) and tranlate it to binary */
-	if ( (i = open(key0file, O_RDONLY, 0)) == -1)
-		err(-1, key0file);
-	if ( (keylen = read(i, key, 40)) == -1)
-		err(-1, key0file);
+	if ( (i = open(key0file, O_RDONLY, 0)) == -1) {
+		perror(key0file);
+		exit(-1);
+	}
+	if ( (keylen = read(i, key, 40)) == -1) {
+		perror(key0file);
+		exit(-1);
+	}
 	if (!keylen) {
 		if (actionf & QUIET)
 			eexit(1, "1\n");
@@ -224,10 +234,14 @@ check()
 	close(i);
 
 	/* read last key */
-	if ( (i = open(keyfile, O_RDONLY, 0)) == -1)
-		err(-1, keyfile);
-	if ( (lastkeylen = read(i, lastkey, 20)) == -1)
-		err(-1, keyfile);
+	if ( (i = open(keyfile, O_RDONLY, 0)) == -1) {
+		perror(keyfile);
+		exit(-1);
+	}
+	if ( (lastkeylen = read(i, lastkey, 20)) == -1) {
+		perror(keyfile);
+		exit(-1);
+	}
 	if (!lastkeylen) {
 		if (actionf & QUIET)
 			eexit(1, "1\n");
@@ -248,27 +262,38 @@ check()
 	line = 1;
 	while( (msglen = readline(input, msg, MAXLINE)) > 0) {
 		if (macfile) {
-			if ( (mkey1len = mac2(key, keylen, msg, msglen, mkey1)) < 0)
-				err(-1, macfile);
-			if ( (mkey2len = read(mfd, mkey2, mkey1len)) < 0)
-				err(-1, macfile);
-			if ((mkey2len != mkey1len) || memcmp(mkey2, mkey1, mkey1len)) {
+			if ( ((mkey1len = mac2(key, keylen, msg, msglen,
+			    mkey1)) < 0) || ((mkey2len = read(mfd, mkey2,
+			    mkey1len)) < 0) ) {
+				perror(macfile);
+				exit(-1);
+			}
+			if ((mkey2len != mkey1len) || memcmp(mkey2, mkey1,
+			    mkey1len)) {
 				if (actionf & QUIET)
 					eexit(1, "%i\n", line);
 				else
-					eexit(1, "(%i) %s %s on line %i\n", line, logfile, corrupted, line);
+					eexit(1, "(%i) %s %s on line %i\n",
+					    line, logfile, corrupted, line);
 			}
 			line++;
 		}
-		if ( (keylen = mac(method, key, keylen, msg, msglen, key)) == -1)
-			err(-1, "fatal");
+		if ( (keylen = mac(method, key, keylen, msg, msglen, key))
+		    == -1) {
+			perror("fatal");
+			exit(-1);
+		}
 	}
 
 	if (macfile)
 		close(mfd);
 
-	if (i < 0)
-		errx(-1, "error reading logs form %s", (actionf & ST_IN) ? "standard input" : logfile);
+	if (i < 0) {
+		fprintf(stderr, "error reading logs form %s : %s\n",
+		    (actionf & ST_IN) ? "standard input" : logfile,
+		    strerror(errno));
+		exit(-1);
+	}
 
 	if (memcmp(lastkey, key, keylen)) {
 		if (actionf & QUIET) 
@@ -300,21 +325,25 @@ generate()
 
 	if (getrandom(randvalue, 20) < 0) {
 		release();
-		err(-1, "getrandom");
+		perror("getrandom");
+		exit(-1);
 	}
 	if ( (keylen = mac(method, NULL, 0, randvalue, 20, key)) == -1) {
 		release();
-		err(-1, "fatal");
+		perror("fatal");
+		exit(-1);
 	}
 	if ( (kfd = open(keyfile, O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR)) == -1) {
 		release();
-		err(-1, keyfile); 
+		perror(keyfile);
+		exit(-1);
 	}
 	if ( (k0fd = open(key0file, O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR)) == -1) {
 		unlink(keyfile);
 		close(kfd);
 		release();
-		err(-1, key0file);
+		perror(key0file);
+		exit(-1);
 	}
 
 	/* write key 0 */
@@ -354,7 +383,8 @@ main (int argc, char **argv)
 					free(logfile);
 				if ( (logfile = strrealpath(optarg)) == NULL) {
 					release();
-					err(-1, optarg);
+					perror(optarg);
+					exit(-1);
 				}
 				actionf &= ~ST_IN;
 				break;
@@ -368,7 +398,8 @@ main (int argc, char **argv)
 					free(key0file);
 				if ( (key0file = strdup(optarg)) == NULL) {
 					release();
-					err(-1, optarg);
+					perror(optarg);
+					exit(-1);
 				}
 				break;
 			case 'k':
@@ -377,7 +408,8 @@ main (int argc, char **argv)
 					free(keyfile);
 				if ( (keyfile = strdup(optarg)) == NULL) {
 					release();
-					err(-1, optarg); 
+					perror(optarg);
+					exit(-1);
 				}
 				break;
 			case 'l':
@@ -408,7 +440,8 @@ main (int argc, char **argv)
 	if (argc && (actionf & ST_IN))
 		if ( (logfile = strrealpath(argv[argc-1])) == NULL) {
 			release();
-			err(-1, argv[argc-1]);
+			perror(argv[argc-1]);
+			exit(-1);
 		}
 
 	/* if keyfile was not specified converted logfile is used instead */
@@ -417,13 +450,15 @@ main (int argc, char **argv)
 
 		if ( (tmp = strallocat("/var/ssyslog/", logfile)) == NULL) {
 			release();
-			err(-1, "buffer for keyfile");
+			perror("buffer for keyfile");
+			exit(-1);
 		}
 		strdot(tmp+13);
 		if ( (keyfile = strallocat(tmp, ".key")) == NULL) {
 			free(tmp);
 			release();
-			err(-1, "buffer for keyfile");
+			perror("buffer for keyfile");
+			exit(-1);
 		}
 		free(tmp);
 	}
@@ -432,14 +467,16 @@ main (int argc, char **argv)
 	if (key0file == NULL)
 		if ( (key0file = strkey0(keyfile)) == NULL) {
 		release();
-		err(-1, "creating key0 file");
+		perror("creating key0 file");
+		exit(-1);
 		}
 
 	/* create macfile */
 	if (mac)
 		if ( (macfile = strmac(keyfile)) == NULL) {
 			release();
-			err(-1, "creating mac file");
+			perror("creating mac file");
+			exit(-1);
 		}
 
 	/* execute action */

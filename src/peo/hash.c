@@ -1,4 +1,4 @@
-/*	$CoreSDI: hash.c,v 1.31 2000/10/31 19:42:15 alejo Exp $	*/
+/*	$CoreSDI: hash.c,v 1.32 2000/11/01 18:18:04 alejo Exp $	*/
  
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -61,6 +61,7 @@
 #endif
 
 #include "hash.h"
+#include "../conditional.h"
 
 
 char *default_keyfile = "/var/ssyslog/.var.log.messages.key";
