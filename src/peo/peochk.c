@@ -1,6 +1,8 @@
-/*      $Id: peochk.c,v 1.7 2000/04/27 00:50:46 claudio Exp $
+/*      $Id: peochk.c,v 1.8 2000/04/27 17:21:49 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
+ *
+ * Author: Claudio Castiglia for Core-SDI SA
  *
  *
  * peochk [-f logfile] [-g] [-i key0file] [-k keyfile] [-m hash_method] [logfile]
@@ -102,6 +104,18 @@ usage()
 
 
 /*
+ * readline
+ */
+int readline (fd, buf, len)
+	int fd;
+	void *buf;
+	size_t len;
+{
+return (-1);
+}
+
+
+/*
  * check: read logfile and check it
  */
 void
@@ -148,7 +162,7 @@ check()
 		errx(1, "%s and/or %s files corrupted", key0file, keyfile);
 
 	/* check it */
-	while( (i = read(input, msg, MAXLINE)) > 0) {
+	while( (i = readline(input, msg, MAXLINE)) > 0) {
 		msg[i] = 0;
 		keylen = hash(method, key, keylen, msg, key);
 	}

@@ -39,13 +39,13 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.2 2000/04/26 23:58:44 alejo Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.3 2000/04/27 17:21:48 claudio Exp $";
 #endif /* not lint */
 
 /*
  *  om_peo -- peo autentication
  *
- * Author: Alejo Sanchez for Core-SDI SA
+ * Author: Claudio Castiglia for Core-SDI SA
  *
  */
 
