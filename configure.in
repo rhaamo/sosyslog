@@ -64,7 +64,7 @@ then
 	EXTRA_SRCS="$EXTRA_SRCS \$(MYSQL_SRCS)"
 	CFLAGS="$CFLAGS -I$with_mysql/include"
 	LDFLAGS="$LDFLAGS -L$with_mysql/lib"
-	LIBS="$LIBS -lmysql"
+	LIBS="$LIBS -lmysqlclient"
 	AC_DEFINE(MYSQL_ENABLE)
 else
 	echo "Disabling MySQL support..."
