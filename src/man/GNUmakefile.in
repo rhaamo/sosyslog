@@ -1,4 +1,4 @@
-# $CoreSDI: GNUmakefile.in,v 1.12 2001/01/27 01:04:19 alejo Exp $
+# $CoreSDI: GNUmakefile.in,v 1.13 2001/03/07 21:35:13 alejo Exp $
 #
 # Copyright (c) 2001, Core SDI S.A., Argentina
 # All rights reserved
@@ -40,7 +40,7 @@ install maninstall: $(OMAN)
 
 $(OMAN):
 	-if [ ! -d $(MANDIR) ]; then \
-		install -d $(MANDIR) \
+		install -d $(MANDIR) ; \
 	fi
 	-gzip -cf $(@:%.gz=%) > $(MANDIR)/man$(subst .,,$(suffix $(@:%.gz=%)))/$@
 
