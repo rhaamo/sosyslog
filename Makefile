@@ -1,7 +1,7 @@
 #	$OpenBSD: Makefile,v 1.3 1997/09/21 11:44:29 deraadt Exp $
 
 CC	=	gcc
-CFLAGS	=	-Wall -ggdb
+CFLAGS	=	-O4 -Wall -ggdb
 LDADD=	-lc
 #-L/usr/local/lib/mysql -lmysqlclient
 COMPILE	=	$(CC) $(CFLAGS) -c $(.ALLSRC)

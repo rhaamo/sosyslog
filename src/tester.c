@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <syslog.h>
 #include <varargs.h>
 #include <unistd.h>
@@ -13,19 +15,17 @@ int lfacility[] = { LOG_AUTH, LOG_AUTHPRIV, LOG_CRON, LOG_DAEMON, LOG_FTP,
 			LOG_LOCAL2, LOG_LOCAL3, LOG_LOCAL4, LOG_LOCAL5,
 			LOG_LOCAL6, LOG_LOCAL7 };
 
-void
-usage(char *pname) {
-  printf("Usage:  %s <-l level> <-o option> <-f facility> "
-         " <-m 'message'> <-d>\n"
-	 "        you may specify multiple options\n"
-	 "        you MUST specify l,o,f together\n");
-  exit(-1);
-}
+int logUdp(char *);
+int logTcp(char *);
+void usage(char *);
 
 #define dprintf		if (Debug) printf
 
 int
-main(int argc, char *argv[]) {
+main(argc, argv)
+	int	 argc;
+	char	*argv[];
+{
   int l, o, f, ch, started, m, Debug;
   char *pname, msg[512];
   extern char *optarg;
@@ -55,7 +55,16 @@ main(int argc, char *argv[]) {
               case 'd':
                       Debug++;
                       break;
+              case 'u':
+                      if (logUdp((char *) optarg) < 0)
+                      	printf("Udp error loggin to %s\n", optarg);
+                      break;
+              case 't':
+                      if (logTcp((char *) optarg) < 0)
+                      	printf("Tcp error loggin to %s\n", optarg);
+                      break;
               case '?':
+              case 'h':
               default:
                       usage(pname);
           }
@@ -92,3 +101,42 @@ main(int argc, char *argv[]) {
   return (1);
 }
   
+/*
+ * log to a syslogd thru UDP
+ *
+ */
+
+int
+logUdp(host)
+	char *host;
+{
+	return(-1);
+}
+
+/*
+ * log to a syslogd thru TCP
+ *
+ */
+
+int
+logTcp(host)
+	char *host;
+{
+	return(-1);
+}
+
+void
+usage(pname)
+	char *pname;
+{
+  printf("Usage:  %s <-l level> <-o option> <-f facility> "
+         " <-m 'message'> <-d>\n"
+	 "        you may specify multiple options\n"
+	 "        or\n"
+	 "        %1$s -u <host:<port>>  UDP connections\n"
+	 "        or\n"
+	 "        %1$s -t <host:<port>>  TCP connections\n"
+	 "        \n", pname);
+  exit(-1);
+}
+
