@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.31 2000/04/18 17:34:06 gera Exp $
+/*	$Id: syslogd.c,v 1.32 2000/04/18 17:57:27 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -237,7 +237,7 @@ main(argc, argv)
 		struct i_module *im;
 
 		FD_ZERO(&readfds);
-		from (im = Inputs; im ; im = im->im_next) {
+		for (im = Inputs; im ; im = im->im_next) {
 			if (im->fd != -1) {
 				FD_SET(im->fd, &readfds);
 				if (im->fd > nfds)
