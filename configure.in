@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.100 2001/03/14 22:26:00 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.101 2001/03/14 22:31:30 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -113,7 +113,7 @@ AC_EGREP_HEADER(yes, [
 #include <signal.h>
 #ifdef stack_t
 yes
-endif
+#endif
 ],[
 	AC_DEFINE(SIGALTSTACK_WITH_STACK_T)
 	AC_MSG_RESULT(yes)
