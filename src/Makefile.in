@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.5 2000/06/08 00:45:17 fgsch Exp $
+# $CoreSDI: Makefile.in,v 1.6 2000/06/09 18:54:27 fgsch Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -40,8 +40,8 @@ SRCS=		modules.c syslogd.c ttymsg.c \
 		peo/hash.c
 LINUX_SRCS=	modules/im_linux.c
 SQL_SRCS=	modules/sql_misc.c
-MYSQL_SRCS=	modules/om_mysql.c 
-PGSQL_SRCS=	modules/om_pgsql.c
+MYSQL_SRCS=	modules/om_mysql.c $(SQL_SRCS)
+PGSQL_SRCS=	modules/om_pgsql.c $(SQL_SRCS)
 SRCS+=		@EXTRA_SRCS@
 OBJS=		${SRCS:.c=.o}
 
