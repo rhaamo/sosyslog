@@ -173,14 +173,16 @@ im_serial_read(struct i_module *im, int infd, struct im_msg  *ret)
   int wchr;
 	int nx;
 	struct im_serial_ctx	*c = (struct im_serial_ctx *) (im->im_ctx);
+#ifdef IGNORE_PIPES
 	RETSIGTYPE (*sigsave)(int);
+#endif
 
  	m_dprintf(MSYSLOG_INFORMATIVE, "im_serial_read: entering...\n");
 
-  /* ignore sigserials */
-  /*
-  sigsave = place_signal(SIGPIPE, SIG_IGN);
-  */
+#ifdef IGNORE_PIPES
+	/* ignore sigserials */
+	sigsave = place_signal(SIGPIPE, SIG_IGN);
+#endif
 
   /* read a complete message converting non printable characters into 'X' */
 	nx = read(im->im_fd, im->im_buf, sizeof(im->im_buf) - 1);
@@ -188,7 +190,9 @@ im_serial_read(struct i_module *im, int infd, struct im_msg  *ret)
   if (nx < 0 && errno != EINTR) {
  	  m_dprintf(MSYSLOG_SERIOUS, "im_serial_read: error: [%d]\n", errno);
 		logerror("im_serial_read");
+#ifdef IGNORE_PIPES
 	  place_signal(SIGPIPE, sigsave);
+#endif
 return -1;
 	}
 
@@ -329,11 +333,12 @@ return (0);
 	  	m_dprintf(MSYSLOG_INFORMATIVE, "im_serial_read: bytes remaining: [%d]\n", (endmark - nextline));
 		}
 	}
+
+#ifdef IGNORE_PIPES
 	/* restore previous SIGPIPE handler */
-  /*
 	place_signal(SIGPIPE, sigsave);
-  */
-return (0);
+#endif
+	return (0);
 }
 
 /*
