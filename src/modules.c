@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.16 2000/04/03 16:40:31 gera Exp $
+/*	$Id: modules.c,v 1.17 2000/04/03 22:30:11 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -66,15 +66,13 @@ int modules_init ()
 	Modules[M_CLASSIC].m_close 		= m_classic_close;
 	Modules[M_CLASSIC].m_flush 		= m_classic_flush;
 
-#if MYSQL_MODULE
 	/* mysql module */
 	Modules[M_MYSQL].m_name 		= "mysql";
 	Modules[M_MYSQL].m_type 		= M_MYSQL;
-	Modules[M_MYSQL].m_doLog 	= m_mysql_doLog;
+	Modules[M_MYSQL].m_doLog	 	= m_mysql_doLog;
 	Modules[M_MYSQL].m_init 		= m_mysql_init;
 	Modules[M_MYSQL].m_close 		= m_mysql_close;
 	Modules[M_MYSQL].m_flush 		= m_mysql_flush;
-#endif	/* MYSQL_MODULE */
 
 }
 
@@ -87,18 +85,20 @@ int modules_close(f)
 }
 
 /* create all necesary modules for a specific filed */
-int modules_create(p, f, prog)
-	char *p;
+int modules_create(c, f, prog)
+	char *c;
 	struct filed *f;
 	char *prog;
 {
-	char	line[LINE_MAX + 1];
+	char	*line, *p;
 	char	*argv[20];
 	char	argc;
 	struct o_module		*m;
-	struct Modules	*mf;
 	char quotes=0;
 	int	i;
+
+	line = strdup(c);
+	p = line;
 
 	/* create context and initialize module for logging */
 	while (*p) {
@@ -115,33 +115,39 @@ int modules_create(p, f, prog)
 			case '%':
 				/* get this module name */
 				argc=0;
-				argv[argc++]=++p;
+				while (isspace(*++p));
+				argv[argc++] = p;
 				while (!isspace(*p)) p++;
 
 				*p++=0;
 
 				/* find for matching module */
-				for (mf = Modules; mf; mf++) {
-					if (strncmp(argv[0], mf->m_name, MAX_MODULE_NAME_LEN) == 0)
+				for (i = 0; i < MAX_N_MODULES; i++) {
+					if (Modules[i].m_name == NULL)
+						continue;
+					if (strncmp(argv[0], Modules[i].m_name,
+							MAX_MODULE_NAME_LEN) == 0)
 						break;
 				}
 				/* no matching module */
-				if (!mf)
+				if (i == MAX_N_MODULES)
 					return(-1);
 
-				m->m_type = mf->m_type;
+				m->m_type = Modules[i].m_type;
 
 				/* build argv and argc, modifies input p */
 				while (isspace(*p)) p++;
 				while (*p && *p!='%' && *p !='\n' && *p!='\r' && argc<sizeof(argv)/sizeof(argv[0])) { 
 				
-					quotes = (*p=='"' || *p=='\'')?quotes=*p++:0;
+					(*p=='"' || *p=='\'')? quotes = *p++ : 0;
 						
-					argv[argc++]=p;
+					argv[argc++] = p;
 					if (quotes) while (*p != quotes) p++;
-						else while (!isspace(*p)) p++;
-					*p++=0;
-					while (isspace(*p)) p++;
+						else while ( *p != '\0' && !isspace(*p)) p++;
+					if (*p == '\0')
+						break;
+					*p++ = 0;
+					while (*p != '\0' && isspace(*p)) p++;
 				}
 
 
@@ -157,11 +163,11 @@ int modules_create(p, f, prog)
 				argv[argc++]=p;
 				p+=strlen(p);
 				m->m_type = M_CLASSIC;
-				
 				break;
 		}
 		(Modules[m->m_type].m_init)(argc, argv, f, prog, (void *) &(m->context));
 	}
+	free(line);
 }
 
 char *getmodulename(type)

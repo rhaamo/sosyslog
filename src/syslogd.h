@@ -131,10 +131,10 @@ struct filed {
 struct	Modules {
 	char	*m_name;
 	short	m_type;
-	int	(*m_doLog) (struct filed *, int, char *, void *);
+	int	(*m_doLog) (struct filed *, int, char *, struct m_header *);
 	int	(*m_init) (int, char **, struct filed *, char *, struct m_header **);
 	int	(*m_close) (struct filed *, struct m_header **);
-	int	(*m_flush) (struct filed *, void *);
+	int	(*m_flush) (struct filed *, struct m_header *);
 } Modules[MAX_N_MODULES];
 
 int modules_init();
@@ -157,8 +157,8 @@ int modules_create(char *, struct filed *, char *);
 
 /* values for m_type */
 #define	M_CLASSIC	0
-#define	M_PEO		1
-#define	M_MYSQL		2
+#define	M_MYSQL		1
+#define	M_PEO		2
 
 /* values for integrity facilities */
 #define I_NONE		0

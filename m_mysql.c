@@ -170,8 +170,7 @@ m_mysql_init(argc, argv, f, prog, c)
 			case 's':
 				/* get database host name and port */
 				if ((p = strstr(optarg, ":")) == NULL)
-#error Que es esto? atoi("MYSQL_PORT")==0, o no?
-					port = atoi("MYSQL_PORT");
+					port = MYSQL_PORT;
 				else
 					port = atoi(++p);
 				host = strdup(optarg);
@@ -183,7 +182,7 @@ m_mysql_init(argc, argv, f, prog, c)
 			case 'p':
 				passwd = strdup(optarg);
 				break;
-			case 'b':
+			case 'd':
 				db = strdup(optarg);
 				break;
 			case 't':
@@ -261,7 +260,7 @@ m_mysql_close(f, context)
 int
 m_mysql_flush(f, context)
 	struct filed *f;
-	void *context;
+	struct m_header *context;
 {
 	/* this module doesn't need to "flush" data */
 	return (0);

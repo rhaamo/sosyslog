@@ -69,7 +69,7 @@ m_classic_doLog(f, flags, msg, context)
 	struct filed *f;
 	int flags;
 	char *msg;
-	void *context;
+	struct m_header *context;
 {
 	struct iovec iov[6];
 	struct iovec *v;
@@ -303,7 +303,7 @@ m_classic_close(f, context)
 int
 m_classic_flush(f, context)
 	struct filed *f;
-	void *context;
+	struct m_header *context;
 {
 	/* flush any pending output */
 	if (f->f_prevcount)
