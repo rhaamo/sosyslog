@@ -1,4 +1,4 @@
-/*  $Id: syslogd.c,v 1.235 2003/01/08 16:02:44 phreed Exp $	*/
+/*  $Id: syslogd.c,v 1.236 2003/03/22 15:41:41 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c  8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: syslogd.c,v 1.235 2003/01/08 16:02:44 phreed Exp $";
+static char rcsid[] = "$Id: syslogd.c,v 1.236 2003/03/22 15:41:41 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -741,9 +741,14 @@ printline(char *hname, char *msg, size_t len, int flags)
   if (pri &~ (LOG_FACMASK | LOG_PRIMASK)) pri = DEFUPRI;
 
 #ifndef INSECURE_KERNEL_INPUT
-  /* don't allow users to log kernel messages */
-  if (LOG_FAC(pri) == LOG_KERN && !(flags & IMODULE_FLAG_KERN))
-    pri = LOG_MAKEPRI(LOG_USER, LOG_PRI(pri));
+	/*
+	* Don't allow users to log kernel messages.
+	* NOTE: since LOG_KERN == 0 this will also match
+	*       messages with no facility specified.
+	*/
+
+	if (LOG_FAC(pri) == LOG_KERN && !(flags & IMODULE_FLAG_KERN))
+		pri = LOG_USER | LOG_PRI(pri);
 #endif
 
   q = line;
