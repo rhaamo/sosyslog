@@ -113,7 +113,7 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 {
 	struct im_tcp_ctx	*c;
 	char			*host, *port;
-	int			ch;
+	int			ch, optind_s;
 
 	dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: entering\n");
 
@@ -128,6 +128,7 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 	port = "syslog";
 
 	/* parse command line */
+	optind_s = optind;	/* save main's optind */
 	optind = 1;
 #ifdef HAVE_OPTRESET
 	optreset = 1;
@@ -156,6 +157,8 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 			return (-1);
 		}
 	}
+
+	optind = optind_s;	/* restore main's optind */
 
 	if ( (I->im_fd = listen_tcp(host, port, &c->addrlen)) < 0) {
 		dprintf(MSYSLOG_SERIOUS, "im_tcp_init: error with listen_tcp() %s\n",
@@ -261,13 +264,13 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		/* connection closed, remove its tcp_con struct */
 		close (con->fd);
 
-		for(prev = c->first; prev && prev != con && prev->next
-		    && prev->next != con; prev = prev->next);
-
-		if (prev == c->first && prev == con) {
-			/* c->cons and prev point to con->next now */
+		if (con == c->first) {
 			c->first = con->next;
-		} else if (prev->next == con) {
+			if (con == c->last)
+				c->last = NULL;
+		} else {
+			for(prev = c->first; prev->next != con;
+			    prev = prev->next);
 			prev->next = con->next;
 		}
 
