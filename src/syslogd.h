@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.57 2000/06/16 00:26:56 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.58 2000/06/16 20:11:46 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -138,8 +138,8 @@ void	logmsg(int, char *, char *, int);
 void    die(int);
 
 struct omodule {
-        char	*om_name;
         struct	omodule *om_next;
+        char	*om_name;
         int	(*om_init) (int, char **, struct filed *, char *,
 		    struct om_hdr_ctx **);
         int	(*om_doLog) (struct filed *, int, char *,
@@ -150,8 +150,8 @@ struct omodule {
 };
 
 struct imodule {
-        char   *im_name;
         struct	imodule *im_next;
+        char   *im_name;
         int	(*im_init) (struct i_module *, char **, int);
         int	(*im_getLog) (struct i_module *, struct im_msg *);
         int	(*im_close) (struct i_module *);
