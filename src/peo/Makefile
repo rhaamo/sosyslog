@@ -27,6 +27,6 @@ rmd160.o:	rmd160.c
 	$(COMPILE)
 
 clean:
-	rm *.o
+	rm *.o peochk
 
 
