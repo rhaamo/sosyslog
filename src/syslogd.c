@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.83 2000/06/05 23:22:04 fgsch Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.84 2000/06/06 15:52:11 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -89,7 +89,6 @@ static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $"
 #include "syslogd.h"
 
 char	*ConfFile = _PATH_LOGCONF;
-char	PidFile[PATH_MAX];
 char	ctty[] = _PATH_CONSOLE;
 
 /*
@@ -135,6 +134,7 @@ main(argc, argv)
 	int argc;
 	char *argv[];
 {
+	char PidFile[PATH_MAX];
 	int ch;
 	FILE *fp;
 	char *p;
