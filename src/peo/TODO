@@ -1,11 +1,8 @@
-					PEO TODO
-					========
+/*	$CoreSDI$	*/					
 
-23-May-2000
+Things to do:
 
 - Optimize peo output module (readline included)
 - Optimize peo check utility
 - Peochek utility and commutication with audit
 - Add vcr protocol (new module?)
-- Create a good Makefile
-
