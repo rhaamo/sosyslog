@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.33 2000/06/02 22:33:02 fgsch Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.34 2000/06/05 22:37:58 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -50,7 +50,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/syslog.h>
+#include <syslog.h>
 
 #include "syslogd.h"
 #include "modules.h"
