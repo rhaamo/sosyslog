@@ -1,6 +1,7 @@
+#	$Id: Makefile.linux,v 1.2 2000/05/03 17:26:09 gera Exp $
 IMODULES = im_bsd.o im_udp.o im_unix.o
 OMODULES = om_classic.o
-OBJS = syslogd.o modules.o ttymsg.o $(IMODULES) $(OMODULES)
+OBJS = syslogd.o modules.o ttymsg.o iolib.o $(IMODULES) $(OMODULES)
 
 all: syslogd
 
