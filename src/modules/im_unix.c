@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.22 2000/05/29 20:43:58 fgsch Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.23 2000/05/29 20:50:50 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -134,6 +134,8 @@ im_unix_close(im)
 	struct i_module *im;
 {
 	int ret;
+
+	ret = 0;
 
 	if (im->im_path) {
 		ret = unlink(im->im_path);
