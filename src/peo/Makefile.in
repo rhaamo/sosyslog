@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.7 2000/07/03 21:39:55 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.8 2000/07/05 22:44:44 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -44,10 +44,10 @@ OBJS=		${SRCS:.c=.o}
 all: ${PROG} ${OBJS}
 
 .c.o:
-	${CC} ${CFLAGS} ${CPPFLAGS} ${LDDFLAGS} -c $< -o $@
+	${CC} ${CFLAGS} ${CPPFLAGS} -c $< -o $@
 
 ${PROG}: ${OBJS}
-	${CC} -o $@ ${OBJS} ${LDFLAGS} ${LDDFLAGS}
+	${CC} ${OBJS} ${LDFLAGS} -o $@
 
 .PHONY: clean distclean
 clean:
@@ -57,5 +57,5 @@ distclean: clean
 	-rm -f Makefile
 
 install:
-	-chmod 111 ${PROG} && cp -f ${PROG} ${INSTALL_DIR}
+	-install -m 111 -o root ${PROG} ${INSTALL_DIR}
 

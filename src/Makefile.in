@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.22 2000/06/30 22:59:57 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.23 2000/07/05 22:44:42 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -52,13 +52,15 @@ all: $(PROG)
 
 modules.o: config.h
 
-$(PROG): $(OBJS) $(SOBJS) DYNAMIC_LIBS
-	$(CC) -o $@ $(OBJS) $(SOBJS:%=modules/%) $(SHASH_OBJS:%=modules/%) $(LDFLAGS) $(LDDFLAGS) $(LIBS)
+$(PROG): $(OBJS) MODULES
+	$(CC) $(LDFLAGS) $(LDDFLAGS) $(LIBS) \
+      	      $(OBJS) $(SOBJS:%=modules/%) $(SHASH_OBJS:%=modules/%) -o $@
 
-$(SOBJS) DYNAMIC_LIBS:
+MODULES:
 	@cd modules && make && cd ..
 
 .PHONY:	clean distclean
+
 clean:
 	-rm -f $(OBJS) core *.core $(PROG)
 
@@ -66,4 +68,4 @@ distclean: clean
 	-rm -f Makefile config.h static_modules.c static_modules.h
 
 install:
-	-chmod 111 $(PROG) && cp -f $(PROG) $(INSTALL_DIR)
+	-install -m 111 -o root $(PROG) $(INSTALL_DIR)

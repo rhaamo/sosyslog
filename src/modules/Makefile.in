@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.25 2000/07/05 23:12:29 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.26 2000/07/06 19:00:59 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -74,16 +74,16 @@ DPGSQL_OBJ=	${DPGSQL_SRC:.c=.o}
 DREGEX_OBJ=	${DREGEX_SRC:.c=.o}
 
 DCC=	${CC} ${CFLAGS} ${CPPFLAGS} ${DCCFLAGS} -c
-LDK=	${LD} ${LDDFLAGS}
+LDK=	${LD} -Bshareable
 
-all: DYNAMIC_LIBS ${SOBJS}
+all: STATIC DYNAMIC
 
-$(SOBJS) DYNAMIC_LIBS: ../config.h
+STATIC DYNAMIC_LIBS: ../config.h
 
-$(SOBJS):
+STATIC: $(SOBJS)
 	${CC} ${CFLAGS} ${CPPFLAGS} -c ${SSRCS} ${SHASH_SRCS:%=../peo/%}
 
-DYNAMIC_LIBS:	${DUNIX} ${DUDP} ${DBSD} ${DLINUX} \
+DYNAMIC:	${DUNIX} ${DUDP} ${DBSD} ${DLINUX} \
 		${DCLASSIC} ${DPEO} ${DMYSQL} ${DPGSQL} ${DREGEX}
 
 ${DUNIX}:
@@ -123,6 +123,7 @@ $(DREGEX):
 	${LDK} -o $@ $(DREGEX_OBJ)
 
 .PHONY:	clean distclean
+
 clean:
 	-rm -f core *.core *.o *.so.*
 
@@ -130,8 +131,8 @@ distclean: clean
 	-rm -f Makefile
 
 install:
-	-chmod 111 libmsyslog_*.so.* && cp -f libmsyslog_*.so.* ${INSTALL_LIBDIR}
 	@echo installing shared libraries...
+	-install -m 111 -o root libmsyslog_*.so.* ${INSTALL_LIBDIR}
 	@-if test "$(UNAME)" = "Linux"; \
 	then \
 		if test -z "`grep ${INSTALL_LIBDIR} /etc/ld.so.conf`"; \
