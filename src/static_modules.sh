@@ -44,7 +44,7 @@ extern int im_%s_getLog (struct i_module*, struct im_msg*);\n\
 extern int im_%s_close (struct i_module*);\n" $NAME $NAME $NAME >> $STATIC_MODULES.h
 
 printf "\
-\tif ( (om = (struct omodule*)calloc(1, sizeof(struct omodule))) == NULL)\n\
+\tif ( (im = (struct omodule*)calloc(1, sizeof(struct omodule))) == NULL)\n\
 \t\treturn(-1);\n" >> $STATIC_MODULES.c
 
 if [ $FIRST_ADD_INPUT ]; then

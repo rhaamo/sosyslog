@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.12 2000/06/16 22:31:10 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.13 2000/06/16 23:00:02 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -38,7 +38,7 @@ SH=		/bin/sh
 STATICSI=	bsd udp unix
 STATICSO=	classic peo regex
 PROG=		syslogd
-SRCS=		modules.c syslogd.c ttymsg.c  imodules.c omodules.c
+SRCS=		modules.c syslogd.c ttymsg.c static_modules.c
 SSRCS=		modules/im_bsd.c modules/im_udp.c modules/im_unix.c \
 		modules/om_classic.c modules/om_regex.c modules/om_peo.c \
 		peo/hash.c
@@ -57,13 +57,11 @@ all: $(PROG)
 
 .c.so:
 	$(CC) $(CFLAGS) -I. -c $< -o $@
-	$(CC) $(CFLAGS) -I. -c $< -o $@
 
 modules.o: config.h
 
 $(PROG): $(OBJS) $(SOBJS)
-	$(SH) static_headers_create.sh imodules.c im $(STATICSI)
-	$(SH) static_headers_create.sh omodules.c om $(STATICSO)
+	$(SH) static_modules.sh < ../modules.conf
 	$(CC) -o $@ $(OBJS) $(LDFLAGS) $(LIBS)
 
 .PHONY: clean distclean
@@ -71,5 +69,5 @@ clean:
 	-rm -f $(OBJS) $(SOBJS) core *.core $(PROG)
 
 distclean: clean
-	-rm -f Makefile config.h
+	-rm -f Makefile config.h static_modules.c static_modules.h
 
