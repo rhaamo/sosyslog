@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.96 2000/06/16 21:04:12 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.97 2000/06/16 22:22:06 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -141,6 +141,16 @@ main(int argc, char **argv)
 	memset(&Inputs, 0, sizeof(Inputs));
 	Inputs.im_fd = -1;
 
+	/* assign functions and init input */
+	if ((ch = imodules_load()) < 0) {
+		dprintf("Error loading input modules [%d]\n", ch);
+		exit(-1);
+	}
+	if ((ch = omodules_load()) < 0) {
+		dprintf("Error loading output modules [%d]\n", ch);
+		exit(-1);
+	}
+
 	while ((ch = getopt(argc, argv, "dubSf:m:p:a:i:h")) != -1)
 		switch (ch) {
 		case 'd':		/* debug */
@@ -191,16 +201,6 @@ main(int argc, char **argv)
 		(void)daemon(0, 0);
 	else
 		setlinebuf(stdout);
-
-	/* assign functions and init input */
-	if ((ch = imodules_load()) < 0) {
-		dprintf("Error loading input modules [%d]\n", ch);
-		exit(-1);
-	}
-	if ((ch = omodules_load()) < 0) {
-		dprintf("Error loading output modules [%d]\n", ch);
-		exit(-1);
-	}
 
 	consfile.f_type = F_CONSOLE;
         /* this should get into Files and be way nicer */
@@ -592,7 +592,7 @@ die(int signo)
 	}
 
 	for (im = &Inputs; im; im = im->im_next)
-		if (im->im_func->im_close)
+		if (im->im_func && im->im_func->im_close)
 			(*im->im_func->im_close)(im);
 		else if (im->im_fd)
 			close(im->im_fd);
