@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.40 2000/07/04 19:58:16 alejo Exp $
+dnl	$CoreSDI: configure.in,v 1.41 2000/07/04 21:13:26 claudio Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -21,7 +21,6 @@ elif test "$UNAME" = "Linux"
 then
 	echo Linux system detected
 	LIBS="$LIBS -ldl"
-	LDCONFIG_FLAGS="-n"
 	AC_DEFINE(HAVE_LINUX)
 fi
 

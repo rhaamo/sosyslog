@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.20 2000/07/04 20:49:53 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.21 2000/07/04 20:53:50 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -136,7 +136,7 @@ install:
 		fi; \
 		ldconfig; \
 	else \
-		ldconfig ${LDCONFIG_FLAGS} ${INSTALL_LIBDIR} \
+		ldconfig ${LDCONFIG_FLAGS} ${INSTALL_LIBDIR}; \
 	fi
 
 
