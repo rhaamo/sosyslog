@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.22 2000/04/14 23:40:08 alejo Exp $
+/*	$Id: syslogd.c,v 1.23 2000/04/14 23:49:28 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -257,7 +257,7 @@ main(argc, argv)
 		   if (im->fd != -1 && FD_ISSET(im->fd, &readfds)) {
 		       struct im_ret log;
 
-		       memset(log, 0, sizeof(struct im_ret));
+		       memset(log, 0, sizeof(log));
 
 		       if (*(IModules[im->im_type].im_getLog)(im, &log) == -1) {
 		       	dprintf("Syslogd: error calling input module"
