@@ -2,7 +2,7 @@ AC_INIT(syslogd.h)
 AC_CONFIG_HEADER(config.h)
 
 test -z "$CFLAGS" && CFLAGS=-O AC_SUBST(CFLAGS)
-test -z "$LDFLAGS" && LDFLAGS=-s AC_SUBST(LDFLAGS)
+test -z "$LDFLAGS" && LDFLAGS= AC_SUBST(LDFLAGS)
 
 AC_PROG_CC
 AC_PROG_INSTALL
@@ -17,6 +17,9 @@ AC_TRY_LINK([#include <unistd.h>],
 	[extern int optreset;],
 	[AC_DEFINE(HAVE_OPTRESET) AC_MSG_RESULT(yes)],
 	AC_MSG_RESULT(no))
+
+#AC_CHECK_FUNC(getaddrinfo, AC_DEFINE(HAVE_INET6),
+#	EXTRAOBJ="$EXTRAOBJ getaddrinfo.o")
 
 AC_CHECK_FUNC(MD5Init, AC_DEFINE(HAVE_MD5),
 	EXTRAOBJ="$EXTRAOBJ peo/md5c.o")
