@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.119 2001/04/06 22:46:00 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.120 2001/04/09 18:01:14 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -249,20 +249,19 @@ AC_ARG_WITH(udp,
 	])dnl
 ])dnl
 
+temp_res="no";
+
 AC_ARG_WITH(unix,
 [  --without-unix
 	Use unix socket domain input module. Activated by default.
-],[
-	if test $with_unix = "yes" ; then
-		MSRCS="$MSRCS im_unix.c"
-		AC_DEFINE(HAVE_UNIX_IMODULE)
-	fi
-],[
-	AC_CHECK_HEADER(sys/un.h, [
-		MSRCS="$MSRCS im_unix.c"
-		AC_DEFINE(HAVE_UNIX_IMODULE)
-	])dnl
+],[ temp_res="$with_unix"; ],[
+	AC_CHECK_HEADER(sys/un.h, [ temp_res="yes"; ])dnl
 ])dnl
+if test "X$temp_res" = "Xyes" ; then
+		MSRCS="$MSRCS im_unix.c"
+		AC_DEFINE(HAVE_UNIX_IMODULE)
+		MANPAGES="$MANPAGES im_unix.8"
+fi
 
 dnl Doors should only be used with streams
 
