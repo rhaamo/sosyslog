@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.47 2000/05/08 16:40:02 alejo Exp $
+/*	$Id: modules.c,v 1.48 2000/05/08 21:25:37 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -129,7 +129,7 @@ modules_init (I, line)
 	/* create initial node for Inputs list */
 	*I = (struct i_module *) calloc(1, sizeof(struct i_module));
 	(*I)->fd = -1;
-	if ((argc = parseParams(&argv, line)) < 0 || argc < 2) {
+	if ((argc = parseParams(&argv, line)) < 1) {
 	    free(*I);
 	    return(-1);
 	}
@@ -329,7 +329,7 @@ parseParams(ret, c)
 		    break;
 
 		if (*p == '\'') {
-		    for(q = ++p; *q != '\'' && *q != '\0') q++;
+		    for(q = ++p; *q != '\'' && *q != '\0'; q++);
 
 		    if (*q != '\0') {
 		        *q++ = '\0';
@@ -345,7 +345,7 @@ parseParams(ret, c)
 		}
 
 		*ret[argc++] = strdup(p);
-		if ((argc % 20) = 18)
+		if ((argc % 20) == 18)
 		    *ret = (char **) realloc(*ret, sizeof(char *) * (argc + 20));
 		*ret[argc] = NULL;
 	}

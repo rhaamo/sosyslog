@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.55 2000/05/03 18:30:13 alejo Exp $
+/*	$Id: syslogd.c,v 1.56 2000/05/08 21:25:38 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -141,9 +141,6 @@ main(argc, argv)
 	FILE *fp;
 	char *p;
 	struct	i_module *Inputs;
-	int inputs;
-
-	inputs = 0;
 
 	while ((ch = getopt(argc, argv, "dubSf:m:p:a:i:")) != -1)
 		switch (ch) {
@@ -182,7 +179,7 @@ main(argc, argv)
 		default:
 			usage();
 		}
-	if ((argc -= optind) != 0 || inputs == 0)
+	if ((argc -= optind) != 0)
 		usage();
 
 	if (!Debug)
