@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.103 2001/03/14 22:52:11 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.104 2001/03/15 20:40:49 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -46,6 +46,9 @@ dnl
 MSYSLOG_VERSION="1.04"
 AC_DEFINE_UNQUOTED(MSYSLOG_VERSION_STR, "$MSYSLOG_VERSION")dnl
 echo msyslog version... $MSYSLOG_VERSION
+
+MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
+AC_DEFINE_UNQUOTED(MLIBNAME_STR, "$MLIBNAME")dnl
 
 MANPAGES="syslog.conf.5 syslogd.8"
 
@@ -119,39 +122,31 @@ AC_EGREP_HEADER(stack_t, [signal.h],[
 
 UNAME=`uname`
 if test "$UNAME" = "OpenBSD" ; then
-	MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
 	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "_")dnl
 	SHARED_PARAMS="-Bshareable"
 	DCCFLAGS="-fPIC"
 elif test "$UNAME" = "Linux" ; then
-	MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY | RTLD_GLOBAL)dnl
 	SHARED_PARAMS="-Bshareable"
 	DCCFLAGS=""
 elif test "$UNAME" = "SunOS" ; then
-	MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
 	SHARED_PARAMS="-G"
 	DCCFLAGS="-fPIC"
 elif test "$UNAME" = "Irix" ; then
-	MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
 	SHARED_PARAMS="-G"
 	DCCFLAGS="-fPIC"
 elif test "$UNAME" = "AIX" ; then
-	MLIBNAME="libmsyslog.a" ;
-	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
+	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY | RTLD_GLOBAL)dnl
 	DCCFLAGS="-shared"
-	SHARED_PARAMS="-G -lc -bexpall"
+	SHARED_PARAMS="-lc -bexpall -bnoentry -brtl"
 else
-	MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
 	AC_MSG_WARN(cannot determine system type falling to defaults)dnl
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
 	SHARED_PARAMS="-Bshareable"
 fi
-
-AC_DEFINE_UNQUOTED(MLIBNAME_STR, "$MLIBNAME")dnl
 
 
 dnl
