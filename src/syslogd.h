@@ -1,4 +1,4 @@
-/*	$Id: syslogd.h,v 1.39 2000/05/22 22:40:53 alejo Exp $
+/*	$Id: syslogd.h,v 1.40 2000/05/23 01:22:45 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -122,7 +122,7 @@ struct filed {
 };
 
 int modules_load();
-int modules_init(struct i_module **, char *);
+int modules_init(struct i_module *, char *);
 int omodule_create(char *c, struct filed *, char *);
 int imodule_create(char *c, struct filed *, char *);
 int im_close(struct i_module *);

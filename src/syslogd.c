@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.66 2000/05/22 22:40:52 alejo Exp $
+/*	$Id: syslogd.c,v 1.67 2000/05/23 01:22:44 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -129,7 +129,7 @@ void    usage __P((void));
 
 struct  OModule OModules[MAX_N_OMODULES];
 struct  IModule IModules[MAX_N_IMODULES];
-struct	i_module *Inputs;
+struct	i_module Inputs;
 
 int
 main(argc, argv)
@@ -140,7 +140,8 @@ main(argc, argv)
 	FILE *fp;
 	char *p;
 
-	Inputs = NULL;
+	memset(&Inputs, 0, sizeof(Inputs));
+	Inputs.im_fd = -1;
 
 	while ((ch = getopt(argc, argv, "dubSf:m:p:a:i:")) != -1)
 		switch (ch) {
@@ -156,7 +157,7 @@ main(argc, argv)
 		case 'u':		/* allow udp input port */
 			SecureMode = 0;
 			break;
-		case 'i':		/* non AF_UNIX/pipe inputs */
+		case 'i':		/* inputs */
 			if (modules_init(&Inputs, optarg) < 0)
 				exit(-1);
 			break;
@@ -178,7 +179,7 @@ main(argc, argv)
 		default:
 			usage();
 		}
-	if (((argc -= optind) != 0) || Inputs == NULL)
+	if (((argc -= optind) != 0) || Inputs.im_fd < 0)
 		usage();
 
 	if (!Debug)
@@ -232,7 +233,7 @@ main(argc, argv)
 		struct im_msg log;
 
 		FD_ZERO(&readfds);
-		for (im = Inputs; im ; im = im->im_next) {
+		for (im = &Inputs; im ; im = im->im_next) {
 			if (im->im_fd != -1) {
 				FD_SET(im->im_fd, &readfds);
 				if (im->im_fd > nfds)
@@ -251,7 +252,7 @@ main(argc, argv)
 			continue;
 		}
 		/*dprintf("got a message (%d, %#x)\n", nfds, readfds);*/
-		for (im = Inputs; im ; im = im->im_next) {
+		for (im = &Inputs; im ; im = im->im_next) {
 			if (im->im_fd != -1 && FD_ISSET(im->im_fd, &readfds)) {
 				int i;
 
@@ -597,7 +598,7 @@ die(signo)
 		logerror(buf);
 	}
 
-	for (im = Inputs; im; im = im->im_next)
+	for (im = &Inputs; im; im = im->im_next)
 		if (im->im_type == IM_UNIX)
 			im_close(im);	
 

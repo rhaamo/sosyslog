@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.58 2000/05/22 22:40:51 alejo Exp $
+/*	$Id: modules.c,v 1.59 2000/05/23 01:22:44 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -44,6 +44,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <syslog.h>
+#include <stdio.h>
 #include "syslogd.h"
 #include "modules.h"
 
@@ -138,7 +139,7 @@ modules_load()
 /* assign module functions to generic pointer */
 int
 modules_init (I, line)
-	struct	 i_module **I;
+	struct	 i_module *I;
 	char	*line;
 {
 	int argc;
@@ -146,32 +147,37 @@ modules_init (I, line)
 	struct i_module *im;
 
 	/* create initial node for Inputs list */
-	if (*I == NULL) {
-	    *I = (struct i_module *) calloc(1, sizeof(struct i_module));
-	    im = *I;
-	} else {
-	    for(im = *I; im->im_next != NULL; im = im->im_next);
-	    im->im_next = (struct i_module *) calloc(1, sizeof(struct i_module));
-	    im = im->im_next;
+	if (I == NULL) {
+	    dprintf("modules_init: Error from caller\n");
+	    return(-1);
 	}
 
-	im->im_fd = -1;
+	for(im = I; im->im_next != NULL; im = im->im_next);
+	if (im == I && im->im_fd > -1) {
+		im->im_next = (struct i_module *) calloc(1, sizeof(struct i_module));
+		im = im->im_next;
+		im->im_fd = -1;
+	}
 
 	for(p = line;*p != '\0'; p++)
 	    if (*p == ':')
 	        *p = ' ';
 	if ((argc = parseParams(&argv, line)) < 1) {
-	    free(*I);
+	    dprintf("Error initializing module %s [%s]\n", argv[0], line);
 	    return(-1);
 	}
 
 	if (!strncmp(argv[0], "bsd", 3)) {
-	    if (im_bsd_init(*I, argv, argc) < 0)
+	    if (im_bsd_init(im, argv, argc) < 0) {
+	    	dprintf("Error initializing module %s [%s]\n", argv[0], line);
 	        die(0);
+	    }
 
 	} else if (!strncmp(argv[0], "unix", 4)) {
-	    if (im_unix_init(*I, argv, argc) < 0)
+	    if (im_unix_init(im, argv, argc) < 0) {
+	    	dprintf("Error initializing module %s [%s]\n", argv[0], line);
 	        die(0);
+	    }
 	}
 
 	return(1);
