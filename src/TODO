@@ -1,4 +1,4 @@
-/*	$CoreSDI: TODO,v 1.47 2000/11/01 21:20:23 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.48 2000/11/02 15:28:01 alejo Exp $	*/
 
 Things to do:
 
@@ -7,6 +7,7 @@ Things to do:
 - solaris port
 - module configuration file so eliminate most command line options
 - no more static modules
+- No more autoconf, just plain Makefiles
 - redo parsing functions
 - CHECK LIBC and GLIBC's way to work
 
