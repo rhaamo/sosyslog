@@ -48,6 +48,7 @@ im_bsd_init(argc, argv, c)
 /*
  * get messge
  *
+ * Take a raw input line from /dev/klog, split and format similar to syslog().
  */
 
 int
@@ -93,6 +94,7 @@ im_bsd_getLog(im, ret)
 /*
  * send messge
  *
+ * Take a raw input line from /dev/klog, split and format similar to syslog().
  */
 
 int

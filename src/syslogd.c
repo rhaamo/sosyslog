@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.21 2000/04/14 22:58:56 alejo Exp $
+/*	$Id: syslogd.c,v 1.22 2000/04/14 23:40:08 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -126,7 +126,6 @@ void	init __P((int));
 void	logerror __P((char *));
 void	logmsg __P((int, char *, char *, int));
 void	printline __P((char *, char *));
-void	printsys __P((char *));
 void	reapchild __P((int));
 void	usage __P((void));
 
@@ -255,17 +254,19 @@ main(argc, argv)
 		}
 		/*dprintf("got a message (%d, %#x)\n", nfds, readfds);*/
 		from (im = Inputs; im ; im++) {
-			if (im->fd != -1 && FD_ISSET(im->fd, &readfds)) {
-			    struct im_ret log;
+		   if (im->fd != -1 && FD_ISSET(im->fd, &readfds)) {
+		       struct im_ret log;
 
-			    memset(log, 0, sizeof(struct im_ret));
-			    if (*(IModules[im->im_type].im_getLog)(im, &log) == -1) {
-			    	dprintf("Syslogd: error calling input module"
-			    		" %s, for fd %d\n", im->im_name,
-			    		im->fd);
-			    }
-			    /* log it */
-			}
+		       memset(log, 0, sizeof(struct im_ret));
+
+		       if (*(IModules[im->im_type].im_getLog)(im, &log) == -1) {
+		       	dprintf("Syslogd: error calling input module"
+		       		" %s, for fd %d\n", im->im_name,
+		       		im->fd);
+		       }
+
+		       /* log it */
+		   }
 		}
 
 	}
@@ -327,43 +328,6 @@ printline(hname, msg)
 	*q = '\0';
 
 	logmsg(pri, line, hname, 0);
-}
-
-/*
- * Take a raw input line from /dev/klog, split and format similar to syslog().
- */
-void
-printsys(msg)
-	char *msg;
-{
-	int c, pri, flags;
-	char *lp, *p, *q, line[MAXLINE + 1];
-
-	(void)strcpy(line, _PATH_UNIX);
-	(void)strcat(line, ": ");
-	lp = line + strlen(line);
-	for (p = msg; *p != '\0'; ) {
-		flags = SYNC_FILE | ADDDATE;	/* fsync file after write */
-		pri = DEFSPRI;
-		if (*p == '<') {
-			pri = 0;
-			while (isdigit(*++p))
-				pri = 10 * pri + (*p - '0');
-			if (*p == '>')
-				++p;
-		} else {
-			/* kernel printf's come out on console */
-			flags |= IGN_CONS;
-		}
-		if (pri &~ (LOG_FACMASK|LOG_PRIMASK))
-			pri = DEFSPRI;
-		q = lp;
-		while (*p != '\0' && (c = *p++) != '\n' &&
-		    q < &line[MAXLINE])
-			*q++ = c;
-		*q = '\0';
-		logmsg(pri, line, LocalHostName, flags);
-	}
 }
 
 time_t	now;
