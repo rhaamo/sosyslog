@@ -783,6 +783,9 @@ init(signo)
 	Files = NULL;
 	nextp = &Files;
 
+	/* assign functions and other module settings */
+	modules_init();
+
 	/* open the configuration file */
 	if ((cf = fopen(ConfFile, "r")) == NULL) {
 		dprintf("cannot open %s\n", ConfFile);
@@ -891,153 +894,11 @@ cfline(line, f, prog)
 	struct filed *f;
 	char *prog;
 {
-	struct hostent *hp;
-	int i, pri;
-	char *bp, *p, *q;
-	char buf[MAXLINE], ebuf[100];
-
-	dprintf("cfline(\"%s\", f, \"%s\")\n", line, prog);
-
-	errno = 0;	/* keep strerror() stuff out of logerror messages */
-
-	/* clear out file entry */
-	memset(f, 0, sizeof(*f));
-	for (i = 0; i <= LOG_NFACILITIES; i++)
-		f->f_pmask[i] = INTERNAL_NOPRI;
-
-	/* save program name if any */
-	if (!strcmp(prog, "*"))
-		prog = NULL;
-	else {
-		f->f_program = calloc(1, strlen(prog)+1);
-		if (f->f_program)
-			strcpy(f->f_program, prog);
-	}
-
-	/* scan through the list of selectors */
-	for (p = line; *p && *p != '\t';) {
-
-		/* find the end of this facility name list */
-		for (q = p; *q && *q != '\t' && *q++ != '.'; )
-			continue;
-
-		/* collect priority name */
-		for (bp = buf; *q && !strchr("\t,;", *q); )
-			*bp++ = *q++;
-		*bp = '\0';
-
-		/* skip cruft */
-		while (strchr(", ;", *q))
-			q++;
-
-		/* decode priority name */
-		if (*buf == '*')
-			pri = LOG_PRIMASK + 1;
-		else {
-			/* ignore trailing spaces */
-			int i;
-			for (i=strlen(buf)-1; i >= 0 && buf[i] == ' '; i--) {
-				buf[i]='\0';
-			}
-
-			pri = decode(buf, prioritynames);
-			if (pri < 0) {
-				(void)snprintf(ebuf, sizeof ebuf,
-				    "unknown priority name \"%s\"", buf);
-				logerror(ebuf);
-				return;
-			}
-		}
-
-		/* scan facilities */
-		while (*p && !strchr("\t.;", *p)) {
-			for (bp = buf; *p && !strchr("\t,;.", *p); )
-				*bp++ = *p++;
-			*bp = '\0';
-			if (*buf == '*')
-				for (i = 0; i < LOG_NFACILITIES; i++)
-					f->f_pmask[i] = pri;
-			else {
-				i = decode(buf, facilitynames);
-				if (i < 0) {
-					(void)snprintf(ebuf, sizeof(ebuf),
-					    "unknown facility name \"%s\"",
-					    buf);
-					logerror(ebuf);
-					return;
-				}
-				f->f_pmask[i >> 3] = pri;
-			}
-			while (*p == ',' || *p == ' ')
-				p++;
-		}
-
-		p = q;
-	}
-
-	/* skip to action part */
-	while (*p == '\t')
-		p++;
-
-	switch (*p)
-	{
-	case '@':
-		if (!InetInuse)
-			break;
-		(void)strncpy(f->f_un.f_forw.f_hname, ++p,
-		    sizeof(f->f_un.f_forw.f_hname)-1);
-		f->f_un.f_forw.f_hname[sizeof(f->f_un.f_forw.f_hname)-1] = '\0';
-		hp = gethostbyname(f->f_un.f_forw.f_hname);
-		if (hp == NULL) {
-			extern int h_errno;
-
-			logerror((char *)hstrerror(h_errno));
-			break;
-		}
-		memset(&f->f_un.f_forw.f_addr, 0,
-		    sizeof(f->f_un.f_forw.f_addr));
-		f->f_un.f_forw.f_addr.sin_len = sizeof(f->f_un.f_forw.f_addr);
-		f->f_un.f_forw.f_addr.sin_family = AF_INET;
-		f->f_un.f_forw.f_addr.sin_port = LogPort;
-		memmove(&f->f_un.f_forw.f_addr.sin_addr, hp->h_addr,
-		    hp->h_length);
-		f->f_type = F_FORW;
-		break;
-
-	case '/':
-		(void)strcpy(f->f_un.f_fname, p);
-		if ((f->f_file = open(p, O_WRONLY|O_APPEND, 0)) < 0) {
-			f->f_type = F_UNUSED;
-			logerror(p);
-			break;
-		}
-		if (isatty(f->f_file))
-			f->f_type = F_TTY;
-		else
-			f->f_type = F_FILE;
-		if (strcmp(p, ctty) == 0)
-			f->f_type = F_CONSOLE;
-		break;
-
-	case '*':
-		f->f_type = F_WALL;
-		break;
-
-	default:
-		for (i = 0; i < MAXUNAMES && *p; i++) {
-			for (q = p; *q && *q != ','; )
-				q++;
-			(void)strncpy(f->f_un.f_uname[i], p, UT_NAMESIZE);
-			if ((q - p) > UT_NAMESIZE)
-				f->f_un.f_uname[i][UT_NAMESIZE] = '\0';
-			else
-				f->f_un.f_uname[i][q - p] = '\0';
-			while (*q == ',' || *q == ' ')
-				q++;
-			p = q;
-		}
-		f->f_type = F_USERS;
-		break;
+	/* check for classic usage  or module-like */
+	if(strstr(line, S_MODULE_KEYWORD) == NULL) {
+		m_classic_init(line, f, prog, NULL);
+	} else {
+		module_create(line, f, prog);
 	}
 }
 

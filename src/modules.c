@@ -37,17 +37,32 @@ static char copyright[] =
 	The Regents of the University of California.  All rights reserved.\n";
 #endif /* not lint */
 
-#ifndef lint
-/*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $";
-#endif /* not lint */
-
 /*
  *  syslogd generic module functions --
  *
  * Author: Alejo Sanchez for Core-SDI S.A.
  */
 
-int modules_init () {
-	/* assign module functions to generic pointer */
+/* assign module functions to generic pointer */
+int modules_init ()
+{
+	/* initialize module function assignations */
+	memset(m_functions, 0, sizeof(m_functions));
+
+	m_functions = {
+			{ "classic", m_classic_printlog, m_classic_init,
+				m_classic_close, m_classic_flush},
+			{ "mysql", m_mysql_printlog, m_mysql_init,
+				m_mysql_close, m_mysql_flush},
+			NULL
+			};
+}
+
+/* assign module functions to generic pointer */
+int module_create(line, f, prog)
+	char *line;
+	struct filed *f;
+	char *prog;
+{
+	/* create context and initialize module for logging */
 }

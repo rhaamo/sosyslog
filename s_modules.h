@@ -13,4 +13,5 @@ extern int	MarkInterval;		/* interval between marks in seconds */
 extern int	MarkSeq;		/* mark sequence number */
 extern int	SecureMode;		/* when true, speak only unix domain
 					   socks */
+extern int	InetInuse;		/* if we are using network */
 

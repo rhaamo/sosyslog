@@ -36,6 +36,12 @@ char	ctty[] = _PATH_CONSOLE;
 
 
 /*
+ * Keyword for unsing modules instead of classic code
+ */
+
+#define S_MODULE_KEYWORD "s_mod"
+
+/*
  * This structure represents main details for the output modules
  */
 
@@ -90,7 +96,7 @@ struct	m_functions {
 	int	(*m_init) (struct filed *, int, char *, void*);
 	int	(*m_close) (struct filed *, void*);
 	int	(*m_flush) (struct filed *, void*);
-} m_functions[MAX_N_MODULES];
+} *m_functions[];
 
 /*
  * Intervals at which we flush out "message repeated" messages,
