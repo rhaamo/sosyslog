@@ -1,4 +1,4 @@
-/*	$Id: im_bsd.c,v 1.87 2003/02/22 03:40:58 jkohen Exp $	*/
+/*	$Id: im_bsd.c,v 1.88 2003/04/04 18:25:55 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -92,7 +92,6 @@ im_bsd_read(struct i_module *im, int infd, struct im_msg *ret)
 	char *p, *q, *lp;
 	int i, c;
 
-	assert(sizeof (ret->im_msg) >= sizeof (_PATH_UNIX ": "));
 	snprintf(ret->im_msg, sizeof (ret->im_msg), _PATH_UNIX ": ");
 	lp = ret->im_msg + strlen(ret->im_msg);
 
