@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.120 2000/08/22 19:43:38 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.121 2000/08/25 22:37:51 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -57,7 +57,7 @@
 #define LIB_PATH_MAX 254
 #endif
 
-#ifdef HVE_LINUX
+#ifdef HAVE_LINUX
 #define DLOPEN_FLAGS RTLD_LAZY | RTLD_GLOBAL
 #else
 #define DLOPEN_FLAGS RTLD_LAZY
