@@ -1,4 +1,4 @@
-/*	$CoreSDI$	*/
+/*	$CoreSDI: om_classic.c,v 1.22 2000/05/23 21:47:05 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -32,8 +32,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include "config.h"
 
 /*
  *  om_classic -- classic behaviour module
@@ -230,9 +228,6 @@ om_classic_init(argc, argv, f, prog, context)
 		}
 		memset(&f->f_un.f_forw.f_addr, 0,
 		    sizeof(f->f_un.f_forw.f_addr));
-#ifndef HAVE_LINUX
-		f->f_un.f_forw.f_addr.sin_len = sizeof(f->f_un.f_forw.f_addr);
-#endif
 		f->f_un.f_forw.f_addr.sin_family = AF_INET;
 		f->f_un.f_forw.f_addr.sin_port = LogPort;
 		memmove(&f->f_un.f_forw.f_addr.sin_addr, hp->h_addr,

@@ -1,4 +1,4 @@
-/*	$CoreSDI$	*/
+/*	$CoreSDI: modules.c,v 1.62 2000/05/23 21:47:04 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -32,8 +32,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include "config.h"
 
 /*
  *  syslogd generic module functions --

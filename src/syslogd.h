@@ -1,4 +1,4 @@
-/*	$CoreSDI$	*/
+/*	$CoreSDI: syslogd.h,v 1.42 2000/05/23 21:47:06 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -36,8 +36,6 @@
 #ifndef SYSLOGD_H
 #define SYSLOGD_H
 
-#include "config.h"
-
 #define	MAXLINE		1024		/* maximum line length */
 #define	MAXSVLINE	120		/* maximum saved line length */
 #define DEFUPRI		(LOG_USER|LOG_NOTICE)
@@ -52,14 +50,6 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <utmp.h>
-
-#ifdef HAVE_OPENBSD
-#include <sys/msgbuf.h>
-#endif
-#ifdef HAVE_LINUX
-#include <sys/param.h>
-#include <rpc/types.h>
-#endif
 
 #include <netinet/in.h>
 #include <netdb.h>

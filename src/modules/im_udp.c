@@ -1,4 +1,4 @@
-/*	$CoreSDI$	*/
+/*	$CoreSDI: im_udp.c,v 1.21 2000/05/23 21:47:03 fgsch Exp $	*/
 
 /*
  *  im_udp -- classic behaviour module for BDS like systems
@@ -109,9 +109,6 @@ im_udp_init(I, argv, argc)
 		die(0);
 	}
 	memset(&sin, 0, sizeof(sin));
-#ifndef HAVE_LINUX
-	sin.sin_len = sizeof(sin);
-#endif
 	sin.sin_family = AF_INET;
 	sin.sin_port = LogPort = sp->s_port;
 	if (bind(finet, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
