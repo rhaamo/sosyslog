@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.11 2000/06/06 00:44:13 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.12 2000/06/08 00:25:46 gera Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -62,9 +62,6 @@
 
 #define MAX_QUERY     8192
 
-char  *Months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
-		    "Aug", "Sep", "Oct", "Nov", "Dec" };
-
 struct om_pgsql_ctx {
 	short   flags;
 	int     size;
@@ -88,7 +85,7 @@ om_pgsql_doLog(f, flags, msg, ctx)
 	PGresult *r;
 	struct om_pgsql_ctx *c;
 	char    *dummy, *y, *m, *d, *h, *host;
-	int     mn, err;
+	int     err;
 
 	dprintf("PostgreSQL doLog: entering [%s] [%s]\n", msg, f->f_prevline);
 	if (f == NULL)
@@ -120,9 +117,6 @@ om_pgsql_doLog(f, flags, msg, ctx)
 	*(y + 4) = '\0';
 	if (*d == ' ')
 		*d = '0';
-	for(mn = 0; Months[mn] && strncmp(Months[mn], m, 3); mn++);
-	mn++;
-
 
 	m=to_sql(msg);
 	if(!m)
@@ -131,7 +125,7 @@ om_pgsql_doLog(f, flags, msg, ctx)
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
 	snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s"
 			" VALUES('%s-%02d-%s', '%s', '%s', '%s')",
-			c->table, y, mn, d, h, host, m);
+			c->table, y, month_number(m), d, h, host, m);
 
 	free(m);
 	free(dummy);

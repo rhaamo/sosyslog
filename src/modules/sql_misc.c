@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.11 2000/06/06 00:44:13 alejo Exp $	*/
+/*	$CoreSDI: sql_misc.c,v 1.1 2000/06/08 00:25:46 gera Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -67,4 +67,17 @@ to_sql(s)
 	*p=0;
 	
 	return b;
+}
+
+int
+month_number(monthName)
+	char *monthName;
+{
+	const char *Months[] = {
+		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+	int i=0;
+	for (;i<sizeof(Months)/sizeof(Months[0]);i++)
+		if (!strncmp(Months[i],monthName,3)) return i+1;
+	return 0;
 }

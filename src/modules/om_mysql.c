@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.24 2000/06/05 23:02:36 gera Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.25 2000/06/06 00:14:06 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -38,6 +38,7 @@
 
 #include <sys/types.h>
 #include <sys/time.h>
+#include <sys/param.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -46,15 +47,12 @@
 #include <time.h>
 #include <syslog.h>
 #include <unistd.h>
+#include "mysql/mysql.h"
 #include "config.h"
 #include "modules.h"
 #include "syslogd.h"
 
 #define MAX_QUERY	8192
-
-char	*Months[] = { "Jan", "Feb", "Mar", "Apr", "May",
-			"Jun", "Jul", "Aug", "Sep", "Oct",
-			"Nov", "Dec"};
 
 struct om_mysql_ctx {
 	short	flags;
@@ -106,15 +104,12 @@ om_mysql_doLog(f, flags, msg, ctx)
 	*(y + 4) = '\0';
 	if (*d == ' ')
 		*d = '0';
-	for(mn = 0; Months[mn] && strncmp(Months[mn], m, 3); mn++);
-	mn++;
 
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
-	// Quotes must be scaped for security reasons (not only security,
-	// suppose msg = "this log won't work", it'll be a syntax error
+
 	snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s"
 			" VALUES('%s-%.2d-%s', '%s', '%s', '%s')",
-			c->table, y, mn, d, h, host, msg);
+			c->table, y, month_number(m), d, h, host, msg);
 
 	free(dummy);
 	free(y);
@@ -261,9 +256,8 @@ om_mysql_close(f, ctx)
 	struct filed *f;
 	struct om_hdr_ctx *ctx;
 {
-
-	mysql_close(ctx->h);
-	om_mysql_destroy_ctx(ctx);
+	mysql_close(((struct om_mysql_ctx*)ctx)->h);
+	om_mysql_destroy_ctx((struct om_mysql_ctx*)ctx);
 
 	return (-1);
 }
