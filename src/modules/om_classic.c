@@ -66,7 +66,7 @@ int
 om_classic_doLog(f, flags, msg, context)
 	struct filed *f;
 	int flags;
-	char *message;
+	char *msg;
 	struct om_header_ctx *context;
 {
 	struct iovec iov[6];
