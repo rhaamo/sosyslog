@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.72 2001/05/01 02:27:06 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.73 2001/07/31 09:08:05 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -123,7 +123,13 @@ om_mysql_write(struct filed *f, int flags, char *msg, void *ctx)
 		c->lost++;
 		if (c->lost == 1) {
 			snprintf(err_buf, sizeof(err_buf), "om_mysql_write: "
-			    "Lost connection! [%s]", (c->mysql_error)(c->h));
+			    "Lost connection! [%s]",
+#ifndef mysql_error
+			    (c->mysql_error)
+#else
+			    mysql_error
+#endif
+			    (c->h));
 			dprintf(MSYSLOG_SERIOUS, "%s", err_buf);
 			logerror(err_buf);
 		}
@@ -239,8 +245,11 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	    SYMBOL_PREFIX "mysql_query"))
 	    || !(ctx->mysql_close = (void (*)(void *)) dlsym(ctx->lib,
 	    SYMBOL_PREFIX "mysql_close"))
+#ifndef mysql_error
 	    || !(ctx->mysql_error = (char * (*)(void *)) dlsym(ctx->lib,
-	    SYMBOL_PREFIX "mysql_error"))) {
+	    SYMBOL_PREFIX "mysql_error"))
+#endif
+	    ) {
 		dprintf(MSYSLOG_SERIOUS, "om_mysql_init: Error resolving"
 		    " api symbols, %s\n", dlerror());
 		free(ctx);  
@@ -313,8 +322,12 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 
 		snprintf(err_buf, sizeof(err_buf), "om_mysql_init: Error "
 		    "connecting to db server [%s], [%s:%i] user [%s] db [%s]",
-		    (ctx->mysql_error)(ctx->h), ctx->host, ctx->port,
-		    ctx->user, ctx->db);
+#ifndef mysql_error
+			    (ctx->mysql_error)(ctx->h),
+#else
+			    mysql_error(ctx->h),
+#endif
+		    ctx->host, ctx->port, ctx->user, ctx->db);
 		logerror(err_buf);
 		return (1);
 	}
