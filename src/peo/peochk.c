@@ -1,4 +1,4 @@
-/*      $Id: peochk.c,v 1.28 2000/05/11 19:25:49 claudio Exp $
+/*      $Id: peochk.c,v 1.29 2000/05/12 20:48:14 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
@@ -14,7 +14,7 @@
  *
  * defaults:
  *	logfile: 	/var/log/messages
- *	keyfile:	/var/ssyslog/key.var.log.messages
+ *	keyfile:	/var/ssyslog/var.log.messages.key
  *	hash_method:	sha1
  *
  * NOTES:
@@ -23,7 +23,7 @@
  *	2) If logfile is specified using both -f switch and without it,
  *	   the -f argument is used and data is readed from that file
  *	3) If logfile is specified but not the keyfile, this will be
- *	   /var/ssyslog/key.xxx where xxx is the logfile with all '/'
+ *	   /var/ssyslog/xxx.key where xxx is the logfile with all '/'
  *	   replaced by '.'
  *	4) If -l switch is specified, peochk detects the line number
  *	   corrupted on logfile

@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.16 2000/05/11 20:37:18 claudio Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.17 2000/05/12 20:48:13 claudio Exp $";
 #endif /* not lint */
 
 /*
@@ -103,8 +103,7 @@ om_peo_doLog(f, flags, msg, context)
 	if (msg == NULL) {
 		m = f->f_prevline;
 		len = f->f_prevlen;
-	}
-	else {
+	} else {
 		m = msg;
 		len = strlen(m);
 	}
