@@ -1,0 +1,19 @@
+/*	$CoreSDI: NEWS,v 1.7 2000/07/11 01:02:13 claudio Exp $	*/
+
+1.0 Release Notes:
+
+* Move to autoconf 
+* Reorganize the source tree
+* Fix an incorrect free that was causing syslogd to coredump on exit
+* New om_regex module to filter and redirect depending on contents
+* New im_linux for handling linux kernel logging (like klogd)
+* PostgreSQL output module, colaboration from Oliver Teuber
+  (ot@penguin-power.de)
+
+1.01 Release Notes:
+
+ * Solaris port
+ * Major autoconf cleanup
+ * Multiple SQL module support
+ * Many bugfixes
+

@@ -27,7 +27,7 @@ documentation and/or software.
 #ifndef _MD5_H_
 #define _MD5_H_
 
-#include "../conditional.h"
+#include "typedefs.h"
 
 /* MD5 context. */
 typedef struct MD5Context {

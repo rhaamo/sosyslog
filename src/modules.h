@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.35 2000/10/31 19:42:12 alejo Exp $	*/
+/*	$CoreSDI: modules.h,v 1.36 2000/11/06 23:11:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -31,7 +31,6 @@
 
 #ifndef SYSLOG_MODULES_H
 #define SYSLOG_MODULES_H
-
 
 /* this MUST be the same value as syslogd.h */
 #define MAXLINE 1024

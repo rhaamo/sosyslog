@@ -31,129 +31,34 @@
 CC=		@CC@
 LD=		ld
 CFLAGS=		@CFLAGS@ -Wall
-LDFLAGS=	@LDFLAGS@
-LDDFLAGS=	@LDDFLAGS@
 DCCFLAGS=	@DCCFLAGS@
-CPPFLAGS=	-I. -I.. 
-CPPFLAGS +=	@CPPFLAGS@
-LDCONFIG_FLAGS=	@LDCONFIG_FLAGS@
+CPPFLAGS=	@CPPFLAGS@
 
 INSTALL=	@INSTALL@
 INSTALL_LIBDIR=	@prefix@/lib/alat
 
-SSRCS=		@SSRCS@
-SOBJS=		$(SSRCS:.c=.o)
+MLIBNAME=	@MLIBNAME@
+MSRCS=		@MSRCS@
+MLIBS=		@MLIBS@
+MOBJS=		$(MSRCS:.c=.o)
+HASH_SRCS_ORI=	@HASH_SRCS@
+HASH_SRCS=	$(HASH_SRCS_ORI:%=../peo/%)
+HASH_OBJS=	$(HASH_SRCS_ORI:.c=.o)
 
-DUNIX=		@Dunix@
-DUNIX_SRCS=	@Dunix_SRCS@
-DUNIX_OBJS=	$(DUNIX_SRCS:.c=.o)
+SHARED_PARAMS=	@SHARED_PARAMS@
 
-DUDP=		@Dudp@
-DUDP_SRCS=	@Dudp_SRCS@
-DUDP_OBJS=	$(DUDP_SRCS:.c=.o)
+$(MSRCS) $(HASH_SRCS): ../../config.h
 
-DBSD=		@Dbsd@
-DBSD_SRCS=	@Dbsd_SRCS@
-DBSD_OBJS=	$(DBSD_SRCS:.c=.o)
+$(HASH_OBJS): $(HASH_SRCS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(DCCFLAGS) -c $(@:%.o=../peo/%.c) -o $@
 
-DLINUX=		@Dlinux@
-DLINUX_SRCS=	@Dlinux_SRCS@
-DLINUX_OBJS=	$(DLINUX_SRCS:.c=.o)
+$(MOBJS): $(MSRCS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(DCCFLAGS) -c $(@:.o=.c) -o $@
 
-DDOORS=		@Ddoors@
-DDOORS_SRCS=	@Ddoors_SRCS@
-DDOORS_OBJS=	$(DDOORS_SRCS:.c=.o)
+$(MLIBNAME):  $(MOBJS) $(HASH_OBJS)
+	$(LD) $(SHARED_PARAMS) -o $(MLIBNAME) $(MOBJS) $(HASH_OBJS)
 
-DSTREAMS=	@Dstreams@
-DSTREAMS_SRCS=	@Dstreams_SRCS@
-DSTREAMS_OBJS=	$(DSTREAMS_SRCS:.c=.o)
-
-DCLASSIC=	@Dclassic@
-DCLASSIC_SRCS=	@Dclassic_SRCS@
-DCLASSIC_OBJS=	$(DCLASSIC_SRCS:.c=.o)
-
-DPEO=		@Dpeo@
-DPEO_SRCS=	@Dpeo_SRCS@
-DPEO_OBJS=	$(DPEO_SRCS:.c=.o)
-SHASH_SRCS=	@SHASH_SRCS@
-SHASH_OBJS=	$(SHASH_SRCS:.c=.o)
-DHASH_SRCS=	@DHASH_SRCS@
-DHASH_OBJS=	$(DHASH_SRCS:.c=.o)
-
-DMYSQL=		@Dmysql@
-DMYSQL_SRCS=	@Dmysql_SRCS@
-MYSQL_CPPFLAGS=	@MYSQL_CPPFLAGS@
-MYSQL_LIBS=	@MYSQL_LIBS@
-DMYSQL_OBJS=	$(DMYSQL_SRCS:.c=.o)
-
-DPGSQL=		@Dpgsql@
-DPGSQL_SRCS=	@Dpgsql_SRCS@
-PGSQL_CPPFLAGS=	@PGSQL_CPPFLAGS@
-PGSQL_LIBS=	@PGSQL_LIBS@
-DPGSQL_OBJS=	$(DPGSQL_SRCS:.c=.o)
-
-DREGEX=		@Dregex@
-DREGEX_SRCS=	@Dregex_SRCS@
-DREGEX_OBJS=	$(DREGEX_SRCS:.c=.o)
-
-DCC=	$(CC) $(CFLAGS) $(CPPFLAGS) $(DCCFLAGS) -c
-LDK=	$(LD) @SHARED_PARAMS@
-
-
-all: $(SOBJS) DYNAMIC
-
-$(SSRCS) DYNAMIC: ../config.h
-
-$(SOBJS): $(SSRCS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $(SSRCS) $(SHASH_SRCS:%=../peo/%)
-
-DYNAMIC:	$(DUNIX) $(DUDP) $(DBSD) $(DLINUX) \
-		$(DCLASSIC) $(DPEO) $(DMYSQL) $(DPGSQL) $(DREGEX) \
-		$(DDOORS) $(DSTREAMS)
-
-$(DUNIX): $(DUNIX_SRCS)
-	$(DCC) $(DUNIX_SRCS)
-	$(LDK) -o $@ $(DUNIX_OBJS)
-
-$(DUDP):  $(DUDP_SRCS)
-	$(DCC) $(DUDP_SRCS)
-	$(LDK) -o $@ $(DUDP_OBJS)
-
-$(DBSD): $(DBSD_SRCS)
-	$(DCC) $(DBSD_SRCS)
-	$(LDK) -o $@ $(DBSD_OBJS)
-
-$(DLINUX): $(DLINUX_SRCS)
-	$(DCC) $(DLINUX_SRCS)
-	$(LDK) -o $@ $(DLINUX_OBJS)
-
-$(DDOORS): $(DDOORS_SRCS)
-	$(DCC) $(DDOORS_SRCS)
-	$(LDK) -o $@ $(DDOORS_OBJS)
-
-$(DSTREAMS): $(DSTREAMS_SRCS)
-	$(DCC) $(DSTREAMS_SRCS)
-	$(LDK) -o $@ $(DSTREAMS_OBJS)
-
-$(DCLASSIC): $(DCLASSIC_SRCS)
-	$(DCC) $(DCLASSIC_SRCS)
-	$(LDK) -o $@ $(DCLASSIC_OBJS)
-
-$(DPEO): $(DPEO_SRCS)
-	$(DCC) $(DPEO_SRCS) $(DHASH_SRCS:%=../peo/%)
-	$(LDK) -o $@ $(DPEO_OBJS) $(DHASH_OBJS)
-
-$(DMYSQL): $(DMYSQL_SRCS)
-	$(DCC) $(MYSQL_CPPFLAGS) $(DMYSQL_SRCS)
-	$(LDK) -o $@ $(DMYSQL_OBJS)
-
-$(DPGSQL): $(DPGSQL_SRCS)
-	$(DCC) $(PGSQL_CPPFLAGS) $(DPGSQL_SRCS)
-	$(LDK) -o $@ $(DPGSQL_OBJS)
-
-$(DREGEX): $(DREGEX_SRCS)
-	$(DCC) $(DREGEX_SRCS)
-	$(LDK) -o $@ $(DREGEX_OBJS)
+all: $(MLIBNAME)
 
 .PHONY:	clean distclean
 
@@ -164,17 +69,7 @@ distclean: clean
 	-rm -f Makefile
 
 install:
-	@echo "installing shared libraries..."
+	@echo "installing shared library..."
 	@if [ ! -d "$(INSTALL_LIBDIR)" ]; then echo "creating directory $(INSTALL_LIBDIR)" && mkdir -p -m 755 "$(INSTALL_LIBDIR)" ; fi 
-	@if [ "$(DUNIX)" -a -f "$(DUNIX)" ]; then $(INSTALL) $(DUNIX) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DUNIX)" ; fi
-	@if [ "$(DUDP)" -a -f "$(DUDP)" ]; then $(INSTALL) $(DUDP) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DUDP)" ; fi
-	@if [ "$(DBSD)" -a -f "$(DBSD)" ]; then $(INSTALL) $(DBSD) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DBSD)" ; fi
-	@if [ "$(DLINUX)" -a -f "$(DLINUX)" ]; then $(INSTALL) $(DLINUX) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DLINUX)" ; fi
-	@if [ "$(DCLASSIC)" -a -f "$(DCLASSIC)" ]; then $(INSTALL) $(DCLASSIC) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DCLASSIC)" ; fi
-	@if [ "$(DPEO)" -a -f "$(DPEO)" ]; then $(INSTALL) $(DPEO) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DPEO)" ; fi
-	@if [ "$(DMYSQL)" -a -f "$(DMYSQL)" ]; then $(INSTALL) $(DMYSQL) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DMYSQL)" ; fi
-	@if [ "$(DPGSQL)" -a -f "$(DPGSQL)" ]; then $(INSTALL) $(DPGSQL) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DPGSQL)" ; fi
-	@if [ "$(DREGEX)" -a -f "$(DREGEX)" ]; then $(INSTALL) $(DREGEX) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DREGEX)" ; fi
-	@if [ "$(DSTREAMS)" -a -f "$(DSTREAMS)" ]; then $(INSTALL) $(DSTREAMS) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DSTREAMS)" ; fi
-	@if [ "$(DDOORS)" -a -f "$(DDOORS)" ]; then $(INSTALL) $(DDOORS) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DDOORS)" ; fi
+	@$(INSTALL) $(MLIBNAME) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(MLIBNAME)"
 

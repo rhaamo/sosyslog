@@ -9,7 +9,7 @@
 #ifndef _SHA1_H
 #define _SHA1_H
 
-#include "../conditional.h"
+#include "typedefs.h"
 
 typedef struct {
     u_int32_t state[5];

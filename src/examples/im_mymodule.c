@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_mymodule.c,v 1.3 2000/10/31 19:42:13 alejo Exp $	*/
+/*	$CoreSDI: im_mymodule.c,v 1.4 2000/11/01 18:18:02 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -35,6 +35,9 @@
  * Author: Alejo Sanchez for Core SDI S.A.
  *    
  */
+
+/* Get system information */
+#include "../../config.h"
 
 #include <sys/types.h>
 #include <errno.h>

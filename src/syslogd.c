@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.152 2000/11/22 00:49:42 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.153 2000/11/24 21:55:24 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.152 2000/11/22 00:49:42 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.153 2000/11/24 21:55:24 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -68,24 +68,26 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.152 2000/11/22 00:49:42 alejo Exp
  *
  */
 
-#include "config.h"
+#include "../config.h"
 
 #include <sys/param.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/un.h>
-#include <sys/types.h>
-#ifdef HAVE_LINUX
-#include <time.h>
-extern char *strptime(const char *, const char *, struct tm *);
-#elif (__svr4__ && __sun__)
-#define _REENTRANT
-#include <time.h>
-#undef  _REENTRANT
+
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
 #else
-#include <sys/time.h>
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
 #endif
+
 #include <sys/resource.h>
 #if !(__svr4__ && __sun__)
 #include <sys/sysctl.h>
@@ -107,7 +109,6 @@ extern char *strptime(const char *, const char *, struct tm *);
 #include <syslog.h>
 #include "modules.h"
 #include "syslogd.h"
-#include "conditional.h"
 
 #ifdef PATH_MAX   
 #define PID_PATH_MAX PATH_MAX
@@ -124,6 +125,11 @@ extern char *strptime(const char *, const char *, struct tm *);
 #define _PATH_CONSOLE "/dev/console"
 #warning Using "/dev/console" for _PATH_CONSOLE
 #endif /* _PATH_CONSOLE */
+
+/* if _PATH_DEVNULL isn't defined, define it here... */
+#ifndef _PATH_DEVNULL
+#define _PATH_DEVNULL "/dev/null"
+#endif
 
 #ifndef NAME_MAX
 #ifdef MAXNAMLEN
@@ -175,7 +181,6 @@ void    init(int);
 void    printline(char *, char *, size_t, int);
 void    reapchild(int);
 void    usage(void);
-int     modules_load(void);
 int     imodule_init(struct i_module *, char *);
 int     omodule_create(char *, struct filed *, char *);
 int	omodules_destroy(struct omodule *);
@@ -184,6 +189,8 @@ void    logerror(char *);
 void    logmsg(int, char *, char *, int);
 void    die(int);
 int	getmsgbufsize(void);
+int modules_start(void);
+void modules_stop(void);
 
 
 extern	struct  omodule *omodules;
@@ -200,11 +207,10 @@ main(int argc, char **argv) {
 	Inputs.im_fd = -1;
 	ctty = strdup(_PATH_CONSOLE);
 
-	/* assign functions and init input */
-	if ((ch = modules_load()) < 0) {
-		dprintf("Error loading static modules [%d]\n", ch);
-		exit(-1);
-	}
+	/* init module list */
+	imodules = NULL;
+	omodules = NULL;
+
 	if (!Debug) {
 		struct rlimit r;
 
@@ -215,6 +221,12 @@ main(int argc, char **argv) {
 			logerror("ERROR setting limits for coredump");
 		}
 
+	}
+
+	/* Load main modules library */
+	if (modules_start() < 0) {
+		dprintf("Error starting modules! \n");
+		exit(-1);
 	}
 
 	while ((ch = getopt(argc, argv, "dubSf:m:p:a:i:h")) != -1)
@@ -733,7 +745,7 @@ doLog(struct filed *f, int flags, char *message) {
 }
 
 
-void
+RETSIGTYPE
 reapchild(int signo) {
 	int status;
 	int save_errno = errno;
@@ -743,7 +755,7 @@ reapchild(int signo) {
 	errno = save_errno;
 }
 
-void
+RETSIGTYPE
 domark(int signo) {
 	struct filed *f;
 	time_t now;
@@ -787,7 +799,7 @@ logerror(char *type) {
 	logmsg(LOG_SYSLOG|LOG_ERR, buf, LocalHostName, ADDDATE);
 }
 
-void
+RETSIGTYPE
 die(int signo) {
 	struct filed *f;
 	int was_initialized = Initialized;
@@ -840,10 +852,10 @@ die(int signo) {
 /*
  *  INIT -- Initialize syslogd from configuration table
  */
-void
+RETSIGTYPE
 init(int signo)
 {
-	int i;
+	int i, close_modules = 0;
 	FILE *cf;
 	struct filed *f, *next, **nextp;
 	char *p;
@@ -856,7 +868,12 @@ init(int signo)
 	/*
 	 *  Close all open log files.
 	 */
+
+	if (Initialized)
+		close_modules++;
+
 	Initialized = 0;
+
 	for (f = Files; f != NULL; f = next) {
 
 		/* flush any pending output */
@@ -886,6 +903,15 @@ init(int signo)
 			free(f->f_program);
 
 		free(f);
+	}
+
+	if (close_modules) {
+		modules_stop();
+		/* Load main modules library */
+		if (modules_start() < 0) {
+			dprintf("Error starting modules! \n");
+			exit(-1);
+		}
 	}
 
 	/* list of filed is now empty */
@@ -1095,7 +1121,10 @@ cfline(char *line, struct filed *f, char *prog) {
 
 	if (omodule_create(p, f, NULL) == -1) {
 		dprintf("Error initializing modules!\n");
+		return;
 	}
+
+	dprintf("cfline: all ok\n");
 }
 
 /*

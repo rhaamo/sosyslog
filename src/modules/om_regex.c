@@ -36,9 +36,18 @@
  *
  */
 
-#include "../config.h"
+#include "../../config.h"
 
-#include <sys/time.h>
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
 #include <sys/param.h>
 #include <ctype.h>
 #include <errno.h>
@@ -106,7 +115,6 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 	 *
 	 */
 	optind = 1;
-	opterr = 0;
 #ifdef HAVE_OPTRESET
 	optreset = 1;
 #endif

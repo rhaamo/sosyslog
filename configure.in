@@ -1,239 +1,321 @@
-dnl	$CoreSDI: configure.in,v 1.74 2000/11/22 00:38:15 alejo Exp $
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(src/syslogd.c)dnl
+AC_CONFIG_HEADER(config.h)dnl
 
-AC_INIT(src/syslogd.h)
-AC_CONFIG_HEADER(src/config.h)
-
-MSYSLOG_VERSION=1.03
-AC_DEFINE_UNQUOTED(MSYSLOG_VERSION_STR, "$MSYSLOG_VERSION")dnl
-echo msyslog version... $MSYSLOG_VERSION
-
+dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
 
-CFLAGS="-O2"
-LDFLAGS=
-LDDFLAGS=
-DCCFLAGS="-fPIC"
-LDCONFIG_FLAGS="-m"
-UNAME=`uname`
-SYSLOGD_LIBS=""
+dnl Checks for libraries.
+
+dnl Checks for header files.
+AC_HEADER_DIRENT
+
+dnl This will be needed by later ports
+dnl AC_HEADER_STDC
+
+dnl This isn't needed
+dnl AC_HEADER_SYS_WAIT
+
+AC_CHECK_HEADERS(fcntl.h limits.h paths.h strings.h sys/ioctl.h \
+    sys/time.h syslog.h unistd.h)dnl
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_TYPE_OFF_T
+AC_TYPE_SIZE_T
+AC_HEADER_TIME
+AC_STRUCT_TM
+
+dnl Checks for library functions.
+AC_PROG_GCC_TRADITIONAL
+AC_FUNC_MEMCMP
+AC_TYPE_SIGNAL
+dnl It should have strftime!
+dnl AC_FUNC_STRFTIME
+AC_FUNC_VPRINTF
+AC_CHECK_FUNCS(gethostname regcomp select socket strdup strerror strstr strtoul )
+
+dnl 
+dnl Here are our checks...
+dnl 
+
+MSYSLOG_VERSION="1.04"
+AC_DEFINE_UNQUOTED(MSYSLOG_VERSION_STR, "$MSYSLOG_VERSION")dnl
+echo msyslog version... $MSYSLOG_VERSION
+
+MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
+AC_DEFINE_UNQUOTED(MLIBNAME_STR, "$MLIBNAME")dnl
+
+MANPAGES="syslog.conf.5 syslogd.8"
 
 if test "x$prefix" = "xNONE"
 then
 	prefix=$ac_default_prefix
 fi
-
 AC_DEFINE_UNQUOTED(INSTALL_LIBDIR, "$prefix/lib/alat")
 
 dnl
-dnl Check needed libs (Mostly for Solaris)
+dnl Check needed libs for daemon
 dnl
 AC_CHECK_LIB(dl, dlopen, SYSLOGD_LIBS="$SYSLOGD_LIBS -ldl")dnl
 AC_CHECK_LIB(socket, connect, SYSLOGD_LIBS="$SYSLOGD_LIBS -lsocket")dnl
 AC_CHECK_LIB(nsl, gethostbyname, SYSLOGD_LIBS="$SYSLOGD_LIBS -lnsl")dnl
+AC_DEFINE(SYSLOGD_LIBS, $SYSLOGD_LIBS)dnl
 
-AC_CHECK_HEADERS(paths.h)
 AC_MSG_CHECKING(wheter optreset is needed)
 AC_TRY_LINK([#include <unistd.h>],
-	[extern int optreset; optreset = 1;],
-	[AC_DEFINE(HAVE_OPTRESET) AC_MSG_RESULT(yes)],
-	AC_MSG_RESULT(no))
+        [extern int optreset; optreset = 1;],
+        [AC_DEFINE(HAVE_OPTRESET) AC_MSG_RESULT(yes)],
+        AC_MSG_RESULT(no))
 
 for dir in "/var/run" "/etc"
 do
-	if test -d $dir
-	then
+	if test -d $dir ; then
 		break
 	fi
 done
-AC_MSG_RESULT(root-mode pid file will go in $dir)
+AC_MSG_RESULT(root-mode pid file will go in $dir)   
 AC_DEFINE_UNQUOTED(PID_DIR, "$dir")
 
 dnl search mandir for non bsd systems
 for MANDIR in "/usr/share/man" "/usr/man"
 do
-	if test -d $MANDIR
-	then
+	if test -d $MANDIR ; then
 		break;
 	fi
 done
 
+echo "setting system linking flags"
 
-HASH_SRCS="hash.c"
-AC_CHECK_FUNC(MD5Init, AC_DEFINE(HAVE_MD5),
-	HASH_SRCS="$HASH_SRCS md5c.c")
-AC_CHECK_FUNC(SHA1Init, AC_DEFINE(HAVE_SHA1),
-	HASH_SRCS="$HASH_SRCS sha1.c")
-AC_CHECK_FUNC(RMD160Init, AC_DEFINE(HAVE_RMD160),
-	HASH_SRCS="$HASH_SRCS rmd160.c")
-
-
-if test "$UNAME" = "OpenBSD"
-then
-	echo Configuring for OpenBSD system
-	AC_DEFINE(HAVE_OPENBSD)
-	SHARED_PARAMS="-Bshareable"
-elif test "$UNAME" = "Linux"
-then
-	echo Configuring for Linux system
-	LIBS="$LIBS -ldl"
-	DCCFLAGS=
-	LDDFLAGS="-Xlinker -E"
-	AC_DEFINE(HAVE_LINUX)
-	SHARED_PARAMS="-Bshareable"
-elif test "$UNAME" = "SunOS"
-then
-	AC_DEFINE(HAVE_SOLARIS)
-	SHARED_PARAMS="-G"
+UNAME=`uname`
+if test "$UNAME" = "OpenBSD" ; then
+        AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
+        AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "_")dnl
+        SHARED_PARAMS="-Bshareable"
+	DCCFLAGS="-fPIC"
+elif test "$UNAME" = "Linux" ; then
+        AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY | RTLD_GLOBAL)dnl
+        SHARED_PARAMS="-Bshareable"
+	DCCFLAGS=""
+elif test "$UNAME" = "SunOS" ; then
+        AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
+        SHARED_PARAMS="-G"
+	DCCFLAGS="-fPIC"
+elif test "$UNAME" = "Irix" ; then
+        AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
+        SHARED_PARAMS="-G"
+	DCCFLAGS="-fPIC"
+else
+	AC_MSG_WARN(cannot determine system type, using defaults)dnl
+        AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
+        SHARED_PARAMS="-Bshareable"
 fi
-
-MSYSLOG_BEGIN_MODULES_CONF()
-MSYSLOG_CHECK_MODULE(unix, $UNIX, im, im_unix.c)
-MSYSLOG_CHECK_MODULE(udp, $UDP, im, im_udp.c)
-MSYSLOG_CHECK_MODULE(bsd, $BSD, im, im_bsd.c)
-MSYSLOG_CHECK_MODULE(linux, $LINUX, im, im_linux.c)
-MSYSLOG_CHECK_MODULE(classic, $CLASSIC, om, om_classic.c ttymsg.c)
-MSYSLOG_CHECK_MODULE(peo, $PEO, om, om_peo.c)
-
-MSYSLOG_CHECK_MODULE(doors, $DOORS, im, im_doors.c)
-MSYSLOG_CHECK_MODULE(streams, $STREAMS, im, im_streams.c)
-if test "x$DOORS" = "xstatic" -o "x$STREAMS" = "xstatic"
-then
-	LIBS="$LIBS -lpthread"
-fi
-
-if test "x$PEO" = "xstatic"
-then
-	SHASH_SRCS="$HASH_SRCS"
-elif test "x$PEO" = "xdynamic"
-then
-	DHASH_SRCS="$HASH_SRCS"
-fi
-
-if test "x$MYSQL" = "xstatic" -o "x$MYSQL" = "xdynamic"
-then
-	MSYSLOG_CHECK_MYSQL()
-fi
-MSYSLOG_CHECK_MODULE(mysql, $MYSQL, om, om_mysql.c)
-
-dnl Add to LIBS and CPP params
-if test "x$MYSQL" = "xstatic"
-then
-	LIBS="$LIBS $MYSQL_LIBS"
-	CPPFLAGS="$CPPFLAGS $MYSQL_CPPFLAGS"
-fi
-
-if test "x$PGSQL" = "xstatic" -o "x$PGSQL" = "xdynamic"
-then
-	MSYSLOG_CHECK_PGSQL()
-fi
-
-dnl Add to LIBS and CPP params
-if test "x$PGSQL" = "xstatic"
-then
-	LIBS="$LIBS $PGSQL_LIBS"
-	CPPFLAGS="$CPPFLAGS $PGSQL_CPPFLAGS"
-fi
-
-MSYSLOG_CHECK_MODULE(pgsql, $PGSQL, om, om_pgsql.c)
-
-
-dnl Assign sql_misc.c file as needed
-if test "x$MYSQL" != "x" -o "x$PGSQL" != "x"
-then
-	SSRCS="$SSRCS sql_misc.c"
-fi
-
-MSYSLOG_CHECK_MODULE(regex, $REGEX, om, om_regex.c)
-MSYSLOG_END_MODULES_CONF()
-
-AC_CHECK_TYPE_HDR()
 
 dnl
-dnl Determine which manpages should be installed
+dnl Here we check module support
 dnl
 
-MANPAGES="syslog.conf.5 syslogd.8"
+AC_ARG_WITH(bsd,
+[  --without-bsd
+	Use bsd input module. Automatically detected.
+],[
+	if test $with_bsd = "yes" ; then
+		MSRCS="$MSRCS im_bsd.c"
+	fi
+],[
+	if test "$UNAME" = "OpenBSD" -o "$UNAME" = "NetBSD" \
+	    -o "$UNAME"  = "FreeBSD" -o "$UNAME" = "BSDi" \
+	    -o "$UNAME"  = "386BSD"  -o "$UNAME" = "ArchBSD" \
+	    -o "$UNAME"  = "TrustedBSD" ; then
+		MSRCS="$MSRCS im_bsd.c"
+	fi
+])dnl
 
-if test "x$LINUX" = "xstatic" -o "x$LINUX" = "xdynamic"
-then
-	MANPAGES="$MANPAGES im_linux.8"
-fi
-if test "x$PEO" = "xstatic" -o "x$PEO" = "xdynamic"
-then
-	MANPAGES="$MANPAGES om_peo.8 peochk.8"
-fi
-if test "x$REGEX" = "xstatic" -o "x$REGEX" = "xdynamic"
-then
-	MANPAGES="$MANPAGES om_regex.8"
-fi
-if test "x$MYSQL" = "xstatic" -o "x$MYSQL" = "xdynamic"
-then
+
+AC_ARG_WITH(linux,
+[  --without-linux
+	Use linux kernel input module. Automatically detected.
+],[
+	if test "$with_linux" = "yes" ; then
+		MSRCS="$MSRCS im_linux.c"
+		MANPAGES="$MANPAGES im_linux.8"
+	fi
+],[
+	if test "$UNAME" = "Linux" ; then
+		MSRCS="$MSRCS im_linux.c"
+		MANPAGES="$MANPAGES im_linux.8"
+	fi
+])dnl
+
+AC_ARG_WITH(udp,
+[  --without-udp
+	Use udp socket input module. Activated by default.
+],[
+	if test $with_udp = "yes" ; then
+		MSRCS="$MSRCS im_udp.c"
+	fi
+],[
+	MSRCS="$MSRCS im_udp.c"
+])dnl
+
+AC_ARG_WITH(unix,
+[  --without-unix
+	Use unix socket domain input module. Activated by default.
+],[
+	if test $with_unix = "yes" ; then
+		MSRCS="$MSRCS im_unix.c"
+	fi
+],[
+	MSRCS="$MSRCS im_unix.c"
+])dnl
+
+AC_ARG_WITH(doors,
+[  --without-doors
+	Use doors input module (for System V systems). Activated by default.
+],[
+	if test $with_doors = "yes" ; then
+		MSRCS="$MSRCS im_doors.c"
+		MANPAGES="$MANPAGES im_doors.8"
+	fi
+],[
+	if test "$UNAME" = "SunOS" -o "$UNAME" = "SysV" ; then
+		MSRCS="$MSRCS im_doors.c"
+		MANPAGES="$MANPAGES im_doors.8"
+	fi
+])
+
+AC_ARG_WITH(streams,
+[  --without-streams
+	Use streams input module. Activated by default.
+],[
+	if test $with_streams = "yes" ; then
+		MSRCS="$MSRCS im_streams.c"
+		MLIBS="$MLIBS -lpthread"
+		MANPAGES="$MANPAGES im_streams.8"
+	fi
+],[
+	if test "$UNAME" = "SunOS" -o "$UNAME" = "SysV" ; then
+		MSRCS="$MSRCS im_streams.c"
+		MANPAGES="$MANPAGES im_streams.8"
+	fi
+])
+
+AC_ARG_WITH(classic,
+[  --without-classic
+	Use classic output module. Activated by default.
+],[
+	if test $with_classic = "yes" ; then
+		MSRCS="$MSRCS om_classic.c ttymsg.c"
+	fi
+],[
+	MSRCS="$MSRCS om_classic.c ttymsg.c"
+])
+
+AC_ARG_WITH(mysql,
+[  --without-mysql
+	Use mysql MySQL output module. Activated by default.
+],[
+	if test $with_mysql = "yes" ; then
+		MSRCS="$MSRCS om_mysql.c"
+		MANPAGES="$MANPAGES om_mysql.8"
+	fi
+],[
+	MSRCS="$MSRCS om_mysql.c"
 	MANPAGES="$MANPAGES om_mysql.8"
-fi
-if test "x$PGSQL" = "xstatic" -o "x$PGSQL" = "xdynamic"
-then
-	MANPAGES="$MANPAGES om_pgsql.8"
-fi
-if test "x$DOORS" = "xstatic" -o "x$DOORS" = "xdynamic"
-then
-	MANPAGES="$MANPAGES im_doors.8"
-fi
-if test "x$STREAMS" = "xstatic" -o "x$STREAMS" = "xdynamic"
-then
-	MANPAGES="$MANPAGES im_streams.8"
-fi
-dnl end manpage stuff
+	USESQL="yes"
+])
 
-AC_SUBST(alatlibdir)
-AC_SUBST(HASH_SRCS)
-AC_SUBST(SHASH_SRCS)
-AC_SUBST(DHASH_SRCS)
-AC_SUBST(LDCONFIG_FLAGS)
-AC_SUBST(LIBS)
-AC_SUBST(CFLAGS)
-AC_SUBST(CPPFLAGS)
-AC_SUBST(DCCFLAGS)
-AC_SUBST(LDFLAGS)
-AC_SUBST(LDDFLAGS)
-AC_SUBST(UNAME)
-AC_SUBST(MANDIR)
-AC_SUBST(MYSQL_CPPFLAGS)
-AC_SUBST(SYSLOGD_LIBS)
-AC_SUBST(MYSQL_LIBS)
-AC_SUBST(PGSQL_CPPFLAGS)
-AC_SUBST(PGSQL_LIBS)
-AC_SUBST(MANPAGES)
-AC_SUBST(SHARED_PARAMS)
-AC_SUBST(INSTALL_LIBDIR)
+AC_ARG_WITH(pgsql,
+[  --without-pgsql
+	Use pgsql PostgreSQL output module. Activated by default.
+],[
+	if test $with_pgsql = "yes" ; then
+		MSRCS="$MSRCS om_pgsql.c"
+		MANPAGES="$MANPAGES om_pgsql.8"
+	fi
+],[
+	MSRCS="$MSRCS om_pgsql.c"
+	MANPAGES="$MANPAGES om_pgsql.8"
+	USESQL="yes"
+])
+
+if test "$USESQL" = "yes" ; then
+	MSRCS="$MSRCS sql_misc.c"
+fi
+
+AC_ARG_WITH(peo,
+[  --without-peo
+	Use peo log integrity verification module. Activated by default.
+],[
+	if test $with_peo = "yes" ; then
+		PEO=yes
+	else
+		PEO=no
+	fi
+],[
+	PEO=yes
+])
+
+HASH_SRCS=""
+if test $PEO = "yes" ; then
+
+	MSRCS="$MSRCS om_peo.c"
+	MANPAGES="$MANPAGES om_peo.8 peochk.8"
+
+	HASH_SRCS="hash.c"
+	AC_CHECK_FUNC(MD5Init, AC_DEFINE(HAVE_MD5),
+	        HASH_SRCS="$HASH_SRCS md5c.c")
+	AC_CHECK_FUNC(SHA1Init, AC_DEFINE(HAVE_SHA1),
+	        HASH_SRCS="$HASH_SRCS sha1.c")
+	AC_CHECK_FUNC(RMD160Init, AC_DEFINE(HAVE_RMD160),
+	        HASH_SRCS="$HASH_SRCS rmd160.c")
+	if test -f /dev/srandom ; then
+		AC_DEFINE(HAVE_SRANDOM)
+	fi
+fi
+
+AC_ARG_WITH(regex,
+[  --without-regex
+	Use regex pattern matching output module. Activated by default.
+],[
+	if test $with_regex = "yes" ; then
+		MSRCS="$MSRCS om_regex.c"
+		MANPAGES="$MANPAGES om_regex.8"
+	fi
+],[
+	MSRCS="$MSRCS om_regex.c"
+	MANPAGES="$MANPAGES om_regex.8"
+])
+
+AC_HAVE_TYPES(socklen_t uint32_t uint64_t u_int32_t u_int64_t)dnl
+
+AC_MSG_CHECKING(for struct CODE)
+AC_EGREP_CPP(CODE,
+[CODE *p;
+],[ AC_DEFINE(HAVE_STRUCT_CODE)
+	AC_MSG_RESULT(yes)
+], AC_MSG_RESULT(no))
+
+
+AC_SUBST(SYSLOGD_LIBS)dnl
+AC_SUBST(SHARED_PARAMS)dnl
+AC_SUBST(DCCFLAGS)dnl
+AC_SUBST(MSRCS)dnl
+AC_SUBST(MLIBS)dnl
+AC_SUBST(MLIBNAME)dnl
+AC_SUBST(MANPAGES)dnl
+AC_SUBST(HASH_SRCS)dnl
+AC_SUBST(HAVE_SOCKLEN_T)dnl
+AC_SUBST(HAVE_UINT32_T)dnl
+AC_SUBST(HAVE_UINT64_T)dnl
+AC_SUBST(HAVE_U_INT32_T)dnl
+AC_SUBST(HAVE_U_INT64_T)dnl
 
 AC_OUTPUT([Makefile
-	   src/Makefile src/static_modules.h src/static_modules.c
-	   src/modules/Makefile
-	   src/peo/Makefile
-	   src/man/Makefile
-	   src/man/BSDmakefile
-	   src/man/GNUmakefile])
-
-dnl Give final message
-echo -e "\n ***************************************\n"\
-	"***************************************\n"\
-	"*                                     *\n"\
-	"* Msyslog was properly configured!    *\n"\
-	"*                                     *\n"\
-	"* Now you can compile it with         *\n"\
-	"* make                                *\n"\
-	"* or compile and install with         *\n"\
-	"* make install                        *\n"\
-	"*                                     *\n"\
-	"* Make sure the file modules.conf     *\n"\
-	"* meets your needs. If not, modify    *\n"\
-	"* it to meet your needs and run       *\n"\
-	"* again ./configure                   *\n"\
-	"*                                     *\n"\
-	"* For more info please read INSTALL   *\n"\
-	"* and README files.                   *\n"\
-	"*                                     *\n"\
-	"***************************************\n"\
-	"***************************************\n"
-
+	    src/Makefile
+	    src/modules/Makefile
+	    src/peo/Makefile
+	    src/man/Makefile
+	    src/man/BSDmakefile
+	    src/man/GNUmakefile])dnl

@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.16.2.3 2000/08/28 21:44:12 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.22 2000/10/31 19:42:11 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -28,7 +28,8 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-SUBDIRS = src/modules src/peo src src/man
+MODULES_SUBDIR = src/modules
+SUBDIRS = src/peo $(MODULES_SUBDIR) src src/man
 INSTALL_SUBDIRS = src/modules src/peo src/man src 
 
 all: all-recursive
@@ -47,9 +48,23 @@ install-recursive:
 		(cd $$subdir && exec $(MAKE) $$target) \
 	done
 
+modules:
+	echo "entra en modules"
+	cd $(MODULES_SUBDIR) && make all
+
+modules-install:
+	cd $(MODULES_SUBDIR) && make install
+
+install-recursive:
+	@target=`echo $@ | sed s/-recursive//`; \
+	list='$(INSTALL_SUBDIRS)'; \
+	for subdir in $$list; do \
+		(cd $$subdir && exec $(MAKE) $$target) \
+	done
+
 .PHONY: clean distclean install
 clean: clean-recursive
 install: all install-recursive
 
 distclean: distclean-recursive
-	-rm -f Makefile config.cache config.log config.status
+	-rm -f Makefile config.cache config.log config.status config.h

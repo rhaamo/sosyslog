@@ -1,4 +1,4 @@
-/*	$CoreSDI: peochk.c,v 1.41 2000/11/03 20:52:40 alejo Exp $	*/
+/*	$CoreSDI: peochk.c,v 1.42 2000/11/24 21:55:26 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -62,6 +62,8 @@
  *
  */
 
+#include "../../config.h"
+
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/syslog.h>
@@ -77,7 +79,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
 #include <unistd.h>
 
 #include "hash.h"
@@ -169,7 +180,13 @@ eexit (int status, char *fmt, ...)
 	va_list ap;
 	if (fmt) {
 		va_start (ap, fmt);
+#ifdef HAVE_VPRINTF
 		vfprintf (stdout, fmt, ap);
+#elif defined(HAVE_DOPRNT)
+		_doprnt (stdout, fmt, ap);
+#else
+#error No vfprintf and no doprnt
+#endif
 		va_end(ap);
 	}
 	exit(status);

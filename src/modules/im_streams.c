@@ -1,4 +1,4 @@
-/*      $CoreSDI: im_streams.c,v 1.3 2000/11/09 20:04:06 alejo Exp $   */
+/*      $CoreSDI: im_streams.c,v 1.4 2000/11/24 21:55:25 alejo Exp $   */
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -35,6 +35,8 @@
  * Author: ari edelkind (10/31/2000)
  *    
  */
+
+#include "../../config.h"
 
 #include <sys/types.h>
 #include <errno.h>

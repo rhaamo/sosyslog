@@ -29,6 +29,8 @@ static char rcsid[] = "$OpenBSD: md5c.c,v 1.12 2000/03/28 17:35:09 millert Exp $
 #include <string.h>
 #include <sys/types.h>
 
+#include "typedefs.h"
+
 /* changed */
 /*#include <md5.h>*/
 #include "md5.h"

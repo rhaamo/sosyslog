@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.37 2000/11/14 01:29:01 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.38 2000/11/15 18:44:26 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -29,9 +29,7 @@
 #
 
 CC=		@CC@
-CFLAGS=		@CFLAGS@ -Wall
-LDFLAGS=	@LDFLAGS@
-LDDFLAGS=	@LDDFLAGS@
+CFLAGS=		-O2 -Wall
 CPPFLAGS=	@CPPFLAGS@
 CPPFLAGS +=	-I.
 LIBS=		@LIBS@
@@ -41,30 +39,22 @@ INSTALL=	@INSTALL@
 INSTALL_DIR=    @prefix@/sbin
 
 PROG=		syslogd
-SRCS=		modules.c syslogd.c static_modules.c
+SRCS=		modules.c syslogd.c
 OBJS=		$(SRCS:.c=.o)
-SSRCS=		@SSRCS@
-SOBJS=		$(SSRCS:.c=.o)
-SHASH_SRCS=	@SHASH_SRCS@
-SHASH_OBJS=	$(SHASH_SRCS:.c=.o)
 
 all: $(PROG)
 
 .c.o:
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
-modules.o: config.h
+modules.o: ../config.h
 
 $(OBJS): $(SRCS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $(SRCS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $(@:.o=.c) -o $@
 
-$(PROG): $(OBJS) $(SOBJS:%=modules/%) $(SHASH_OBJS:%=modules/%)
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDDFLAGS) $(LDFLAGS) $(LIBS) \
-            $(SYSLOGD_LIBS) $(OBJS) $(SOBJS:%=modules/%) \
-            $(SHASH_OBJS:%=modules/%) -o $@
-
-$(SOBJS:%=modules/%) $(SHASH_OBJS:%=modules/%):
-	@cd modules && make && cd ..
+$(PROG): $(OBJS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LIBS) \
+            $(SYSLOGD_LIBS) $(OBJS) -o $@
 
 .PHONY:	clean distclean
 
@@ -72,7 +62,7 @@ clean:
 	-rm -f $(OBJS) core *.core $(PROG)
 
 distclean: clean
-	-rm -f Makefile config.h static_modules.c static_modules.h
+	-rm -f Makefile
 
 install-prog:
 	@if [ -f "$(INSTALL_DIR)/$(PROG)" ]; then \

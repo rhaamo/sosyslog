@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.54 2000/11/27 21:04:41 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.53 2000/11/24 21:55:25 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -36,8 +36,19 @@
  *
  */
 
+#include "../../config.h"
+
 #include <sys/types.h>
-#include <sys/time.h>
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
 #include <sys/param.h>
 #include <signal.h>
 #include <errno.h>
@@ -45,11 +56,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <syslog.h>
 #include <unistd.h>
-#include <mysql.h>
-#include "../config.h"
+#include "../../config.h"
 #include "../modules.h"
 #include "../syslogd.h"
 #include "sql_misc.h"
@@ -60,7 +69,7 @@
 #define MSYSLOG_MYSQL_ERROR_DELAY	30
 
 struct om_mysql_ctx {
-	MYSQL	h;
+	void	*h;
 	int	lost;
 	char	*table;
 	char	*host;
@@ -72,13 +81,24 @@ struct om_mysql_ctx {
 
 int om_mysql_close(struct filed *, void *);
 
+/*
+ * Define our prototypes for MySQL functions
+ */
+
+int mysql_ping(void *);
+void *mysql_init(void *);
+void *mysql_real_connect(void *, char *,char *,char *,char *, int, void *, int);
+void *mysql_query(void *, char *);
+#define MYSQL_PORT 3306
+
+
 int
 om_mysql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 {
 	struct om_mysql_ctx *c;
 	char	query[MAX_QUERY], err_buf[100];
 	int i;
-	void (*sigsave)(int);
+	RETSIGTYPE (*sigsave)(int);
 
 	dprintf("om_mysql_dolog: entering [%s] [%s]\n", msg, f->f_prevline);
 
@@ -87,8 +107,8 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 	/* ignore sigpipes   for mysql_ping */
 	sigsave = signal(SIGPIPE, SIG_IGN);
 
-	if ((mysql_ping(&c->h) != 0) && ((mysql_init(&c->h) == NULL) ||
-	    (mysql_real_connect(&c->h, c->host, c->user, c->passwd, c->db,
+	if ((mysql_ping(c->h) != 0) && ((mysql_init(c->h) == NULL) ||
+	    (mysql_real_connect(c->h, c->host, c->user, c->passwd, c->db,
 	    c->port, NULL, 0) == NULL))) {
 
 		/* restore previous SIGPIPE handler */
@@ -138,7 +158,7 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 
 		dprintf("om_mysql_doLog: query [%s]\n", query);
 
-		if (mysql_query(&c->h, query) < 0)
+		if (mysql_query(c->h, query) < 0)
 			return (-1);
 	}
 
@@ -155,7 +175,7 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 
 	dprintf("om_mysql_doLog: query [%s]\n", query);
 
-	return (mysql_query(&c->h, query) < 0? -1 : 1);
+	return (mysql_query(c->h, query) < 0? -1 : 1);
 }
 
 /*
@@ -192,7 +212,6 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 
 	/* parse line */
 	optind = 1;
-	opterr = 0;
 #ifdef HAVE_OPTRESET
 	optreset = 1;
 #endif
@@ -230,7 +249,7 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 		goto om_mysql_init_bad;
 
 	/* connect to the database */
-	if (!mysql_init(&ctx->h)) {
+	if (!mysql_init(ctx->h)) {
 
 		snprintf(err_buf, sizeof(err_buf), "om_mysql_init: Error "
 		    "initializing handle");
@@ -238,7 +257,7 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 		goto om_mysql_init_bad;
 	}
 
-	if (!mysql_real_connect(&ctx->h, ctx->host, ctx->user, ctx->passwd,
+	if (!mysql_real_connect(ctx->h, ctx->host, ctx->user, ctx->passwd,
 	    ctx->db, ctx->port, NULL, 0)) {
 
 		snprintf(err_buf, sizeof(err_buf), "om_mysql_init: Error "

@@ -41,11 +41,22 @@ static char sccsid[] = "@(#)ttymsg.c	8.2 (Berkeley) 11/16/93";
 static char rcsid[] = "$OpenBSD: ttymsg.c,v 1.3 1996/10/25 06:06:30 downsj Exp $";
 #endif /* not lint */
 
-#include "config.h"
+#include "../../config.h"
 
 #include <sys/types.h>
 #include <sys/uio.h>
-#include <dirent.h>
+#ifdef HAVE_DIRENT_H
+# include <dirent.h>
+#elif defined(HAVE_SYS_HNDIR_H)
+# include <sys/ndir.h>
+#elif defined(HAVE_SYS_HDIR_H)
+# include <sys/dir.h>
+#elif defined(HAVE_NDIR_H)
+# include <ndir.h>
+#else
+# define MAXNAMLEN 128
+# warning Using MAXNAMLEN of 128
+#endif
 #include <errno.h>
 #include <fcntl.h>
 #ifdef HAVE_PATHS_H

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.40 2000/11/22 00:38:15 alejo Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.41 2000/11/24 21:55:25 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -36,7 +36,7 @@
  *    
  */
 
-#include "../config.h"
+#include "../../config.h"
 
 #include <sys/types.h>
 #include <sys/uio.h>

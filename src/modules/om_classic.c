@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.55 2000/11/14 01:07:24 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.56 2000/11/24 21:55:25 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,9 +41,19 @@
  *
  */
 
-#include "../config.h"
+#include "../../config.h"
 
-#include <sys/time.h>
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
+
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <sys/uio.h>
@@ -58,8 +68,17 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <utmp.h>
+/* if _PATH_UTMP isn't defined, define it here... */
+#ifndef _PATH_UTMP
+# ifdef UTMP_FILE
+#  define _PATH_UTMP UTMP_FILE
+# else  /* if UTMP_FILE */
+#  define _PATH_UTMP "/var/adm/utmp"
+# endif /* if UTMP_FILE */
+#endif
 
-#include "../conditional.h"
+
+#include "../../config.h"
 #include "../modules.h"
 #include "../syslogd.h"
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: sql_misc.c,v 1.3.2.1.2.1.4.3 2000/10/20 22:46:36 alejo Exp $	*/
+/*	$CoreSDI: sql_misc.c,v 1.7 2000/10/31 19:42:15 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -36,6 +36,8 @@
  *         Extracted from om_pgsql.c by Oliver Teuber (ot@penguin-power.de)
  *
  */
+
+#include "../../config.h"
 
 #include <stdlib.h>
 #include <string.h>

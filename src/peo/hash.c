@@ -1,4 +1,4 @@
-/*	$CoreSDI: hash.c,v 1.33 2000/11/03 20:52:38 alejo Exp $	*/
+/*	$CoreSDI: hash.c,v 1.34 2000/11/06 18:26:09 alejo Exp $	*/
  
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -36,7 +36,7 @@
  *
  */
 
-#include "../config.h"
+#include "../../config.h"
 
 #include <sys/types.h>
 #include <ctype.h>
@@ -48,18 +48,27 @@
 #include <string.h>
 #include <unistd.h>
 
-/* here are needed stuf not in some OSs */
-#include "../conditional.h"
-
-#ifdef HAVE_OPENBSD
+#ifdef HAVE_MD5
 	#include <md5.h>
-	#include <rmd160.h>
-	#include <sha1.h>
-	#define RANDOM_DEVICE	"/dev/srandom"
 #else
 	#include "md5.h"
+#endif
+
+#ifdef HAVE_RMD160
+	#include <rmd160.h>
+#else
 	#include "rmd160.h"
+#endif
+
+#ifdef HAVE_SHA1
+	#include <sha1.h>
+#else
 	#include "sha1.h"
+#endif
+
+#ifdef HAVE_SRANDOM
+	#define RANDOM_DEVICE	"/dev/srandom"
+#else
 	#define RANDOM_DEVICE	"/dev/random"
 #endif
 

@@ -48,9 +48,20 @@
  *
  */
 
+#include "../../config.h"
+
 #include <sys/types.h>
 #include <sys/syslog.h>
-#include <sys/time.h>
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
 #include <sys/param.h>
 #include <ctype.h>
 #include <errno.h>
@@ -58,27 +69,50 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <unistd.h>
-#include "../config.h"
+#include "../../config.h"
 #include "../modules.h"
 #include "../syslogd.h"
 #include "sql_misc.h"
 
-#include <libpq-fe.h>
-
 #define MAX_QUERY     8192
 
+/*
+ * Define needed PostgreSQL functions
+ */
+
+int PQstatus(void *);
+int PQresultStatus(void *);
+void PQreset(void *);
+void *PQexec(void *, char *);
+char *PQresultErrorMessage(void *);
+void PQclear(void *);
+void *PQsetdbLogin(char *, char *, void *, void *, char *, char *,char *);
+void PQfinish(void *); 
+typedef enum
+{
+                CONNECTION_OK,
+                CONNECTION_BAD
+} Some_psql_needed_ConnStatusType;
+typedef enum
+{
+	PGRES_EMPTY_QUERY = 0,
+	PGRES_COMMAND_OK,
+/* all other enums are not needed */
+} ExecStatusType;
+
+
+
 struct om_pgsql_ctx {
-	PGconn  *h;
-	char    *table;
+	void	*h;
+	char	*table;
 	int	lost;
 };
 
 int
 om_pgsql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 {
-	PGresult *r;
+	void	*r;
 	struct	om_pgsql_ctx *c;
 	int	err, i;
 	char    query[MAX_QUERY], err_buf[512];
@@ -193,7 +227,7 @@ om_pgsql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 int
 om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 {
-	PGconn  *h;
+	void  *h;
 	struct  om_pgsql_ctx *ctx;
 	char    *host, *user, *passwd, *db, *table, *port, *p;
 	int     ch = 0;
@@ -209,7 +243,6 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 
 	/* parse line */
 	optind = 1;
-	opterr = 0;
 
 #ifdef HAVE_OPTRESET
 	optreset = 1;

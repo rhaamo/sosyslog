@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.83 2000/11/15 18:44:27 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.84 2000/11/24 21:55:24 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -177,5 +177,80 @@ struct imodule {
 #define	I_SHA		4
 #define DEFAULT_INTEG_FACILITY	I_NONE
 
+
+/*
+ * syslog types usualy in /usr/include/syslog.h but
+ * some systems lack those, so we define them here
+ */
+
+#ifndef HAVE_STRUCT_CODE
+# ifdef SYSLOG_NAMES
+
+# ifndef LOG_MAKEPRI
+#  define LOG_MAKEPRI(fac, pri) (((fac) << 3) | (pri))
+# endif
+
+# ifndef LOG_PRI
+#  define LOG_PRI(p) ((p) & LOG_PRIMASK)
+# endif
+
+# ifndef LOG_FAC
+#  define LOG_FAC(p) (((p) & LOG_FACMASK) >> 3)
+# endif
+
+# define INTERNAL_NOPRI 0x10
+# define INTERNAL_MARK  LOG_MAKEPRI(LOG_NFACILITIES, 0) 
+
+typedef struct _code {
+	char *c_name;
+	int  c_val;
+} CODE;
+
+CODE prioritynames[] =
+  {
+    { "alert", LOG_ALERT },
+    { "crit", LOG_CRIT },
+    { "debug", LOG_DEBUG },
+    { "emerg", LOG_EMERG },
+    { "err", LOG_ERR },
+    { "error", LOG_ERR },		/* DEPRECATED */
+    { "info", LOG_INFO },
+    { "none", INTERNAL_NOPRI },		/* INTERNAL */
+    { "notice", LOG_NOTICE },
+    { "panic", LOG_EMERG },		/* DEPRECATED */
+    { "warn", LOG_WARNING },	   	/* DEPRECATED */
+    { "warning", LOG_WARNING },
+    { NULL, -1 }
+  };
+
+CODE facilitynames[] =
+  {
+    { "auth", LOG_AUTH },
+    { "cron", LOG_CRON },
+    { "daemon", LOG_DAEMON },
+    { "kern", LOG_KERN },
+    { "lpr", LOG_LPR },
+    { "mail", LOG_MAIL },
+    { "mark", INTERNAL_MARK },		/* INTERNAL */
+    { "news", LOG_NEWS },   
+    { "security", LOG_AUTH },		/* DEPRECATED */ 
+    { "syslog", LOG_SYSLOG },
+    { "user", LOG_USER },
+    { "uucp", LOG_UUCP },
+    { "local0", LOG_LOCAL0 },
+    { "local1", LOG_LOCAL1 },
+    { "local2", LOG_LOCAL2 },
+    { "local3", LOG_LOCAL3 },
+    { "local4", LOG_LOCAL4 },
+    { "local5", LOG_LOCAL5 },
+    { "local6", LOG_LOCAL6 },
+    { "local7", LOG_LOCAL7 },
+    { NULL, -1 }
+  };
+    
+# endif /* SYSLOG_NAMES */
+#endif /* typedef of /usr/include/syslog.h */
+    
+    
 
 #endif
