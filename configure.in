@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.45 2000/07/06 01:21:51 claudio Exp $
+dnl	$CoreSDI: configure.in,v 1.46 2000/07/06 18:01:24 claudio Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -261,6 +261,7 @@ fi
 ])
 
 
+LDDFLAGS="-Bshareable"
 if test "$UNAME" = "OpenBSD"
 then
 	echo Configuring for OpenBSD system
@@ -270,7 +271,7 @@ then
 	echo Configuring for Linux system
 	LIBS="$LIBS -ldl"
 	DCCFLAGS=
-	LDDFLAGS="-Xlinker -E"
+	LDDFLAGS="$LDDFLAGS -E"
 	AC_DEFINE(HAVE_LINUX)
 fi
 

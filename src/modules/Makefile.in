@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.24 2000/07/05 22:44:43 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.25 2000/07/05 23:12:29 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -37,6 +37,7 @@ DCCFLAGS=	@DCCFLAGS@
 CPPFLAGS=	-I. -I..
 LDCONFIG_FLAGS=	@LDCONFIG_FLAGS@
 INSTALL_LIBDIR=	@INSTALL_LIBDIR@
+UNAME=		@UNAME@
 
 SSRCS=		@SSRCS@
 SOBJS=		${SSRCS:.c=.o}
@@ -72,8 +73,8 @@ DMYSQL_OBJ=	${DMYSQL_SRC:.c=.o}
 DPGSQL_OBJ=	${DPGSQL_SRC:.c=.o}
 DREGEX_OBJ=	${DREGEX_SRC:.c=.o}
 
-DCC=	${CC} ${CFLAGS} ${CPPFLAGS} ${DCCFLAGS} ${LDDFLAGS} -c
-LDK=	${LD} -Bshareable
+DCC=	${CC} ${CFLAGS} ${CPPFLAGS} ${DCCFLAGS} -c
+LDK=	${LD} ${LDDFLAGS}
 
 all: DYNAMIC_LIBS ${SOBJS}
 
@@ -130,7 +131,8 @@ distclean: clean
 
 install:
 	-chmod 111 libmsyslog_*.so.* && cp -f libmsyslog_*.so.* ${INSTALL_LIBDIR}
-	-if test "`uname`" = "Linux"; \
+	@echo installing shared libraries...
+	@-if test "$(UNAME)" = "Linux"; \
 	then \
 		if test -z "`grep ${INSTALL_LIBDIR} /etc/ld.so.conf`"; \
 		then \

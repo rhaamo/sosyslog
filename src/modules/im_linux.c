@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.28 2000/07/04 17:47:40 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.29 2000/07/04 18:56:38 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -88,9 +88,9 @@ int	 ksym_init();
 void	 ksym_close();
 int	 ksym_snprintf (char*, int, char*);
 Symbol	*ksym_lookup (Symbol*, char*);
-int	 ksym_getSymbol (Symbol*);
-int	 ksym_parseLine (char*, Symbol*);
-char	*ksym_copyWord (char*, char*, int);
+int	 ksym_get_symbol (Symbol*);
+int	 ksym_parseline (char*, Symbol*);
+char	*ksym_copyword (char*, char*, int);
 
 
 /*
@@ -101,16 +101,19 @@ im_linux_usage()
 {
 	fprintf(stderr,
 		"linux input module options:\n"
-		"    [ -k file ]    Use the specified file as source of kernel\n"
-		"                   symbol information instead of %s.\n"
-		"    [ -r ]         Force read symbol table on memory.\n"
-		"    [ -s ]         Force to use syscall instead of %s\n"
-		"                   to log kernel messages.\n"
-		"    [ -x ]         Do not translate kernel symbols.\n"
+		"   [ -k file ]    Use the specified file as source of kernel\n"
+		"                  symbol information instead of %s.\n"
+		"   [ -r ]         Force read symbol table on memory.\n"
+		"   [ -s ]         Force to use syscall instead of %s\n"
+		"                  to log kernel messages.\n"
+		"   [ -x ]         Do not translate kernel symbols.\n"
 		"Defaults:\n"
-		"    Reads kernel messages from %s; if this file doesn't exists\n"
-		"    it uses the syscall method.\n"
-		"    Symbols are translated only if %s exists.\n\n",
+		"   Reads kernel messages from %s; "
+#if 0
+		" if this file doesn't exists\n"
+		"   it uses the syscall method.\n"
+#endif
+		"   Symbols are translated only if %s exists.\n\n",
 		PATH_KSYM, _PATH_KLOG, _PATH_KLOG, PATH_KSYM);
 }
 
@@ -139,16 +142,18 @@ getLine (char *buf, int *i)
  * Sets console loglevel
  */
 int
-im_linux_setConsoleLogLevel (char *strlv)
+im_linux_set_console_loglevel (char *strlv)
 {
 	char		*err;
 	unsigned long	 loglevel;
 
-	if ( (loglevel = strtoul(strlv, &err, 10)) < 0 || loglevel > 7 || *err != '\0') {
+	if ( (loglevel = strtoul(strlv, &err, 10)) < 0 ||
+	      loglevel > 7 || *err != '\0') {
 		warnx("%s: invalid loglevel <%s>", linux_input_module, optarg);
 		return(-1);
 	}
-	warnx("%s: setting console loglevel to <%i>", linux_input_module, loglevel);
+	warnx("%s: setting console loglevel to <%lu>", linux_input_module,
+	      loglevel);
 	if (klogctl(8, NULL, loglevel) < 0) {
 		warn("%s", linux_input_module);
 		return(-1);
@@ -161,7 +166,8 @@ im_linux_setConsoleLogLevel (char *strlv)
  * Initialize linux input module
  */
 int
-im_linux_init(struct i_module *I, char **argv, int argc, struct sglobals *sglobals)
+im_linux_init (struct i_module *I, char **argv, int argc,
+	       struct sglobals *sglobals)
 {
 	int ch;
 	int current_optind;
@@ -169,7 +175,8 @@ im_linux_init(struct i_module *I, char **argv, int argc, struct sglobals *sgloba
 	dprintf ("\nim_linux_init...\n");
 
 	/* parse command line */
-	current_optind = optind;	/* syslogd calls im_linux_init when parsing command line
+	current_optind = optind;	/* syslogd calls im_linux_init when
+					 * parsing command line
 					 * This should be changed
 					 */
 	flags = KSYM_TRANSLATE;
@@ -178,29 +185,33 @@ im_linux_init(struct i_module *I, char **argv, int argc, struct sglobals *sgloba
 		while ( (ch = getopt(argc, argv, "c:C:k:rsxh?")) != -1)
 			switch(ch) {
 			case 'c': /* specify console loglevel */
-				if (im_linux_setConsoleLogLevel(optarg) < 0)
+				if (im_linux_set_console_loglevel(optarg) < 0)
 					return(-1);
 				break;
 
 			case 'C': /* specify console loglevel and force exit */
-				im_linux_setConsoleLogLevel(optarg);
+				im_linux_set_console_loglevel(optarg);
 				return(-1);
 
 			case 'k': /* specify symbol file */
 				if (strcmp(ksym_path, optarg))
-					if ( (ksym_path = strdup(optarg)) == NULL) {
-						warn("%s", linux_input_module);
-						return(-1);
-					}
+				    if ( (ksym_path = strdup(optarg)) == NULL) {
+					warn("%s", linux_input_module);
+					return(-1);
+				    }
 				break;
 
-			case 'r': /* force to read symbol table and keep it in memory */
+			case 'r': /* force to read symbol table and keep
+				   * it in memory
+				   */
 				flags |= KSYM_READ_TABLE;
 				break;
 
 /* not supported yet, we need to talk about somethings */
 #if 0
-			case 's': /* force to use syscall instead of _PATH_KLOG */
+			case 's': /* force to use syscall instead
+				   * of _PATH_KLOG
+				   */
 				flags |= KLOG_USE_SYSCALL;
 				break;
 #endif
@@ -226,7 +237,8 @@ im_linux_init(struct i_module *I, char **argv, int argc, struct sglobals *sgloba
 /* if /proc not mounted.. sorry: syscall not supported yet */
 #if 0
 		else if (errno != ENOENT) {
-			warn("%s: %s: %s\n", linux_input_module, _PATH_KLOG, strerror(errno));
+			warn("%s: %s: %s\n",
+			     linux_input_module, _PATH_KLOG, strerror(errno));
 			return(-1);
 		} else
 			/* /proc not mounted, use syscall */
@@ -234,7 +246,8 @@ im_linux_init(struct i_module *I, char **argv, int argc, struct sglobals *sgloba
 #endif
 #if 1
 		else {
-			warn("%s: %s: %s\n", linux_input_module, _PATH_KLOG, strerror(errno));
+			warn("%s: %s: %s\n",
+			     linux_input_module, _PATH_KLOG, strerror(errno));
 			return(-1);
 		}
 #endif
@@ -258,7 +271,8 @@ im_linux_init(struct i_module *I, char **argv, int argc, struct sglobals *sgloba
  * and log it.
  */
 int
-im_linux_getLog(struct i_module *im, struct im_msg *ret, struct sglobals *sglobals)
+im_linux_getLog (struct i_module *im, struct im_msg *ret,
+		 struct sglobals *sglobals)
 {
 	int   i;
 	char *ptr;
@@ -271,11 +285,13 @@ im_linux_getLog(struct i_module *im, struct im_msg *ret, struct sglobals *sgloba
 /* syscall not supported yet */
 #if 0
 	if (im->im_path == NULL || flags & KLOG_USE_SYSCALL)
-		/* i = klogctl(2, im->im_buf, sizeof(im->im_buf)-1); */ /* this blocks */
-		i = klogctl(4, im->im_buf, sizeof(im->im_buf)-1);	/* ;;;this don't block... testing */
+		/* this blocks */
+		/* i = klogctl(2, im->im_buf, sizeof(im->im_buf)-1);
+		 */
+		/* ;;;this don't block... testing */
+		i = klogctl(4, im->im_buf, sizeof(im->im_buf)-1);
 	else
 #endif
-
 		i = read(im->im_fd, im->im_buf, sizeof(im->im_buf)-1);
 
 	if (i < 0 && errno != EINTR) {
@@ -292,26 +308,32 @@ im_linux_getLog(struct i_module *im, struct im_msg *ret, struct sglobals *sgloba
 		while ( (ptr = getLine(ptr, &i)) != NULL) {
 			
 			/* get priority */
-			if (i >= 3 && ptr[0] == '<' && ptr[2] == '>' && isdigit(ptr[1])) {
+			if (i >= 3 && ptr[0] == '<' &&
+			    ptr[2] == '>' && isdigit(ptr[1])) {
 				ret->im_pri = ptr[1] - '0';
 				ptr += 3;
 				i -= 3;
 			}
 			else
-				ret->im_pri = LOG_WARNING;	/* from printk.c: DEFAULT_MESSAGE_LOGLEVEL */
+				/* from printk.c: DEFAULT_MESSAGE_LOGLEVEL */
+				ret->im_pri = LOG_WARNING;
 
 			/* parse kernel/module symbols */
 			if (flags & KSYM_TRANSLATE)
-				ret->im_len = ksym_snprintf(ret->im_msg, sizeof(ret->im_msg), ptr);
+				ret->im_len = ksym_snprintf(ret->im_msg,
+						     sizeof(ret->im_msg), ptr);
 			else
-				ret->im_len = snprintf(ret->im_msg, sizeof(ret->im_msg), "kernel: %s", ptr);
+				ret->im_len = snprintf(ret->im_msg,
+					sizeof(ret->im_msg), "kernel: %s", ptr);
 
 			/* log msg */
 			if (ret->im_len < 0)
 				ret->im_len = sizeof(ret->im_msg);
-			strncpy(ret->im_host, sglobals->LocalHostName, sizeof(ret->im_host));
+			strncpy(ret->im_host, sglobals->LocalHostName,
+				sizeof(ret->im_host));
 			ret->im_host[sizeof(ret->im_host)-1] = '\0';
-			sglobals->logmsg(ret->im_pri, ret->im_msg, ret->im_host, ret->im_flags);
+			sglobals->logmsg(ret->im_pri, ret->im_msg,
+					 ret->im_host, ret->im_flags);
 			ptr += i + 1;
 			i = 0;
 		}
@@ -324,10 +346,12 @@ im_linux_getLog(struct i_module *im, struct im_msg *ret, struct sglobals *sgloba
  * Close linux input module
  */
 int
-im_linux_close (struct i_module *im, struct sglobals *sglobals) {
+im_linux_close (struct i_module *im, struct sglobals *sglobals)
+{
 	ksym_close();
 	if (im->im_path != NULL) 
 		return(close(im->im_fd));
+
 	return(0);
 }
 
@@ -361,8 +385,9 @@ ksym_init()
 				last->next = next;
 			else
 				ksym_first = next;
-			if (ksym_parseLine(buf, next) < 0) {
-				warnx("%s: ksym_init: incorrect symbol file: %s", linux_input_module, ksym_path);
+			if (ksym_parseline(buf, next) < 0) {
+				warnx("%s: ksym_init: incorrect symbol file: %s"
+				      , linux_input_module, ksym_path);
 				ksym_close();
 				return(-1);
 			}
@@ -414,22 +439,28 @@ ksym_snprintf (char *buf, int bufsize, char *raw)
 	bufsize -= printed;
 
 	while (bufsize && *raw != '\0') {
-		if ( (p1 = strstr(raw, "[<")) != NULL && (p2 = strstr(p1, ">]")) != NULL) {
+		if ( (p1 = strstr(raw, "[<")) != NULL &&
+		     (p2 = strstr(p1, ">]")) != NULL) {
 			for (i = 2; p1+i < p2 && isxdigit(p1[i]); i++);
 			if (p1+i == p2) {
 				*p2 = '\0';
 				if (ksym_lookup(&sym, p1+2) != NULL) {
 					*p1 = '\0';
-					if ( (printed += snprintf(buf+printed, bufsize, "%s [<%s> %s.%s ]",
-							   	  raw, sym.addr, sym.mname, sym.name)) < 0)
+					if ( (printed +=
+					    snprintf(buf+printed, bufsize,
+					    "%s [<%s> %s.%s ]", raw, sym.addr,
+					    sym.mname, sym.name)) < 0)
 						return(-1);
 					bufsize -= printed;
-					*p1 = '[';	/* we need to solve some things
-					*p2 = '>';	 * about buf and msg params on
-							 * im_xxxxx_getLog.
-							 * so, i think that is better
-							 * not to change raw data ;;;
-							 */
+
+					/* we need to solve some things
+ 					 * about buf and msg params on
+					 * im_xxxxx_getLog.
+					 * so, i think that is better
+					 * not to change raw data ;;;
+					 */
+					*p1 = '[';
+					*p2 = '>';
 					raw = p2+2;
 					continue;
 				}
@@ -467,7 +498,7 @@ ksym_lookup (Symbol *sym, char *addr)
 		fseek(ksym_fd, 0, SEEK_SET);
 
 	/* search for symbol */
-	while (!ksym_getSymbol(sym))
+	while (!ksym_get_symbol(sym))
 		if (!strcasecmp(sym->addr, addr))
 			return(sym);
 
@@ -480,7 +511,7 @@ ksym_lookup (Symbol *sym, char *addr)
  * returns 0 on success and -1 on end of file/table
  */
 int
-ksym_getSymbol (Symbol *sym)
+ksym_get_symbol (Symbol *sym)
 {
 	char msg[MAXLINE];
 
@@ -491,19 +522,19 @@ ksym_getSymbol (Symbol *sym)
 			return(0);
 		}
 	} else if (fgets(msg, sizeof(msg), ksym_fd) != NULL)
-			return(ksym_parseLine(msg, sym));
+			return(ksym_parseline(msg, sym));
 	return(-1);
 }
 
 
 /*
- * ksym_parseLine: converts a line onto a Symbol
+ * ksym_parseline: converts a line onto a Symbol
  * returns 0 on success and -1 on error
  */
 #define QUIT_BLANK(a)	while (*a == ' ' || *a == '\t') a++;
 
 int
-ksym_parseLine (char *p, Symbol *sym)
+ksym_parseline (char *p, Symbol *sym)
 {
 	if (sym == NULL || p == NULL || p[0] == '\0')
 		return(-1);
@@ -514,35 +545,36 @@ ksym_parseLine (char *p, Symbol *sym)
 	QUIT_BLANK(p);
 	if (*p == '\0' || *p == '\n')
 		return(-1);
- 	p = ksym_copyWord(sym->addr, p, MAX_ADDR_LEN);
+ 	p = ksym_copyword(sym->addr, p, MAX_ADDR_LEN);
 
 	/* copy name */
 	QUIT_BLANK(p);
 	if (*p == '\0' || *p == '\n')
 		return(-1);
-	p = ksym_copyWord(sym->name, p, MAX_NAME_LEN);
+	p = ksym_copyword(sym->name, p, MAX_NAME_LEN);
 
 	/* copy module name (if any) */
 	QUIT_BLANK(p);
-	ksym_copyWord(sym->mname, p, MAX_MNAME_LEN);
+	ksym_copyword(sym->mname, p, MAX_MNAME_LEN);
 
 	return(0);
 }
 
 
 /*
- * copyWord(dst, src, len)
+ * copyword(dst, src, len)
  * Copy from src to dst until reaches
  * len bytes or '\0' or '\n'
  */
 char*
-ksym_copyWord (char *dst, char *src, int max)
+ksym_copyword (char *dst, char *src, int max)
 {
 	int i = 0;
 
 	if (max) {
 		max--;
-		while (*src != ' ' && *src != '\t' && *src != '\0' && *src != '\n' && i < max)
+		while (*src != ' ' && *src != '\t' &&
+		       *src != '\0' && *src != '\n' && i < max)
 			dst[i++] = *src++;
 		dst[i] = '\0';
 	}
