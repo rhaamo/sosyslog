@@ -1,5 +1,5 @@
-AC_INIT(syslogd.h)
-AC_CONFIG_HEADER(config.h)
+AC_INIT(src/syslogd.h)
+AC_CONFIG_HEADER(src/config.h)
 
 test -z "$CFLAGS" && CFLAGS=-O AC_SUBST(CFLAGS)
 test -z "$LDFLAGS" && LDFLAGS= AC_SUBST(LDFLAGS)
@@ -82,4 +82,4 @@ then
 	EXTRAOBJ="$EXTRAOBJ im_linux.o"
 fi
 
-AC_OUTPUT(Makefile)
+AC_OUTPUT([Makefile src/Makefile src/modules/Makefile src/peo/Makefile src/man/Makefile])
