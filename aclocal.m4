@@ -1,5 +1,15 @@
-dnl	$CoreSDI: Id$
+dnl	$CoreSDI: aclocal.m4,v 1.1 2000/07/07 18:55:34 claudio Exp $
 
+dnl
+dnl get msyslog version
+dnl
+AC_DEFUN(MSYSLOG_GET_VERSION, [
+MSYSLOG_VERSION=`awk '/#define VERSION/ { print $3 }' src/syslogd.h`
+echo msyslog version... $MSYSLOG_VERSION
+])
+
+
+dnl
 dnl grep pattern file command
 dnl 	Searches for a pattern on a file and executes command if match
 dnl
@@ -18,19 +28,36 @@ dnl
 dnl Configure MYSQL includedir and libdir
 dnl if mysql is not installed exits
 dnl
-AC_DEFUN(CONF_MYSQL, [
-for ac_dir in /usr/local/lib/mysql /usr/local/mysql
+AC_DEFUN(MSYSLOG_CHECK_MYSQL, [
+	for i in /usr/local/lib /usr/local/lib/mysql /usr/lib /usr/lib/mysql no
+	do
+		if test "$i" = "no"
+		then
+			echo "Need mysqlclient library to enable mysql module"
+			exit
+		elif test "`ls $i | grep mysqlclient`"
+		then
+			break
+		fi
+	done
+	CPPFLAGS="$CPPFLAGS -L$i"
+	AC_CHECK_LIB(mysqlclient, mysql_real_connect,, [
+			echo "Need mysqlclient library to enable mysql module"
+			exit ])
+
+for i in /usr/local/include/mysql /usr/local/mysql/include /usr/include/mysql no
 do
-	with_mysql="$ac_dir"
-	if test -d "$ac_dir"
+	if test -e "$i/mysql.h"
 	then
 		break
 	fi
 done
-
-CFLAGS="$CFLAGS -I$with_mysql/include/mysql"
-LDFLAGS="$LDFLAGS -L$with_mysql/lib/mysql"
-LIBS="$LIBS -lmysqlclient"
+if test "$i" = "no"
+then
+	echo "Need mysql.h header file to enable mysql output module"
+	exit
+fi
+CPPFLAGS="$CPPFLAGS -I$i"
 ])
 
 
@@ -172,13 +199,13 @@ AC_DEFUN(CHECK_MODULE, [
 AC_MSG_CHECKING([configuration for $1 module])
 if test "x$2" = "xstatic"
 then
-	SSRCS="$SSRCS $3" 
-	add_$4($1, $3)
+	SSRCS="$SSRCS $4 $5" 
+	add_$3($1, $4)
 	AC_MSG_RESULT([static]);
 elif test "x$2" = "xdynamic"
 then
-	D$1_SRC="$3"
-	D$1="libmsyslog_$4_$1.so.$MSYSLOG_VERSION"
+	D$1_SRC="$4 $5"
+	D$1="libmsyslog_$3_$1.so.$MSYSLOG_VERSION"
 	AC_SUBST(D$1)
 	AC_SUBST(D$1_SRC)
 	AC_MSG_RESULT([dynamic]);

@@ -1,12 +1,11 @@
-dnl	$CoreSDI: configure.in,v 1.48 2000/07/06 21:06:25 claudio Exp $
+dnl	$CoreSDI: configure.in,v 1.49 2000/07/07 18:55:34 claudio Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
+MSYSLOG_GET_VERSION()
 AC_PROG_CC
 AC_PROG_INSTALL
-
-MSYSLOG_VERSION=`awk '/#define VERSION/ { print $3 }' src/syslogd.h`
-echo msyslog version... $MSYSLOG_VERSION
+AC_PREFIX_PROGRAM(syslogd)
 
 CFLAGS="-Wall -O -ggdb"
 LDFLAGS=
@@ -16,7 +15,6 @@ LDCONFIG_FLAGS="-m"
 UNAME=`uname`
 
 AC_CHECK_HEADERS(paths.h)
-
 AC_MSG_CHECKING(wheter optreset is needed)
 AC_TRY_LINK([#include <unistd.h>],
 	[extern int optreset; optreset = 1;],
@@ -42,15 +40,8 @@ do
 done
 AC_MSG_RESULT(dynamic modules will be installed on $INSTALL_LIBDIR)
 
-for INSTALL_DIR in "/usr/sbin" "/usr/local/sbin" "/sbin" \
-		   "/usr/bin" "/usr/local/bin" "/bin"
-do
-	if test -d $INSTALL_DIR
-	then
-		break
-	fi
-done
-AC_MSG_RESULT(syslogd and tools will be installed on $INSTALL_DIR)
+AC_PREFIX_PROGRAM(syslogd)
+
 
 for MANDIR in "/usr/share/man" "/usr/man"
 do
@@ -118,12 +109,12 @@ fi
 
 
 BEGIN_MODULES_CONF()
-CHECK_MODULE(unix, $unix, im_unix.c, im)
-CHECK_MODULE(udp, $udp, im_udp.c, im)
-CHECK_MODULE(bsd, $bsd, im_bsd.c, im)
-CHECK_MODULE(linux, $linux, im_linux.c, im)
-CHECK_MODULE(classic, $classic, om_classic.c, om)
-CHECK_MODULE(peo, $peo, om_peo.c, om)
+CHECK_MODULE(unix, $unix, im, im_unix.c)
+CHECK_MODULE(udp, $udp, im, im_udp.c)
+CHECK_MODULE(bsd, $bsd, im, im_bsd.c)
+CHECK_MODULE(linux, $linux, im, im_linux.c)
+CHECK_MODULE(classic, $classic, om, om_classic.c)
+CHECK_MODULE(peo, $peo, om, om_peo.c)
 if test "x$peo" = "xstatic"
 then
 	SHASH_SRCS="$HASH_SRCS"
@@ -131,17 +122,19 @@ elif test "x$peo" = "xdynamic"
 then
 	DHASH_SRCS="$HASH_SRCS"
 fi
-CHECK_MODULE(mysql, $mysql, om_mysql.c sql_misc.c, om)
+
 if test "x$mysql" = "xstatic" -o "x$mysql" = "xdynamic"
 then
-	CONF_MYSQL()
+	MSYSLOG_CHECK_MYSQL()
 fi
-CHECK_MODULE(pgsql, $pgsql, om_pgsql.c sql_misc.c, om)
+CHECK_MODULE(mysql, $mysql, om, om_mysql.c, sql_misc.c)
+
 if test "x$pgsql" = "xstatic" -o "x$pgsql" = "xdynamic"
 then
 	CONF_PGSQL()
 fi
-CHECK_MODULE(regex, $regex, om_regex.c, om)
+CHECK_MODULE(pgsql, $pgsql, om, om_pgsql.c, sql_misc.c)
+CHECK_MODULE(regex, $regex, om, om_regex.c)
 END_MODULES_CONF()
 
 AC_SUBST(HASH_SRCS)
@@ -150,6 +143,7 @@ AC_SUBST(DHASH_SRCS)
 AC_SUBST(LDCONFIG_FLAGS)
 AC_SUBST(LIBS)
 AC_SUBST(CFLAGS)
+AC_SUBST(CPPFLAGS)
 AC_SUBST(DCCFLAGS)
 AC_SUBST(LDFLAGS)
 AC_SUBST(LDDFLAGS)
