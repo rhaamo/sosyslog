@@ -1,4 +1,4 @@
-/*      $Id: im_unix.c,v 1.10 2000/05/05 23:35:21 alejo Exp $
+/*      $Id: im_unix.c,v 1.11 2000/05/06 00:58:57 alejo Exp $
  *  im_unix -- classic behaviour module for BDS like systems
  *      
  * Author: Alejo Sanchez for Core-SDI SA
@@ -80,7 +80,6 @@ im_unix_init(I, argv, argc)
 	char **argv;
 	int argc;
 {
-	int i;
 	char line[MAXLINE + 1];
 	struct sockaddr_un sunx;
 
@@ -90,7 +89,7 @@ im_unix_init(I, argv, argc)
 #ifndef SUN_LEN
 #define SUN_LEN(unp) (strlen((unp)->sun_path) + 2)
 #endif
-	(void) unlink(I->fd);
+	(void) unlink(argv[1]);
 
 	memset(&sunx, 0, sizeof(sunx));
 	sunx.sun_family = AF_UNIX;
@@ -98,11 +97,11 @@ im_unix_init(I, argv, argc)
 	I->fd = socket(AF_UNIX, SOCK_DGRAM, 0);
 	if (I->fd < 0 ||
 	    bind(I->fd, (struct sockaddr *)&sunx, SUN_LEN(&sunx)) < 0 ||
-	    chmod(I->fd, 0666) < 0) {
+	    chmod(argv[1], 0666) < 0) {
 		(void) snprintf(line, sizeof line, "cannot create %s",
-		    I->fd);
+		    argv[1]);
 		logerror(line);
-		dprintf("cannot create %s (%d)\n", I->fd, errno);
+		dprintf("cannot create %s (%d)\n", argv[1], errno);
 		return (-1);
 	}
 	return(1);
