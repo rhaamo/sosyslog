@@ -1,4 +1,4 @@
-/*	$Id: syslogd.h,v 1.36 2000/05/05 23:35:22 alejo Exp $
+/*	$Id: syslogd.h,v 1.37 2000/05/08 22:28:38 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -121,31 +121,28 @@ struct filed {
         struct	o_module *f_mod;			/* module details */
 };
 
-struct	OModules {
-	char	*om_name;
-	short	om_type;
-	int	(*om_doLog) (struct filed *, int, char *, struct om_header_ctx *);
-	int	(*om_init) (int, char **, struct filed *, char *, struct om_header_ctx **);
-	int	(*om_close) (struct filed *, struct om_header_ctx **);
-	int	(*om_flush) (struct filed *, struct om_header_ctx *);
-} OModules[MAX_N_OMODULES];
-
-struct IModules {
-	char	*im_name;
-	short	im_type;
-	/* buf, bufsize */ 
-	int	(*im_getLog) (struct i_module *, struct im_msg *);
-	int	(*im_init) (struct i_module *, char **, int);
-  	int	(*im_close) (struct i_module *);
-} IModules[MAX_N_IMODULES];
-
-
 int modules_load();
 int modules_init(struct i_module **, char *);
 int omodule_create(char *c, struct filed *, char *);
 int imodule_create(char *c, struct filed *, char *);
 
+struct  OModule {
+        char    *om_name;
+        short   om_type;
+        int     (*om_doLog) (struct filed *, int, char *, struct om_header_ctx *);
+        int     (*om_init) (int, char **, struct filed *, char *, struct om_header_ctx **);
+        int     (*om_close) (struct filed *, struct om_header_ctx **);
+        int     (*om_flush) (struct filed *, struct om_header_ctx *);
+};
 
+struct IModule {
+        char    *im_name;
+        short   im_type;
+        /* buf, bufsize */
+        int     (*im_getLog) (struct i_module *, struct im_msg *);
+        int     (*im_init) (struct i_module *, char **, int);
+        int     (*im_close) (struct i_module *);
+};
 
 #define	MAXREPEAT ((sizeof(repeatinterval) / sizeof(repeatinterval[0])) - 1)
 #define	REPEATTIME(f)	((f)->f_time + repeatinterval[(f)->f_repeatcount])

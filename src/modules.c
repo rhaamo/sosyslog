@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.48 2000/05/08 21:25:37 alejo Exp $
+/*	$Id: modules.c,v 1.49 2000/05/08 22:28:37 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -70,6 +70,8 @@ void    die __P((int));
 
 int parseParams(char ***, char *);
 
+extern struct OModule *OModules;
+extern struct IModule *IModules;
 
 int
 modules_load()

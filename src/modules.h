@@ -40,14 +40,6 @@ struct om_header_ctx {
 	int	size;
 };
 
-/* standard input module header variables in context */
-struct im_header_ctx {
-	short	flags;
-#define M_FLAG_INITIALIZED 0x1
-#define M_FLAG_ERROR 0x2
-	int	size;
-};
-
 /*
  * This structure represents main details for the output modules
  */

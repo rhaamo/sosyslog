@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.56 2000/05/08 21:25:38 alejo Exp $
+/*	$Id: syslogd.c,v 1.57 2000/05/08 22:28:38 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -131,6 +131,8 @@ void    printline __P((char *, char *));
 void    reapchild __P((int));
 void    usage __P((void));
 
+struct  OModule OModules[MAX_N_OMODULES];
+struct  IModule IModules[MAX_N_IMODULES];
 
 int
 main(argc, argv)
@@ -141,6 +143,8 @@ main(argc, argv)
 	FILE *fp;
 	char *p;
 	struct	i_module *Inputs;
+
+	Inputs = NULL;
 
 	while ((ch = getopt(argc, argv, "dubSf:m:p:a:i:")) != -1)
 		switch (ch) {
