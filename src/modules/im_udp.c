@@ -1,5 +1,5 @@
 /*
- *  im_bsd -- classic behaviour module for BDS like systems
+ *  im_udp -- classic behaviour module for BDS like systems
  *      
  * Author: Alejo Sanchez for Core-SDI SA
  *         form syslogd.c by Eric Allman and Ralph Campbell
@@ -7,12 +7,15 @@
  */
 
 
+#include <syslog.h>
 #include "modules.h"
+
+#include <
 
 
 
 /* standard input module header variables in context */
-struct im_bsd_ctx {
+struct im_udp_ctx {
 	short	flags;
 #define M_FLAG_INITIALIZED 0x1
 #define M_FLAG_ERROR 0x2
@@ -28,17 +31,32 @@ struct im_bsd_ctx {
  */
 
 int
-im_bsd_getLog(buf, size, c, r)
+im_udp_getLog(buf, size, c, r)
 	char   *buf;
 	int   size;
 	struct im_header_ctx  *c;
-	struct im_msg     *r;
+	struct im_msg	*r;
 {
-	struct 
+	struct sockaddr_in frominet;
+	int len;
+
+	len = sizeof(frominet);
+	i = recvfrom(finet, line, MAXLINE, 0,
+		(struct sockaddr *)&frominet, &len);
+	if (SecureMode) {
+		/* silently drop it */
+	} else {
+		if (i > 0) {
+			line[i] = '\0';
+			printline(cvthname(&frominet), line);
+		} else if (i < 0 && errno != EINTR)
+			logerror("recvfrom inet");
+	}
+
 }
 
 /*
- * initialize BSD input
+ * initialize udp input
  *
  */
 
@@ -47,16 +65,16 @@ extern char *funixn[];
 extern int *funix[];
 
 int
-im_bsd_init(I, argc, argv, c)
+im_udp_init(I, argc, argv, c)
 	struct i_module *I;
 	int   argc;
 	char   *argv[];
 	struct im_header_ctx  **c;
 {
-	struct im_bsd_ctx *ctx;
+	struct im_udp_ctx *ctx;
 
-	*c = (struct im_header_ctx *) calloc(1, sizeof(struct im_bsd_ctx));
-	ctx = (struct im_bsd_ctx *) *c;
+	*c = (struct im_header_ctx *) calloc(1, sizeof(struct im_udp_ctx));
+	ctx = (struct im_udp_ctx *) *c;
 
 
 #ifndef SUN_LEN
@@ -120,12 +138,12 @@ im_bsd_init(I, argc, argv, c)
  */
 
 char *
-im_bsd_getLog(c)
+im_udp_getLog(c)
 	struct im_header_ctx  *c;
 {
-	struct im_bsd_ctx *ctx;
+	struct im_udp_ctx *ctx;
 
-	ctx = (struct im_bsd_ctx *) c;
+	ctx = (struct im_udp_ctx *) c;
 
 
 
