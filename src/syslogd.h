@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.53 2000/06/08 23:14:25 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.54 2000/06/09 19:24:15 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -138,21 +138,21 @@ void    die(int);
 struct OModule {
         char   *om_name;
         short	om_type;
-        int	(*om_doLog) ((struct filed *, int, char *,
-		    struct om_hdr_ctx *));
-        int	(*om_init) ((int, char **, struct filed *, char *,
-		    struct om_hdr_ctx **));
-        int	(*om_close) ((struct filed *, struct om_hdr_ctx *));
-        int	(*om_flush) ((struct filed *, struct om_hdr_ctx *));
+        int	(*om_doLog) (struct filed *, int, char *,
+		    struct om_hdr_ctx *);
+        int	(*om_init) (int, char **, struct filed *, char *,
+		    struct om_hdr_ctx **);
+        int	(*om_close) (struct filed *, struct om_hdr_ctx *);
+        int	(*om_flush) (struct filed *, struct om_hdr_ctx *);
 };
 
 struct IModule {
         char   *im_name;
         short	im_type;
         /* buf, bufsize */
-        int	(*im_getLog) ((struct i_module *, struct im_msg *));
-        int	(*im_init) ((struct i_module *, char **, int));
-        int	(*im_close) ((struct i_module *));
+        int	(*im_getLog) (struct i_module *, struct im_msg *);
+        int	(*im_init) (struct i_module *, char **, int);
+        int	(*im_close) (struct i_module *);
 };
 
 #define	MAXREPEAT ((sizeof(repeatinterval) / sizeof(repeatinterval[0])) - 1)

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.92 2000/06/08 23:14:24 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.93 2000/06/09 19:24:15 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -121,7 +121,7 @@ void    cfline(char *, struct filed *, char *);
 int     decode(const char *, CODE *);
 void    domark(int);
 void    doLog(struct filed *, int, char *);
-void    init((int);
+void    init(int);
 void    printline(char *, char *, int);
 void    reapchild(int);
 void    usage(void);
