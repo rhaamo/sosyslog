@@ -1,4 +1,4 @@
-/*	$CoreSDI: ip_misc.c,v 1.16 2001/07/10 21:34:15 alejo Exp $	*/
+/*	$CoreSDI: ip_misc.c,v 1.17 2001/07/11 21:50:33 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -161,7 +161,7 @@ resolv_addr(struct sockaddr *addr, socklen_t addrlen, char *host, int hlen,
 
 
 /*
- * resolv_name: get a  host name from a generic sockaddr structure
+ * resolv_name: get a sockaddr address from host and port string
  *
  * NOTE: you must free the struct returned!
  */
