@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.6 2001/03/07 21:35:13 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.7 2001/05/24 01:38:13 alejo Exp $
 #
 # Copyright (c) 2001, Core SDI S.A., Argentina
 # All rights reserved
@@ -32,7 +32,6 @@ prefix= @prefix@
 MANDIR= @mandir@
 MAN=    @MANPAGES@
 OMAN=   $(MAN:=.gz)
-INSTALL_DATA = @INSTALL_DATA@
 INSTALL = @INSTALL@
 
 all:
@@ -41,7 +40,7 @@ all:
 install maninstall: $(OMAN)
 
 $(OMAN):
-	-if [ ! -d $(MANDIR) ]; then \
+	@if [ ! -d $(MANDIR) ]; then \
 		$(INSTALL) -d $(MANDIR); \
 	fi
 	-gzip -cf $(@:%.gz=%) > $(MANDIR)/man$(subst .,,$(suffix $(@:%.gz=%)))/$@
@@ -53,7 +52,3 @@ distclean:
 	-rm -f Makefile
 	-rm -f BSDmakefile
 	-rm -f GNUmakefile
-	
-
-
-
