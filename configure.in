@@ -34,7 +34,7 @@ AC_TYPE_SIGNAL
 dnl It should have strftime!
 dnl AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS(gethostname regcomp select socket strdup strerror strstr strtoul )
+AC_CHECK_FUNCS(gethostname regcomp poll select socket strdup strerror strstr strtoul )
 
 dnl 
 dnl Here are our checks...
