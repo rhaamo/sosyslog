@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.181 2001/03/14 22:14:21 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.182 2001/03/14 22:31:30 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.181 2001/03/14 22:14:21 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.182 2001/03/14 22:31:30 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -393,7 +393,15 @@ main(int argc, char **argv)
 	place_signal(SIGCHLD, reapchild);
 	place_signal(SIGALRM, domark);
 	place_signal(SIGPIPE, SIG_IGN);
-	alt_stack.ss_sp = malloc(SIGSTKSZ);
+
+	if ( (alt_stack.ss_sp = malloc(SIGSTKSZ)) == NULL) {
+		dprintf(DPRINTF_CRITICAL)("malloc altstack struct");
+		exit(-1);
+	}
+#if 0 /* should we do this on some OSs (ie. Aix)? */
+	/* adjust ss_sp to point to base of stack */
+	sigstk.ss_sp += SIGSTKSZ - 1;
+#endif
 	alt_stack.ss_size = SIGSTKSZ;
 	alt_stack.ss_flags = 0;
 	if (alt_stack.ss_sp == NULL) {
