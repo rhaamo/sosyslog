@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.213 2001/10/24 02:52:39 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.214 2001/10/24 03:02:17 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.213 2001/10/24 02:52:39 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.214 2001/10/24 03:02:17 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -190,7 +190,7 @@ RETSIGTYPE init(int);
 RETSIGTYPE signal_handler (int);
 RETSIGTYPE dodie(int);
 void	die(int);
-void	cfline(char *, struct filed *, char *);
+int	cfline(char *, struct filed *, char *);
 int	decode(const char *, CODE *);
 void	markit(void);
 void	doLog(struct filed *, int, char *, int, int);
@@ -1144,13 +1144,19 @@ init(int signo)
 			dprintf(MSYSLOG_CRITICAL, "calloc struct filed");
 			exit(-1);
 		}
-		cfline("*.ERR\t/dev/console", *nextp, "*");
+		if (cfline("*.ERR\t/dev/console", *nextp, "*") == -1) {
+			dprintf(MSYSLOG_CRITICAL, "can't write to console");
+			exit(-1);
+		}
 		if ( ((*nextp)->f_next = (struct filed *) calloc(1, sizeof(*f)))
 		    == NULL) {
 			dprintf(MSYSLOG_CRITICAL, "calloc struct filed");
 			exit(-1);
 		}
-		cfline("*.PANIC\t*", (*nextp)->f_next, "*");
+		if (cfline("*.PANIC\t*", (*nextp)->f_next, "*") == -1) {
+			dprintf(MSYSLOG_CRITICAL, "can't write to console");
+			exit(-1);
+		}
 		Initialized = 1;
 		return;
 	}
@@ -1215,13 +1221,23 @@ init(int signo)
 			dprintf(MSYSLOG_CRITICAL, "calloc struct filed");
 			exit(-1);
 		}
-		*nextp = f;
-		nextp = &f->f_next;
-		cfline(cline, f, prog);
+		if (cfline(cline, f, prog) == 1) {
+			*nextp = f;
+			nextp = &f->f_next;
+		} else {
+			free(f);
+			f = NULL;
+		}
 	}
 
 	/* close the configuration file */
 	fclose(cf);
+
+	if (Files == NULL) {
+		dprintf(MSYSLOG_CRITICAL, "syslogd: WARNING NO OUTPUT MODULES"
+		    " ACTIVE, GIVING UP!\n");
+		exit(-1);
+	}
 
 	Initialized = 1;
 
@@ -1254,7 +1270,7 @@ init(int signo)
 /*
  * Crack a configuration file line
  */
-void
+int
 cfline(char *line, struct filed *f, char *prog) {
 	register int i, j;
 	int pri, singlpri, ignorepri;
@@ -1270,14 +1286,13 @@ cfline(char *line, struct filed *f, char *prog) {
 	singlpri = 0;
 
 	/* clear out file entry */
-	memset(f, 0, sizeof(*f));
-
-	/* clear out file entry */
 	memset(f->f_pmask, TABLE_NOPRI, sizeof(f->f_pmask));
 
 	/* save program name if any */
-	if (!strcmp(prog, "*")) prog = NULL;
-		else f->f_program = strdup(prog);
+	if (!strcmp(prog, "*"))
+		prog = NULL;
+	else
+		f->f_program = strdup(prog);
 
 	/* scan through the list of selectors */
 	for (p = line; *p && *p != '\t' && *p != ' ';) {
@@ -1323,7 +1338,7 @@ cfline(char *line, struct filed *f, char *prog) {
 			snprintf(ebuf, sizeof ebuf, "unknown priority"
 			    " name \"%s\" on line [%s]", buf, line);
 			logerror(ebuf);
-			return;
+			return (-1);
 		}
 
 		/*
@@ -1378,7 +1393,7 @@ cfline(char *line, struct filed *f, char *prog) {
 					snprintf(ebuf, sizeof(ebuf), "unknown"
 					    " facility name \"%s\"", buf);
 					logerror(ebuf);
-					return;
+					return (-1);
 				}
 
 				if (pri == INTERNAL_NOPRI) {
@@ -1430,11 +1445,13 @@ cfline(char *line, struct filed *f, char *prog) {
 		p++;
 
 	if (omodule_create(p, f, NULL) == -1) {
-		dprintf(MSYSLOG_SERIOUS, "Error initializing modules!\n");
-		return;
+		dprintf(MSYSLOG_SERIOUS, "cfline: error initializing modules!\n");
+		return (-1);
 	}
 
 	dprintf(MSYSLOG_INFORMATIVE, "cfline: all ok\n");
+
+	return (1);
 }
 
 /*
