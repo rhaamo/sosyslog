@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.31 2000/06/09 20:57:05 gera Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.32 2000/06/09 21:03:14 gera Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -69,12 +69,8 @@ struct om_mysql_ctx {
 };
 
 int
-om_mysql_doLog(f, flags, msg, ctx)
-	struct filed *f;
-	int flags;
-	char *msg;
-	struct om_hdr_ctx *ctx;
-{
+om_mysql_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *ctx,
+		struct sglobals *sglobals) {
 	struct om_mysql_ctx *c;
 	char	*dummy, *y, *m, *d, *h, *host, *msg_q;
 	time_t now;
@@ -146,13 +142,8 @@ extern int optreset;
 #endif
 
 int
-om_mysql_init(argc, argv, f, prog, c)
-	int	argc;
-	char	**argv;
-	struct filed *f;
-	char *prog;
-	struct om_hdr_ctx **c;
-{
+om_mysql_init(int argc, char **argv, struct filed *f, char *prog,
+		struct om_hdr_ctx **c, struct sglobals *sglobals) {
 	MYSQL *h;
 	struct om_mysql_ctx	*ctx;
 	char	*host, *user, *passwd, *db, *table, *p, *query;
@@ -263,10 +254,8 @@ om_mysql_destroy_ctx(ctx)
 }
 
 int
-om_mysql_close(f, ctx)
-	struct filed *f;
-	struct om_hdr_ctx *ctx;
-{
+om_mysql_close(struct filed *f, struct om_hdr_ctx *ctx,
+		struct sglobals *sglobals) {
 	mysql_close(((struct om_mysql_ctx*)ctx)->h);
 	om_mysql_destroy_ctx((struct om_mysql_ctx*)ctx);
 

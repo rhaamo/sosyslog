@@ -1,7 +1,10 @@
-/* $CoreSDI: Id$
+/* $CoreSDI: static_modules.h.in,v 1.1 2000/07/03 17:19:49 claudio Exp $
  * Automatically generated static modules initialization header file
  */
 
+
+#include <syslog.h>
+#include "syslogd.h"
 
 @SMODULES_HEADER@
 

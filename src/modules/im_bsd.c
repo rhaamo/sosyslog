@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.54 2000/06/21 22:15:01 alejo Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.55 2000/06/27 21:21:45 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -61,8 +61,8 @@
 
 
 int
-im_bsd_init(struct i_module *I, char **argv, int argc)
-{
+im_bsd_init(struct i_module *I, char **argv, int argc,
+		struct sglobals *sglobals) {
 	if ((I->im_fd = open(_PATH_KLOG, O_RDONLY, 0)) < 0) {
 		dprintf("can't open %s (%d)\n", _PATH_KLOG, errno);
 		return (-1);
@@ -81,7 +81,7 @@ im_bsd_init(struct i_module *I, char **argv, int argc)
  */
 
 int
-im_bsd_getLog(struct i_module *im, struct im_msg *ret)
+im_bsd_getLog(struct i_module *im, struct im_msg *ret, struct sglobals *sglobals)
 {
 	char *p, *q, *lp;
 	int i, c;
@@ -115,7 +115,7 @@ im_bsd_getLog(struct i_module *im, struct im_msg *ret)
 			    q < (ret->im_msg+sizeof ret->im_msg))
 				*q++ = c;
 			*q = '\0';
-			strncat(ret->im_host, LocalHostName,
+			strncat(ret->im_host, sglobals->LocalHostName,
 			    sizeof(ret->im_host) - 1);
 			ret->im_len = strlen(ret->im_msg);
 			logmsg(ret->im_pri, ret->im_msg, ret->im_host,
@@ -131,8 +131,7 @@ im_bsd_getLog(struct i_module *im, struct im_msg *ret)
 }
 
 int
-im_bsd_close (struct i_module *im)
-{
+im_bsd_close (struct i_module *im, struct sglobals *sglobals) {
 	if (im->im_fd >= 0)
 		close(im->im_fd);
 

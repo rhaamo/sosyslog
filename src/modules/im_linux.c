@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.25 2000/06/20 18:17:07 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.26 2000/07/03 22:23:18 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -161,7 +161,7 @@ im_linux_setConsoleLogLevel (char *strlv)
  * Initialize linux input module
  */
 int
-im_linux_init(struct i_module *I, char **argv, int argc)
+im_linux_init(struct i_module *I, char **argv, int argc, struct sglobals *sglobals)
 {
 	int ch;
 	int current_optind;
@@ -258,7 +258,7 @@ im_linux_init(struct i_module *I, char **argv, int argc)
  * and log it.
  */
 int
-im_linux_getLog(struct i_module *im, struct im_msg *ret)
+im_linux_getLog(struct i_module *im, struct im_msg *ret, struct sglobals *sglobals)
 {
 	int   i;
 	char *ptr;
@@ -309,7 +309,7 @@ im_linux_getLog(struct i_module *im, struct im_msg *ret)
 			/* log msg */
 			if (ret->im_len < 0)
 				ret->im_len = sizeof(ret->im_msg);
-			strncpy(ret->im_host, LocalHostName, sizeof(ret->im_host));
+			strncpy(ret->im_host, globals->LocalHostName, sizeof(ret->im_host));
 			ret->im_host[sizeof(ret->im_host)-1] = '\0';
 			logmsg(ret->im_pri, ret->im_msg, ret->im_host, ret->im_flags);
 			ptr += i + 1;
@@ -324,8 +324,7 @@ im_linux_getLog(struct i_module *im, struct im_msg *ret)
  * Close linux input module
  */
 int
-im_linux_close (struct i_module *im)
-{
+im_linux_close (struct i_module *im, struct sglobals *sglobals) {
 	ksym_close();
 	if (im->im_path != NULL) 
 		return(close(im->im_fd));

@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.30 2000/06/28 21:22:38 alejo Exp $	*/
+/*	$CoreSDI: modules.h,v 1.31 2000/06/30 00:37:17 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -38,16 +38,6 @@
 
 #define MAX_MODULE_NAME_LEN 255
 
-/* standard input module header variables in context */
-
-/* standard output module header variables in context */
-struct om_hdr_ctx {
-	short	flags;
-#define OM_FLAG_INITIALIZED 0x1
-#define OM_FLAG_ERROR	0x2
-#define OM_FLAG_LOCKED	0x4
-	int	size;
-};
 
 /*
  * This structure represents main details for the output modules

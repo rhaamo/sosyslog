@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.37 2000/06/07 21:27:37 claudio Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.38 2000/06/16 00:26:58 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -70,10 +70,7 @@ struct im_udp_ctx {
  */
 
 int
-im_udp_getLog(im, ret)
-	struct i_module	*im;
-	struct im_msg	*ret;
-{
+im_udp_getLog(struct imodule *im, struct im_msg *ret, struct sglobals *sglobals) {
 	struct sockaddr_in frominet;
 	struct hostent *hent;
 	int slen;
@@ -88,7 +85,7 @@ im_udp_getLog(im, ret)
 	ret->im_flags = 0;
 
 	slen = sizeof(frominet);
-	ret->im_len = recvfrom(finet, ret->im_msg, MAXLINE, 0,
+	ret->im_len = recvfrom(sglobals->finet, ret->im_msg, MAXLINE, 0,
 		(struct sockaddr *)&frominet, (socklen_t *)&slen);
 	if (ret->im_len > 0) {
 		ret->im_msg[ret->im_len] = '\0';
@@ -112,11 +109,7 @@ im_udp_getLog(im, ret)
  */
 
 int
-im_udp_init(I, argv, argc)
-	struct i_module *I;
-	char   **argv;
-	int   argc;
-{
+im_udp_init(struct i_module *I, char **argv, int argc, struct sglobals *sglobals) {
 	struct sockaddr_in sin;
 	struct servent *sp;
 
@@ -125,11 +118,11 @@ im_udp_init(I, argv, argc)
         	return(-1);
         }
 
-        if (finet > -1) {
+        if (sglobals->finet > -1) {
 		dprintf("im_udp_init: already opened!\n");
 		return(-1);
         }
-        finet = socket(AF_INET, SOCK_DGRAM, 0);
+        sglobals->finet = socket(AF_INET, SOCK_DGRAM, 0);
 
 	sp = getservbyname("syslog", "udp");
 	if (sp == NULL) {
@@ -142,17 +135,17 @@ im_udp_init(I, argv, argc)
 	if (argc == 2  && argv[1])
 		sin.sin_port = htons(atoi(argv[1]));
 	else
-		sin.sin_port = LogPort = sp->s_port;
+		sin.sin_port = sglobals->LogPort = sp->s_port;
 
-	if (bind(finet, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+	if (bind(sglobals->finet, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
 		logerror("bind");
-		if (!Debug)
+		if (!sglobals->Debug)
 		die(0);
 	} else {
-		InetInuse = 1;
+		sglobals->InetInuse = 1;
 	}
 
         I->im_path = NULL;
-        I->im_fd   = finet;
+        I->im_fd   = sglobals->finet;
         return(1);
 }

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.101 2000/06/21 23:05:28 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.102 2000/06/26 18:38:34 claudio Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -89,7 +89,7 @@ static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $"
 #include <syslog.h>
 #include "syslogd.h"
 
-char	ctty[] = _PATH_CONSOLE;
+struct sglobals *sglobals;
 
 /*
  * Intervals at which we flush out "message repeated" messages,
@@ -98,24 +98,15 @@ char	ctty[] = _PATH_CONSOLE;
  */
 int	repeatinterval[] = { 30, 120, 600 };	/* # of secs before flush */
 
-char	*TypeNames[8] = {
-	"UNUSED",	"FILE",		"TTY",		"CONSOLE",
-	"FORW",		"USERS",	"WALL",		"MODULE"
-};
 
 struct	filed *Files;
 struct	filed consfile;
 
-int	Debug = 0;		/* debug flag */
-char	LocalHostName[MAXHOSTNAMELEN];	/* our hostname */
-char	*LocalDomain;		/* our local domain name */
-int	InetInuse = 0;		/* non-zero if INET sockets are being used */
-int	finet = -1;		/* Internet datagram socket */
-int	LogPort;		/* port number for INET connections */
 int	Initialized = 0;	/* set when we have initialized ourselves */
 int	MarkInterval = 20 * 60;	/* interval between marks in seconds */
 int	MarkSeq = 0;		/* mark sequence number */
 char	*ConfFile = _PATH_LOGCONF;	/* configuration file */
+char pidfile[PATH_MAX];
 
 void    cfline(char *, struct filed *, char *);
 int     decode(const char *, CODE *);
@@ -125,6 +116,12 @@ void    init(int);
 void    printline(char *, char *, int);
 void    reapchild(int);
 void    usage(void);
+int     modules_load(void);
+int     imodule_init(struct i_module *, char *);
+int     omodule_create(char *, struct filed *, char *);
+void    logerror(char *);
+void    logmsg(int, char *, char *, int);
+void    die(int);
 
 extern	struct  omodule *omodules;
 extern	struct  imodule *imodules;
@@ -133,13 +130,28 @@ struct	i_module Inputs;
 int
 main(int argc, char **argv)
 {
-	char pidfile[PATH_MAX];
 	int ch;
 	FILE *fp;
 	char *p;
 
 	memset(&Inputs, 0, sizeof(Inputs));
 	Inputs.im_fd = -1;
+	sglobals = (struct sglobals *) calloc(1, sizeof(struct sglobals));
+	sglobals->ctty = strdup(_PATH_CONSOLE);
+	sglobals->TypeNames[0] = "UNUSED";
+	sglobals->TypeNames[1] = "FILE";
+	sglobals->TypeNames[2] = "TTY";
+	sglobals->TypeNames[3] = "CONSOLE";
+	sglobals->TypeNames[4] = "FORW";
+	sglobals->TypeNames[5] = "USERS";
+	sglobals->TypeNames[6] = "WALL";
+	sglobals->TypeNames[7] = "MODULE";
+	sglobals->TypeNames[8] = NULL;
+	sglobals->LocalDomain = NULL;
+	sglobals->finet = -1;
+	sglobals->LogPort = -1;
+	sglobals->Debug = 0;
+	sglobals->InetInuse = 0;
 
 	/* assign functions and init input */
 	if ((ch = modules_load()) < 0) {
@@ -150,7 +162,7 @@ main(int argc, char **argv)
 	while ((ch = getopt(argc, argv, "dubSf:m:p:a:i:h")) != -1)
 		switch (ch) {
 		case 'd':		/* debug */
-			Debug++;
+			sglobals->Debug++;
 			break;
 		case 'f':		/* configuration file */
 			ConfFile = optarg;
@@ -159,13 +171,13 @@ main(int argc, char **argv)
 			MarkInterval = atoi(optarg) * 60;
 			break;
 		case 'u':		/* allow udp input port */
-			if (modules_init(&Inputs, "udp") < 0) {
+			if (imodule_init(&Inputs, "udp") < 0) {
 				fprintf(stderr, "syslogd: error on udp input module\n");
 				exit(-1);
 			}
 			break;
 		case 'i':		/* inputs */
-			if (modules_init(&Inputs, optarg) < 0) {
+			if (imodule_init(&Inputs, optarg) < 0) {
 				fprintf(stderr, "syslogd: error on input module, ignoring"
 						"%s\n", optarg);
 				exit(-1);
@@ -177,7 +189,7 @@ main(int argc, char **argv)
 			    char buf[512];
 
 			    snprintf(buf, 512, "unix %s", optarg); 
-			    if (modules_init(&Inputs, buf) < 0) {
+			    if (imodule_init(&Inputs, buf) < 0) {
 				fprintf(stderr,
 				    "syslogd: out of descriptors, ignoring %s\n",
 				    optarg);
@@ -193,28 +205,28 @@ main(int argc, char **argv)
 	if (((argc -= optind) != 0) || Inputs.im_fd < 0)
 		usage();
 
-	if (!Debug)
+	if (!sglobals->Debug)
 		(void)daemon(0, 0);
 	else
 		setlinebuf(stdout);
 
 	consfile.f_type = F_CONSOLE;
         /* this should get into Files and be way nicer */
-	if (omodule_create(ctty, &consfile, NULL) == -1) {
+	if (omodule_create(sglobals->ctty, &consfile, NULL) == -1) {
 		dprintf("Error initializing classic output module!\n");
 	}
 
-	(void)strncpy(consfile.f_un.f_fname, ctty,
+	(void)strncpy(consfile.f_un.f_fname, sglobals->ctty,
 			sizeof(consfile.f_un.f_fname) - 1);
-	(void)gethostname(LocalHostName, sizeof(LocalHostName));
-	if ((p = strchr(LocalHostName, '.')) != NULL) {
+	(void)gethostname(sglobals->LocalHostName, sizeof(sglobals->LocalHostName));
+	if ((p = strchr(sglobals->LocalHostName, '.')) != NULL) {
 		*p++ = '\0';
-		LocalDomain = p;
+		sglobals->LocalDomain = p;
 	} else
-		LocalDomain = "";
+		sglobals->LocalDomain = "";
 	(void)signal(SIGTERM, die);
-	(void)signal(SIGINT, Debug ? die : SIG_IGN);
-	(void)signal(SIGQUIT, Debug ? die : SIG_IGN);
+	(void)signal(SIGINT, sglobals->Debug ? die : SIG_IGN);
+	(void)signal(SIGQUIT, sglobals->Debug ? die : SIG_IGN);
 	(void)signal(SIGCHLD, reapchild);
 	(void)signal(SIGALRM, domark);
 	(void)alarm(TIMERINTVL);
@@ -222,7 +234,7 @@ main(int argc, char **argv)
 	snprintf(pidfile, PATH_MAX, "%s/syslog.pid", PID_DIR);
 
 	/* took my process id away */
-	if (!Debug) {
+	if (!sglobals->Debug) {
 		fp = fopen(pidfile, "w");
 		if (fp != NULL) {
 			fprintf(fp, "%d\n", getpid());
@@ -263,11 +275,12 @@ main(int argc, char **argv)
 		/*dprintf("got a message (%d, %#x)\n", nfds, readfds);*/
 		for (im = &Inputs; im ; im = im->im_next) {
 			if (im->im_fd != -1 && FD_ISSET(im->im_fd, &readfds)) {
-				int i;
+				int i = 0;
 
 				memset(&log, 0,sizeof(struct im_msg));
 
-				if ((i = (*im->im_func->im_getLog)(im, &log)) < 0) {
+				if ( !(im->im_func->im_getLog) || (i =
+						(*im->im_func->im_getLog)(im, &log, sglobals)) < 0) {
 					dprintf("Syslogd: Error calling input module"
 		       				" %s, for fd %d\n", im->im_name, im->im_fd);
 				}
@@ -399,7 +412,7 @@ logmsg(int pri, char *msg, char *from, int flags)
 	/* log the message to the particular outputs */
 	if (!Initialized) {
 		f = &consfile;
-		f->f_file = open(ctty, O_WRONLY, 0);
+		f->f_file = open(sglobals->ctty, O_WRONLY, 0);
 
 		if (f->f_file >= 0) {
 			doLog(f, flags, msg);
@@ -492,14 +505,14 @@ doLog(struct filed *f, int flags, char *message)
 	}
 
 	for (om = f->f_omod; om; om = om->om_next) {
-		if(om->om_func->om_doLog == NULL) {
+		if(!om || !om->om_func || !om->om_func->om_doLog) {
 			dprintf("doLog: error, no doLog function in output "
 				"module [%s], message [%s]\n", om->om_func->om_name, msg);
 			continue;
 		};
 
 		/* call this module doLog */
-		ret = (*(om->om_func->om_doLog))(f,flags,msg,om->ctx);
+		ret = (*(om->om_func->om_doLog))(f,flags,msg,om->ctx, sglobals);
 		if (ret < 0) {
 			dprintf("doLog: error with module module [%s] "
 				"for message [%s]\n", om->om_func->om_name, msg);
@@ -529,14 +542,14 @@ domark(int signo)
 	now = time((time_t *)NULL);
 	MarkSeq += TIMERINTVL;
 	if (MarkSeq >= MarkInterval) {
-		logmsg(LOG_INFO, "-- MARK --", LocalHostName, ADDDATE|MARK);
+		logmsg(LOG_INFO, "-- MARK --", sglobals->LocalHostName, ADDDATE|MARK);
 		MarkSeq = 0;
 	}
 
 	for (f = Files; f; f = f->f_next) {
 		if (f->f_prevcount && now >= REPEATTIME(f)) {
 			dprintf("flush %s: repeated %d times, %d sec.\n",
-			    TypeNames[f->f_type], f->f_prevcount,
+			    sglobals->TypeNames[f->f_type], f->f_prevcount,
 			    repeatinterval[f->f_repeatcount]);
 			doLog(f, 0, (char *)NULL);
 			BACKOFF(f);
@@ -560,7 +573,7 @@ logerror(char *type)
 		(void)snprintf(buf, sizeof(buf), "syslogd: %s", type);
 	errno = 0;
 	dprintf("%s\n", buf);
-	logmsg(LOG_SYSLOG|LOG_ERR, buf, LocalHostName, ADDDATE);
+	logmsg(LOG_SYSLOG|LOG_ERR, buf, sglobals->LocalHostName, ADDDATE);
 }
 
 void
@@ -590,9 +603,12 @@ die(int signo)
 
 	for (im = &Inputs; im; im = im->im_next)
 		if (im->im_func && im->im_func->im_close)
-			(*im->im_func->im_close)(im);
+			(*im->im_func->im_close)(im, sglobals);
 		else if (im->im_fd)
 			close(im->im_fd);
+
+	if (unlink(pidfile) < 0)
+		logerror("error deleting pidfile");
 
 	exit(0);
 }
@@ -626,11 +642,11 @@ init(int signo)
 			/* flush any pending output */
 			if (f->f_prevcount &&
 			    om->om_func->om_flush != NULL) {
-				(*om->om_func->om_flush) (f,om->ctx);
+				(*om->om_func->om_flush) (f,om->ctx, sglobals);
 			}
 
 			if (om->om_func->om_close != NULL) {
-				(*om->om_func->om_close) (f,om->ctx);
+				(*om->om_func->om_close) (f,om->ctx, sglobals);
 			}
 		}
 		next = f->f_next;
@@ -706,14 +722,14 @@ init(int signo)
 
 	Initialized = 1;
 
-	if (Debug) {
+	if (sglobals->Debug) {
 		for (f = Files; f; f = f->f_next) {
 			for (i = 0; i <= LOG_NFACILITIES; i++)
 				if (f->f_pmask[i] == INTERNAL_NOPRI)
 					printf("X ");
 				else
 					printf("%d ", f->f_pmask[i]);
-			printf("%s: ", TypeNames[f->f_type]);
+			printf("%s: ", sglobals->TypeNames[f->f_type]);
 			switch (f->f_type) {
 			case F_FILE:
 			case F_TTY:
@@ -740,7 +756,7 @@ init(int signo)
 		}
 	}
 
-	logmsg(LOG_SYSLOG|LOG_INFO, "syslogd: restart", LocalHostName, ADDDATE);
+	logmsg(LOG_SYSLOG|LOG_INFO, "syslogd: restart", sglobals->LocalHostName, ADDDATE);
 	dprintf("syslogd: restarted\n");
 }
 

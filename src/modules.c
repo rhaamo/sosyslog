@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.106 2000/06/30 22:04:10 claudio Exp $	*/
+/*	$CoreSDI: modules.c,v 1.107 2000/07/03 17:18:42 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -49,6 +49,13 @@
 #include "syslogd.h"
 #include "modules.h"
 
+int     modules_load(void);
+int     imodule_init(struct i_module *, char *);
+int     omodule_create(char *, struct filed *, char *);
+void    logerror(char *);
+void    logmsg(int, char *, char *, int);
+void    die(int);
+
 int	parseParams(char ***, char *);
 struct imodule *getImodule(char *);
 struct omodule *getOmodule(char *);
@@ -58,20 +65,18 @@ struct omodule *addOmodule(char *);
 struct omodule *omodules;
 struct imodule *imodules;
 
+extern struct sglobals *sglobals;
 
 /* assign module functions to generic pointer */
 int
-modules_init (I, line)
-	struct i_module *I;
-	char *line;
-{
+imodule_init (struct i_module *I, char *line) {
 	int argc;
 	char **argv, *p;
 	struct i_module *im, *im_prev;
 
 	/* create initial node for Inputs list */
 	if (I == NULL) {
-	    dprintf("modules_init: Error from caller\n");
+	    dprintf("imodule_init: Error from caller\n");
 	    return(-1);
 	}
 
@@ -107,7 +112,7 @@ modules_init (I, line)
 		}
 
 	/* got it, now try to initialize it */
-	if ((*(im->im_func->im_init))(im, argv, argc) < 0) {
+	if ((*(im->im_func->im_init))(im, argv, argc, sglobals) < 0) {
 	   	dprintf("Error initializing input module %s [%s]\n", argv[0], line);
 		die(0);
 	}
@@ -117,8 +122,7 @@ modules_init (I, line)
 
 /* create all necesary modules for a specific filed */
 int
-omodule_create(char *c, struct filed *f, char *prog)
-{
+omodule_create(char *c, struct filed *f, char *prog) {
 	char	*line, *p, quotes, *argv[20];
 	int	argc;
 	struct o_module	*om, *om_prev;
@@ -199,7 +203,7 @@ omodule_create(char *c, struct filed *f, char *prog)
 				break;
 		}
 		if ((*(om->om_func->om_init))(argc, argv, f,
-				prog, (void *) &(om->ctx)) < 0) {
+				prog, (void *) &(om->ctx), sglobals) < 0) {
 			dprintf("Error initializing dynamic output module "
 								"%s [%s]\n", argv[0], line);
 			return(-1);
@@ -281,10 +285,10 @@ addImodule(name)
 		im = im->im_next;
 	}
 
-	snprintf(buf, 127, "libmsyslog.%s.so.%1.1f", name, VERSION);
+	snprintf(buf, 127, "libmsyslog%s.so.%1.1f", name, VERSION);
 
 	if ((im->h = dlopen(buf, RTLD_LAZY)) == NULL) {
-	   	dprintf("Error [%s]\n", dlerror());
+	   	dprintf("Error [%s] on file [%s]\n", dlerror(), buf);
 	   	return(NULL);
 	}
 
@@ -327,9 +331,7 @@ imoduleDestroy(im)
 }
 
 struct omodule *
-addOmodule(name)
-	char *name;
-{
+addOmodule(char *name) {
 	struct omodule *om;
 	char buf[256];
 
@@ -345,7 +347,7 @@ addOmodule(name)
 		om = om->om_next;
 	}
 
-	snprintf(buf, 127, "libmsyslog.%s.so.%1.1f", name, VERSION);
+	snprintf(buf, 127, "libmsyslog%s.so.%1.1f", name, VERSION);
 
 	if ((om->h = dlopen(buf, RTLD_LAZY)) == NULL) {
 	   	dprintf("Error [%s]\n", dlerror());

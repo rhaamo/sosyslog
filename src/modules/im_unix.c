@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.28 2000/06/08 01:06:49 claudio Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.29 2000/06/16 00:26:58 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -60,10 +60,7 @@
  */
 
 int
-im_unix_getLog(im, ret)
-	struct i_module *im;
-	struct im_msg  *ret;
-{
+im_unix_getLog(struct i_module *im, struct im_msg  *ret, struct sglobals *sglobals) {
 	struct sockaddr_un fromunix;
 	int slen;
 
@@ -76,7 +73,7 @@ im_unix_getLog(im, ret)
 	    (struct sockaddr *)&fromunix, (socklen_t *)&slen);
 	if (ret->im_len > 0) {
 		ret->im_msg[ret->im_len] = '\0';
-		strncpy(ret->im_host, LocalHostName, sizeof(ret->im_host));
+		strncpy(ret->im_host, sglobals->LocalHostName, sizeof(ret->im_host));
 	} else if (ret->im_len < 0 && errno != EINTR) {
 		logerror("recvfrom unix");
 		ret->im_msg[0] = '\0';
@@ -94,11 +91,7 @@ im_unix_getLog(im, ret)
  */
 
 int
-im_unix_init(I, argv, argc)
-	struct i_module *I;
-	char **argv;
-	int argc;
-{
+im_unix_init(struct i_module *I, char **argv, int argc, struct sglobals *sglobals) {
 	struct sockaddr_un sunx;
 
 	dprintf ("\nim_unix_init...\n");
@@ -129,9 +122,7 @@ im_unix_init(I, argv, argc)
 }
 
 int
-im_unix_close(im)
-	struct i_module *im;
-{
+im_unix_close( struct i_module *im, struct sglobals *sglobals) {
 	close(im->im_fd);
 
 	if (im->im_path)

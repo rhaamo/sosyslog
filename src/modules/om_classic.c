@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.35 2000/06/13 19:54:39 claudio Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.36 2000/06/30 22:43:07 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -63,7 +63,8 @@ void	wallmsg (struct filed *, struct iovec *);
 char   *ttymsg (struct iovec *, int, char *, int);
 
 int
-om_classic_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *context) {
+om_classic_doLog(struct filed *f, int flags, char *msg,
+		struct om_hdr_ctx *context, struct sglobals *sglobals) {
 	struct iovec iov[6];
 	struct iovec *v;
 	int l;
@@ -107,7 +108,7 @@ om_classic_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *conte
 	v->iov_len = strlen(msg);
 	v++;
 
-	dprintf("Logging to %s", TypeNames[f->f_type]);
+	dprintf("Logging to %s", sglobals->TypeNames[f->f_type]);
 	f->f_time = now;
 
 	switch (f->f_type) {
@@ -121,7 +122,7 @@ om_classic_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *conte
 			    (char *) iov[0].iov_base, (char *) iov[4].iov_base);
 			if (l > MAXLINE)
 				l = MAXLINE;
-			if (sendto(finet, line, l, 0,
+			if (sendto(sglobals->finet, line, l, 0,
 			    (struct sockaddr *)&f->f_un.f_forw.f_addr,
 			    sizeof(f->f_un.f_forw.f_addr)) != l) {
 				f->f_type = F_UNUSED;
@@ -191,7 +192,7 @@ om_classic_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *conte
  */
 int
 om_classic_init( int argc, char **argv, struct filed *f,
-		char *prog, struct om_hdr_ctx **context) {
+		char *prog, struct om_hdr_ctx **context, struct sglobals *sglobals) {
 	struct hostent *hp;
 	int i;
 	char *p, *q;
@@ -203,7 +204,7 @@ om_classic_init( int argc, char **argv, struct filed *f,
 	switch (*p)
 	{
 	case '@':
-		if (!InetInuse)
+		if (!sglobals->InetInuse)
 			break;
 		(void)strncpy(f->f_un.f_forw.f_hname, ++p,
 		    sizeof(f->f_un.f_forw.f_hname)-1);
@@ -218,7 +219,7 @@ om_classic_init( int argc, char **argv, struct filed *f,
 		memset(&f->f_un.f_forw.f_addr, 0,
 		    sizeof(f->f_un.f_forw.f_addr));
 		f->f_un.f_forw.f_addr.sin_family = AF_INET;
-		f->f_un.f_forw.f_addr.sin_port = LogPort;
+		f->f_un.f_forw.f_addr.sin_port = sglobals->LogPort;
 		memmove(&f->f_un.f_forw.f_addr.sin_addr, hp->h_addr,
 		    sizeof(struct in_addr));
 		f->f_type = F_FORW;
@@ -236,7 +237,7 @@ om_classic_init( int argc, char **argv, struct filed *f,
 			f->f_type = F_TTY;
 		else
 			f->f_type = F_FILE;
-		if (strcmp(p, ctty) == 0)
+		if (strcmp(p, sglobals->ctty) == 0)
 			f->f_type = F_CONSOLE;
 		break;
 
@@ -265,7 +266,8 @@ om_classic_init( int argc, char **argv, struct filed *f,
 }
 
 int
-om_classic_close( struct filed *f, struct om_hdr_ctx *ctx) {
+om_classic_close( struct filed *f, struct om_hdr_ctx *ctx,
+		struct sglobals *sglobals) {
 	int ret;
 
 	ret = -1;
@@ -284,13 +286,11 @@ om_classic_close( struct filed *f, struct om_hdr_ctx *ctx) {
 }
 
 int
-om_classic_flush(f, context)
-	struct filed *f;
-	struct om_hdr_ctx *context;
-{
+om_classic_flush(struct filed *f, struct om_hdr_ctx *context,
+		struct sglobals *sglobals) {
 	/* flush any pending output */
 	if (f->f_prevcount)
-		om_classic_doLog(f, 0, (char *)NULL, NULL);
+		om_classic_doLog(f, 0, (char *)NULL, NULL, sglobals);
 
 	return(1);
 

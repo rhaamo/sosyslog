@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.13 2000/06/08 22:57:32 gera Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.14 2000/06/09 20:39:43 gera Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -77,12 +77,8 @@ struct om_pgsql_ctx {
 };
 
 int
-om_pgsql_doLog(f, flags, msg, ctx)
-	struct filed *f;
-	int flags;
-	char *msg;
-	struct om_hdr_ctx *ctx;
-{
+om_pgsql_doLog(struct filed *f, int flags, char *msg,
+	struct om_hdr_ctx *ctx, struct sglobals *sglobals) {
 	PGresult *r;
 	struct om_pgsql_ctx *c;
 	char    *dummy, *y, *m, *d, *h, *host;
@@ -169,13 +165,8 @@ extern int optreset;
 
 
 int
-om_pgsql_init(argc, argv, f, prog, c)
-	int     argc;
-	char    **argv;
-	struct filed *f;
-	char *prog;
-	struct om_hdr_ctx **c;
-{
+om_pgsql_init(int argc, char **argv, struct filed *f, char *prog,
+	struct om_hdr_ctx **c, struct sglobals *sglobals) {
 	PGconn  *h;
 	PGresult *r;
 	struct  om_pgsql_ctx *ctx;
@@ -311,10 +302,8 @@ om_pgsql_destroy_ctx(ctx)
 }
 
 int
-om_pgsql_close(f, ctx)
-	struct filed *f;
-	struct om_hdr_ctx *ctx;
-{
+om_pgsql_close(struct filed *f, struct om_hdr_ctx *ctx,
+		struct sglobals *sglobals) {
 	PQfinish(((struct om_pgsql_ctx *)ctx)->h);
 	om_pgsql_destroy_ctx(ctx);
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.61 2000/06/21 22:26:02 claudio Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.62 2000/06/27 01:22:08 claudio Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -67,21 +67,9 @@
 
 #define	_PATH_LOGCONF	"/etc/syslog.conf"
 
-#define	dprintf		if (Debug) printf
+#define	dprintf		if (sglobals->Debug) printf
 
 #define MAXUNAMES	20	/* maximum number of user names */
-
-extern int	finet;		/* Internet datagram socket */
-extern int	LogPort;	/* port number for INET connections */
-
-extern int	Debug;			/* debug flag */
-extern char	LocalHostName[];	/* our hostname */
-extern int	InetInuse;		/* non-zero if INET sockets are
-					   being used */
-extern char	*TypeNames[];		/* names for f_types */
-
-extern char	ctty[];
-
 
 /*
  * Flags to logmsg().
@@ -96,7 +84,7 @@ extern char	ctty[];
 /*
  * maximum number of unix sockets
  */
-#define MAXFUNIX        21
+#define MAXFUNIX	21
 
 /*
  * This structure represents the files that will have log
@@ -104,60 +92,72 @@ extern char	ctty[];
  */
 
 struct filed {
-        struct  filed *f_next;          /* next in linked list */
-        short   f_type;                 /* entry type, see below */
-        short   f_file;                 /* file descriptor */
-        time_t  f_time;                 /* time this was last written */
-        u_char  f_pmask[LOG_NFACILITIES+1];     /* priority mask */
-        char    *f_program;             /* program this applies to */
-        union {
-                char    f_uname[MAXUNAMES][UT_NAMESIZE+1];
-                struct {
-                        char    f_hname[MAXHOSTNAMELEN];
-                        struct sockaddr_in      f_addr;
-                } f_forw;               /* forwarding address */
-                char    f_fname[MAXPATHLEN];
-        } f_un;
-        char    f_prevline[MAXSVLINE];          /* last message logged */
-        char    f_lasttime[16];                 /* time of last occurrence */
-        char    f_prevhost[MAXHOSTNAMELEN];     /* host from which recd. */
-        int     f_prevpri;                      /* pri of f_prevline */
-        int     f_prevlen;                      /* length of f_prevline */
-        int     f_prevcount;                    /* repetition cnt of prevline */
-        int     f_repeatcount;                  /* number of "repeated" msgs */
-        struct	o_module *f_omod;			/* module details */
+	struct  filed *f_next;	  /* next in linked list */
+	short   f_type;		 /* entry type, see below */
+	short   f_file;		 /* file descriptor */
+	time_t  f_time;		 /* time this was last written */
+	u_char  f_pmask[LOG_NFACILITIES+1];     /* priority mask */
+	char    *f_program;	     /* program this applies to */
+	union {
+		char    f_uname[MAXUNAMES][UT_NAMESIZE+1];
+		struct {
+			char    f_hname[MAXHOSTNAMELEN];
+			struct sockaddr_in      f_addr;
+		} f_forw;	       /* forwarding address */
+		char    f_fname[MAXPATHLEN];
+	} f_un;
+	char    f_prevline[MAXSVLINE];	  /* last message logged */
+	char    f_lasttime[16];		 /* time of last occurrence */
+	char    f_prevhost[MAXHOSTNAMELEN];     /* host from which recd. */
+	int     f_prevpri;		      /* pri of f_prevline */
+	int     f_prevlen;		      /* length of f_prevline */
+	int     f_prevcount;		    /* repetition cnt of prevline */
+	int     f_repeatcount;		  /* number of "repeated" msgs */
+	struct	o_module *f_omod;			/* module details */
 };
 
-int	modules_load(void);
-int	modules_init(struct i_module *, char *);
-int	omodule_create(char *, struct filed *, char *);
-int	im_close(struct i_module *);
-int	om_close(struct filed *, struct om_hdr_ctx *);
-void    logerror(char *);
-void	logmsg(int, char *, char *, int);
-void    die(int);
+struct sglobals {
+	char	*TypeNames[9];		/* names for f_types */
+	char	*ctty;
+	char	LocalHostName[MAXHOSTNAMELEN];	/* our hostname */
+	char	*LocalDomain;	/* our domain */
+	int	finet;		/* Internet datagram socket */
+	int	LogPort;	/* port number for INET connections */
+	int	Debug;			/* debug flag */
+	int	InetInuse;		/* non-zero if INET sockets are open */
+};
+
+/* standard output module header variables in context */
+struct om_hdr_ctx {
+        short   flags;
+#define OM_FLAG_INITIALIZED 0x1
+#define OM_FLAG_ERROR   0x2
+#define OM_FLAG_LOCKED  0x4
+        int     size;
+};
 
 struct omodule {
-        struct	omodule *om_next;
-        char	*om_name;
-        int	(*om_init) (int, char **, struct filed *, char *,
-		    struct om_hdr_ctx **);
-        int	(*om_doLog) (struct filed *, int, char *,
-		    struct om_hdr_ctx *);
-        int	(*om_flush) (struct filed *, struct om_hdr_ctx *);
-        int	(*om_close) (struct filed *, struct om_hdr_ctx *);
-        void	*h;  /* handle to open dynamic library */
+	struct	omodule *om_next;
+	char	*om_name;
+	int	(*om_init) (int, char **, struct filed *, char *,
+		struct om_hdr_ctx **, struct sglobals *);
+	int	(*om_doLog) (struct filed *, int, char *,
+		struct om_hdr_ctx *, struct sglobals *);
+	int	(*om_flush) (struct filed *, struct om_hdr_ctx *, struct sglobals *);
+	int	(*om_close) (struct filed *, struct om_hdr_ctx *, struct sglobals *);
+	void	*h;  /* handle to open dynamic library */
 };
 
 struct imodule {
-        struct	imodule *im_next;
-        char   *im_name;
-        int	(*im_init) (struct i_module *, char **, int);
-        int	(*im_getLog) (struct i_module *, struct im_msg *);
-        int	(*im_close) (struct i_module *);
-        void	*h;  /* handle to open dynamic library */
+	struct	imodule *im_next;
+	char   *im_name;
+	int	(*im_init) (struct i_module *, char **, int, struct sglobals *);
+	int	(*im_getLog) (struct i_module *, struct im_msg *, struct sglobals *);
+	int	(*im_close) (struct i_module *, struct sglobals *);
+	void	*h;  /* handle to open dynamic library */
 };
 
+	
 #define	MAXREPEAT ((sizeof(repeatinterval) / sizeof(repeatinterval[0])) - 1)
 #define	REPEATTIME(f)	((f)->f_time + repeatinterval[(f)->f_repeatcount])
 #define	BACKOFF(f)	{ if (++(f)->f_repeatcount > MAXREPEAT) \
