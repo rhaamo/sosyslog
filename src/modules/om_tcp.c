@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_tcp.c,v 1.58 2000/12/14 00:16:44 alejo Exp $	*/
+/*	$CoreSDI: om_tcp.c,v 1.1 2001/02/08 18:01:53 alejo Exp $	*/
 /*
      Copyright (c) 2000, Core SDI S.A., Argentina
      All rights reserved
@@ -119,9 +119,10 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 int
 om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 {
-	struct iovec iov[6], *v;
 	struct om_tcp_ctx *c;
 	char time_buf[16];
+	char line[MAXLINE + 1];
+	int l;
 
 
 	if (msg == NULL || !strcmp(msg, "")) {
@@ -131,46 +132,26 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 
 	c = (struct om_tcp_ctx *) ctx;
 
-	/* prepare buffers for writing */
-	v = iov;
+	/* if not connected, reconnect ! */
+	if ( !f->f_file && (f->f_file = connect_tcp(c->host, c->port)) < 0) {
+		dprintf(DPRINTF_CRITICAL)("om_tcp_init: "
+		    "error connecting to remote host %s, "
+		    "%s\n", c->host, c->port);
+		return (-1);
+	}
+
 	strftime(time_buf, sizeof(time_buf), "%b %d %H:%M:%S", &f->f_tm);
-	v->iov_base = time_buf;
-	v->iov_len = 15;
-	v++;
-	v->iov_base = " ";
-	v->iov_len = 1;
-	v++;
-	v->iov_base = f->f_prevhost;
-	v->iov_len = strlen(v->iov_base);
-	v++;
-	v->iov_base = " ";
-	v->iov_len = 1;
-	v++;
+	dprintf(DPRINTF_INFORMATIVE)(" %s\n", c->host);
 
-	v->iov_base = msg;
-	v->iov_len = strlen(msg);
-	v++;
+	/* we give a newline termination, unlike UDP, to difference lines */
+	l = snprintf(line, sizeof(line), "<%d>%.15s %s\n", f->f_prevpri,
+	    time_buf, msg);
 
-	v->iov_base = "\r\n";
-	v->iov_len = 2;
+	dprintf(DPRINTF_INFORMATIVE)("om_tcp_write: sending to %s, %s]",
+	    c->host, line);
 
-	if (writev(f->f_file, iov, 6) < 0) {
-		char errbuf[90];
-
-		snprintf(errbuf, sizeof(errbuf) - 1, "om_tcp_write: error: "
-		    "writing to %s:%s%s\n", c->host, c->port, strerror(errno));
-
-		logerror(errbuf);
-
-		if ( (f->f_file = connect_tcp(c->host, c->port)) < 0) {
-			f->f_type = F_UNUSED;
-			f->f_file = -1;
-			dprintf(DPRINTF_CRITICAL)("om_tcp_init: "
-			    "error connecting to remote host %s, "
-			    "%s\n", c->host, c->port);
-			return (-1);
-		}
-
+	if (write(f->f_file, line, l) != l) {
+		logerror("om_tcp_write: write()");
 	}
 
 	f->f_prevcount = 0;

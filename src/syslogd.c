@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.165 2001/02/09 00:57:10 claudio Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.166 2001/02/12 17:19:37 claudio Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.165 2001/02/09 00:57:10 claudio Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.166 2001/02/12 17:19:37 claudio Exp $";
 #endif /* not lint */
 
 /*
@@ -162,49 +162,45 @@ FILE	*pidf;
 
 #define MAX_PIDFILE_LOCK_TRIES 5
 
-/* names for f_types */
-char    *TypeNames[] = { "UNUSED", "FILE", "TTY", "CONSOLE",
-	    "FORW", "USERS", "WALL", "MODULE", NULL};
 char    *ctty;
 char     LocalHostName[SIZEOF_MAXHOSTNAMELEN];  /* our hostname */
 char    *LocalDomain = NULL;			/* our domain */
 int      finet = -1;				/* Internet datagram socket */
-int      LogPort = -1;				/* port number for INET conns */
+int      LogPort = -1;				/* UDP port */
 int      Debug = 0;				/* debug flag */
 int	 DaemonFlags = 0;
+
 char	*libdir = NULL;
 
-int	 force_log = 0;	/* XXX: used by dummylog() and logmsg() */
-
+int	place_signal(int , RETSIGTYPE (*)(int));
 RETSIGTYPE domark (int);
 RETSIGTYPE reapchild (int);
 RETSIGTYPE init (int);
 RETSIGTYPE die (int);
 RETSIGTYPE signal_handler (int);
-void	dummylog();
-void    cfline (char *, struct filed *, char *);
-int     decode (const char *, CODE *);
-void    markit (void);
-void    doLog (struct filed *, int, char *);
-void    printline (char *, char *, size_t, int);
-void    usage (void);
-int     imodule_create (struct i_module *, char *);
-int     omodule_create (char *, struct filed *, char *);
+void	cfline (char *, struct filed *, char *);
+int	decode (const char *, CODE *);
+void	markit (void);
+void	doLog (struct filed *, int, char *);
+void	printline (char *, char *, size_t, int);
+void	usage (void);
+int	imodule_create (struct i_module *, char *);
+int	omodule_create (char *, struct filed *, char *);
 int	omodules_destroy (struct omodule *);
 int	imodules_destroy (struct imodule *);
-void    logerror (char *);
-void    logmsg (int, char *, char *, int);
+void	logerror (char *);
+void	logmsg (int, char *, char *, int);
 int	getmsgbufsize (void);
 int	modules_start (void);
 void	modules_stop (void);
 
-extern struct omodule *omodules;
-extern struct imodule *imodules;
-struct i_module	       Inputs;
+extern struct	omodule *omodules;
+extern struct	imodule *imodules;
+struct i_module	Inputs;
 
-struct pollfd    *fd_inputs = NULL;
+struct pollfd	 *fd_inputs = NULL;
 int		  fd_in_count = 0;
-struct i_module **fd_inputs_mod = NULL;
+struct i_module	**fd_inputs_mod = NULL;
 int		 *fd_inputs_index = NULL;
 
 int
@@ -218,7 +214,12 @@ main(int argc, char **argv)
 
 	Inputs.im_next = NULL;
 	Inputs.im_fd = -1;
-	ctty = strdup(_PATH_CONSOLE);
+
+	/* console config line */
+	ctty = (char *) malloc(strlen(_PATH_CONSOLE) + 25);
+	strncpy(ctty, "%classic -t CONSOLE ", 18);
+	strncpy(ctty,_PATH_CONSOLE, strlen(_PATH_CONSOLE));
+	ctty[strlen(_PATH_CONSOLE) + 25] = '\0';
 
 	/* init module list */
 	imodules = NULL;
@@ -232,6 +233,7 @@ main(int argc, char **argv)
 
 	/* use ':' at start to allow -d to be used without argument */
 	opterr = 0;
+
 	while ( (ch = getopt(argc, argv, ":d:ubSf:m:p:a:i:h")) != -1) {
 		char buf[512];
 
@@ -281,7 +283,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (( (argc -= optind) != 0) || Inputs.im_fd < 0)
+	if ( ((argc -= optind) != 0) || Inputs.im_fd < 0 )
 		usage();
 
 	if (!Debug) {
@@ -300,13 +302,12 @@ main(int argc, char **argv)
 		int fd;
 
 		/* go daemon and mimic daemon() */
-		/* XXX: remove this and use daemon() (on all plats) */
 		switch (fork()) {
 			case -1:
-        		        perror("fork");
-        		        exit(-1);
+				perror("fork");
+				exit(-1);
 			case 0:
-		                break;
+				break;
 			default:
 				exit(0);
 		}
@@ -326,7 +327,6 @@ main(int argc, char **argv)
 	} else
 		setlinebuf(stdout);
 	
-	consfile.f_type = F_CONSOLE;
 	/* this should get into Files and be way nicer */
 	if (omodule_create(ctty, &consfile, NULL) == -1) {
 		dprintf(DPRINTF_SERIOUS)("Error initializing classic output "
@@ -343,12 +343,12 @@ main(int argc, char **argv)
 	/* Set signal handlers */
 	/* XXX: use one signal handler for all signals other than HUP */
 	/*      use sigaction and sigaltstack */
-	(void)signal(SIGTERM, die);
-	(void)signal(SIGINT, Debug ? die : SIG_IGN);
-	(void)signal(SIGQUIT, Debug ? die : SIG_IGN);
-	(void)signal(SIGCHLD, reapchild);
-	(void)signal(SIGALRM, domark);
-	(void)signal(SIGPIPE, SIG_IGN);
+	place_signal(SIGTERM, die);
+	place_signal(SIGINT, Debug ? die : SIG_IGN);
+	place_signal(SIGQUIT, Debug ? die : SIG_IGN);
+	place_signal(SIGCHLD, reapchild);
+	place_signal(SIGALRM, domark);
+	place_signal(SIGPIPE, SIG_IGN);
 	alt_stack.ss_sp = malloc(SIGSTKSZ);
 	alt_stack.ss_size = SIGSTKSZ;
 	alt_stack.ss_flags = 0;
@@ -358,23 +358,20 @@ main(int argc, char **argv)
 	}
 	sigemptyset(&sa.sa_mask);
 	sigaddset(&sa.sa_mask, SIGTSTP);
-	sigaddset(&sa.sa_mask, SIGUSR1);
 	sigaddset(&sa.sa_mask, SIGALRM);
 	sigaddset(&sa.sa_mask, SIGHUP);
 	sa.sa_handler = signal_handler;
 	sa.sa_flags = SA_NOCLDSTOP | SA_RESTART | SA_ONSTACK;
 	if (sigaltstack(&alt_stack, NULL) < 0 ||
-	    sigaction(SIGTSTP, &sa, NULL) < 0 ||
-	    sigaction(SIGUSR1, &sa, NULL) < 0) {
+	    sigaction(SIGTSTP, &sa, NULL) < 0 ) {
 		free(alt_stack.ss_sp);
 		perror(strerror(errno));
 		exit(-1);
 	}
-	(void)alarm(TIMERINTVL);
+	alarm(TIMERINTVL);
 
 	snprintf(pidfile, PID_PATH_MAX, "%s/syslog.pid", PID_DIR);
 
-	/* XXX: remove lock */
 	/* took my process id away */
 	if (!Debug) {
 		struct flock fl;
@@ -467,20 +464,23 @@ main(int argc, char **argv)
 	dprintf(DPRINTF_INFORMATIVE)("off & running....\n");
 
 	init(0);
-	(void)signal(SIGHUP, init);
+	place_signal(SIGHUP, init);
 
 	log.im_mlen = getmsgbufsize();
 	if (log.im_mlen < MAXLINE)
 		log.im_mlen = MAXLINE;
 	log.im_mlen++;
-	log.im_msg = malloc(log.im_mlen);
+	if ( (log.im_msg = malloc(log.im_mlen)) == NULL) {
+		dprintf(DPRINTF_CRITICAL)("malloc log struct");
+		exit(-1);
+	}
 
 	for (;;) {
 		int count, i, done;
 
 		if (fd_inputs == NULL) {
-			dprintf(DPRINTF_CRITICAL)("calloc fd_set");
-			exit(1);
+			dprintf(DPRINTF_CRITICAL)("no input struct");
+			exit(-1);
 		}
 
 		/* this may not be on inputs */
@@ -637,7 +637,6 @@ logmsg(int pri, char *msg, char *from, int flags)
 	sigaddset(&mask, SIGALRM);
 	sigaddset(&mask, SIGHUP);
 	sigaddset(&mask, SIGTSTP);
-	sigaddset(&mask, SIGUSR1);
 	sigprocmask(SIG_BLOCK, &mask, &omask);
 
 	/*
@@ -701,17 +700,17 @@ logmsg(int pri, char *msg, char *from, int flags)
 	for (f = Files; f; f = f->f_next) {
 		/* skip messages that are incorrect priority */
 		/* XXX */
-		if (!force_log && (f->f_pmask[fac] < prilev ||
-		    f->f_pmask[fac] == INTERNAL_NOPRI))
+		if ( f->f_pmask[fac] < prilev ||
+		    f->f_pmask[fac] == INTERNAL_NOPRI )
 			continue;
 
 		/* skip messages with the incorrect program name */
 		/* XXX */
-		if (!force_log && f->f_program)
+		if (f->f_program)
 			if (strcmp(prog, f->f_program) != 0)
 				continue;
 
-		if (f->f_type == F_CONSOLE && (flags & IGN_CONS))
+		if ( (f == &consfile) && (flags & IGN_CONS) )
 			continue;
 
 		/* don't output marks to recently written files */
@@ -847,9 +846,10 @@ markit(void)
 
 	for (f = Files; f; f = f->f_next) {
 		if (f->f_prevcount && now >= REPEATTIME(f)) {
-			dprintf(DPRINTF_INFORMATIVE)("flush %s: repeated %d "
-			    "times, %d sec.\n", TypeNames[f->f_type],
-			    f->f_prevcount, repeatinterval[f->f_repeatcount]);
+			/* we should report this based on module */
+			dprintf(DPRINTF_INFORMATIVE)("flush: repeated %d "
+			    "times, %d sec.\n", f->f_prevcount,
+			    repeatinterval[f->f_repeatcount]);
 			doLog(f, 0, (char *)NULL);
 			BACKOFF(f);
 		}
@@ -857,7 +857,7 @@ markit(void)
 
 	DaemonFlags &= ~SYSLOGD_MARK;
 
-	signal(SIGALRM, domark);
+	place_signal(SIGALRM, domark);
 
 	alarm(TIMERINTVL);
 }
@@ -1016,9 +1016,17 @@ init(int signo)
 	/* open the configuration file */
 	if ((cf = fopen(ConfFile, "r")) == NULL) {
 		dprintf(DPRINTF_SERIOUS)("cannot open %s\n", ConfFile);
-		*nextp = (struct filed *)calloc(1, sizeof(*f));
+		if ( (*nextp = (struct filed *) calloc(1, sizeof(*f)))
+		    == NULL) {
+			dprintf(DPRINTF_CRITICAL)("calloc struct filed");
+			exit(-1);
+		}
 		cfline("*.ERR\t/dev/console", *nextp, "*");
-		(*nextp)->f_next = (struct filed *)calloc(1, sizeof(*f));
+		if ( ((*nextp)->f_next = (struct filed *) calloc(1, sizeof(*f)))
+		    == NULL) {
+			dprintf(DPRINTF_CRITICAL)("calloc struct filed");
+			exit(-1);
+		}
 		cfline("*.PANIC\t*", (*nextp)->f_next, "*");
 		Initialized = 1;
 		return;
@@ -1067,7 +1075,10 @@ init(int signo)
 				break;
 			}
 		*p = '\0';
-		f = (struct filed *)calloc(1, sizeof(*f));
+		if ( (f = (struct filed *)calloc(1, sizeof(*f))) == NULL) {
+			dprintf(DPRINTF_CRITICAL)("calloc struct filed");
+			exit(-1);
+		}
 		*nextp = f;
 		nextp = &f->f_next;
 		cfline(cline, f, prog);
@@ -1085,8 +1096,6 @@ init(int signo)
 					printf("X ");
 				else
 					printf("%d ", f->f_pmask[i]);
-			printf("%s: ", TypeNames[f->f_type]);
-
 #warning modules should report here their output debug status strings
 			printf("\n");
 		}
@@ -1201,7 +1210,7 @@ getmsgbufsize()
 #ifdef HAVE_OPENBSD
 	int msgbufsize, mib[2];
 	size_t size;
-                
+
 
 	mib[0] = CTL_KERN;
 	mib[1] = KERN_MSGBUFSIZE;
@@ -1261,12 +1270,28 @@ add_fd_input(int fd, struct i_module *im, int index)
 
 	/* do we need bigger arrays? */
 	if (!fd_inputs || fd_in_count % 50 == 0) {
-		fd_inputs = (struct pollfd *) realloc(fd_inputs,
-		    (size_t) (fd_in_count + 50) * sizeof(struct pollfd));
-		fd_inputs_mod = (struct i_module **) realloc(fd_inputs_mod,
-		    (size_t) (fd_in_count + 50) * sizeof(struct i_module *));
-		fd_inputs_index = (int *) realloc(fd_inputs_index,
-		    (size_t) (fd_in_count + 50) * sizeof(int));
+
+		if ( (fd_inputs = (struct pollfd *) realloc(fd_inputs,
+		    (size_t) (fd_in_count + 50) * sizeof(struct pollfd)))
+		    == NULL) {
+			dprintf(DPRINTF_CRITICAL)("realloc inputs");
+			exit(-1);
+		}
+
+		if ( (fd_inputs_mod = (struct i_module **)
+		    realloc(fd_inputs_mod, (size_t) (fd_in_count + 50)
+		    * sizeof(struct i_module *)))
+		    == NULL) {
+			dprintf(DPRINTF_CRITICAL)("realloc inputs");
+			exit(-1);
+		}
+
+		if ( (fd_inputs_index = (int *) realloc(fd_inputs_index,
+		    (size_t) (fd_in_count + 50) * sizeof(int)))
+		    == NULL) {
+			dprintf(DPRINTF_CRITICAL)("realloc inputs");
+			exit(-1);
+		}
 	}
 
 	fd_inputs[fd_in_count].fd = fd;
@@ -1286,18 +1311,29 @@ signal_handler(int signo)
 	case SIGTSTP:
 		raise(SIGSTOP);
 		break;
-	case SIGUSR1:
-		dummylog();
 	default:;
 	}
 }
 
-void
-dummylog()
+
+int place_signal(int signo, RETSIGTYPE (*func)(int))
 {
-	force_log = 1;
-	logmsg(LOG_SYSLOG|LOG_INFO, "syslogd: dummy log", LocalHostName,
-	    ADDDATE);
-	force_log = 0;
+	struct sigaction act;
+
+	act.sa_handler = func;
+	sigemptyset(&act.sa_mask);
+	act.sa_flags = 0;
+	if (signo == SIGALRM) {
+#ifdef SA_INTERRUPT
+		act.sa_flags |= SA_INTERRUPT;
+#endif
+	} else {
+#ifdef SA_RESTART
+	act.sa_flags |= SA_RESTART;
+#endif
+	}
+	if (sigaction(signo, &act, NULL) < 0)
+		return(-1);
+	return(0);
 }
 

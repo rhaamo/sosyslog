@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.89 2001/01/27 01:04:18 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.90 2001/02/08 18:01:52 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -106,7 +106,6 @@
 
 struct filed {
 	struct  filed *f_next;	  /* next in linked list */
-	short   f_type;		 /* entry type, see below */
 	short   f_file;		 /* file descriptor */
 	time_t  f_time;		 /* time this was last written */
 	u_char  f_pmask[LOG_NFACILITIES+1];     /* priority mask */
@@ -166,16 +165,6 @@ struct imodule {
 #define	BACKOFF(f)	{ if (++(f)->f_repeatcount > MAXREPEAT) \
 				 (f)->f_repeatcount = MAXREPEAT; \
 			}
-
-/* values for f_type */
-#define F_UNUSED	0		/* unused entry */
-#define F_FILE		1		/* regular file */
-#define F_TTY		2		/* terminal */
-#define F_CONSOLE	3		/* console terminal */
-#define F_FORW		4		/* remote machine */
-#define F_USERS		5		/* list of users */
-#define F_WALL		6		/* everyone logged on */
-#define F_MODULE	7		/* module only */
 
 /* values for integrity facilities */
 #define I_NONE		0

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.1 2001/02/08 18:01:53 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.2 2001/02/08 22:16:31 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -55,6 +55,8 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
+#include <errno.h>
 #include <syslog.h>
 
 #if TIME_WITH_SYS_TIME
@@ -83,6 +85,7 @@ struct tcp_conn {
 	struct tcp_conn *next;
 	struct sockaddr *cliaddr;
 	socklen_t	 addrlen;
+	char		 name[NI_MAXHOST + 1];
 };
 
 struct im_tcp_ctx {
@@ -108,8 +111,9 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 {
 	struct im_tcp_ctx *c;
 
-        if (argc != 2) {
-        	dprintf(DPRINTF_SERIOUS)("im_tcp: error on params!\n");
+        if (argc != 3) {
+        	dprintf(DPRINTF_SERIOUS)("im_tcp: error on params! %d, should "
+		    "be 3\n", argc);
         	return (-1);
         }
 
@@ -145,6 +149,8 @@ int
 im_tcp_read(struct i_module *im, int index, struct im_msg *ret)
 {
 	struct im_tcp_ctx *c;
+	struct tcp_conn *con;
+	int n;
 
 	if (im == NULL) {
 		dprintf(DPRINTF_SERIOUS)("im_tcp: arg is null\n");
@@ -154,12 +160,12 @@ im_tcp_read(struct i_module *im, int index, struct im_msg *ret)
 	c = (struct im_tcp_ctx *) im->im_ctx;
 
 	if (index == 0) {
-		struct tcp_conn *con;
 		struct sockaddr *cliaddrp;
 		socklen_t slen;
 		int fd, count;
 
-		cliaddrp = malloc(c->addrlen);
+		if ( (cliaddrp = malloc(c->addrlen)) == NULL)
+			return (-1);
 		slen = c->addrlen;
 
 		/* accept it and add to queue */
@@ -175,14 +181,27 @@ im_tcp_read(struct i_module *im, int index, struct im_msg *ret)
 				count = con->index;
 
 		if (con->fd > -1) {
-			con->next = (struct tcp_conn *)	
-			    calloc(1, sizeof(struct tcp_conn));
+			if ( (con->next = (struct tcp_conn *)	
+			    calloc(1, sizeof(struct tcp_conn))) == NULL) {
+				free(cliaddrp);
+				return (-1);
+			}
 			con = con->next;
 		}
 
 		con->fd  = fd;
 		con->cliaddr  = cliaddrp;
 		con->addrlen  = slen;
+
+		if (getnameinfo((struct sockaddr *) con->cliaddr, con->addrlen,
+		    con->name, sizeof(con->name) - 1, NULL, 0, 0) != 0) {
+			
+        		dprintf(DPRINTF_SERIOUS)("im_tcp: error resolving "
+			    "remote host name!\n");
+		} else {
+			inet_ntop(con->cliaddr->sa_family, &con->cliaddr,
+			    con->name, sizeof(con->name) - 1);
+		}	
 
 		/* add to inputs list */
 		add_fd_input(con->fd , im, ++count);
@@ -193,7 +212,60 @@ im_tcp_read(struct i_module *im, int index, struct im_msg *ret)
 
 	/* read connected socket */
 
+	/* find connection */
+	for (con = &c->conns; con && con->index != index; con = con->next);
+	if (con == NULL || con->index != index) {
+		dprintf(DPRINTF_SERIOUS)("im_tcp: no such connection "
+		    "index %d !\n", index);
+		return (-1);
+	}
 
+	n = read(con->fd, im->im_buf, sizeof(im->im_buf) -1);
+	if (n > 0) {
+		char *p, *q, *lp;
+		int c;
+
+		strncpy(ret->im_msg, con->name, ret->im_mlen - 3);
+		strncat(ret->im_msg, ": ", 2);
+		lp = ret->im_msg + strlen(ret->im_msg);
+ 
+		(im->im_buf)[n] = '\0';
+
+		for (p = im->im_buf; *p != '\0'; ) {
+			/* fsync file after write */
+			ret->im_flags = SYNC_FILE | ADDDATE;
+			ret->im_pri = DEFSPRI;
+			if (*p == '<') {
+				ret->im_pri = 0;
+				while (isdigit((int)*++p))
+					ret->im_pri = 10 * ret->im_pri +
+					    (*p - '0');
+				if (*p == '>')
+					++p;
+			} else {
+				/* kernel printf's come out on console */
+				ret->im_flags |= IGN_CONS;
+			}
+			if (ret->im_pri &~ (LOG_FACMASK|LOG_PRIMASK))
+				ret->im_pri = DEFSPRI;
+			q = lp;
+			while (*p != '\0' && (c = *p++) != '\n' &&
+			    q < (ret->im_msg + ret->im_mlen))
+	 		*q++ = c;
+			*q = '\0';
+			strncpy(ret->im_host, LocalHostName,
+			    sizeof(ret->im_host) - 1);
+			ret->im_len = strlen(ret->im_msg);
+			logmsg(ret->im_pri, ret->im_msg, ret->im_host,
+			    ret->im_flags);
+		}
+
+	} else if (n < 0 && errno != EINTR) {
+
+		logerror("im_tcp_read");
+		con->fd = -1;
+
+        }
 
 	return (1);
 

@@ -1,8 +1,14 @@
-/*	$CoreSDI: TODO,v 1.64 2001/01/10 19:39:21 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.65 2001/02/12 17:19:37 claudio Exp $	*/
 
 Things to do:
 
 - REMOVE mlibs struct!!!
+- test TCP modules
+- AIX port
+- DB2 output module
+- let input modules return multiline in one read (maybe supply a function
+  for parsing incoming lines)
+- fix signal for output reopen
 - Check "" errors on solaris
 - Change strcpy and strncpy to strlcpy (same w/ strlcat)
 - define STYLE for names (ie. underscore or caps, indentation)

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.60 2001/01/29 21:41:20 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.61 2001/02/08 18:01:53 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -84,20 +84,35 @@
 
 #define TTYMSGTIME	1		/* timeout passed to ttymsg */
 
-extern char     *TypeNames[9];          /* names for f_types */
+/* values for f_type */
+#define F_UNUSED	0		/* unused entry */
+#define F_FILE		1		/* regular file */
+#define F_TTY		2		/* terminal */
+#define F_CONSOLE	3		/* console terminal */
+#define F_FORW		4		/* remote machine */
+#define F_USERS		5		/* list of users */
+#define F_WALL		6		/* everyone logged on */
+#define F_MODULE	7		/* module only */
+
+/* names for f_types */
+char    *TypeNames[] = { "UNUSED", "FILE", "TTY", "CONSOLE",
+	    "FORW", "USERS", "WALL", "MODULE", NULL};
 extern char     *ctty;
 
 
-union om_classic_ctx {
-	char    f_uname[MAXUNAMES][UT_NAMESIZE+1];
-	struct {
-		char    f_hname[SIZEOF_MAXHOSTNAMELEN];
-		struct sockaddr_in      f_addr;
-	} f_forw;	      /* forwarding address */
-	char    f_fname[MAXPATHLEN];
+struct om_classic_ctx {
+	union {
+		char    f_uname[MAXUNAMES][UT_NAMESIZE+1];
+		struct {
+			char    f_hname[SIZEOF_MAXHOSTNAMELEN];
+			struct sockaddr_in      f_addr;
+		} f_forw;	      /* forwarding address */
+		char    f_fname[MAXPATHLEN];
+	} f_un;
+	int   f_type;		 /* entry type, see below */
 };
 
-void wallmsg (struct filed *, struct iovec *, union om_classic_ctx *c);
+void wallmsg (struct filed *, struct iovec *, struct om_classic_ctx *c);
 char *ttymsg(struct iovec *, int , char *, int);
 
 
@@ -110,7 +125,7 @@ om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
 {
 	struct iovec iov[6];
 	struct iovec *v;
-	union om_classic_ctx *c;
+	struct om_classic_ctx *c;
 	int l;
 	char line[MAXLINE + 1], greetings[500], time_buf[16];
 	time_t now;
@@ -120,11 +135,11 @@ om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
 		return (-1);
 	}
 
-	c = (union om_classic_ctx *) ctx;
+	c = (struct om_classic_ctx *) ctx;
 
 	/* prepare buffers for writing */
 	v = iov;
-	if (f->f_type == F_WALL) {
+	if (c->f_type == F_WALL) {
 		v->iov_base = greetings;
 		v->iov_len = snprintf(greetings, sizeof(greetings),
 		    "\r\n\7Message from syslogd@%s at %.24s ...\r\n",
@@ -155,9 +170,9 @@ om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
 	v->iov_len = strlen(msg);
 	v++;
 
-	dprintf(DPRINTF_INFORMATIVE)("Logging to %s", TypeNames[f->f_type]);
+	dprintf(DPRINTF_INFORMATIVE)("Logging to %s", TypeNames[c->f_type]);
 
-	switch (f->f_type) {
+	switch (c->f_type) {
 	case F_UNUSED:
 		dprintf(DPRINTF_INFORMATIVE)("\n");
 		break;
@@ -166,20 +181,20 @@ om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
 		if (finet < 0) {
 			dprintf(DPRINTF_SERIOUS)("om_classic: write: "
 			    "can't forward message, socket down\n");
-			break;
+			return(-1);
 		}
 
-		dprintf(DPRINTF_INFORMATIVE)(" %s\n", c->f_forw.f_hname);
+		dprintf(DPRINTF_INFORMATIVE)(" %s\n", c->f_un.f_forw.f_hname);
 		l = snprintf(line, sizeof(line), "<%d>%.15s %s", f->f_prevpri,
 		    (char *) iov[0].iov_base, (char *) iov[4].iov_base);
-		if (l > MAXLINE)
-			l = MAXLINE;
+
 		if (sendto(finet, line, l, 0,
-		    (struct sockaddr *)&c->f_forw.f_addr,
-		    sizeof(c->f_forw.f_addr)) != l) {
-			f->f_type = F_UNUSED;
+		    (struct sockaddr *)&c->f_un.f_forw.f_addr,
+		    sizeof(c->f_un.f_forw.f_addr)) != l) {
+			c->f_type = F_UNUSED;
 			logerror("sendto");
 		}
+
 		break;
 
 	case F_CONSOLE:
@@ -191,8 +206,8 @@ om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
 
 	case F_TTY:
 	case F_FILE:
-		dprintf(DPRINTF_INFORMATIVE)(" %s\n", c->f_fname);
-		if (f->f_type != F_FILE) {
+		dprintf(DPRINTF_INFORMATIVE)(" %s\n", c->f_un.f_fname);
+		if (c->f_type != F_FILE) {
 			v->iov_base = "\r\n";
 			v->iov_len = 2;
 		} else {
@@ -206,19 +221,19 @@ om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
 			/*
 			 * Check for errors on TTY's due to loss of tty
 			 */
-			if ((e == EIO || e == EBADF) && f->f_type != F_FILE) {
-				f->f_file = open(c->f_fname,
+			if ((e == EIO || e == EBADF) && c->f_type != F_FILE) {
+				f->f_file = open(c->f_un.f_fname,
 				    O_WRONLY|O_APPEND, 0);
 				if (f->f_file < 0) {
-					f->f_type = F_UNUSED;
-					logerror(c->f_fname);
+					c->f_type = F_UNUSED;
+					logerror(c->f_un.f_fname);
 				} else
 					goto again;
 			} else {
-				f->f_type = F_UNUSED;
+				c->f_type = F_UNUSED;
 				f->f_file = -1;
 				errno = e;
-				logerror(c->f_fname);
+				logerror(c->f_un.f_fname);
 			}
 		} else if (flags & SYNC_FILE)
 			(void)fsync(f->f_file);
@@ -247,17 +262,38 @@ int
 om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 {
 	struct hostent *hp;
-	union  om_classic_ctx *c;
+	struct  om_classic_ctx *c;
 	int i;
 	char *p, *q;
 
 	dprintf(DPRINTF_INFORMATIVE)("om_classic init: Entering\n");
 
-	if ((*ctx = (void *) calloc(1, sizeof(union om_classic_ctx))) == NULL)
+	if ((*ctx = (void *) calloc(1, sizeof(struct om_classic_ctx))) == NULL)
 		return (-1);
-	c = (union om_classic_ctx *) *ctx;
+	c = (struct om_classic_ctx *) *ctx;
 
-	p = argv[1];
+	/* accepts "%classic /file" or "%classic -t TYPE /file" */
+	if ( (argc != 2 && argc != 4) || argv == NULL);
+		return(-1);
+
+	if (argc == 2) {
+		int i;
+
+		if ( ! strncmp(argv[1], "-t", 2))
+			return (-1);
+
+		/* look for entry # in table */
+		for (i = 0; TypeNames[i] && strncmp(TypeNames[i], argv[2],
+		    strlen(argv[2])); i++);
+		if (TypeNames[i] == NULL)
+			return (-1);
+
+		c->f_type = i;
+		p = argv[3];
+
+	} else
+		/* regular config line, no type */
+		p = argv[1];
 
 	switch (*p) {
 	case '@':
@@ -286,10 +322,10 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 			}
 		}
 
-		strncpy(c->f_forw.f_hname, ++p,
-		    sizeof(c->f_forw.f_hname) - 1);
-		c->f_forw.f_hname[sizeof(c->f_forw.f_hname) - 1] = '\0';
-		hp = gethostbyname(c->f_forw.f_hname);
+		strncpy(c->f_un.f_forw.f_hname, ++p,
+		    sizeof(c->f_un.f_forw.f_hname) - 1);
+		c->f_un.f_forw.f_hname[sizeof(c->f_un.f_forw.f_hname) - 1] = '\0';
+		hp = gethostbyname(c->f_un.f_forw.f_hname);
 		if (hp == NULL) {
 			extern int h_errno;
 
@@ -297,47 +333,47 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 			break;
 		}
 
-		c->f_forw.f_addr.sin_family = AF_INET;
-		c->f_forw.f_addr.sin_port = LogPort;
-		memmove(&c->f_forw.f_addr.sin_addr, hp->h_addr,
+		c->f_un.f_forw.f_addr.sin_family = AF_INET;
+		c->f_un.f_forw.f_addr.sin_port = LogPort;
+		memmove(&c->f_un.f_forw.f_addr.sin_addr, hp->h_addr,
 		    sizeof(struct in_addr));
-		f->f_type = F_FORW;
+		c->f_type = F_FORW;
 		break;
 
 	case '/':
-		strncpy(c->f_fname, p, sizeof c->f_fname);
-		c->f_fname[sizeof (c->f_fname) - 1]=0;
+		strncpy(c->f_un.f_fname, p, sizeof c->f_un.f_fname);
+		c->f_un.f_fname[sizeof (c->f_un.f_fname) - 1]=0;
 		if ((f->f_file = open(p, O_WRONLY|O_APPEND, 0)) < 0) {
-			f->f_type = F_UNUSED;
+			c->f_type = F_UNUSED;
 			logerror(p);
 			break;
 		}
 		if (isatty(f->f_file))
-			f->f_type = F_TTY;
+			c->f_type = F_TTY;
 		else
-			f->f_type = F_FILE;
+			c->f_type = F_FILE;
 		if (strcmp(p, ctty) == 0)
-			f->f_type = F_CONSOLE;
+			c->f_type = F_CONSOLE;
 		break;
 
 	case '*':
-		f->f_type = F_WALL;
+		c->f_type = F_WALL;
 		break;
 
 	default:
 		for (i = 0; i < MAXUNAMES && *p; i++) {
 			for (q = p; *q && *q != ','; )
 				q++;
-			(void)strncpy(c->f_uname[i], p, UT_NAMESIZE);
+			(void)strncpy(c->f_un.f_uname[i], p, UT_NAMESIZE);
 			if ((q - p) > UT_NAMESIZE)
-				c->f_uname[i][UT_NAMESIZE] = '\0';
+				c->f_un.f_uname[i][UT_NAMESIZE] = '\0';
 			else
-				c->f_uname[i][q - p] = '\0';
+				c->f_un.f_uname[i][q - p] = '\0';
 			while (*q == ',' || *q == ' ')
 				q++;
 			p = q;
 		}
-		f->f_type = F_USERS;
+		c->f_type = F_USERS;
 		break;
 	}
 
@@ -347,8 +383,11 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 int
 om_classic_close(struct filed *f, void *ctx)
 {
+	struct om_classic_ctx *c;
 
-	switch (f->f_type) {
+	c = (struct om_classic_ctx *) ctx;
+
+	switch (c->f_type) {
 	case F_FILE:
 	case F_TTY:
 	case F_CONSOLE:
@@ -380,7 +419,7 @@ om_classic_flush(struct filed *f, void *ctx)
  *	world, or a list of approved users.
  */
 void
-wallmsg( struct filed *f, struct iovec *iov, union om_classic_ctx *c)
+wallmsg( struct filed *f, struct iovec *iov, struct om_classic_ctx *c)
 {
 	static int reenter;			/* avoid calling ourselves */
 	FILE *uf;
@@ -399,7 +438,7 @@ wallmsg( struct filed *f, struct iovec *iov, union om_classic_ctx *c)
 	/* NOSTRICT */
 	while (fread(&ut, sizeof(ut), 1, uf) == 1) {
 
-#ifndef HAVE_LINUX
+#ifndef __linux__
 		if (ut.ut_name[0] == '\0')
 #else
 		if ((ut.ut_type != USER_PROCESS && ut.ut_type != LOGIN_PROCESS) ||
@@ -409,7 +448,7 @@ wallmsg( struct filed *f, struct iovec *iov, union om_classic_ctx *c)
 
 		strncpy(line, ut.ut_line, sizeof(ut.ut_line));
 		line[sizeof(ut.ut_line)] = '\0';
-		if (f->f_type == F_WALL) {
+		if (c->f_type == F_WALL) {
 			if ((p = ttymsg(iov, 6, line, TTYMSGTIME)) != NULL) {
 				errno = 0;	/* already in msg */
 				logerror(p);
@@ -418,9 +457,9 @@ wallmsg( struct filed *f, struct iovec *iov, union om_classic_ctx *c)
 		}
 		/* should we send the message to this user? */
 		for (i = 0; i < MAXUNAMES; i++) {
-			if (!c->f_uname[i][0])
+			if (!c->f_un.f_uname[i][0])
 				break;
-			if (!strncmp(c->f_uname[i], ut.ut_name,
+			if (!strncmp(c->f_un.f_uname[i], ut.ut_name,
 			    UT_NAMESIZE)) {
 				if ((p = ttymsg(iov, 6, line, TTYMSGTIME))
 								!= NULL) {
@@ -431,6 +470,6 @@ wallmsg( struct filed *f, struct iovec *iov, union om_classic_ctx *c)
 			}
 		}
 	}
-	(void)fclose(uf);
+	fclose(uf);
 	reenter = 0;
 }

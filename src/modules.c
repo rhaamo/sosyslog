@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.144 2001/01/27 01:04:18 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.145 2001/01/31 19:48:44 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -513,9 +513,6 @@ omodule_create(char *c, struct filed *f, char *prog)
 	}
 
 	free(line);
-
-	if (f->f_type == F_UNUSED)
-		f->f_type = F_MODULE;
 
 	dprintf(DPRINTF_INFORMATIVE)("omodule_create: all done for output "
 	    "module %s\n", argv[0]);
