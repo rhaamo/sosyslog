@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.71 2000/07/26 21:00:38 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.72 2000/08/25 22:37:51 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -150,12 +150,17 @@ struct filed {
 
 extern char	*TypeNames[9];		/* names for f_types */
 extern char	*ctty;
-extern char	LocalHostName[];	/* our hostname */
-extern char	*LocalDomain;	/* our domain */
-extern int	finet;		/* Internet datagram socket */
-extern int	LogPort;	/* port number for INET connections */
+extern char	LocalHostName[MAXHOSTNAMELEN];	/* our hostname */
+extern char	*LocalDomain;		/* our domain */
+extern int	finet;			/* Internet datagram socket */
+extern int	LogPort;		/* port number for INET connections */
 extern int	Debug;			/* debug flag */
-extern int	InetInuse;		/* non-zero if INET sockets are open */
+extern int	DaemonFlags;		/* running daemon flags */
+#define SYSLOGD_LOCKED_PIDFILE	0x01	/* pidfile is locked */
+#define SYSLOGD_INET_IN_USE	0x02	/* INET sockets are open */
+#define SYSLOGD_INET_READ	0x04	/* we read */
+extern time_t  now;
+
 
 void logerror(char *);
 void logmsg(int, char *, char *, int);
