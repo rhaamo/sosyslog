@@ -1,4 +1,4 @@
-/*      $Id: hash.c,v 1.8 2000/05/04 21:13:04 claudio Exp $
+/*      $Id: hash.c,v 1.9 2000/05/05 17:22:06 claudio Exp $
  *
  * hash -- few things used by both peo output module and peochk 
  *
@@ -16,9 +16,11 @@
 #ifdef HAVE_OPENBSD
 	#include <md5.h>
 	#include <sha1.h>
+	#define  RANDOM_DEVICE	"/dev/srandom"
 #else
 	#include "md5.h"
 	#include "sha1.h"
+	#define  RANDOM_DEVICE	"/dev/random"
 #endif
 
 #include "rmd160.h"
@@ -225,6 +227,15 @@ asc2bin (dst, src)
 	char       *dst;
 	const char *src;
 {
+/*
+	int i;
+	int j;
+	for (i = 0; src[i] != '\0'; i++)
+		for (j = 0; i < 2; j++)
+			if (
+			
+		
+*/
 	return (dst);
 }
 
@@ -257,6 +268,31 @@ bin2asc (dst, src, srclen)
 
 	return (dst);
 }
+
+
+/*
+ * getrandom:
+ *	Open /dev/srandom and reads a len bytes random value.
+ *	Returns 0 on success and -1 on error
+ */
+int
+getrandom (buffer, bytes)
+	char *buffer;
+	int   bytes;
+{
+	int fd;
+
+	if (bytes > 0)
+		if ( (fd = open(RANDOM_DEVICE, O_RDONLY, 0)) >= 0)
+			if (read(fd, buffer, bytes) == bytes) {
+				close(fd);
+				return (0);
+			}
+			else close(fd);
+
+	return (-1);
+}
+
 
 
 #include <stdio.h>

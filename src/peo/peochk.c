@@ -1,4 +1,4 @@
-/*      $Id: peochk.c,v 1.17 2000/05/04 21:13:05 claudio Exp $
+/*      $Id: peochk.c,v 1.18 2000/05/05 17:22:06 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
@@ -237,11 +237,13 @@ generate()
 	char	 key[20];
 	char	 keyasc[41];
 	int	 keylen;
-	long	 randvalue;
+	char	 randvalue[20];
 
-	srandom(time(NULL));
-	randvalue = random();
-	if ( (keylen = mac(method, NULL, 0, (const char*)&randvalue, sizeof(long), key)) == -1) {
+	if (getrandom(randvalue, 20) <= 0) {
+		release();
+		err(2, "getrandom");
+	}
+	if ( (keylen = mac(method, NULL, 0, randvalue, 20, key)) == -1) {
 		release();
 		err(2, "fatal");
 	}
