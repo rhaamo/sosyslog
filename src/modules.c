@@ -1,4 +1,4 @@
-/*
+/*	$Id: modules.c,v 1.8 2000/03/29 20:09:50 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
