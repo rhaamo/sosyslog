@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.2 2001/02/08 22:16:31 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.3 2001/02/16 00:34:52 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -122,8 +122,10 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 
 	c = (struct im_tcp_ctx *) I->im_ctx;
 
-	if (listen_tcp(argv[1], argv[2], &c->addrlen) < 0)
+	if ( (I->im_fd = listen_tcp(argv[1], argv[2], &c->addrlen)) < 0) {
+        	dprintf(DPRINTF_SERIOUS)("im_tcp: error n listen()\n");
 		return (-1);
+	}
 
 	/* init connections to empty */
 	c->conns.fd = -1;
