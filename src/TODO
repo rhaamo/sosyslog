@@ -1,17 +1,13 @@
-/*	$CoreSDI: TODO,v 1.55 2000/11/22 00:38:15 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.56 2000/12/04 23:25:27 alejo Exp $	*/
 
 Things to do:
 
 - define STYLE for names (ie. underscore or caps, indentation)
 - module configuration file so eliminate most command line options
-- no more static modules
-- No more autoconf, just plain Makefiles
 - redo parsing functions
 - CHECK LIBC and GLIBC's way to work
 - More docs on source code
 - unify documentation
-- improve cache on autoconf (barely used now)
-- compile modules without external headers (ie. om_mysql) use void *
 
 FOR FUTURE WORKING
 
@@ -27,31 +23,27 @@ Check for buffer overflows, as we now may get things from the outside world.
   function
 - Kill filed structure, associate ins and outs so no for(;;) is needed
 - Optimize each input/output module
-- Create good Makefiles
 - Complete and fix man pages
 - create a single file with all networking primitives used
 - chroot
 - new syntax on config files
 - debug levels
 - redo line format while keeping "<" and ">" usage (prevent new syslog proto)
-- Allow not only one module type on each configuration line
+- Allow not only one module type on each configuration line (what?)
 - Add linux extensions on selector field on configuration file
 - We can't do select when im->path = NULL and im->fd >= 0 but the module
-  should be called.
+  should be called. (what?)
   We need to allow several others log methods like syscalls (ex.: im_linux)
-- Reconfiguing input modules on the fly (syslog -i "unix /dev/kklog" when
+- Reconfiguing input modules on the fly (syslog -i "unix /dev/klog" when
   syslog is already running)
 - Keep alive [remote] saying how many messages have been sent from the previous
   keep alive
 - optimize peochk (readline)
 - Create a module configuration file outside /etc/syslog.conf
-- warn if configuration line is wrong
 - threads per output module
 - Debug levels. A better macro. No need of newlines.
-- Remove all strdup we have. they are error-prone
 - Create a message structure to be pased from ins to outs
 - Make a dbm/ndbm output module. talk w/ audit for that
-- src/Makefile should warn if modules.conf changed to use ./configure
 - Check why messages to console take a while to pop up
 - Support Linux's ! != etc syslog.conf format
 - A bug report form
