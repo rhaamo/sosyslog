@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.9 2000/06/06 00:53:23 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.10 2000/06/06 17:47:20 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -128,6 +128,7 @@ parseCommandLine(argc, argv)
 	char **argv;
 {
 	int i;
+	dprintf ("e cuesto e' lo que reccibito: \n");
 	for (i = 0; i < argc; i++)
 		dprintf("%i: %s\n", argv[i]);
 	return(-1);

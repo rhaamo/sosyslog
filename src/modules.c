@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.86 2000/06/05 23:22:03 fgsch Exp $	*/
+/*	$CoreSDI: modules.c,v 1.87 2000/06/06 00:05:10 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -79,7 +79,7 @@ int	im_bsd_getLog __P((struct i_module *, struct im_msg *));
 
 int	im_unix_init __P((struct i_module *, char **, int));
 int	im_unix_getLog __P((struct i_module *, struct im_msg *));
-int	im_unix_close __P((struct i_module *, struct im_msg *));
+int	im_unix_close __P((struct i_module *));
 
 int	im_udp_init __P((struct i_module *, char **, int));
 int	im_udp_getLog __P((struct i_module *, struct im_msg *));
