@@ -1,0 +1,8 @@
+Peo TODO
+~~~~~~~~
+optimize peo output module (readline included)
+optimize peo check utility
+peochek utility and commutication with audit (not tested)
+add vcr protocol (new module?)
+create a good Makefile
+
