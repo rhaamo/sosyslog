@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.36 2000/07/04 16:44:01 alejo Exp $
+dnl	$CoreSDI: configure.in,v 1.37 2000/07/04 18:33:13 claudio Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -169,9 +169,9 @@ AC_SUBST(SSRCS)
 AC_DEFUN(add_om, [ 
 SMODULES_HEADER="$SMODULES_HEADER \
 int om_$1_init (int, char**, struct filed*, char*, struct om_hdr_ctx**, \
-struct sglobals *); \
+struct sglobals*); \
 int om_$1_doLog (struct filed*, int, char*, struct om_hdr_ctx*, \
-struct sglobals *);"
+struct sglobals*);"
 
 SMODULES_LOAD="$SMODULES_LOAD \
 if ( (om = (struct omodule*)calloc(1, sizeof(struct omodule))) == NULL) \
@@ -196,14 +196,14 @@ SMODULES_LOAD="$SMODULES_LOAD \
 GREP(om_$1_flush, "$MODULES_DIR/$2", [
 SMODULES_HEADER="$SMODULES_HEADER \
 	int om_$1_flush (struct filed*, struct om_hdr_ctx*, \
-struct sglobals *);" 
+struct sglobals*);" 
 SMODULES_LOAD="$SMODULES_LOAD \
 	olast->om_flush=om_$1_flush;"
 ]) 
 
 GREP(om_$1_close, "$MODULES_DIR/$2", [
 SMODULES_HEADER="$SMODULES_HEADER \
-	int om_$1_close (struct filed*, struct om_hdr_ctx*);"
+	int om_$1_close (struct filed*, struct om_hdr_ctx*, struct sglobals*);"
 SMODULES_LOAD="$SMODULES_LOAD \
 	olast->om_close=om_$1_close;" ])
 ])
@@ -212,9 +212,9 @@ SMODULES_LOAD="$SMODULES_LOAD \
 AC_DEFUN(add_im, [
 SMODULES_HEADER="$SMODULES_HEADER \
 int im_$1_init (struct i_module*, char**, int, \
-struct sglobals *); \
+struct sglobals*); \
 int im_$1_getLog (struct i_module*, struct im_msg*, \
-struct sglobals *);" 
+struct sglobals*);" 
 
 SMODULES_LOAD="$SMODULES_LOAD \
 if ( (im = (struct imodule*)calloc(1, sizeof(struct imodule))) == NULL) \
@@ -238,7 +238,7 @@ SMODULES_LOAD="$SMODULES_LOAD \
 
 GREP(im_$1_close, "$MODULES_DIR/$2", [
 SMODULES_HEADER="$SMODULES_HEADER \
-	int im_$1_close (struct i_module*);"
+	int im_$1_close (struct i_module*, struct globals*);"
 SMODULES_LOAD="$SMODULES_LOAD \
 	ilast->im_close=im_$1_close;" ])
 ])
