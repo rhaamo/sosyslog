@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.69 2000/05/23 03:10:18 alejo Exp $
+/*	$Id: syslogd.c,v 1.70 2000/05/23 03:35:56 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -108,7 +108,7 @@ int	Debug;			/* debug flag */
 char	LocalHostName[MAXHOSTNAMELEN];	/* our hostname */
 char	*LocalDomain;		/* our local domain name */
 int	InetInuse = 0;		/* non-zero if INET sockets are being used */
-int	finet;			/* Internet datagram socket */
+int	finet = -1;		/* Internet datagram socket */
 int	LogPort;		/* port number for INET connections */
 int	Initialized = 0;	/* set when we have initialized ourselves */
 int	MarkInterval = 20 * 60;	/* interval between marks in seconds */
@@ -158,7 +158,6 @@ main(argc, argv)
 				fprintf(stderr, "syslogd: error on udp input module\n");
 				exit(-1);
 			}
-			modules_init(&Inputs, "udp");
 			break;
 		case 'i':		/* inputs */
 			if (modules_init(&Inputs, optarg) < 0) {

@@ -9,8 +9,8 @@
 - abstract a *net.c fileall networking code ?
 - debug levels
 - redo line format while keeping "<" and ">" usage (prevent new syslog proto)
-- minimize global variables
-- CHECK LIBC !!! and GLIBC !!
+- minimize global variables even more
+- CHECK LIBC and GLIBC's way to work
 - program execution module
 
 

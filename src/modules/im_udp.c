@@ -1,4 +1,4 @@
-/*	$Id: im_udp.c,v 1.18 2000/05/23 03:10:17 alejo Exp $
+/*	$Id: im_udp.c,v 1.19 2000/05/23 03:35:56 alejo Exp $
  *  im_udp -- classic behaviour module for BDS like systems
  *      
  * Author: Alejo Sanchez for Core-SDI SA
@@ -95,7 +95,11 @@ im_udp_init(I, argv, argc)
 	struct sockaddr_in sin;
 	struct servent *sp;
 
-        I->im_fd = socket(AF_INET, SOCK_DGRAM, 0);
+        if (finet > -1) {
+		dprintf("im_udp_init: already opened!\n");
+		return(-1);
+        }
+        finet = socket(AF_INET, SOCK_DGRAM, 0);
 
 	sp = getservbyname("syslog", "udp");
 	if (sp == NULL) {
@@ -114,12 +118,13 @@ im_udp_init(I, argv, argc)
 		if (!Debug)
 		die(0);
 	} else {
-                        InetInuse = 1;
+		InetInuse = 1;
 	}
 
         I->im_type = IM_UDP;
         I->im_name = "udp";
         I->im_path = "";
+        I->im_fd   = finet;
         return(1);
 }
 
