@@ -1,7 +1,7 @@
 OpenBSD
 =======
 
-VERSION WARNING: only tested on OpenBSD 2.6/2.7, and RedHat 6.0.
+VERSION WARNING: only tested on OpenBSD 2.6/2.7/2.8, and RedHat 6.2.
 RUNNING WARNING: Now you MUST specify "-i bsd", it isn't default. comments?
 
 
