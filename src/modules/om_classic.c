@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.74 2001/03/23 00:12:29 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.75 2001/03/30 21:09:59 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -104,7 +104,7 @@ struct om_classic_ctx {
 		char    f_uname[MAXUNAMES][UT_NAMESIZE+1];
 		struct {
 			char    f_hname[SIZEOF_MAXHOSTNAMELEN];
-			struct sockaddr_in      f_addr;
+			struct sockaddr      f_addr;
 		} f_forw;	      /* forwarding address */
 		char    f_fname[MAXPATHLEN];
 	} f_un;
@@ -113,6 +113,7 @@ struct om_classic_ctx {
 
 void wallmsg (struct filed *, struct iovec *, struct om_classic_ctx *c);
 char *ttymsg(struct iovec *, int , char *, int);
+struct sockaddr	*resolv_name(const char *, const char *, size_t *);
 
 
 /*
@@ -187,9 +188,8 @@ om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
 		l = snprintf(line, sizeof(line), "<%d>%.15s %s", f->f_prevpri,
 		    (char *) iov[0].iov_base, (char *) iov[4].iov_base);
 
-		if (sendto(finet, line, l, 0,
-		    (struct sockaddr *)&c->f_un.f_forw.f_addr,
-		    sizeof(c->f_un.f_forw.f_addr)) != l) {
+		if (sendto(finet, line, l, 0, &c->f_un.f_forw.f_addr,
+		    c->f_un.f_forw.f_addr.sa_len) != l) {
 			c->f_type = F_UNUSED;
 			logerror("sendto");
 		}
@@ -269,8 +269,9 @@ int
 om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
     char **status)
 {
-	struct hostent *hp;
+	struct sockaddr *sa;
 	struct  om_classic_ctx *c;
+	socklen_t salen;
 	int i, statbuf_len;
 	char *p, *q, statbuf[1024];
 
@@ -322,47 +323,42 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	switch (*p) {
 	case '@':
 		if (!(DaemonFlags & SYSLOGD_INET_IN_USE)) {
-			struct sockaddr_in sin;
-			struct servent *sp;
 
 			finet = socket(AF_INET, SOCK_DGRAM, 0);
 
-			sp = getservbyname("syslog", "udp");
-			if (sp == NULL) {
+			if ((sa = resolv_name("syslog", "udp", &salen))
+			    == NULL) {
 				errno = 0;
 				logerror("syslog/udp: unknown service");
 				free(*ctx);
 				*ctx = NULL;
    				return (-1);
 			}
-			memset(&sin, 0, sizeof(sin));
-			sin.sin_family = AF_INET;
-			sin.sin_port = LogPort = sp->s_port;
 
-			if (bind(finet, (struct sockaddr *)&sin,
-					sizeof(sin)) < 0) {
+			if (bind(finet, sa, salen) < 0) {
 				logerror("bind");
+				free(sa);
 				free(*ctx);
 				*ctx = NULL;
 				return (-1);
-			} else {
-				DaemonFlags |= SYSLOGD_INET_IN_USE;
 			}
+			free(sa);
 		}
 
 		strncpy(c->f_un.f_forw.f_hname, ++p,
 		    sizeof(c->f_un.f_forw.f_hname) - 1);
-		c->f_un.f_forw.f_hname[sizeof(c->f_un.f_forw.f_hname) - 1] = '\0';
-		hp = gethostbyname(c->f_un.f_forw.f_hname);
-		if (hp == NULL) {
-			logerror((char *)hstrerror(h_errno));
+		c->f_un.f_forw.f_hname[sizeof(c->f_un.f_forw.f_hname) - 1]
+		    = '\0';
+		if ((sa = resolv_name(c->f_un.f_forw.f_hname, "udp", &salen))
+		    == NULL) {
+                        dprintf(MSYSLOG_SERIOUS, "Error resolving host "
+			    "%s\n", c->f_un.f_forw.f_hname);
+			logerror("om_classic: couldn't resolv host");
 			break;
 		}
 
-		c->f_un.f_forw.f_addr.sin_family = AF_INET;
-		c->f_un.f_forw.f_addr.sin_port = LogPort;
-		memmove(&c->f_un.f_forw.f_addr.sin_addr, hp->h_addr,
-		    sizeof(struct in_addr));
+		memmove(&c->f_un.f_forw.f_addr, sa, salen);
+		free(sa);
 		c->f_type = F_FORW;
 		snprintf(statbuf, sizeof(statbuf), "om_classic: "
 		    "forwarding messages through UDP to host %s",
