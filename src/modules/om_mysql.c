@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.59 2001/01/03 22:57:10 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.60 2001/01/27 01:04:19 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -106,14 +106,14 @@ om_mysql_write(struct filed *f, int flags, char *msg, void *ctx)
 	c = (struct om_mysql_ctx *) ctx;
 
 	/* ignore sigpipes   for mysql_ping */
-	sigsave = signal(SIGPIPE, SIG_IGN);
+	sigsave = place_signal(SIGPIPE, SIG_IGN);
 
 	if ((mysql_ping(c->h) != 0) && ((mysql_init(c->h) == NULL) ||
 	    (mysql_real_connect(c->h, c->host, c->user, c->passwd, c->db,
 	    c->port, NULL, 0) == NULL))) {
 
 		/* restore previous SIGPIPE handler */
-		signal(SIGPIPE, sigsave);
+		place_signal(SIGPIPE, sigsave);
 		c->lost++;
 		if (c->lost == 1) {
 			dprintf(DPRINTF_SERIOUS)("om_mysql_dolog: Lost "
@@ -124,7 +124,7 @@ om_mysql_write(struct filed *f, int flags, char *msg, void *ctx)
 	}
 
 	/* restore previous SIGPIPE handler */
-	signal(SIGPIPE, sigsave);
+	place_signal(SIGPIPE, sigsave);
 
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
 	i = snprintf(query, sizeof(query), "INSERT INTO %s"

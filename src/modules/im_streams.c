@@ -1,4 +1,4 @@
-/*      $CoreSDI: im_streams.c,v 1.9 2001/01/31 19:48:45 alejo Exp $   */
+/*      $CoreSDI: im_streams.c,v 1.10 2001/02/08 18:01:53 alejo Exp $   */
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -70,7 +70,7 @@ void streams_datfmt ();
  */
 
 int
-im_streams_read (struct i_module *im, int index, struct im_msg *ret)
+im_streams_read (struct i_module *im, int infd, struct im_msg *ret)
 {
 	struct strbuf ctl, dat;
 	struct log_ctl     lc;
@@ -195,7 +195,7 @@ int do_streams_init (I)
 			close (I->im_fd);
 			return (-1);
 		}
-		add_fd_input(I->im_fd , I, 0);
+		add_fd_input(I->im_fd , I);
 	}
 
 	return (1);

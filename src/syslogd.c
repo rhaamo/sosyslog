@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.169 2001/02/19 22:08:00 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.170 2001/02/19 23:42:01 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.169 2001/02/19 22:08:00 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.170 2001/02/19 23:42:01 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -172,7 +172,6 @@ int	 DaemonFlags = 0;
 
 char	*libdir = NULL;
 
-int	place_signal(int , RETSIGTYPE (*)(int));
 RETSIGTYPE domark (int);
 RETSIGTYPE reapchild (int);
 RETSIGTYPE init (int);
@@ -201,7 +200,6 @@ struct i_module	Inputs;
 struct pollfd	 *fd_inputs = NULL;
 int		  fd_in_count = 0;
 struct i_module	**fd_inputs_mod = NULL;
-int		 *fd_inputs_index = NULL;
 
 int
 main(int argc, char **argv)
@@ -211,8 +209,6 @@ main(int argc, char **argv)
 	struct im_msg	   log;
 	struct sigaltstack alt_stack;
 	struct sigaction   sa;
-
-setbuf(stdout,NULL);
 
 	Inputs.im_next = NULL;
 	Inputs.im_fd = -1;
@@ -493,8 +489,9 @@ setbuf(stdout,NULL);
 
 		/* this may not be on inputs */
 		if (finet != -1 && !(DaemonFlags & SYSLOGD_INET_READ))
-			add_fd_input(finet, NULL, 0);
+			add_fd_input(finet, NULL);
 
+for (i = 0; i < fd_in_count; i++) printf("** poll: %d fd %d **\n", i, fd_inputs[i].fd);
 		/* count will always be less than fd_in_count */
 		switch ( (count = poll(fd_inputs, fd_in_count, -1))) {
 		case 0:
@@ -533,7 +530,7 @@ setbuf(stdout,NULL);
 				} else if (!fd_inputs_mod[i]->im_func ||
 				    !fd_inputs_mod[i]->im_func->im_read ||
 				    (val = (*fd_inputs_mod[i]->im_func->im_read)
-				    (fd_inputs_mod[i], fd_inputs_index[i],
+				    (fd_inputs_mod[i], fd_inputs[i].fd,
 				    &log)) < 0) {
 					dprintf(DPRINTF_SERIOUS)("syslogd: "
 					    "Error calling input module %s, "
@@ -545,6 +542,7 @@ setbuf(stdout,NULL);
 					printline(log.im_host, log.im_msg,
 					    log.im_len,
 					    fd_inputs_mod[i]->im_flags);
+				/* return of 0 skips it */
 
 				done++; /* one less */
 			}
@@ -665,13 +663,33 @@ logmsg(int pri, char *msg, char *from, int flags)
 	localtime_r(&now, &timestamp);
 
 	if (!(flags & ADDDATE)) {
-		int year, mon;
+		int mon, year, mday;
 
+		/* save our current year, month and day */
+		year = timestamp.tm_year;
 		mon = timestamp.tm_mon;
-		year = timestamp.tm_mon;
-		strptime(msg, "%b %d %I:%M:%S", &timestamp);
-		if (timestamp.tm_mon == 12 && mon == 0)
-			timestamp.tm_year = --year;
+		mday = timestamp.tm_mday;
+
+		/* now get message time (wich has no year!) */
+		strptime(msg, "%b %d %H:%M:%S", &timestamp);
+
+		/*
+		 * Is message date december 31 and are we on jan 1
+		 * beware: tm_mon [0-11]
+		 *         tm_mday [1-31]
+		 *         tm_year is years since 1900
+		 *         all this is really braindead/ugly IMNSHO
+		 */
+		if (timestamp.tm_mon == 11 && mon == 0 &&
+		    timestamp.tm_mday == 31 && mday == 1)
+			--year; /* our year is wrong */
+
+		/* XXX we are still not contemplating if the message
+		   has completely different dates than ours, and just
+		   giving them our current year */
+
+		timestamp.tm_year = year;
+
 		msg += 16;
 		msglen -= 16;
 	}
@@ -1268,12 +1286,11 @@ decode(const char *name, CODE *codetab) {
  *
  * params: fd    file descriptor to watch
  *         im    module functions and more
- *         index index of file descriptors (ie. connection)
  *
  */
 
 int
-add_fd_input(int fd, struct i_module *im, int index)
+add_fd_input(int fd, struct i_module *im)
 {
 
 	if ( fd < 0 || im == NULL) {
@@ -1282,8 +1299,8 @@ add_fd_input(int fd, struct i_module *im, int index)
 		return (-1);
 	}
 
-	dprintf(DPRINTF_INFORMATIVE)("add_fd_input: adding fd %d index %d "
-	    "for module %s\n", fd, index, im->im_func->im_name ?
+	dprintf(DPRINTF_INFORMATIVE)("add_fd_input: adding fd %d "
+	    "for module %s\n", fd, im->im_func->im_name ?
 	    im->im_func->im_name : "unknown");
 
 	/* do we need bigger arrays? */
@@ -1304,21 +1321,33 @@ add_fd_input(int fd, struct i_module *im, int index)
 			exit(-1);
 		}
 
-		if ( (fd_inputs_index = (int *) realloc(fd_inputs_index,
-		    (size_t) (fd_in_count + 50) * sizeof(int)))
-		    == NULL) {
-			dprintf(DPRINTF_CRITICAL)("realloc inputs");
-			exit(-1);
-		}
 	}
 
 	fd_inputs[fd_in_count].fd = fd;
 	fd_inputs[fd_in_count].events = POLLIN;
 	fd_inputs_mod[fd_in_count] = im;
-	fd_inputs_index[fd_in_count] = index;
 	fd_in_count++;
 	
 	return(1);
+}
+
+void
+remove_fd_input(int fd)
+{
+	int i;
+
+	for (i = 0; i < fd_in_count && fd_inputs[i].fd != fd; i++);
+
+	if ( i == fd_in_count || fd != fd_inputs[i].fd )
+		return; /* not found */
+
+	for (;i < fd_in_count; i++) {
+		fd_inputs[i].fd = fd_inputs[i + 1].fd;
+		fd_inputs[i].events = fd_inputs[i + 1].events;
+		fd_inputs_mod[i] = fd_inputs_mod[i + 1];
+	}
+
+	fd_in_count--;
 }
 
 
@@ -1334,10 +1363,10 @@ signal_handler(int signo)
 }
 
 
-int
-place_signal(int signo, RETSIGTYPE (*func)(int))
+RETSIGTYPE (*
+place_signal(int signo, RETSIGTYPE (*func)(int))) (int)
 {
-	struct sigaction act;
+	struct sigaction act, oldact;
 
 	act.sa_handler = func;
 	sigemptyset(&act.sa_mask);
@@ -1351,8 +1380,9 @@ place_signal(int signo, RETSIGTYPE (*func)(int))
 	act.sa_flags |= SA_RESTART;
 #endif
 	}
-	if (sigaction(signo, &act, NULL) < 0)
-		return(-1);
-	return(0);
+	if (sigaction(signo, &act, &oldact) < 0)
+		return(SIG_ERR);
+
+	return(oldact.sa_handler);
 }
 

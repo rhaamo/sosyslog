@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.45 2001/01/31 19:48:45 alejo Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.46 2001/02/08 18:01:53 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -261,7 +261,7 @@ im_linux_init (struct i_module *I, char **argv, int argc)
         I->im_name = "linux";
         I->im_flags |= IMODULE_FLAG_KERN;
 	optind = current_optind;
-	add_fd_input(I->im_fd , I, 0);
+	add_fd_input(I->im_fd , I);
         return (I->im_fd);
 }
 
@@ -272,7 +272,7 @@ im_linux_init (struct i_module *I, char **argv, int argc)
  * and log it.
  */
 int
-im_linux_read (struct i_module *im, int index, struct im_msg *ret)
+im_linux_read (struct i_module *im, int infd, struct im_msg *ret)
 {
 	int   i;
 	char *ptr;

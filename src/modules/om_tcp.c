@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_tcp.c,v 1.3 2001/02/19 21:29:56 alejo Exp $	*/
+/*	$CoreSDI: om_tcp.c,v 1.4 2001/02/19 23:42:01 alejo Exp $	*/
 /*
      Copyright (c) 2000, Core SDI S.A., Argentina
      All rights reserved
@@ -77,6 +77,10 @@ int connect_tcp(const char *host, const char *port);
  *
  *  we get remote host and port
  *
+ *  usage: -r tries to reconnect always (optional)
+ *         -h host (required)
+ *         -p port (required)
+ *
  * we try to make it the most IPv6 compatible as we can
  * for future porting
  */
@@ -85,7 +89,7 @@ int
 om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 {
 	struct	om_tcp_ctx *c;
-	int	ch;
+	int	ch, retry;
 
 	if (argv == NULL || argc != 5) {
 		dprintf(DPRINTF_INFORMATIVE)("om_tcp_init: wrong param count"
@@ -102,13 +106,18 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 	}
 	c = (struct om_tcp_ctx *) *ctx;
 
+	retry = 0;
+
 	/* parse line */
 	optind = 1;
 #ifdef HAVE_OPTRESET
 	optreset = 1;
 #endif
-	while ((ch = getopt(argc, argv, "h:p:")) != -1) {
+	while ((ch = getopt(argc, argv, "rh:p:")) != -1) {
 		switch (ch) {
+		case 'r':
+			retry++;
+			break;
 		case 'h':
 			/* get remote host name/addr */
 			strncpy(c->host, optarg, sizeof(c->host));
@@ -141,10 +150,16 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 
 		dprintf(DPRINTF_SERIOUS)("om_tcp_init: error connecting "
 		    "to remote host %s, %s\n", c->host, c->port);
-		free(*ctx);
-		*ctx = NULL;
 
-		return (-1);
+		if (retry) {
+			free(*ctx);
+			*ctx = NULL;
+			return (-1);
+		}
+
+		/* If -r was specified, om_tcp will try to reconnect
+		   later (beware, on every log!) */
+
 	}
 
 	return (1);
@@ -161,9 +176,10 @@ int
 om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 {
 	struct om_tcp_ctx *c;
+	RETSIGTYPE (*sigsave)(int);
 	char time_buf[16];
 	char line[MAXLINE + 1];
-	int l;
+	int l, i;
 
 
 	if (msg == NULL || !strcmp(msg, "")) {
@@ -173,31 +189,47 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 
 	c = (struct om_tcp_ctx *) ctx;
 
-	/* if not connected, reconnect ! */
-	if ( !f->f_file && (f->f_file = connect_tcp(c->host, c->port)) < 0) {
-		dprintf(DPRINTF_CRITICAL)("om_tcp_write: "
-		    "error re-connecting to remote host %s, "
-		    "%s\n", c->host, c->port);
-		return (-1);
-	}
-
 	strftime(time_buf, sizeof(time_buf), "%b %d %H:%M:%S", &f->f_tm);
 
 	/* we give a newline termination, unlike UDP, to difference lines */
 	l = snprintf(line, sizeof(line), "<%d>%.15s %s\n", f->f_prevpri,
 	    time_buf, msg);
 
-	dprintf(DPRINTF_INFORMATIVE)("om_tcp_write: sending to %s, %s\n",
+	dprintf(DPRINTF_INFORMATIVE)("om_tcp_write: sending to %s, %s",
 	    c->host, line);
 
-	if (write(f->f_file, line, l) != l) {
-		logerror("om_tcp_write: write()");
+	/* Ignore sigpipes so broken connections won't bother */
+	sigsave = place_signal(SIGPIPE, SIG_IGN);
+  
+	/* If down or couldn't write, reconnect  */
+	for (i = 0 ; (f->f_file < 0) || (write(f->f_file, line, l) != l)
+	    || i > 3 ; i++) {
+
+		dprintf(DPRINTF_SERIOUS)("om_tcp_write: broken connection "
+		    "to remote host %s, port %s\n", c->host, c->port);
+
+		/* just in case */
+		if (f->f_file > -1);
+			close(f->f_file);
+		if ( (f->f_file = connect_tcp(c->host, c->port)) < 0) {
+	
+			place_signal(SIGPIPE, sigsave);
+  
+			dprintf(DPRINTF_CRITICAL)("om_tcp_write: "
+			    "error re-connecting to remote host %s, "
+			    "port %s\n", c->host, c->port);
+
+			return (-1);
+		}
 	}
 
+	place_signal(SIGPIPE, sigsave);
+
+	if (i > 3)
+		return (-1);
+  
 	f->f_prevcount = 0;
-
 	return (1);
-
 }
 
 

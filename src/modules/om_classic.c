@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.64 2001/02/19 17:28:11 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.65 2001/02/19 21:29:56 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -286,11 +286,10 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 	}
 
 	if (argc > 2) {
-		int i;
 
 		if (strncmp(argv[1], "-t", 2)) {
 			dprintf(DPRINTF_SERIOUS)("om_classic_init: incorrect" 
-			    " parameter %s, should be '-t' %d\n", argv[1], i);
+			    " parameter %s, should be '-t'\n", argv[1]);
 			free(*ctx);
 			*ctx = NULL;
 			return (-1);

@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.40 2001/02/08 18:01:52 alejo Exp $	*/
+/*	$CoreSDI: modules.h,v 1.41 2001/02/19 23:42:01 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -64,7 +64,8 @@ struct i_module {
 	void	*im_ctx;
 };
 
-int	add_fd_input(int , struct i_module *, int); /* add this fd to array */
+int	add_fd_input(int , struct i_module *); /* add this fd to array */
+void	remove_fd_input(int); /* remove this fd from poll arrays */
 
 /*
  * This structure represents the return of the input modules

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.5 2001/02/19 22:08:01 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.6 2001/02/19 23:42:01 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -81,7 +81,6 @@
 
 struct tcp_conn {
 	int		 fd;
-	int		 index;
 	struct tcp_conn *next;
 	struct sockaddr *cliaddr;
 	socklen_t	 addrlen;
@@ -89,14 +88,15 @@ struct tcp_conn {
 };
 
 struct im_tcp_ctx {
-	socklen_t	addrlen;
-	struct tcp_conn	conns;
+	socklen_t	 addrlen;
+	struct tcp_conn	*conns;
 };
 
 #define MSYSLOG_MAX_TCP_CLIENTS 100
 #define LISTENQ 100
 
-int listen_tcp(const char *, const char *, socklen_t *);
+int  listen_tcp(const char *, const char *, socklen_t *);
+void printline (char *, char *, size_t, int);
 
 /*
  * initialize tcp input
@@ -127,14 +127,12 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 		return (-1);
 	}
 
-	/* init connections to empty */
-	c->conns.fd = -1;
-	c->conns.index = 0;
-	c->conns.next = NULL;
+	/* no connections yet established */
+	c->conns = NULL;
 
         I->im_path = NULL;
 
-	add_fd_input(I->im_fd , I, 0);
+	add_fd_input(I->im_fd , I);
 
         dprintf(DPRINTF_INFORMATIVE)("im_tcp: running\n");
 
@@ -148,7 +146,7 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
  */
 
 int
-im_tcp_read(struct i_module *im, int index, struct im_msg *ret)
+im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 {
 	struct im_tcp_ctx *c;
 	struct tcp_conn *con;
@@ -162,10 +160,10 @@ im_tcp_read(struct i_module *im, int index, struct im_msg *ret)
 
 	c = (struct im_tcp_ctx *) im->im_ctx;
 
-	if (index == 0) {
+	if (infd == im->im_fd) {
 		struct sockaddr *cliaddrp;
 		socklen_t slen;
-		int fd, count;
+		int fd;
 
 		if ( (cliaddrp = malloc(c->addrlen)) == NULL)
 			return (-1);
@@ -179,30 +177,41 @@ im_tcp_read(struct i_module *im, int index, struct im_msg *ret)
 		}
 
 		/* create a new connection */
-		for (con = &c->conns, count = 0; con->next; con = con->next)
-			if (con->index > count)
-				count = con->index;
-
-		if (con->fd > -1) {
-			if ( (con->next = (struct tcp_conn *)	
+		if (c->conns == NULL) {
+			if ( (con = (struct tcp_conn *)	
 			    calloc(1, sizeof(struct tcp_conn))) == NULL) {
+        			dprintf(DPRINTF_SERIOUS)("im_tcp: "
+				    "error allocating conn struct\n");
 				free(cliaddrp);
 				return (-1);
 			}
-			con = con->next;
+			c->conns = con;
+		} else {
+			for (con = c->conns; con->next; con = con->next);
+
+			if (con->fd > -1) {
+				if ( (con->next = (struct tcp_conn *)	
+				    calloc(1, sizeof(struct tcp_conn)))
+				    == NULL) {
+        				dprintf(DPRINTF_SERIOUS)("im_tcp: "
+					    "error allocating conn struct\n");
+					free(cliaddrp);
+					return (-1);
+				}
+				con = con->next;
+			}
 		}
 
 		con->fd  = fd;
 		con->cliaddr  = cliaddrp;
 		con->addrlen  = slen;
-		con->index    = count + 1;
 
 		if (getnameinfo((struct sockaddr *) con->cliaddr, con->addrlen,
 		    con->name, sizeof(con->name) - 1, NULL, 0, 0) != 0) {
 			
         		dprintf(DPRINTF_SERIOUS)("im_tcp: error resolving "
 			    "remote host name!\n");
-		} else {
+
 			inet_ntop(con->cliaddr->sa_family, &con->cliaddr,
 			    con->name, sizeof(con->name) - 1);
 		}	
@@ -211,7 +220,7 @@ im_tcp_read(struct i_module *im, int index, struct im_msg *ret)
 		    " %s with fd %d\n", con->name, con->fd);
 
 		/* add to inputs list */
-		add_fd_input(con->fd , im, con->index);
+		add_fd_input(con->fd , im);
 
 		return (0); /* 0 because there is no line to log */
 
@@ -219,66 +228,107 @@ im_tcp_read(struct i_module *im, int index, struct im_msg *ret)
 
 	/* read connected socket */
 
-	dprintf(DPRINTF_INFORMATIVE)("im_tcp_read: readding connection index %d\n",
-	    index);
+	dprintf(DPRINTF_INFORMATIVE)("im_tcp_read: reading connection fd %d\n",
+	    infd);
 
 	/* find connection */
-	for (con = &c->conns; con && con->index != index; con = con->next)
-printf("* skipped %d %d %p %p %d %s *\n", con->fd, con->index, con->next, con->cliaddr, con->addrlen, con->name);
-	if (con == NULL || con->index != index) {
+	for (con = c->conns; con && con->fd != infd; con = con->next);
+
+	if (con == NULL || con->fd != infd) {
 		dprintf(DPRINTF_SERIOUS)("im_tcp_read: no such connection "
-		    "index %d !\n", index);
+		    "fd %d !\n", infd);
 		return (-1);
 	}
 
 	n = read(con->fd, im->im_buf, sizeof(im->im_buf) - 1);
-	if (n > 0) {
-		char *p, *q, *lp;
-		int c;
+	if (n == 0) {
+		struct tcp_conn *prev;
 
-		strncpy(ret->im_msg, con->name, ret->im_mlen - 3);
-		strncat(ret->im_msg, ": ", 2);
-		lp = ret->im_msg + strlen(ret->im_msg);
- 
-		(im->im_buf)[n] = '\0';
+		dprintf(DPRINTF_INFORMATIVE)("im_tcp_read: conetion from %s"
+		    " closed\n", con->name);
 
-		for (p = im->im_buf; *p != '\0'; ) {
-			/* fsync file after write */
-			ret->im_flags = SYNC_FILE | ADDDATE;
-			ret->im_pri = DEFSPRI;
-			if (*p == '<') {
-				ret->im_pri = 0;
-				while (isdigit((int)*++p))
-					ret->im_pri = 10 * ret->im_pri +
-					    (*p - '0');
-				if (*p == '>')
-					++p;
-			} else {
-				/* kernel printf's come out on console */
-				ret->im_flags |= IGN_CONS;
-			}
-			if (ret->im_pri &~ (LOG_FACMASK|LOG_PRIMASK))
-				ret->im_pri = DEFSPRI;
-			q = lp;
-			while (*p != '\0' && (c = *p++) != '\n' &&
-			    q < (ret->im_msg + ret->im_mlen))
-	 		*q++ = c;
-			*q = '\0';
-			strncpy(ret->im_host, LocalHostName,
-			    sizeof(ret->im_host) - 1);
-			ret->im_len = strlen(ret->im_msg);
-			logmsg(ret->im_pri, ret->im_msg, ret->im_host,
-			    ret->im_flags);
+		remove_fd_input(con->fd);
+
+		/* connection closed, remove its tcp_con struct */
+		if (con->cliaddr)
+			free(con->cliaddr);
+		close (con->fd);
+
+		for(prev = c->conns; prev && prev != con && prev->next
+		    && prev->next != con; prev = prev->next);
+
+		if (prev == c->conns && prev == con) {
+			/* c->cons and prev point to con now */
+			c->conns = con->next;
+		} else if (prev->next == con) {
+			prev->next = con->next;
 		}
 
-	} else if (n < 0 && errno != EINTR) {
+		free(con);
+		return (0);
+	}
 
+	/* Remove trailing newlines. Newlines in the middle are ok
+	   as line separators */
+	if (n == 1) {
+		if (im->im_buf[0] == '\r' || im->im_buf[0] == '\n')
+			return (0); /* nothing to log */
+	} else if (n > 1) {
+		if (im->im_buf[n - 2] == '\r' && im->im_buf[n - 1] == '\n') {
+			im->im_buf[n - 2] = '\0';
+			n -= 2;
+		} else if (im->im_buf[n - 1] == '\n') {
+			im->im_buf[n - 1] = '\0';
+			n -= 1;
+		}
+	}
+
+	if (n == 0) {
+		dprintf(DPRINTF_INFORMATIVE)("im_tcp_read: empty message\n");
+		return (0); /* nothing to log */
+ 	} else if (n < 0 && errno != EINTR) {
+
+		dprintf(DPRINTF_SERIOUS)("im_tcp_read: error reading (and it"
+		    " was not because of an interruption)\n");
 		logerror("im_tcp_read");
 		con->fd = -1;
 
-        }
+        } else {
+		char *p, *q, *lp;
+		int c;
 
-	return (1);
+		(im->im_buf)[n] = '\0';
+
+		lp = ret->im_msg;
+
+		for (p = im->im_buf; *p != '\0'; ) {
+
+			q = lp;
+			c = '\0';
+
+			/* copy line */
+			while (*p != '\0' && (c = *p++) != '\r' &&
+			    c != '\n' && q < (ret->im_msg + ret->im_mlen))
+	 			*q++ = c;
+			*q = '\0';
+
+			/* get rid of \r\n too */
+			if (c == '\r' && *p == '\n')
+				p++;
+
+			strncpy(ret->im_host, con->name,
+			    sizeof(ret->im_host) - 1);
+			ret->im_host[sizeof(ret->im_host) - 1] = '\0';
+
+			ret->im_len = strlen(ret->im_msg);
+
+			printline(ret->im_host, ret->im_msg, ret->im_len,
+			    ret->im_flags);
+		}
+
+	}
+
+	return (0); /* we already logged the lines */
 
 }
 
@@ -290,10 +340,14 @@ im_tcp_close(struct i_module *im)
 
         c = (struct im_tcp_ctx *) im->im_ctx;
 	/* close all connections */
-	for (con = &c->conns; con; con = con->next)
+	for (con = c->conns; con; con = con->next) {
+		if (con->cliaddr)
+			free(con->cliaddr);
 		if (con->fd > -1)
 			close(con->fd);
+	}
 
+        /* close listening socket */
         return (close(im->im_fd));
 }
 

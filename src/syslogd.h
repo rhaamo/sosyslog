@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.92 2001/02/19 21:29:56 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.93 2001/02/19 23:42:01 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -133,6 +133,7 @@ extern int	DaemonFlags;		/* running daemon flags */
 void logerror(char *);
 void logmsg(int, char *, char *, int);
 void die(int);
+RETSIGTYPE (*place_signal(int signo, RETSIGTYPE (*)(int))) (int);
 
 
 #define MLIB_MAX	10	/* max external libs per module */
