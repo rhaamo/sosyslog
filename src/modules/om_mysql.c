@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.18 2000/05/29 20:35:44 fgsch Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.19 2000/05/29 21:08:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -47,6 +47,7 @@
 #include <time.h>
 #include <syslog.h>
 #include <unistd.h>
+#include "config.h"
 #include "modules.h"
 #include "syslogd.h"
 
@@ -140,8 +141,10 @@ om_mysql_doLog(f, flags, msg, ctx)
  */
 
 extern char *optarg;
-extern int  optind,
-	    optreset;
+extern int optind;
+#ifdef HAVE_OPTRESET
+extern int optreset;
+#endif
 
 int
 om_mysql_init(argc, argv, f, prog, c)
@@ -168,7 +171,10 @@ om_mysql_init(argc, argv, f, prog, c)
 	client_flag = 0; createTable = 0;
 
 	/* parse line */
-	optreset = 1; optind = 1;
+	optind = 1;
+#ifdef HAVE_OPTRESET
+	optreset = 1;
+#endif
 	while ((ch = getopt(argc, argv, "s:u:p:d:t:c")) != -1) {
 		switch (ch) {
 			case 's':

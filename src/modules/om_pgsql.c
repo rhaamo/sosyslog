@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.4 2000/05/29 22:53:47 fgsch Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.5 2000/05/29 23:31:04 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -199,7 +199,7 @@ om_pgsql_doLog(f, flags, msg, ctx)
 
 extern char *optarg;
 extern int  optind;
-#ifndef HAVE_LINUX
+#ifndef HAVE_OPTRESET
 extern int optreset;
 #endif
 
@@ -232,7 +232,7 @@ om_pgsql_init(argc, argv, f, prog, c)
 	/* parse line */
 	optind = 1;
 
-#ifndef HAVE_LINUX
+#ifndef HAVE_OPTRESET
 	optreset = 1;
 #endif
 
