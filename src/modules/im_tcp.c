@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.3 2001/02/16 00:34:52 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.4 2001/02/16 20:12:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -154,8 +154,9 @@ im_tcp_read(struct i_module *im, int index, struct im_msg *ret)
 	struct tcp_conn *con;
 	int n;
 
-	if (im == NULL) {
-		dprintf(DPRINTF_SERIOUS)("im_tcp: arg is null\n");
+	if (im == NULL || ret == NULL) {
+		dprintf(DPRINTF_SERIOUS)("im_tcp_read: arg %s%s is null\n",
+		    ret? "ret":"", im? "im" : "");
 		return (-1);
 	}
 
@@ -205,6 +206,9 @@ im_tcp_read(struct i_module *im, int index, struct im_msg *ret)
 			    con->name, sizeof(con->name) - 1);
 		}	
 
+		dprintf(DPRINTF_INFORMATIVE)("im_tcp_read: new conection from"
+		    " %s with fd %d\n", con->name, con->fd);
+
 		/* add to inputs list */
 		add_fd_input(con->fd , im, ++count);
 
@@ -214,6 +218,9 @@ im_tcp_read(struct i_module *im, int index, struct im_msg *ret)
 
 	/* read connected socket */
 
+	dprintf(DPRINTF_INFORMATIVE)("im_tcp: readding connection index %d\n",
+	    index);
+
 	/* find connection */
 	for (con = &c->conns; con && con->index != index; con = con->next);
 	if (con == NULL || con->index != index) {
@@ -222,7 +229,7 @@ im_tcp_read(struct i_module *im, int index, struct im_msg *ret)
 		return (-1);
 	}
 
-	n = read(con->fd, im->im_buf, sizeof(im->im_buf) -1);
+	n = read(con->fd, im->im_buf, sizeof(im->im_buf) - 1);
 	if (n > 0) {
 		char *p, *q, *lp;
 		int c;

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.167 2001/02/16 00:34:52 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.168 2001/02/17 01:14:20 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.167 2001/02/16 00:34:52 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.168 2001/02/17 01:14:20 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -533,7 +533,7 @@ main(int argc, char **argv)
 				    (val = (*fd_inputs_mod[i]->im_func->im_read)
 				    (fd_inputs_mod[i], fd_inputs_index[i],
 				    &log)) < 0) {
-					dprintf(DPRINTF_SERIOUS)("Syslogd: "
+					dprintf(DPRINTF_SERIOUS)("syslogd: "
 					    "Error calling input module %s, "
 					    "for fd %d\n",
 					    fd_inputs_mod[i]->im_name,
@@ -1274,6 +1274,15 @@ int
 add_fd_input(int fd, struct i_module *im, int index)
 {
 
+	if ( fd < 0 || im == NULL) {
+		dprintf(DPRINTF_INFORMATIVE)("add_fd_input: error on params"
+		    " %d%s\n", fd, im ? "" : " null im");
+		return (-1);
+	}
+
+	dprintf(DPRINTF_INFORMATIVE)("add_fd_input: adding %d for module"
+	    " %s\n", fd, im->im_name? im->im_name : "unknown");
+
 	/* do we need bigger arrays? */
 	if (!fd_inputs || fd_in_count % 50 == 0) {
 
@@ -1322,7 +1331,8 @@ signal_handler(int signo)
 }
 
 
-int place_signal(int signo, RETSIGTYPE (*func)(int))
+int
+place_signal(int signo, RETSIGTYPE (*func)(int))
 {
 	struct sigaction act;
 
