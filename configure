@@ -2240,7 +2240,7 @@ EOF
 	SHARED_PARAMS="-Bshareable"
 	DCCFLAGS=""
 	cat >> confdefs.h <<\EOF
-#define __USE_XOPEN 1
+#define _GNU_SOURCE 1
 EOF
 
 elif test "$UNAME" = "SunOS" ; then
