@@ -8,8 +8,8 @@ struct {
 	char *name;
 	char **req; /* list of required libs */
 } mlibs [] = {
-		{ "mysql", {"mysqlclient", NULL} },
-		{ "pgsql", {"pg", NULL} },
+		{ "mysql", {"libmysqlclient", NULL} },
+		{ "pgsql", {"libpg", NULL} },
 		NULL, NULL
 };
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.113 2000/07/05 17:42:59 claudio Exp $	*/
+/*	$CoreSDI: modules.c,v 1.114 2000/07/26 21:00:37 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -48,6 +48,7 @@
 #include <dlfcn.h>
 #include "syslogd.h"
 #include "modules.h"
+#include "modules_libs.h"
 
 int     modules_load(void);
 int     imodule_init(struct i_module *, char *);
@@ -223,8 +224,7 @@ omodule_create(char *c, struct filed *f, char *prog) {
  */
 
 int
-parseParams(char ***ret, char *c)
-{
+parseParams(char ***ret, char *c) {
 	char	*line, *p, *q;
 	int	argc;
 
@@ -267,11 +267,10 @@ parseParams(char ***ret, char *c)
 }
 
 struct imodule *
-addImodule(name)
-	char *name;
-{
+addImodule(char *name) {
 	struct imodule *im;
 	char buf[128];
+	int i;
 
 	if (name == NULL)
 		return(NULL);
@@ -285,7 +284,7 @@ addImodule(name)
 		im = im->im_next;
 	}
 
-	snprintf(buf, 127, "libmsyslog_im_%s.so.%1.1f", name, VERSION);
+	snprintf(buf, 127, "libmsyslog_im_%s.so", name);
 
 	if ((im->h = dlopen(buf, RTLD_LAZY)) == NULL) {
 	   	dprintf("Error [%s] on file [%s]\n", dlerror(), buf);
@@ -332,9 +331,7 @@ addImodule(name)
 }
 
 int
-imoduleDestroy(im)
-	struct imodule *im;
-{
+imoduleDestroy(struct imodule *im) {
 	if (im == NULL || im->h == NULL || im->im_next)
 		return(-1);
 
@@ -413,9 +410,7 @@ addOmodule(char *name) {
 }
 
 int
-omoduleDestroy(om)
-	struct omodule *om;
-{
+omoduleDestroy(struct omodule *om) {
 	if (om == NULL || om->h == NULL || om->om_next)
 		return(-1);
 
@@ -430,9 +425,7 @@ omoduleDestroy(om)
 }
 
 struct imodule *
-getImodule(name)
-	char *name;
-{
+getImodule(char *name) {
 	struct imodule *im;
 	int len;
 
@@ -447,9 +440,7 @@ getImodule(name)
 }
 
 struct omodule *
-getOmodule(name)
-	char *name;
-{
+getOmodule(char *name) {
 	struct omodule *om;
 	int len;
 
