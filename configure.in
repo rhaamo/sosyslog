@@ -1,4 +1,4 @@
-dnl $Id: configure.in,v 1.152 2002/09/17 05:20:25 alejo Exp $
+dnl $Id: configure.in,v 1.153 2002/09/24 00:54:30 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)
 AC_CONFIG_HEADER(src/config.h)
@@ -457,7 +457,7 @@ if test $PEO = "yes" ; then
 
 	HASH_SRCS="hash.c";
 	HASH_SRCS_MODULES="../peo/hash.c";
-	HASH_OBJS_MODULES="hash.o";
+	HASH_OBJS_MODULES="../peo/hash.o";
 	AC_CHECK_FUNC(MD5Init, AC_DEFINE(HAVE_MD5),
 	        HASH_SRCS="$HASH_SRCS md5c.c";
 	        HASH_SRCS_MODULES="$HASH_SRCS_MODULES ../peo/md5c.c";

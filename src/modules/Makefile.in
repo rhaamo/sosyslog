@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.74 2002/09/17 05:20:27 alejo Exp $
+# $Id: Makefile.in,v 1.75 2002/09/24 00:54:30 alejo Exp $
 #
 # Copyright (c) 2001, Core SDI S.A., Argentina
 # All rights reserved
@@ -46,9 +46,14 @@ HASH_OBJS=	@HASH_OBJS_MODULES@
 
 SHARED_PARAMS=	@SHARED_PARAMS@
 
-$(MLIBNAME):  $(MSRCS) $(HASH_SRCS) ../config.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(DCCFLAGS) -c $(HASH_SRCS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(DCCFLAGS) -c $(MSRCS)
+.c.o:
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+
+$(MOBJS): $(MSRCS)
+
+$(HASH_OBJS): $(HASH_SRCS)
+
+$(MLIBNAME):  $(MOBJS) $(HASH_OBJS) ../config.h
 	$(LD) $(SHARED_PARAMS) -o $(MLIBNAME) $(MOBJS) $(HASH_OBJS)
 
 all: $(MLIBNAME)
