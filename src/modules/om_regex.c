@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.34 2001/03/23 00:12:30 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.35 2001/04/24 12:54:08 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -30,9 +30,10 @@
  */
 
 /*
- * om_regex -- some explanation for this baby
+ * om_regex -- Filter messages using regular exressions
  *
  * Author: Alejo Sanchez for Core-SDI SA
+ *         Idea of Emiliano Kargieman
  *
  */
 
