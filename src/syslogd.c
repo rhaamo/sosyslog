@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.210 2001/09/21 11:22:12 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.211 2001/10/22 22:49:41 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.210 2001/09/21 11:22:12 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.211 2001/10/22 22:49:41 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -1265,8 +1265,8 @@ cfline(char *line, struct filed *f, char *prog) {
 	/* clear out file entry */
 	memset(f, 0, sizeof(*f));
 
-	for (i = 0; i <= LOG_NFACILITIES; i++)
-		f->f_pmask[i] = TABLE_NOPRI;
+	/* clear out file entry */
+	memset(f->f_pmask, TABLE_NOPRI, sizeof(f->f_pmask));
 
 	/* save program name if any */
 	if (!strcmp(prog, "*")) prog = NULL;
@@ -1278,6 +1278,9 @@ cfline(char *line, struct filed *f, char *prog) {
 		/* find the end of this facility name list */
 		for (q = p; *q && *q != '\t' && *q++ != '.'; )
 			continue;
+
+		if (*p == '/' || *p == '%' || *p == '|')
+			break;
 
 		pri = -1;
 
@@ -1416,7 +1419,7 @@ cfline(char *line, struct filed *f, char *prog) {
 	}
 
 	/* skip to action part */
-	while (*p == '\t')
+	while (*p == '\t' || *p == ' ')
 		p++;
 
 	if (omodule_create(p, f, NULL) == -1) {
