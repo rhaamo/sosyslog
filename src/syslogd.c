@@ -571,10 +571,12 @@ fprintlog(f, flags, msg)
 {
 	struct	o_module *m;
 
-        for(m = f->f_mod; m; m = m->m_next) {
+        if ( f->f_mod == NULL) {
+		m_classic_printlog(f, flags, msg);
+        } else for (m = f->f_mod; m; m = m->m_next) {
 		if(!m->context) {
-			dprintf("module has no context, skipping. msg: [%s] "
-			        "type [%i]\n", msg, m->m_type);
+			dprintf("module has no context, skipping. msg: "
+				"[%s] type [%i]\n", msg, m->m_type);
 			continue;
 		}
 		if(m_functions[m->m_type].m_printlog == NULL) {

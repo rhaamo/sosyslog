@@ -32,6 +32,9 @@
  * SUCH DAMAGE.
  */
 
+#ifndef SYSLOGD_H
+#define SYSLOGD_H
+
 #define	MAXLINE		1024		/* maximum line length */
 #define	MAXSVLINE	120		/* maximum saved line length */
 #define DEFUPRI		(LOG_USER|LOG_NOTICE)
@@ -161,3 +164,4 @@ struct	m_functions {
 
 time_t now;
 
+#endif
