@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.23 2000/04/14 23:49:28 gera Exp $
+/*	$Id: syslogd.c,v 1.24 2000/04/14 23:59:20 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -183,6 +183,9 @@ main(argc, argv)
 		setlinebuf(stdout);
 
 	/* assign functions and init input */
+	memset(&Inputs, 0,sizeof(Inputs));
+	for (im = Inputs; im; im = im->im_next)
+		im->fd = -1;
 	modules_init(&Inputs);
 
 	consfile.f_type = F_CONSOLE;
@@ -224,10 +227,12 @@ main(argc, argv)
 		struct i_module *im;
 
 		FD_ZERO(&readfds);
-		if (fklog != -1) {
-			FD_SET(fklog, &readfds);
-			if (fklog > nfds)
-				nfds = fklog;
+		from (im = Inputs; im ; im++) {
+			if (im->fd != -1) {
+				FD_SET(im->fd, &readfds);
+				if (im->fd > nfds)
+					nfds = im->fd;
+			}
 		}
 		if (finet != -1) {
 			FD_SET(finet, &readfds);
@@ -253,7 +258,7 @@ main(argc, argv)
 			continue;
 		}
 		/*dprintf("got a message (%d, %#x)\n", nfds, readfds);*/
-		from (im = Inputs; im ; im++) {
+		for (im = Inputs; im ; im = im->im_next) {
 		   if (im->fd != -1 && FD_ISSET(im->fd, &readfds)) {
 		       struct im_ret log;
 

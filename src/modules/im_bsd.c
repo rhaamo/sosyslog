@@ -91,12 +91,6 @@ im_bsd_getLog(im, ret)
 }
 
 
-/*
- * send messge
- *
- * Take a raw input line from /dev/klog, split and format similar to syslog().
- */
-
 int
 im_bsd_sendLog(im, msg)
 	struct i_module im;
