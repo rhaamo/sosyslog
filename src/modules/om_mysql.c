@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.69 2001/04/03 21:37:12 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.70 2001/04/05 20:56:25 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -85,6 +85,7 @@ struct om_mysql_ctx {
 	void *	(*mysql_real_connect)(void *, char *, char *, char *,
 	    char *, int, void *, int);
 	int	(*mysql_query)(void *, char *);
+	char *	(*mysql_error)(void *);
 };
 
 int om_mysql_close(struct filed *, void *);
@@ -120,9 +121,10 @@ om_mysql_write(struct filed *f, int flags, char *msg, void *ctx)
 		place_signal(SIGPIPE, sigsave);
 		c->lost++;
 		if (c->lost == 1) {
-			dprintf(MSYSLOG_SERIOUS, "om_mysql_write: Lost "
-			    "connection!");
-			logerror("om_mysql_write: Lost connection!");
+			snprintf(err_buf, sizeof(err_buf), "om_mysql_write: "
+			    "Lost connection! [%s]", (c->mysql_error)(c->h));
+			dprintf(MSYSLOG_SERIOUS, "%s", err_buf);
+			logerror(err_buf);
 		}
 		return (1);
 	}
@@ -233,7 +235,9 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	    char *, char *, int, void *, int)) dlsym(ctx->lib, SYMBOL_PREFIX
 	    "mysql_real_connect"))
 	    || !(ctx->mysql_query = (int (*)(void *, char *)) dlsym(ctx->lib,
-	    SYMBOL_PREFIX "mysql_query"))) {
+	    SYMBOL_PREFIX "mysql_query"))
+	    || !(ctx->mysql_error = (char * (*)(void *)) dlsym(ctx->lib,
+	    SYMBOL_PREFIX "mysql_error"))) {
 		dprintf(MSYSLOG_SERIOUS, "om_mysql_init: Error resolving"
 		    " api symbols, %s\n", dlerror());
 		free(ctx);  
@@ -305,8 +309,9 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	    ctx->passwd, ctx->db, ctx->port, NULL, 0)) ) {
 
 		snprintf(err_buf, sizeof(err_buf), "om_mysql_init: Error "
-		    "connecting to db server [%s:%i] user [%s] db [%s]",
-		    ctx->host, ctx->port, ctx->user, ctx->db);
+		    "connecting to db server [%s], [%s:%i] user [%s] db [%s]",
+		    (ctx->mysql_error)(ctx->h), ctx->host, ctx->port,
+		    ctx->user, ctx->db);
 		logerror(err_buf);
 		return (1);
 	}
