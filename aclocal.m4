@@ -1,4 +1,4 @@
-dnl	$CoreSDI: aclocal.m4,v 1.21 2000/11/01 18:18:01 alejo Exp $
+dnl	$CoreSDI: aclocal.m4,v 1.22 2000/11/03 19:16:57 alejo Exp $
 
 
 dnl
@@ -6,7 +6,7 @@ dnl MSYSLOG_GREP patt file comm
 dnl 	Searches for a pattern on a file and executes command if match
 dnl
 AC_DEFUN(MSYSLOG_GREP, [
-if test -e "$2"
+if test -f "$2"
 then
 	if test "`grep $1 $2`"
 	then
@@ -67,7 +67,7 @@ AC_ARG_WITH(mysql-inc,
 for i in /usr/local/include/mysql /usr/local/mysql/include \
 	 /usr/local/include /usr/include/mysql /usr/include no
 do
-	if test -e "$i/mysql.h"
+	if test -f "$i/mysql.h"
 	then
 		break
 	fi
@@ -122,7 +122,7 @@ AC_ARG_WITH(pgsql-inc,
 for i in /usr/local/pgsql/include /usr/local/include/pgsql \
 	 /usr/local/include /usr/include/pgsql /usr/include no
 do
-	if test -e "$i/libpq-fe.h"
+	if test -f "$i/libpq-fe.h"
 	then
 		break
 	fi

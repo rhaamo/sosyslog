@@ -1263,7 +1263,7 @@ SMODULES_LOAD="$SMODULES_LOAD \
 	ilast->im_getLog=im_unix_getLog;"
 
 
-if test -e ""$MODULES_DIR/im_unix.c""
+if test -f ""$MODULES_DIR/im_unix.c""
 then
 	if test "`grep im_unix_close "$MODULES_DIR/im_unix.c"`"
 	then
@@ -1277,7 +1277,7 @@ fi
 
 
 
-if test -e ""$MODULES_DIR/im_unix.c""
+if test -f ""$MODULES_DIR/im_unix.c""
 then
 	if test "`grep im_unix_timer "$MODULES_DIR/im_unix.c"`"
 	then
@@ -1336,7 +1336,7 @@ SMODULES_LOAD="$SMODULES_LOAD \
 	ilast->im_getLog=im_udp_getLog;"
 
 
-if test -e ""$MODULES_DIR/im_udp.c""
+if test -f ""$MODULES_DIR/im_udp.c""
 then
 	if test "`grep im_udp_close "$MODULES_DIR/im_udp.c"`"
 	then
@@ -1350,7 +1350,7 @@ fi
 
 
 
-if test -e ""$MODULES_DIR/im_udp.c""
+if test -f ""$MODULES_DIR/im_udp.c""
 then
 	if test "`grep im_udp_timer "$MODULES_DIR/im_udp.c"`"
 	then
@@ -1409,7 +1409,7 @@ SMODULES_LOAD="$SMODULES_LOAD \
 	ilast->im_getLog=im_bsd_getLog;"
 
 
-if test -e ""$MODULES_DIR/im_bsd.c""
+if test -f ""$MODULES_DIR/im_bsd.c""
 then
 	if test "`grep im_bsd_close "$MODULES_DIR/im_bsd.c"`"
 	then
@@ -1423,7 +1423,7 @@ fi
 
 
 
-if test -e ""$MODULES_DIR/im_bsd.c""
+if test -f ""$MODULES_DIR/im_bsd.c""
 then
 	if test "`grep im_bsd_timer "$MODULES_DIR/im_bsd.c"`"
 	then
@@ -1482,7 +1482,7 @@ SMODULES_LOAD="$SMODULES_LOAD \
 	ilast->im_getLog=im_linux_getLog;"
 
 
-if test -e ""$MODULES_DIR/im_linux.c""
+if test -f ""$MODULES_DIR/im_linux.c""
 then
 	if test "`grep im_linux_close "$MODULES_DIR/im_linux.c"`"
 	then
@@ -1496,7 +1496,7 @@ fi
 
 
 
-if test -e ""$MODULES_DIR/im_linux.c""
+if test -f ""$MODULES_DIR/im_linux.c""
 then
 	if test "`grep im_linux_timer "$MODULES_DIR/im_linux.c"`"
 	then
@@ -1555,7 +1555,7 @@ SMODULES_LOAD="$SMODULES_LOAD \
 	olast->om_doLog=om_classic_doLog;"
 
 
-if test -e ""$MODULES_DIR/om_classic.c""
+if test -f ""$MODULES_DIR/om_classic.c""
 then
 	if test "`grep om_classic_flush "$MODULES_DIR/om_classic.c"`"
 	then
@@ -1570,7 +1570,7 @@ fi
  
 
 
-if test -e ""$MODULES_DIR/om_classic.c""
+if test -f ""$MODULES_DIR/om_classic.c""
 then
 	if test "`grep om_classic_close "$MODULES_DIR/om_classic.c"`"
 	then
@@ -1629,7 +1629,7 @@ SMODULES_LOAD="$SMODULES_LOAD \
 	olast->om_doLog=om_peo_doLog;"
 
 
-if test -e ""$MODULES_DIR/om_peo.c""
+if test -f ""$MODULES_DIR/om_peo.c""
 then
 	if test "`grep om_peo_flush "$MODULES_DIR/om_peo.c"`"
 	then
@@ -1644,7 +1644,7 @@ fi
  
 
 
-if test -e ""$MODULES_DIR/om_peo.c""
+if test -f ""$MODULES_DIR/om_peo.c""
 then
 	if test "`grep om_peo_close "$MODULES_DIR/om_peo.c"`"
 	then
@@ -1767,7 +1767,7 @@ else
 for i in /usr/local/include/mysql /usr/local/mysql/include \
 	 /usr/local/include /usr/include/mysql /usr/include no
 do
-	if test -e "$i/mysql.h"
+	if test -f "$i/mysql.h"
 	then
 		break
 	fi
@@ -1816,7 +1816,7 @@ SMODULES_LOAD="$SMODULES_LOAD \
 	olast->om_doLog=om_mysql_doLog;"
 
 
-if test -e ""$MODULES_DIR/om_mysql.c""
+if test -f ""$MODULES_DIR/om_mysql.c""
 then
 	if test "`grep om_mysql_flush "$MODULES_DIR/om_mysql.c"`"
 	then
@@ -1831,7 +1831,7 @@ fi
  
 
 
-if test -e ""$MODULES_DIR/om_mysql.c""
+if test -f ""$MODULES_DIR/om_mysql.c""
 then
 	if test "`grep om_mysql_close "$MODULES_DIR/om_mysql.c"`"
 	then
@@ -1951,7 +1951,7 @@ else
 for i in /usr/local/pgsql/include /usr/local/include/pgsql \
 	 /usr/local/include /usr/include/pgsql /usr/include no
 do
-	if test -e "$i/libpq-fe.h"
+	if test -f "$i/libpq-fe.h"
 	then
 		break
 	fi
@@ -2007,7 +2007,7 @@ SMODULES_LOAD="$SMODULES_LOAD \
 	olast->om_doLog=om_pgsql_doLog;"
 
 
-if test -e ""$MODULES_DIR/om_pgsql.c""
+if test -f ""$MODULES_DIR/om_pgsql.c""
 then
 	if test "`grep om_pgsql_flush "$MODULES_DIR/om_pgsql.c"`"
 	then
@@ -2022,7 +2022,7 @@ fi
  
 
 
-if test -e ""$MODULES_DIR/om_pgsql.c""
+if test -f ""$MODULES_DIR/om_pgsql.c""
 then
 	if test "`grep om_pgsql_close "$MODULES_DIR/om_pgsql.c"`"
 	then
@@ -2088,7 +2088,7 @@ SMODULES_LOAD="$SMODULES_LOAD \
 	olast->om_doLog=om_regex_doLog;"
 
 
-if test -e ""$MODULES_DIR/om_regex.c""
+if test -f ""$MODULES_DIR/om_regex.c""
 then
 	if test "`grep om_regex_flush "$MODULES_DIR/om_regex.c"`"
 	then
@@ -2103,7 +2103,7 @@ fi
  
 
 
-if test -e ""$MODULES_DIR/om_regex.c""
+if test -f ""$MODULES_DIR/om_regex.c""
 then
 	if test "`grep om_regex_close "$MODULES_DIR/om_regex.c"`"
 	then
