@@ -38,7 +38,7 @@ im_bsd_getmsg(buf, size, c, r)
 }
 
 /*
- * get messge
+ * initialize BSD input
  *
  */
 

@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.16 2000/04/11 20:50:40 gera Exp $
+/*	$Id: syslogd.c,v 1.17 2000/04/13 18:48:41 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -204,49 +204,6 @@ main(argc, argv)
 	(void)signal(SIGALRM, domark);
 	(void)alarm(TIMERINTVL);
 
-#ifndef SUN_LEN
-#define SUN_LEN(unp) (strlen((unp)->sun_path) + 2)
-#endif
-	for (i = 0; i < nfunix; i++) {
-		(void)unlink(funixn[i]);
-
-		memset(&sunx, 0, sizeof(sunx));
-		sunx.sun_family = AF_UNIX;
-		(void)strncpy(sunx.sun_path, funixn[i], sizeof(sunx.sun_path));
-		funix[i] = socket(AF_UNIX, SOCK_DGRAM, 0);
-		if (funix[i] < 0 ||
-		    bind(funix[i], (struct sockaddr *)&sunx, SUN_LEN(&sunx)) < 0 ||
-		    chmod(funixn[i], 0666) < 0) {
-			(void) snprintf(line, sizeof line, "cannot create %s",
-			    funixn[i]);
-			logerror(line);
-			dprintf("cannot create %s (%d)\n", funixn[i], errno);
-			if (i == 0)
-				die(0);
-		}
-	}
-	finet = socket(AF_INET, SOCK_DGRAM, 0);
-	if (finet >= 0) {
-		struct servent *sp;
-
-		sp = getservbyname("syslog", "udp");
-		if (sp == NULL) {
-			errno = 0;
-			logerror("syslog/udp: unknown service");
-			die(0);
-		}
-		memset(&sin, 0, sizeof(sin));
-		sin.sin_len = sizeof(sin);
-		sin.sin_family = AF_INET;
-		sin.sin_port = LogPort = sp->s_port;
-		if (bind(finet, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
-			logerror("bind");
-			if (!Debug)
-				die(0);
-		} else {
-			InetInuse = 1;
-		}
-	}
 	if ((fklog = open(_PATH_KLOG, O_RDONLY, 0)) < 0)
 		dprintf("can't open %s (%d)\n", _PATH_KLOG, errno);
 
