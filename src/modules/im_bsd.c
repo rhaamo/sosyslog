@@ -43,11 +43,8 @@ extern char *funixn[];
 extern int *funix[];
 
 int
-im_bsd_init(I, argc, argv, c)
+im_bsd_init(I)
 	struct i_module *I;
-	int   argc;
-	char   *argv[];
-	struct im_header_ctx  **c;
 {
 	if ((I->fd = open(_PATH_KLOG, O_RDONLY, 0)) < 0) {
 		dprintf("can't open %s (%d)\n", _PATH_KLOG, errno);

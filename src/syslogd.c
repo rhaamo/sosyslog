@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.44 2000/04/25 01:32:56 alejo Exp $
+/*	$Id: syslogd.c,v 1.45 2000/04/25 22:59:59 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -267,7 +267,7 @@ main(argc, argv)
 		       		continue;
 		       }
 
-		       if ((*(IModules[i].im_getLog))(im->fd, log) == -1) {
+		       if ((*(IModules[i].im_getLog))(im, log) == -1) {
 		       	dprintf("Syslogd: error calling input module"
 		       		" %s, for fd %d\n", im->im_name,
 		       		im->fd);

@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.33 2000/04/25 01:32:56 alejo Exp $
+/*	$Id: modules.c,v 1.34 2000/04/25 22:59:59 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -56,7 +56,7 @@ int om_mysql_doLog(struct filed *, int , char *, struct om_header_ctx *);
 int om_mysql_init(int, char **, struct filed *, char *, struct om_header_ctx **);
 int om_mysql_close(struct filed*, struct om_header_ctx **);
 int om_mysql_flush(struct filed*, struct om_header_ctx *);
-int im_bsd_init(struct i_module *,int , char **, struct im_bsd_ctx *);
+int im_bsd_init(struct i_module *);
 int im_bsd_getLog(struct i_module *, struct im_msg *);
 int im_bsd_close(struct i_module *);
 
