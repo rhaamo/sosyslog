@@ -1,7 +1,6 @@
-				TODO
-				====
+/*	$CoreSDI$	*/
 
-15-Mar-2000
+Things to do:
 
 - check pager  stuff formats
 - check M$ MAPI
@@ -13,30 +12,18 @@
 - CHECK LIBC and GLIBC's way to work
 - program execution module
 
+- finish modularization and classic module
+- change initialization, write modules om_init()
+- create 'program' module
+- redo parsing of config using isspace
+- change static linking to some configurable dynamic module handling
 
-20-Mar-2000
+- take out unused includes on syslogd.c
+- think some way to specify multiple modules on syslog.conf
 
-1- finish modularization and classic module
-2- change initialization, write modules om_init()
-3- create 'program' module
-4- redo parsing of config using isspace
-5- change static linking to some configurable dynamic module handling
+- Check configuration parsing, there is at least 1 buffer overflow
 
-21-Mar-2000
-
-1- take out unused includes on syslogd.c
-
-23-Mar-2000
-
-1- think some way to specify multiple modules on syslog.conf
-
-13-Apr-2000
-
-1- Check configuration parsing, there is at least 1 buffer overflow
-
-17-Apr-2000
-
-1- remove or at least integrate consfile using and creation
+- remove or at least integrate consfile using and creation
 
 FOR FUTURE WORKING
 
@@ -46,39 +33,27 @@ get in the exactly same state as before the error).
 
 Check for buffer overflows, as we now may get things from the outside world.
 
-11-May-2000
-
-1- We need to change the decode function on syslogd.c and use the strcasecmp()
+- We need to change the decode function on syslogd.c and use the strcasecmp()
 function
 
-23-May-2000
+- Modules initialization should be dinamic
+- Kill filed structure
+- Optimize each input/output module
+- Create goods Makefiles
+- Complete and fix man pages
+- Udp input module from an arbitrary port
+- Allow not only one module type on each configuration line
+- Add linux extensions on selector field on configuration file
+- Add support to log on linux pseudo terminals (pts/x) (UPDATE: not really good)
 
-1- Modules initialization should be dinamic
-2- Kill filed structure
-3- Optimize each input/output module
-4- Create goods Makefiles
-5- Complete and fix man pages
-6- Udp input module from an arbitrary port
-7- Linux input module to eliminate klogd on that system
-8- Allow not only one module type on each configuration line
-9- Add linux extensions on selector field on configuration file
-10- Add support to log on linux pseudo terminals (pts/x) (UPDATE: not really good)
+- We can't do select when im->path = NULL and im->fd >= 0 but the module
+  should be called.
+  We need to allow several others log methods like syscalls (ex.: im_linux)
+  Problem: klogctl syscall con linux blocks until the kernel logs something,
+  a signal should be used to stop this block
 
-29-May-2000
-
-1- We can't do select when im->path = NULL and im->fd >= 0 but the module
-   should be called.
-   We need to allow several others log methods like syscalls (ex.: im_linux)
-   Problem: klogctl syscall con linux blocks until the kernel logs something,
-   a signal should be used to stop this block
-
-
-31-May-2000
-
-1- A script to generate a static_modules.h and set an array of structs there for
+- A script to generate a static_modules.h and set an array of structs there for
    each static module.
 
-01-Jun-2000
-
-1- Improve om_filter so it can rewrite messages. maybe resend to input. im_filter?
+- Improve om_filter so it can rewrite messages. maybe resend to input. im_filter?
 
