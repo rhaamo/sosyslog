@@ -1,4 +1,4 @@
-/*	$CoreSDI: hash.c,v 1.19 2000/05/24 18:22:50 claudio Exp $	*/
+/*	$CoreSDI: hash.c,v 1.20 2000/05/29 17:35:40 claudio Exp $	*/
 
 /*
  * hash -- few things used by both peo output module and peochk 
@@ -253,14 +253,16 @@ asc2bin (dst, src)
 {
 	int   		 i;
 	int   		 j;
-	unsigned char	*tmp = src;
+	unsigned char	*tmp;
 
 	if (src == NULL || dst == NULL || (strlen(src) & 1))
 		return (NULL);
 
-	if (dst == src)
+	if (dst == src) {
 		if ( (tmp = strdup(src)) == NULL)
 			return (NULL);
+	} else
+		tmp = (unsigned char*) src;
 
 	for (j = i = 0; tmp[i] != '\0'; i+=2, j++)
 		dst[j] = (ASC2BIN(tmp[i]) << 4) | ASC2BIN(tmp[i+1]);
