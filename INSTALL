@@ -1,4 +1,4 @@
-$Id: INSTALL,v 1.6 2000/08/24 20:23:10 alejo Exp $
+$Id: INSTALL,v 1.7 2000/08/24 20:28:45 gera Exp $
 ==============================================================================
                          Modular Syslog package
                              INSTALL file
@@ -120,7 +120,10 @@ stop running klogd.
 
 3.a PEO
 
-  See "om_peo", "peochk" and "syslog.conf" manpages for details and
+<<<<<<< INSTALL
+  See manpage om_peo(8) for details on proper setup instructions.
+=======
+  See om_peo(8), peochk(8) and syslog.conf(5) manpages for details and
 proper setup instructions.
 
 3.b MySQL
@@ -153,7 +156,9 @@ corresponding directory on the shell variable LD_PATH.
         developers or any other person interested in the inner
         working parts of msyslog.
 
-Send a message to majordomo@core-sdi.com with the text:
+To subscribe to any of this lists check
+http://www.core-sdi.com/english/lists.html or send a message to
+majordomo@core-sdi.com with the text:
 
 subscribe list-name
 
