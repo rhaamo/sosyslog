@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.105 2001/03/23 00:08:57 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.106 2001/03/23 17:54:30 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -142,7 +142,23 @@ elif test "$UNAME" = "AIX" ; then
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY | RTLD_GLOBAL)dnl
 	AC_DEFINE(NEEDS_DLOPEN_NULL)dnl
 	DCCFLAGS="-shared"
-	SHARED_PARAMS="-lc -bexpall -bnoentry -brtl"
+	SHARED_PARAMS="-lc -bI:libmsyslog.imp -bexpall -bnoentry -brtl"
+	cat > src/modules/libmsyslog.imp <<-EOF
+		#! .
+		dprintf
+		finet
+		LogPort
+		logerror
+		DaemonFlags
+		add_fd_input
+		LocalHostName
+		place_signal
+		remove_fd_input
+		printline
+		EOF
+
+
+	SYSLOGD_LIBS="$SYSLOGD_LIBS -Wl,-bexpall"
 else
 	AC_MSG_WARN(cannot determine system type falling to defaults)dnl
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl

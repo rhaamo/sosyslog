@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.63 2001/03/14 22:20:40 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.64 2001/03/15 20:40:49 alejo Exp $
 #
 # Copyright (c) 2001, Core SDI S.A., Argentina
 # All rights reserved
@@ -63,7 +63,7 @@ all: $(MLIBNAME)
 .PHONY:	clean distclean
 
 clean:
-	-rm -f core *.core *.o *.so.* *.so
+	-rm -f core *.core *.o *.so.* *.so *.imp
 
 distclean: clean
 	-rm -f Makefile
