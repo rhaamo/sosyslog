@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.30 2000/05/30 23:43:12 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.31 2000/06/07 21:27:37 claudio Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -57,8 +57,8 @@
 #include "syslogd.h"
 #include "modules.h"
 
-void	wallmsg __P((struct filed *, struct iovec *));
-char   *ttymsg __P((struct iovec *, int, char *, int));
+void	wallmsg (struct filed *, struct iovec *);
+char   *ttymsg (struct iovec *, int, char *, int);
 
 extern time_t now;
 

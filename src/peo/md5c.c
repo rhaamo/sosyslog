@@ -59,8 +59,8 @@ typedef unsigned char *POINTER;
 #define Encode memcpy
 #define Decode memcpy
 #else /* BIG_ENDIAN */
-static void Encode __P((void *, const void *, size_t));
-static void Decode __P((void *, const void *, size_t));
+static void Encode (void *, const void *, size_t);
+static void Decode (void *, const void *, size_t);
 #endif /* LITTLE_ENDIAN */
 
 static unsigned char PADDING[64] = {
