@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.13 2000/06/16 23:00:02 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.14 2000/06/22 00:19:38 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -32,37 +32,43 @@ CC=		@CC@
 CFLAGS=		@CFLAGS@
 SCFLAGS=	@SCFLAGS@
 LDFLAGS=	@LDFLAGS@
-LIBS=		@LIBS@
+OMMYSQL_LIBS=	@OMMYSQL_LIBS@
+OMPEO_EXTRA=	@OMPEO_EXTRA@
+STATIC_MODULES=	@STATIC_MODULES@
 
-SH=		/bin/sh
-STATICSI=	bsd udp unix
-STATICSO=	classic peo regex
 PROG=		syslogd
 SRCS=		modules.c syslogd.c ttymsg.c static_modules.c
-SSRCS=		modules/im_bsd.c modules/im_udp.c modules/im_unix.c \
-		modules/om_classic.c modules/om_regex.c modules/om_peo.c \
-		peo/hash.c
-LINUX_SRCS=	modules/im_linux.c
+#
+#Input modules
+#
+IM_BSD_SRCS=	modules/im_bsd.c
+IMLINUX_SRCS=	modules/im_linux.c
+IMUDP_SRCS=	modules/im_udp.c
+IMUNIX_SRCS=	modules/im_unix.c
+IMTCP_SRCS=	modules/im_tcp.c
+#
+#Output modules
+#
+OMCLASSIC_SRCS=	modules/om_classic.c
 SQL_SRCS=	modules/sql_misc.c
-MYSQL_SRCS=	modules/om_mysql.c $(SQL_SRCS)
-PGSQL_SRCS=	modules/om_pgsql.c $(SQL_SRCS)
-SRCS+=		@EXTRA_SRCS@
+OMMYSQL_SRCS=	modules/om_mysql.c $(SQL_SRCS)
+OMPGSQL_SRCS=	modules/om_pgsql.c $(SQL_SRCS)
+OMPEO_SRCS=	modules/om_peo.c peo/hash.c $(PEO_EXTRA)
+OMREGEX_SRCS=	modules/om_regex.c
+STATIC_MODULES_OBJS=	${STATIC_MODULES:=.o}
 OBJS=		${SRCS:.c=.o}
-SOBJS=		${SRCS:.c=.so}
+OBJS+=		$(STATIC_MODULES_OBJS)
 
 all: $(PROG)
 
 .c.o:
 	$(CC) $(CFLAGS) -I. -c $< -o $@
 
-.c.so:
-	$(CC) $(CFLAGS) -I. -c $< -o $@
-
 modules.o: config.h
 
-$(PROG): $(OBJS) $(SOBJS)
+$(PROG): $(OBJS)
 	$(SH) static_modules.sh < ../modules.conf
-	$(CC) -o $@ $(OBJS) $(LDFLAGS) $(LIBS)
+	$(CC) -o $@ $(OBJS) $(LDFLAGS) $(LIBS) modules/*.o
 
 .PHONY: clean distclean
 clean:

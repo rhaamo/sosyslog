@@ -16,13 +16,13 @@ AC_TRY_LINK([#include <unistd.h>],
 	AC_MSG_RESULT(no))
 
 AC_CHECK_FUNC(MD5Init, AC_DEFINE(HAVE_MD5),
-	EXTRA_SRCS="$EXTRA_SRCS peo/md5c.c")
+	OMPEO_SRC="$OMPEO_SRC peo/md5c.c")
 
 AC_CHECK_FUNC(SHA1Init, AC_DEFINE(HAVE_SHA1),
-	EXTRA_SRCS="$EXTRA_SRCS peo/sha1.c")
+	OMPEO_SRC="$OMPEO_SRC peo/sha1.c")
 
 AC_CHECK_FUNC(RMD160Init, AC_DEFINE(HAVE_RMD160),
-	EXTRA_SRCS="$EXTRA_SRCS peo/rmd160.c")
+	OMPEO_SRC="$OMPEO_SRC peo/rmd160.c")
 
 for dir in "/var/run" "/etc"
 do
@@ -61,10 +61,10 @@ then
 		with_mysql="/usr/local/mysql"	
 	fi
 	echo "Enabling MySQL support in $with_mysql"
-	EXTRA_SRCS="$EXTRA_SRCS \$(MYSQL_SRCS)"
+	OMMYSQL_SRC="$OMMYSQL_SRC \$(MYSQL_SRCS)"
 	CFLAGS="$CFLAGS -I$with_mysql/include/mysql"
 	LDFLAGS="$LDFLAGS -L$with_mysql/lib/mysql"
-	LIBS="$LIBS -lmysqlclient"
+	OMMYSQL_LIBS="$OMMYSQL_LIBS -lmysqlclient"
 	AC_DEFINE(ENABLE_MYSQL)
 else
 	echo "Disabling MySQL support..."
@@ -73,10 +73,9 @@ fi
 if test `uname` = "Linux"
 then
 	echo "Enabling Linux input module..."
-	EXTRA_SRCS="$EXTRA_SRCS \$(LINUX_SRCS)"
-	AC_DEFINE(HAVE_LINUX)
+	STATIC_MODULES="$STATIC_MODULES linux"
 fi
 
-AC_SUBST(EXTRA_SRCS)
+AC_SUBST(STATIC_MODULES)
 
 AC_OUTPUT([Makefile src/Makefile])
