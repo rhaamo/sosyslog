@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.216 2001/10/25 23:06:00 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.217 2001/10/25 23:49:48 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.216 2001/10/25 23:06:00 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.217 2001/10/25 23:49:48 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -1508,6 +1508,19 @@ decode(const char *name, CODE *codetab) {
 	return (-1);
 }
 
+/*
+ *  decode_name a numeric value to a symbolic name
+ */
+char *
+decode_val(int val, CODE *codetab) {
+	CODE *c;
+
+	for (c = codetab; c->c_name; c++)
+		if (val == c->c_val)
+			return (c->c_name);
+
+	return (NULL);
+}
 
 /*
  * add this fd to array

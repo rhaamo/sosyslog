@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_mysql.8,v 1.19 2001/10/18 21:19:12 alejo Exp $
+.\"	$CoreSDI: om_mysql.8,v 1.20 2001/10/22 22:45:55 alejo Exp $
 .\"
 .\" Copyright (c) 2001
 .\"	Core-SDI SA. All rights reserved.
@@ -67,16 +67,16 @@ The table name to use on the specified MySQL database.
 .It Fl D
 Do DELAYED inserts. See your MySQL documentation.
 .It Fl F
-Insert the facility level on the table on a field named "facility"
+Insert the facility level name on the table on a field named "facility"
 .It Fl P
-Insert the priority level on the table on a field named "priority"
+Insert the priority level name on the table on a field named "priority"
 .Sh EXAMPLES
 The table should have a format like this:
 .Pp
 .Bd -literal
   CREATE TABLE syslogTB (
-    facility tinyint default 0,    # OPTIONAL field for facility
-    priority tinyint default 0,    # OPTIONAL field for priority
+    facility char(10),    # OPTIONAL field for facility
+    priority char(10),    # OPTIONAL field for priority
     date date,           # date of this log message
     time time,           # time of this message
     host varchar(128),   # host logging

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.77 2001/10/18 19:39:45 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.78 2001/10/22 22:49:42 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -56,6 +56,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#define SYSLOG_NAMES
 #include <syslog.h>
 #include <unistd.h>
 #include <dlfcn.h>
@@ -92,6 +93,7 @@ struct om_mysql_ctx {
 #define	OM_MYSQL_PRIORITY		0x8
 
 int om_mysql_close(struct filed *, void *);
+char	*decode_val(int, CODE *);
 
 /*
  * Define our prototypes for MySQL functions
@@ -104,7 +106,7 @@ int
 om_mysql_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 {
 	struct om_mysql_ctx *c;
-	char	query[MAX_QUERY], err_buf[100], facility[5], priority[5];
+	char	query[MAX_QUERY], err_buf[100], facility[11], priority[11];
 	int i;
 	RETSIGTYPE (*sigsave)(int);
 
@@ -145,9 +147,9 @@ om_mysql_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 	 * NOTE: could use prioritynames[] and facilitynames[]
 	 */
 	if (c->flags & OM_MYSQL_FACILITY)
-		snprintf(facility, sizeof(facility), "%d,", m->fac);
+		snprintf(facility, sizeof(facility), "'%s',", decode_val(m->fac<<3, facilitynames));
 	if (c->flags & OM_MYSQL_PRIORITY)
-		snprintf(priority, sizeof(priority), "%d,", m->pri);
+		snprintf(priority, sizeof(priority), "'%s',", decode_val(m->pri, prioritynames));
 
 	/* table, yyyy-mm-dd, hh:mm:ss, host, msg  */ 
 	i = snprintf(query, sizeof(query), "INSERT %sINTO %s (%s%s date, time, "
