@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.26 2000/06/08 22:57:31 gera Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.27 2000/06/09 19:59:42 gera Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -47,7 +47,7 @@
 #include <time.h>
 #include <syslog.h>
 #include <unistd.h>
-#include "mysql.h"
+#include <mysql.h>
 #include "config.h"
 #include "modules.h"
 #include "syslogd.h"
