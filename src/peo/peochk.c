@@ -1,4 +1,4 @@
-/*	$CoreSDI: peochk.c,v 1.33 2000/05/23 22:18:00 fgsch Exp $	*/
+/*	$CoreSDI: peochk.c,v 1.34 2000/05/29 20:45:27 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -77,7 +77,7 @@
 #include <unistd.h>
 
 #include "hash.h"
-#include "../syslogd.h"
+#include "syslogd.h"
 
 #define CHECK	0x01
 #define QUIET	0x02
