@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.50 2000/06/05 23:22:05 fgsch Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.51 2000/06/07 21:27:36 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -67,6 +67,7 @@ im_bsd_init(I, argv, argc)
 {
 	if ((I->im_fd = open(_PATH_KLOG, O_RDONLY, 0)) < 0) {
 		dprintf("can't open %s (%d)\n", _PATH_KLOG, errno);
+		return (-1);
 	}
 	
 	I->im_type = IM_BSD;
