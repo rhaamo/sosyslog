@@ -1,4 +1,4 @@
-.\"	$CoreSDI$
+.\"	$CoreSDI: im_linux.8,v 1.1 2000/06/09 21:30:04 claudio Exp $
 .\"
 .\" Copyright (c) 2000
 .\"	Core-SDI SA. All rights reserved.
@@ -54,15 +54,15 @@ options are as follows:
 .Bl -tag -width Ds
 .It Fl k Ar ksym_path
 Specify the kernel symbol table file pathname; the default is
-\fI/proc/ksyms\fP.
+/proc/ksyms.
 .It Fl r
 This option forces to read the symbol table file into memory; the
-default is to read it in realtime.
+default is to read it in 'realtime'.
 .It Fl s
-The default is to read kernel messages from \fI/proc/kmsg\fP;
-this option forces the reading using the syscall method.
+This option forces to use the syscall method to read kernel
+messages; the default is to read from /proc/kmsg.
 .It Fl x
-This option forces to not translate kernel symbols.
+This option forces not to translate kernel symbols.
 .It Fl h
 This options prints a little help on standard output and exits.
 .Sh EXAMPLES
@@ -76,8 +76,9 @@ messages only.
 .Sh BUGS
 .Bl -bullet
 .It
-When \fBr\fP option is specified, symbols from modules
-installed after syslogd(8) being a daemon are not recognized.
+If reading from /proc/kmsg and \fBr\fP option is specified, symbols
+from modules installed after syslogd(8) being a daemon are not
+recognized.
 .It
 \fBs\fP option is not supported yet.
 .It
