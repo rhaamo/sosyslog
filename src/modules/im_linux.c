@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.49 2001/03/07 21:35:14 alejo Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.50 2001/03/23 00:12:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -258,7 +258,6 @@ im_linux_init (struct i_module *I, char **argv, int argc)
 	if ((flags & KSYM_TRANSLATE) && ksym_init() < 0)
 		return (-1);
 
-        I->im_name = "linux";
         I->im_flags |= IMODULE_FLAG_KERN;
 	optind = current_optind;
 	add_fd_input(I->im_fd , I);
