@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.42 2001/02/22 20:10:27 alejo Exp $	*/
+/*	$CoreSDI: modules.h,v 1.43 2001/02/26 22:43:35 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -46,6 +46,7 @@ struct o_module {
 	struct	o_module *om_next;
 	struct	omodule *om_func; /* where are this puppy's functions? */
 	void	*ctx;
+	char	*status;
 };
 
 /*

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_tcp.c,v 1.6 2001/02/23 00:56:12 alejo Exp $	*/
+/*	$CoreSDI: om_tcp.c,v 1.7 2001/02/26 22:37:25 alejo Exp $	*/
 /*
      Copyright (c) 2000, Core SDI S.A., Argentina
      All rights reserved
@@ -87,10 +87,12 @@ int connect_tcp(const char *host, const char *port);
  */
 
 int
-om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
+om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
+    char **status)
 {
 	struct	om_tcp_ctx *c;
 	int	ch, retry;
+	char	statbuf[1024];
 
 	if (argv == NULL || argc != 5) {
 		dprintf(DPRINTF_INFORMATIVE)("om_tcp_init: wrong param count"
@@ -162,6 +164,10 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 		   later (beware, on every log!) */
 
 	}
+
+	snprintf(statbuf, sizeof(statbuf) - 1, "om_tcp: forwarding messages "
+	    "through TCP to host %s, port %s", c->host, c->port);
+	*status = strdup(statbuf);
 
 	return (1);
 
@@ -331,9 +337,9 @@ connect_tcp(const char *host, const char *port) {
 			return (-1);
 		}
 
-		i = 1;
+		n = 1;
 
-		if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &i, sizeof(i)) != 0) {
+		if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &n, sizeof(n)) != 0) {
 			dprintf(DPRINTF_SERIOUS)("tcp_listen: error setting socket "
 			    "options for host address %s, %s\n", host, port);
 			return (-1);

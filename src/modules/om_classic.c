@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.65 2001/02/19 21:29:56 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.66 2001/02/22 20:10:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -259,12 +259,13 @@ om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
  *  taken mostly from syslogd's cfline
  */
 int
-om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
+om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
+    char **status)
 {
 	struct hostent *hp;
 	struct  om_classic_ctx *c;
 	int i;
-	char *p, *q;
+	char *p, *q, buf[MAXHOSTNAMELEN + 1000];
 
 	dprintf(DPRINTF_INFORMATIVE)("om_classic_init: Entering\n");
 
@@ -360,6 +361,9 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 		memmove(&c->f_un.f_forw.f_addr.sin_addr, hp->h_addr,
 		    sizeof(struct in_addr));
 		c->f_type = F_FORW;
+		snprintf(buf, sizeof(buf), "om_classic: forwarding messages "
+		    "through UDP to host %s", c->f_un.f_forw.f_hname);
+		*status = strdup(buf);
 		break;
 
 	case '/':
@@ -376,10 +380,15 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 			c->f_type = F_FILE;
 		if (strcmp(p, ctty) == 0)
 			c->f_type = F_CONSOLE;
+		snprintf(buf, sizeof(buf), "om_classic: saving messages "
+		    "to file %s", c->f_un.f_fname);
+		*status = strdup(buf);
 		break;
 
 	case '*':
 		c->f_type = F_WALL;
+		*status = strdup("om_classic: sending messages to all logged"
+		    " users");
 		break;
 
 	default:
@@ -396,6 +405,15 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 			p = q;
 		}
 		c->f_type = F_USERS;
+		snprintf(buf, sizeof(buf), "om_classic: forwarding messages "
+		    "to users:");
+		for (i = 0; i < MAXUNAMES &&
+		    c->f_un.f_uname[i][0] != '\0'; i++) {
+			strncat(buf, " ", sizeof(buf) - 1);
+			strncat(buf, c->f_un.f_uname[i], sizeof(buf) - 1);
+		}
+		buf[sizeof(buf) - 1] = '\0';
+		*status = strdup(buf);
 		break;
 	}
 

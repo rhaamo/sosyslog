@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.33 2001/01/27 01:04:20 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.34 2001/02/26 22:34:38 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -120,7 +120,7 @@ om_pgsql_write(struct filed *f, int flags, char *msg, void *ctx)
 	int	err, i;
 	char    query[MAX_QUERY], err_buf[512];
 
-	dprintf(DPRINTF_INFORMATIVE)("om_pgsql_dolog: entering [%s] [%s]\n",
+	dprintf(DPRINTF_INFORMATIVE)("om_pgsql_write: entering [%s] [%s]\n",
 	    msg, f->f_prevline);
 
 	c = (struct om_pgsql_ctx *) ctx;
@@ -141,7 +141,7 @@ om_pgsql_write(struct filed *f, int flags, char *msg, void *ctx)
 
 			c->lost++;
 			if (c->lost == 1) {
-				logerror("om_pgsql_dolog: Lost connection!");
+				logerror("om_pgsql_write: Lost connection!");
 			}
 		}
 		return (1);
@@ -162,7 +162,7 @@ om_pgsql_write(struct filed *f, int flags, char *msg, void *ctx)
 		 * connection and this one (wich we are going
 		 * to log anyway)
 		 */
-		snprintf(err_buf, sizeof(err_buf), "om_pgsql_dolog: %i "
+		snprintf(err_buf, sizeof(err_buf), "om_pgsql_write: %i "
 		    "messages were lost due to lack of connection",
 		    c->lost - 2);
 
@@ -233,11 +233,13 @@ om_pgsql_write(struct filed *f, int flags, char *msg, void *ctx)
  */
 
 int
-om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
+om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
+    char **status)
 {
 	void	*h;
 	struct	om_pgsql_ctx *ctx;
 	char	*host, *user, *passwd, *db, *table, *port, *p;
+	char	statbuf[MAXHOSTNAMELEN + 100];
 	int	ch = 0;
 
 	dprintf(DPRINTF_INFORMATIVE)("om_pgsql_init: entering "
@@ -340,6 +342,10 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 
 	ctx->h = h;
 	ctx->table = strdup(table);
+
+	snprintf(statbuf, sizeof(statbuf), "om_pgsql: sending messages to host"
+	    " %s, database %s, table %s", host, db, table);
+	*status = strdup(statbuf);
 
 	return (1);
 }

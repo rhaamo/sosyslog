@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.86 2001/02/10 01:11:32 claudio Exp $
+dnl $CoreSDI: configure.in,v 1.87 2001/02/26 22:43:34 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(config.h)dnl
@@ -33,7 +33,7 @@ AC_TYPE_SIGNAL
 dnl It should have strftime!
 dnl AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS(gethostname getaddrinfo regcomp poll select socket strdup strerror strstr strtoul )
+AC_CHECK_FUNCS(gethostname inet_ntop getaddrinfo regcomp poll select socket strdup strerror strstr strtoul )
 
 dnl 
 dnl Here are our checks...
@@ -293,6 +293,18 @@ AC_ARG_WITH(pgsql,
 if test "$USESQL" = "yes" ; then
 	MSRCS="$MSRCS sql_misc.c"
 fi
+
+AC_ARG_WITH(db2,
+[  --without-db2
+	Use db2 output module. Activated by default.
+],[
+	if test $with_db2 = "yes" ; then
+		MSRCS="$MSRCS om_db2.c"
+	fi
+],[
+	MSRCS="$MSRCS om_db2.c"
+	USESQL="yes"
+])
 
 AC_ARG_WITH(peo,
 [  --without-peo

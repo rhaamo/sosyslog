@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.28 2001/02/19 20:46:05 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.29 2001/02/26 22:32:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -84,11 +84,13 @@ struct om_regex_ctx {
  *
  */
 int
-om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
+om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
+    char **status)
 {
-	struct om_regex_ctx *c;
+	struct	om_regex_ctx *c;
 	regex_t	*creg;
-	int ch;
+	int	ch;
+	char	statbuf[1048];
 
 	creg = NULL;
 
@@ -106,6 +108,8 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 
 	c = (struct om_regex_ctx *) *ctx;
 	c->size = sizeof(struct om_regex_ctx);
+
+	snprintf(statbuf, sizeof(statbuf), "om_regex: filtering");
 
 	/*
 	 * Parse options with getopt(3)
@@ -126,26 +130,39 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 		switch (ch) {
 		case 'v':
 			c->filters |= OM_FILTER_INVERSE;
+			strncat(statbuf, " inverse,", sizeof(statbuf) - 1);
 			continue;
 
 		case 'm':
 			c->filters |= OM_FILTER_MESSAGE;
 			creg = &c->msg_exp;
+			strncat(statbuf, " message [", sizeof(statbuf) - 1);
+			strncat(statbuf, optarg, sizeof(statbuf) - 1);
+			strncat(statbuf, "]", sizeof(statbuf) - 1);
 			break;
 
 		case 'h':
 			c->filters |= OM_FILTER_HOST;
 			creg = &c->host_exp;
+			strncat(statbuf, " host [", sizeof(statbuf) - 1);
+			strncat(statbuf, optarg, sizeof(statbuf) - 1);
+			strncat(statbuf, "]", sizeof(statbuf) - 1);
 			break;
 
 		case 'd':
 			c->filters |= OM_FILTER_DATE;
 			creg = &c->date_exp;
+			strncat(statbuf, " date [", sizeof(statbuf) - 1);
+			strncat(statbuf, optarg, sizeof(statbuf) - 1);
+			strncat(statbuf, "]", sizeof(statbuf) - 1);
 			break;
 
 		case 't':
 			c->filters |= OM_FILTER_TIME;
 			creg = &c->time_exp;
+			strncat(statbuf, " time [", sizeof(statbuf) - 1);
+			strncat(statbuf, optarg, sizeof(statbuf) - 1);
+			strncat(statbuf, "]", sizeof(statbuf) - 1);
 			break;
 
 		default:
@@ -162,6 +179,9 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 			return (-1);
 		}
 	}
+
+	statbuf[sizeof(statbuf) - 1] = '\0';
+	*status = strdup(statbuf);
 
 	return (1);
 }

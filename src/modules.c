@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.148 2001/02/19 23:42:01 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.149 2001/02/26 22:43:34 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -367,7 +367,7 @@ omodule_create(char *c, struct filed *f, char *prog)
 
 		if (!om->om_func->om_init ||
 		    (*(om->om_func->om_init))(argc, argv, f, prog, (void *)
-		    &(om->ctx)) < 0) {
+		    &(om->ctx), &om->status) < 0) {
 			snprintf(err_buf, sizeof(err_buf), "Error "
 			    "initializing dynamic output module %s [%s]\n",
 			    argv[0], line);

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.172 2001/02/23 00:57:02 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.173 2001/02/26 22:43:35 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.172 2001/02/23 00:57:02 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.173 2001/02/26 22:43:35 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -1007,7 +1007,11 @@ init(int signo)
 			/* free om_ctx om_func and stuff */
 			om_next = om->om_next;
 
-			free(om->ctx);
+			if (om->ctx)
+				free(om->ctx);
+			if (om->status)
+				free(om->status);
+			free(om);
 		}
 
 		next = f->f_next;
@@ -1127,8 +1131,18 @@ init(int signo)
 					printf("X ");
 				else
 					printf("%d ", f->f_pmask[i]);
-#warning modules should report here their output debug status strings
 			printf("\n");
+			for (om = f->f_omod; om; om = om->om_next) {
+				if (om->status) {
+					printf("%s\n", om->status);
+				} else {
+					if (om->om_func &&
+					    om->om_func->om_name)
+						printf("** No status info for "
+						    "module %s! **\n",
+						    om->om_func->om_name);
+				}
+			}
 		}
 	}
 

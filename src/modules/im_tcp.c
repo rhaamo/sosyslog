@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.7 2001/02/22 20:10:28 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.8 2001/02/26 22:37:25 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -84,7 +84,7 @@ struct tcp_conn {
 	struct tcp_conn *next;
 	struct sockaddr *cliaddr;
 	socklen_t	 addrlen;
-	char		 name[NI_MAXHOST + 1];
+	char		 name[SIZEOF_MAXHOSTNAMELEN + 1];
 };
 
 struct im_tcp_ctx {
@@ -154,7 +154,6 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 #ifndef HAVE_GETNAMEINFO
 	struct hostent *hp;
 	struct sockaddr_in *sin4;
-	struct sockaddr_in6 *sin6;
 #endif
 
 	if (im == NULL || ret == NULL) {
@@ -221,10 +220,6 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 			sin4 = (struct sockaddr_in *) con->cliaddr;
 			hp = gethostbyaddr((char *) &sin4->sin_addr,
 			    sizeof(sin4->sin_addr), sin4->sin_family);
-		} else if (con->cliaddr->sa_family == AF_INET6) {
-			sin6 = (struct sockaddr_in6 *) con->cliaddr;
-			hp = gethostbyaddr((char *) &sin6->sin6_addr,
-			    sizeof(sin6->sin6_addr), sin6->sin6_family);
 		}
 
 		if (hp == NULL) {
@@ -242,8 +237,10 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
         		dprintf(DPRINTF_INFORMATIVE)("im_tcp: error resolving "
 			    "remote host name! [%d]\n", n);
 
+#ifdef HAVE_INET_NTOP
 			inet_ntop(con->cliaddr->sa_family, &con->cliaddr,
 			    con->name, sizeof(con->name) - 1);
+#endif
 		}	
 
 		dprintf(DPRINTF_INFORMATIVE)("im_tcp_read: new conection from"
@@ -508,7 +505,11 @@ listen_tcp(const char *host, const char *port, socklen_t *addrlenp) {
 	}
 
 	if (addrlenp)
+#ifdef HAVE_GETADDRINFO
 		*addrlenp = res->ai_addrlen;
+#else
+		*addrlenp = sizeof(servaddr)
+#endif
 
 	return (fd);
 

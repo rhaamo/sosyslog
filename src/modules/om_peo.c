@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.61 2001/01/27 01:04:19 alejo Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.62 2001/02/12 17:19:38 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -109,7 +109,7 @@ om_peo_write(struct filed *f, int flags, char *msg, void *ctx)
 
 	/* Open keyfile and read last key */
 	if ( (fd = open(c->keyfile, O_RDWR, 0)) < 0) {
-		dprintf(DPRINTF_SERIOUS)("om_peo_dolog: opening keyfile: %s:"
+		dprintf(DPRINTF_SERIOUS)("om_peo_write: opening keyfile: %s:"
 		    " %s\n", c->keyfile, strerror(errno));
 		return (-1);
 	}
@@ -178,12 +178,14 @@ release()
 }
 
 int
-om_peo_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
+om_peo_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
+    char **status)
 {
 	int	 ch;
 	struct	 om_peo_ctx *c;
 	int	 hash_method;
 	int	 mfd;
+	char	statbuf[2048];
 
 	dprintf(DPRINTF_INFORMATIVE)("om_peo_init: Entering, called by %s\n",
 	    prog);
@@ -258,8 +260,10 @@ om_peo_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 	c->macfile = macfile;
 	*ctx = (void *) c;
 
-	dprintf(DPRINTF_INFORMATIVE)("om_peo_init: method: %d\nkeyfile: "
-	    "%s\nmacfile: %s\n", hash_method, keyfile, macfile);
+	snprintf(statbuf, sizeof(statbuf), "om_peo: method: %d\nkeyfile: %s\nmacfile: %s\n",
+	    hash_method, keyfile, macfile);
+	*status = strdup(statbuf);
+	dprintf(DPRINTF_INFORMATIVE)("%s", statbuf);
 
 	return (1);
 }

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.93 2001/02/19 23:42:01 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.94 2001/02/22 20:10:27 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -141,7 +141,8 @@ RETSIGTYPE (*place_signal(int signo, RETSIGTYPE (*)(int))) (int);
 struct omodule {
 	struct	omodule *om_next;
 	char	*om_name;
-	int	(*om_init) (int, char **, struct filed *, char *, void **);
+	int	(*om_init) (int, char **, struct filed *, char *, void **,
+	    char **);
 	int	(*om_write) (struct filed *, int, char *, void *);
 	int	(*om_flush) (struct filed *, void *);
 	int	(*om_close) (struct filed *, void *);

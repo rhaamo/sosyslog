@@ -1,4 +1,4 @@
-/*      $CoreSDI: im_doors.c,v 1.8 2001/02/08 18:01:53 alejo Exp $   */
+/*      $CoreSDI: im_doors.c,v 1.9 2001/02/22 20:10:28 alejo Exp $   */
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -61,17 +61,6 @@ void im_door_func ();
 
 
 /*
- * get message
- *
- */
-
-int
-im_doors_read(struct i_module *im, int infd, struct im_msg *ret)
-{
-	return(0);
-}
-
-/*
  * initialize doors input
  *
  */
@@ -89,11 +78,10 @@ im_doors_init(struct i_module *I, char **argv, int argc)
 		return (-1);
 	}
 
-	if (argc == 2) {
+	if (argc == 2)
 		door_path = argv[1];
-	}
 
-	if (unlink (door_path) == -1) {
+	if (unlink(door_path) == -1) {
 		if (errno != ENOENT) {
 			dprintf(DPRINTF_SERIOUS)("im_doors: unlink(%s): %s\n",
 			    door_path, strerror (errno));
@@ -105,9 +93,10 @@ im_doors_init(struct i_module *I, char **argv, int argc)
 
 	if ((fd = open (door_path, O_CREAT | O_RDWR, 00644)) == -1) {
 		dprintf(DPRINTF_SERIOUS)("im_doors: open(%s): %s\n", door_path,
-				strerror (errno));
+		    strerror (errno));
 		return (-1);
 	}
+
 	if (close(fd) == -1) {
 		/* if close() fails here, there's probably an fs error */
 		dprintf(DPRINTF_SERIOUS)("im_doors: close(%s): %s\n",
@@ -115,13 +104,13 @@ im_doors_init(struct i_module *I, char **argv, int argc)
 		return (-1);
 	}
 
-	if ((fd = door_create (im_door_func, NULL, 0)) == -1) {
+	if ((fd = door_create(im_door_func, NULL, 0)) == -1) {
 		dprintf(DPRINTF_SERIOUS)("im_doors: door_create: %s\n",
 		    strerror (errno));
 		return (-1);
 	}
 
-	if (fattach (fd, door_path) == -1) {
+	if (fattach(fd, door_path) == -1) {
 		dprintf(DPRINTF_SERIOUS)("im_doors: fattach(%s): %s\n",
 		    door_path, strerror (errno));
 		return (-1);
@@ -131,18 +120,8 @@ im_doors_init(struct i_module *I, char **argv, int argc)
 }
 
 
-/*
- * the following function is not mandatory, you can omit it
- */
-int
-im_doors_close (struct i_module *im) 
-{
-        return(1);
-}
-
-
 /* door function */
-void im_door_func (cookie, dataptr, datasize, descptr, ndesc)
+void im_door_func(cookie, dataptr, datasize, descptr, ndesc)
 	void *cookie;
 	char *dataptr;
 	size_t datasize;
@@ -154,7 +133,7 @@ void im_door_func (cookie, dataptr, datasize, descptr, ndesc)
 
 	if (door_cred(&dcred) == -1) {
 		snprintf (logbuf, LB_SIZE, "door_cred failed: %s\n",
-				strerror (errno));
+		    strerror (errno));
 		logerror (logbuf);
 	} else {
 
@@ -169,10 +148,11 @@ void im_door_func (cookie, dataptr, datasize, descptr, ndesc)
 	}
 
 	/* this function does absolutely nothing except return */
-	door_return (NULL, 0, NULL, 0);
+	door_return(NULL, 0, NULL, 0);
 
 	/* if control reaches here, something went wrong */
-	snprintf (logbuf, LB_SIZE, "door_return failed: %s\n",
-			strerror(errno));
-	logerror (logbuf);
+	snprintf(logbuf, LB_SIZE, "door_return failed: %s\n",
+	    strerror(errno));
+	logerror(logbuf);
 }
+

@@ -121,3 +121,5 @@
 #undef HAVE_SYS_WAIT_H
 
 #undef HAVE_GETADDRINFO
+
+#undef HAVE_INET_NTOP
