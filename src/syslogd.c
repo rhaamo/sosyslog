@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.207 2001/09/19 17:39:57 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.208 2001/09/21 06:40:26 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.207 2001/09/19 17:39:57 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.208 2001/09/21 06:40:26 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -174,7 +174,8 @@ FILE	*pidf;
 
 #define MAX_PIDFILE_LOCK_TRIES 5
 
-char    *ctty;
+char    *ctty;					/* console path */
+int	UseConsole = 1;
 char     LocalHostName[SIZEOF_MAXHOSTNAMELEN];  /* our hostname */
 char    *LocalDomain = NULL;			/* our domain */
 int      finet = -1;				/* Internet datagram socket */
@@ -256,7 +257,7 @@ main(int argc, char **argv)
 	/* use ':' at start to allow -d to be used without argument */
 	opterr = 0;
 
-	while ( (ch = getopt(argc, argv, ":d:f:m:ui:p:a:h")) != -1) {
+	while ( (ch = getopt(argc, argv, ":d:f:m:ui:p:a:hc")) != -1) {
 		char buf[512];
 
 		switch (ch) {
@@ -298,6 +299,9 @@ main(int argc, char **argv)
 				fprintf(stderr, "syslogd: WARNING out of "
 				    "descriptors, ignoring %s\n", optarg);
 			}
+			break;
+		case 'c':	/* don't use console */
+			UseConsole = 0;
 			break;
 		case 'h':
 		default:
@@ -773,7 +777,8 @@ logmsg(int pri, char *msg, char *from, int flags)
 
 	/* log the message to the particular outputs */
 	if (!Initialized) {
-		if (ctty && omodule_create(ctty, &consfile, NULL) != -1) {
+		if (UseConsole && ctty && omodule_create(ctty, &consfile,
+		    NULL) != -1) {
 			doLog(&consfile, flags, msg);
 			if (consfile.f_omod && consfile.f_omod->om_func
 			    && consfile.f_omod->om_func->om_close != NULL)
@@ -804,7 +809,7 @@ logmsg(int pri, char *msg, char *from, int flags)
 			if (strcmp(prog, f->f_program) != 0)
 				continue;
 
-		if ( (f == &consfile) && (flags & IGN_CONS) )
+		if (UseConsole && (flags & IGN_CONS))
 			continue;
 
 		/* don't output marks to recently written files */
