@@ -27,9 +27,11 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/uio.h>
 
 #include <err.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -70,38 +72,44 @@ void
 usage()
 {
 	fprintf (stderr,
-		"Usage:\n"
-		"Check mode:\n"
-		"\tpeochk [-f logfile] [-i key0file] [-k keyfile] "
-		"[-m hash_method]\n"
-		"\tpeochk [-i key0file] [-k keyfile] [-m hash_method] "
-		"[logfile]\n\n"
-		"Initial key generator mode:\n"
-		"peochk -g [-k keyfile] [-m hash_method] logfile\n\n"
-		"hash_method options:\tmd5, sha1, rmd160\n\n"
-		"When no logfile is specified or it is without the -f switch\n"
-		"the data is readed from the standard input.\n"
- 		"If logfile is specified using both -f switch and without\n"
-		"it, the -f argument is used and data is not read from the\n"
-		"standard input.\n"
-		"If the logfile is specified but not the keyfile, this will\n"
-		"be /var/ssyslog/xxx where xxx is the logfile whit all '.'\n"
-		"replaced by ','\n\n"
-		"Default values:\n"
-		"\tlogfile    : /var/log/messages\n"
-		"\tkeyfile    : /var/ssyslog/.var.log.messages.key\n"
-		"\tkey0file   : strcat(keyfile, \"0\");\n"
-		"\thash_method: sha1\n\n");
+	"Usage:\n"
+	"Check mode:\n"
+	"    peochk [-f logfile] [-i key0file] [-k keyfile]"
+	"[-m hash_method] [logfile]\n\n"
+	"Initial key generator mode:\n"
+	"    peochk -g [-k keyfile] [-m hash_method] [logfile]\n\n"
+	"hash_method options:\n"
+	"\tmd5, sha1, rmd160\n\n"
+	"When no logfile is specified or it is without the -f switch "
+	"the data is readed\n"
+	"from the standard input.\n"
+ 	"If logfile is specified using both -f switch and without"
+	"it, the -f argument\n"
+	"is used and data is not read from the standard input.\n"
+	"If the logfile is specified but not the keyfile, this will "
+	"be /var/ssyslog/xxx\n"
+	"where xxx is the logfile with all '.' replaced by ','\n\n"
+	"Default values:\n"
+	"\tlogfile    : /var/log/messages\n"
+	"\tkeyfile    : /var/ssyslog/.var.log.messages.key\n"
+	"\tkey0file   : strcat(keyfile, \"0\");\n"
+	"\thash_method: sha1\n\n");
 	exit(1);
 }
 
 
 /*
- * check: reads logfile and check it
+ * check: read logfile and check it
  */
 void
 check()
 {
+	int input;
+
+	if (use_stdin)
+		input = STDIN_FILENO;
+
+	
 }
 
 
@@ -111,7 +119,6 @@ check()
 void
 generate()
 {
-	char	*ct;
 	char	*newkey[41];
 	int	 len;
 	int	 fkey;
@@ -120,18 +127,15 @@ generate()
 
 	time(&t);
 	len = hash(method, NULL, 0, ctime(&t), newkey);
-	if ( (fkey = open(keyfile, O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR) == -1) ||
-	     (fkey0 = open(key0file, O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR) == -1)) {
-		if (fkey) {
-			unlink(keyfile);
-			close(fkey);
-		}
-		if (fkey0) {
-			unlink(key0file);
-			close(fkey0);
-		}
+	if ( (fkey = open(keyfile, O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR)) == -1) {
 		release();
-		err(1, "");
+		err(1, keyfile);
+	}
+	if ( (fkey0 = open(key0file, O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR)) == -1) {
+		unlink(keyfile);
+		close(fkey);
+		release();
+		err(1, key0file);
 	}
 
 	/* write key 0 */
@@ -164,7 +168,7 @@ main (argc, argv)
 	method = SHA1;
 
 	/* parse command line */
-	while ( (ch = getopt(argc, argv, "f:gk:m:")) != -1) {
+	while ( (ch = getopt(argc, argv, "f:ghi:k:m:")) != -1) {
 		switch (ch) {
 			case 'f':
 				/* log file (intrusion detection mode) */
@@ -202,17 +206,16 @@ main (argc, argv)
 				/* hash method */
 				if (strcasecmp("md5", optarg) == 0)
 					method = MD5;
-				else
-					if (strcasecmp("rmd160", optarg) == 0)
+				else if (strcasecmp("rmd160", optarg) == 0)
 						method = RMD160;
-				else
-					if (strcasecmp("sha1", optarg) == 0)
+				else if (strcasecmp("sha1", optarg) == 0)
 						method = SHA1;
 				else {
 					release();
 					usage();
 				}
 				break;
+			case 'h':
 			default:
 				release();
 				usage();
@@ -257,8 +260,7 @@ main (argc, argv)
 	if (action == 0)
 		check();
 	/* generate new key */
-	else 
-		generate();
+	else generate();
 
 	release();
 	return (0);
