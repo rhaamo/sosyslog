@@ -1,4 +1,4 @@
-/*	$Id: im_udp.c,v 1.19 2000/05/23 03:35:56 alejo Exp $
+/*	$Id: im_udp.c,v 1.20 2000/05/23 03:50:25 alejo Exp $
  *  im_udp -- classic behaviour module for BDS like systems
  *      
  * Author: Alejo Sanchez for Core-SDI SA
@@ -77,7 +77,7 @@ im_udp_getLog(im, ret)
 	} else if (ret->im_len < 0 && errno != EINTR)
 		logerror("recvfrom inet");
 
-	return(-1);
+	return(1);
 
 }
 
