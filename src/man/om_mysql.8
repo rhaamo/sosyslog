@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_mysql.8,v 1.15 2001/07/31 09:08:05 alejo Exp $
+.\"	$CoreSDI: om_mysql.8,v 1.16 2001/10/18 19:02:42 alejo Exp $
 .\"
 .\" Copyright (c) 2001
 .\"	Core-SDI SA. All rights reserved.
@@ -72,9 +72,8 @@ The table should have a format like this:
     date date,           # date of this log message
     time time,           # time of this message
     host varchar(128),   # host logging
-    message  text        # message
+    message  text,        # message
     seq  bigint auto_increment primary key # optional sequence number
-.Pp
   ); 
 .Ed
 .Pp
