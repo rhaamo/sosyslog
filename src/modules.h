@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.32 2000/07/04 16:44:03 alejo Exp $	*/
+/*	$CoreSDI: modules.h,v 1.33 2000/07/14 01:04:31 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -65,7 +65,6 @@ struct i_module {
 	char	*im_name;
 	char	*im_path;
 	char	 im_buf[MAXLINE + 1];
-        struct timeval im_delay;  /* delay between calls */
         struct timeval im_nextcall;  /* next time we'll be called */
 };
 

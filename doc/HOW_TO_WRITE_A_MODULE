@@ -13,3 +13,14 @@ Names
 Names used should be alphanumeric using '_' as separation.
 
 
+Timer function
+--------------
+
+Currently msyslog supports a special timer function for input modules. You
+only need to create it named im_mymodule_timer and set on im_mymodule_init
+the "next" structure to match the first time this function would be called.
+And every time the function is called, it must set the next time to be
+called.
+
+It is not guaranteed that it will be called at that precise time, but that
+it will NOT be called before it.

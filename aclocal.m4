@@ -1,4 +1,4 @@
-dnl	$CoreSDI: aclocal.m4,v 1.5 2000/07/10 21:41:37 claudio Exp $
+dnl	$CoreSDI: aclocal.m4,v 1.6 2000/07/10 22:53:19 claudio Exp $
 
 dnl
 dnl MSYSLOG_GREP patt file comm
@@ -204,7 +204,7 @@ SMODULES_HEADER="$SMODULES_HEADER \
 int im_$1_init (struct i_module*, char**, int, \
 struct sglobals*); \
 int im_$1_getLog (struct i_module*, struct im_msg*, \
-struct sglobals*);" 
+struct sglobals*);"
 
 SMODULES_LOAD="$SMODULES_LOAD \
 if ( (im = (struct imodule*)calloc(1, sizeof(struct imodule))) == NULL) \
@@ -231,6 +231,12 @@ SMODULES_HEADER="$SMODULES_HEADER \
 	int im_$1_close (struct i_module*, struct sglobals*);"
 SMODULES_LOAD="$SMODULES_LOAD \
 	ilast->im_close=im_$1_close;" ])
+
+MSYSLOG_GREP(im_$1_timer, "$MODULES_DIR/$2", [
+SMODULES_HEADER="$SMODULES_HEADER \
+	int im_$1_timer (struct i_module*, struct sglobals*);"
+SMODULES_LOAD="$SMODULES_LOAD \
+	ilast->im_timer=im_$1_timer;" ])
 ])
 
 
