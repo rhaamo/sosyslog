@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.11 2000/03/29 22:37:59 gera Exp $
+/*	$Id: modules.c,v 1.12 2000/03/29 22:44:50 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -114,6 +114,7 @@ int modules_create(p, f, prog)
 		switch (*p) {
 			case '%':
 				/* get this module name */
+				argc=0;
 				argv[argc++]=++p;
 				while (!isspace(*p)) p++;
 
@@ -131,8 +132,8 @@ int modules_create(p, f, prog)
 				m->m_type = mf->m_type;
 
 				/* build argv and argc, modifies input p */
+				while (isspace(*p)) p++;
 				while (*p && *p!='%' && *p !='\n' && *p!='\r' && argc<20) { 
-					while (isspace(*p)) p++;
 				
 					quotes = (*p=='"' || *p=='\'')?quotes=*p++:0;
 						
@@ -140,6 +141,7 @@ int modules_create(p, f, prog)
 					if (quotes) while (*p != quotes) p++;
 						else while (!isspace(*p)) p++;
 					*p++=0;
+					while (isspace(*p)) p++;
 				}
 
 				(*mf->m_init)(argc, argv, f, prog, (void *) &(m->context));
