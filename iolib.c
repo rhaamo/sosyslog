@@ -1,12 +1,18 @@
-
+#include <sys/types.h>
+#include <sys/socket.h>
 
 /*
  *  AF_UNIX and PIPE functions
  */
 
 int
-path_open()
+path_open(path, mode)
+	char *path;
+	int mode;
 {
+
+
+
 }
 
 int

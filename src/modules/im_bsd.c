@@ -65,6 +65,53 @@ im_bsd_init(argc, argv, c)
 	*c = (struct im_header *) calloc(1, sizeof(struct im_bsd_ctx));
 	ctx = (struct im_bsd_ctx *) *c;
 
+
+#ifndef SUN_LEN
+#define SUN_LEN(unp) (strlen((unp)->sun_path) + 2)
+#endif
+        for (i = 0; i < nfunix; i++) {
+                (void)unlink(funixn[i]);
+
+                memset(&sunx, 0, sizeof(sunx));
+                sunx.sun_family = AF_UNIX;
+                (void)strncpy(sunx.sun_path, funixn[i], sizeof(sunx.sun_path));
+                funix[i] = socket(AF_UNIX, SOCK_DGRAM, 0);
+                if (funix[i] < 0 ||
+                    bind(funix[i], (struct sockaddr *)&sunx, SUN_LEN(&sunx)) < 0 ||
+                    chmod(funixn[i], 0666) < 0) {
+                        (void) snprintf(line, sizeof line, "cannot create %s",
+                            funixn[i]);
+                        logerror(line);
+                        dprintf("cannot create %s (%d)\n", funixn[i], errno);
+                        if (i == 0)
+                                die(0);
+                }
+        }
+        finet = socket(AF_INET, SOCK_DGRAM, 0);
+        if (finet >= 0) {
+                struct servent *sp;
+
+                sp = getservbyname("syslog", "udp");
+                if (sp == NULL) {
+                        errno = 0;
+                        logerror("syslog/udp: unknown service");
+                        die(0);
+                }
+                memset(&sin, 0, sizeof(sin));
+                sin.sin_len = sizeof(sin);
+                sin.sin_family = AF_INET;
+                sin.sin_port = LogPort = sp->s_port;
+                if (bind(finet, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+                        logerror("bind");
+                        if (!Debug)
+                                die(0);
+                } else {
+                        InetInuse = 1;
+                }
+        }
+ 
+
+
 	
 }
 
