@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_mysql.8,v 1.12 2001/05/01 02:27:22 alejo Exp $
+.\"	$CoreSDI: om_mysql.8,v 1.13 2001/07/27 19:04:21 alejo Exp $
 .\"
 .\" Copyright (c) 2001
 .\"	Core-SDI SA. All rights reserved.
@@ -48,8 +48,8 @@ output module used to log on MySQL servers
 receives a message as an ascii string and logs it on a MySQL server. For
 proper initialization, the following parameters should be set:
 .Bl -tag -width Ds
-.It Fl s Ar hostname
-Specify the MySQL server hostname.
+.It Fl s Ar hostname<:port>
+Specify the MySQL server hostname and optionally the port.
 .It Fl u Ar username
 Specifies the username to use on the MySQL server. This user
 must have enough permissions to insert on the specified database and table.
