@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_mysql.8,v 1.14 2001/07/27 19:09:00 alejo Exp $
+.\"	$CoreSDI: om_mysql.8,v 1.15 2001/07/31 09:08:05 alejo Exp $
 .\"
 .\" Copyright (c) 2001
 .\"	Core-SDI SA. All rights reserved.
@@ -72,7 +72,8 @@ The table should have a format like this:
     date date,           # date of this log message
     time time,           # time of this message
     host varchar(128),   # host logging
-    msg  text            # message
+    message  text        # message
+    seq  bigint auto_increment primary key # optional sequence number
 .Pp
   ); 
 .Ed
@@ -82,9 +83,14 @@ The field names should be respected. The type of fields
 and
 .Va msg
 can be any text format smaller than 128 and 1024 chars respectively.
+.Pp
+The field seq may be needed for some
+.Xr audit 1
+features.
 .Sh SEE ALSO
-.Xr syslogd 8 ,
-.Xr syslog.conf 5 
+.Xr audit 1 ,
+.Xr syslog.conf 5 ,
+.Xr syslogd 8
 .Sh BUGS
 .Bl -bullet
 .It
