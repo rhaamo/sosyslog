@@ -1,4 +1,4 @@
-.\"	$Id: syslog.conf.5,v 1.4 2000/05/22 22:51:43 claudio Exp $
+.\"	$Id: syslog.conf.5,v 1.5 2000/05/23 02:41:19 claudio Exp $
 .\" Copyright (c) 1990, 1991, 1993
 .\"	The Regents of the University of California.  All rights reserved.
 .\"
@@ -333,7 +333,36 @@ For example ``mail.crit,*.err'' will select ``mail'' facility messages at
 the level of ``err'' or higher, not at the level of ``crit'' or higher.
 .Pp
 Even it works to mix configuration lines that uses the old and the
-new modular method, it is not recommended.
+new modular method, avoid this. Future releases may not support mixing
+old and new styles.
+.Pp
+On each line there should be only one output module of each type so,
+the following is wrong:
+.Pp
+.Bd -literal
+	*.*	%classic /dev/console %classic /var/log/messages
+.Ed
+.Pp
+The correct sentence is:
+.Pp
+.Bd -literal
+	*.*	%classic /dev/console
+	*.*	%classic /var/log/messages
+.Ed
+.Pp
+Also old config syntax shouldn't mix with new style 
+the following is wrong:
+.Pp
+.Bd -literal
+	*.*	%classic /dev/console %classic /var/log/messages
+.Ed
+.Pp
+The correct sentence is:
+.Pp
+.Bd -literal
+	*.*	%classic /dev/console
+	*.*	%classic /var/log/messages
+.Ed
 .Sh SEE ALSO
 .Xr syslog 3 ,
 .Xr syslogd 8 ,
