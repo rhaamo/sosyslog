@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.43 2000/09/15 21:58:23 fgsch Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.44 2000/09/15 22:05:29 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -69,8 +69,7 @@ struct om_mysql_ctx {
 };
 
 int
-om_mysql_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *ctx)
-{
+om_mysql_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *ctx) {
 	struct om_mysql_ctx *c;
 	struct tm *t;
 	char	*msg_q;
@@ -95,12 +94,12 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *ctx)
 	if ((msg_q = to_sql(msg)) == NULL)
 		return -1;
 
-	t = localtime(f->f_time);
+	t = localtime(&f->f_time);
 
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
 	snprintf(c->query, MAX_QUERY, "INSERT INTO %s "
 	    "VALUES('%d-%02d-%02d', '%02d:%02d:%02d', '%s', '%s')",
-	    c->table, t->tm_year + 1900, t->tm_mon + 1, t->tm_day,
+	    c->table, t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
 	    t->tm_hour, t->tm_min, t->tm_sec, f->f_prevhost, msg_q);
 
 	free(msg_q);
@@ -152,7 +151,7 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog,
 #ifdef HAVE_OPTRESET
 	optreset = 1;
 #endif
-	while ((ch = getopt(argc, argv, "s:u:p:d:t:c")) != -1) {
+	while ((ch = getopt(argc, argv, "s:u:p:d:t:")) != -1) {
 		switch (ch) {
 			case 's':
 				/* get database host name and port */
@@ -162,27 +161,19 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog,
 					*p = '\0';
 					port = atoi(++p);
 				}
-				host = strdup(optarg);
-				if (!host) return -1;
+				host = optarg;
 				break;
 			case 'u':
-				user = strdup(optarg);
-				if (!user) return -1;
+				user = optarg;
 				break;
 			case 'p':
-				passwd = strdup(optarg);
-				if (!passwd) return -1;
+				passwd = optarg;
 				break;
 			case 'd':
-				db = strdup(optarg);
-				if (!db) return -1;
+				db = optarg;
 				break;
 			case 't':
-				table = strdup(optarg);
-				if (!table) return -1;
-				break;
-			case 'c':
-				createTable++;
+				table = optarg;
 				break;
 			default:
 				return(-1);
