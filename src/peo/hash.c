@@ -1,4 +1,4 @@
-/*	$CoreSDI$	*/
+/*	$CoreSDI: hash.c,v 1.18 2000/05/23 22:17:59 fgsch Exp $	*/
 
 /*
  * hash -- few things used by both peo output module and peochk 
@@ -20,15 +20,16 @@
 
 #ifdef HAVE_OPENBSD
 	#include <md5.h>
+	#include <rmd160.h>
 	#include <sha1.h>
 	#define RANDOM_DEVICE	"/dev/srandom"
 #else
 	#include "md5.h"
+	#include "rmd160.h"
 	#include "sha1.h"
 	#define RANDOM_DEVICE	"/dev/random"
 #endif
 
-#include "rmd160.h"
 #include "hash.h"
 
 
