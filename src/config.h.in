@@ -1,4 +1,4 @@
-/*	$CoreSDI: config.h.in,v 1.5 2000/05/29 19:01:49 fgsch Exp $	*/
+/*	$CoreSDI: config.h.in,v 1.6 2000/05/30 19:21:17 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -33,6 +33,8 @@
 
 #undef HAVE_OPTRESET
 
-#undef MYSQL_ENABLE
+#undef ENABLE_MYSQL
+
+#undef ENABLE_PGSQL
 
 #undef PID_DIR

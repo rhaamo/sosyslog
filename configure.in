@@ -39,7 +39,7 @@ AC_ARG_WITH(mysql,
 	[  --with-mysql=DIR        enable MySQL support using libraries in DIR],
 	[with_mysql=$withval],
 	[with_mysql=no])
-test "$with_mysql" = "yes" && AC_DEFINE(MYSQL_ENABLE)
+test "$with_mysql" = "yes" && AC_DEFINE(ENABLE_MYSQL)
 
 if test "$with_mysql" = "yes"
 then
@@ -65,7 +65,7 @@ then
 	CFLAGS="$CFLAGS -I$with_mysql/include/mysql"
 	LDFLAGS="$LDFLAGS -L$with_mysql/lib/mysql"
 	LIBS="$LIBS -lmysqlclient"
-	AC_DEFINE(MYSQL_ENABLE)
+	AC_DEFINE(ENABLE_MYSQL)
 else
 	echo "Disabling MySQL support..."
 fi
