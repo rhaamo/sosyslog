@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.64 2000/07/04 18:56:35 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.65 2000/07/11 19:38:15 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -46,6 +46,10 @@
 #define MAX_N_IMODULES	10		/* maximum types of in  modules */
 
 #define VERSION		1.0
+
+/* Some default timeouts for select */
+#define SYSLOG_TIMEOUT_SEC	10
+#define SYSLOG_TIMEOUT_USEC	0
 
 #ifdef HAVE_PATHS_H
 #include <paths.h>
@@ -149,6 +153,7 @@ struct omodule {
 		struct om_hdr_ctx *, struct sglobals *);
 	int	(*om_flush) (struct filed *, struct om_hdr_ctx *, struct sglobals *);
 	int	(*om_close) (struct filed *, struct om_hdr_ctx *, struct sglobals *);
+	int	(*om_timer) (struct filed *, struct om_hdr_ctx *, struct sglobals *);
 	void	*h;  /* handle to open dynamic library */
 };
 
@@ -156,9 +161,12 @@ struct imodule {
 	struct	imodule *im_next;
 	char   *im_name;
 	int	(*im_init) (struct i_module *, char **, int, struct sglobals *);
-	int	(*im_getLog) (struct i_module *, struct im_msg *, struct sglobals *);
 	int	(*im_close) (struct i_module *, struct sglobals *);
+	int	(*im_getLog) (struct i_module *, struct im_msg *, struct sglobals *);
+	int	(*im_timer) (struct i_module *, struct im_msg *, struct sglobals *);
 	void	*h;  /* handle to open dynamic library */
+	struct timeval delay;  /* delay between calls */
+	struct timeval next;  /* next time we'll be called */
 };
 
 	

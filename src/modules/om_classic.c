@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.39 2000/07/05 22:44:43 claudio Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.40 2000/07/11 19:38:16 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -117,7 +117,7 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 	
 		case F_FORW:
 			dprintf(" %s\n", f->f_un.f_forw.f_hname);
-			l = snprintf(line, sizeof(line) - 1, "<%d>%.15s %s", f->f_prevpri,
+			l = snprintf(line, sizeof(line), "<%d>%.15s %s", f->f_prevpri,
 			    (char *) iov[0].iov_base, (char *) iov[4].iov_base);
 			if (l > MAXLINE)
 				l = MAXLINE;

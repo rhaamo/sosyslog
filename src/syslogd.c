@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.106 2000/07/10 22:11:57 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.107 2000/07/11 19:38:14 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -135,8 +135,10 @@ main(int argc, char **argv)
 	int ch;
 	FILE *fp;
 	char *p;
+	struct timeval timeout;
 
 	memset(&Inputs, 0, sizeof(Inputs));
+
 	Inputs.im_fd = -1;
 	sglobals = (struct sglobals *) calloc(1, sizeof(struct sglobals));
 	sglobals->ctty = strdup(_PATH_CONSOLE);
@@ -158,6 +160,9 @@ main(int argc, char **argv)
 	sglobals->logmsg = logmsg;
 	sglobals->die = die;
 	sglobals->ttymsg = ttymsg;
+
+	timeout.tv_sec = SYSLOG_TIMEOUT_SEC;
+	timeout.tv_usec = SYSLOG_TIMEOUT_USEC;
 
 	/* assign functions and init input */
 	if ((ch = modules_load()) < 0) {
@@ -268,32 +273,38 @@ main(int argc, char **argv)
 			}
 		}
 
-		/*dprintf("readfds = %#x\n", readfds);*/
+		/* dprintf("readfds = %#x\n", readfds); */
 		nfds = select(nfds+1, &readfds, (fd_set *)NULL,
-			(fd_set *)NULL, (struct timeval *)NULL);
-		if (nfds == 0)
+			(fd_set *)NULL, &timeout);
+
+		if (nfds == 0) {
 			continue;
+		}
+
 		if (nfds < 0) {
 			if (errno != EINTR)
 				logerror("select");
 			continue;
 		}
-		/*dprintf("got a message (%d, %#x)\n", nfds, readfds);*/
-		for (im = &Inputs; im ; im = im->im_next) {
-			if (im->im_fd != -1 && FD_ISSET(im->im_fd, &readfds)) {
-				int i = 0;
 
-				memset(&log, 0,sizeof(struct im_msg));
-
-				if ( !(im->im_func->im_getLog) || (i =
-						(*im->im_func->im_getLog)(im, &log, sglobals)) < 0) {
-					dprintf("Syslogd: Error calling input module"
-		       				" %s, for fd %d\n", im->im_name, im->im_fd);
+		if (nfds > 0) {
+			/* dprintf("got a message (%d, %#x)\n", nfds, readfds); */
+			for (im = &Inputs; im ; im = im->im_next) {
+				if (im->im_fd != -1 && FD_ISSET(im->im_fd, &readfds)) {
+					int i = 0;
+	
+					memset(&log, 0,sizeof(struct im_msg));
+	
+					if ( !(im->im_func->im_getLog) || (i =
+							(*im->im_func->im_getLog)(im, &log, sglobals)) < 0) {
+						dprintf("Syslogd: Error calling input module"
+			       				" %s, for fd %d\n", im->im_name, im->im_fd);
+					}
+	
+					/* log it if normal (1), (2) already logged */
+					if (i == 1)
+						printline(log.im_host, log.im_msg, im->im_flags);
 				}
-
-				/* log it if normal (1), (2) already logged */
-				if (i == 1)
-					printline(log.im_host, log.im_msg, im->im_flags);
 			}
 		}
 
