@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.15 2000/06/23 00:41:55 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.16 2000/06/23 23:48:45 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -31,48 +31,35 @@
 CC=		@CC@
 CFLAGS=		@CFLAGS@
 LDFLAGS=	@LDFLAGS@
-OMMYSQL_LIBS=	@OMMYSQL_LIBS@
-OMPEO_EXTRA=	@OMPEO_EXTRA@
-STATIC_MODULES=	@STATIC_MODULES@
+CPPFLAGS=	-I.
+LIBS=		@LIBS@
+INSTALL_LIBDIR=	@INSTALL_LIBDIR@
 
 PROG=		syslogd
 SRCS=		modules.c syslogd.c ttymsg.c static_modules.c
-#
-#Input modules
-#
-IM_BSD_SRCS=	modules/im_bsd.c
-IMLINUX_SRCS=	modules/im_linux.c
-IMUDP_SRCS=	modules/im_udp.c
-IMUNIX_SRCS=	modules/im_unix.c
-IMTCP_SRCS=	modules/im_tcp.c
-#
-#Output modules
-#
-OMCLASSIC_SRCS=	modules/om_classic.c
-SQL_SRCS=	modules/sql_misc.c
-OMMYSQL_SRCS=	modules/om_mysql.c $(SQL_SRCS)
-OMPGSQL_SRCS=	modules/om_pgsql.c $(SQL_SRCS)
-OMPEO_SRCS=	modules/om_peo.c peo/hash.c $(PEO_EXTRA)
-OMREGEX_SRCS=	modules/om_regex.c
-SOBJS=		${STATIC_MODULES:=.o}
-OBJS=		${SRCS:.c=.o}
-OBJS+=		$(STATIC_MODULES_OBJS)
+OBJS=		$(SRCS:.c=.o)
+SSRCS=		@SSRCS@
+SOBJS=		$(modules/SSRCS:.c=.o)
 
 all: $(PROG)
 
 .c.o:
-	$(CC) $(CFLAGS) -I. -c $< -o $@
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 modules.o: config.h
 
-$(PROG): $(OBJS) $(SOBJS)
-	$(SH) static_modules.sh < ../modules.conf
-	$(CC) -o $@ $(OBJS) $(SOBJS) $(LDFLAGS) $(LIBS) modules/*.o
+$(PROG): $(OBJS) $(SOBJS) DYNAMIC_LIBS
+	$(CC) -o $@ $(OBJS) $(SOBJS) $(LDFLAGS) $(LIBS)
 
-.PHONY: clean distclean
+$(SOBJS) DYNAMIC_LIBS:
+	@cd modules && make && cd ..
+
+.PHONY:	clean distclean
 clean:
-	-rm -f $(OBJS) $(SOBJS) core *.core $(PROG)
+	-rm -f $(OBJS) core *.core $(PROG)
+	@cd modules && make clean && cd ..
 
 distclean: clean
 	-rm -f Makefile config.h static_modules.c static_modules.h
+	@cd modules && make distclean && cd ..
 

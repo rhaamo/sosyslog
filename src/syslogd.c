@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.100 2000/06/21 22:26:01 claudio Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.101 2000/06/21 23:05:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -142,10 +142,8 @@ main(int argc, char **argv)
 	Inputs.im_fd = -1;
 
 	/* assign functions and init input */
-	imodules = NULL;
-	omodules = NULL;
 	if ((ch = modules_load()) < 0) {
-		dprintf("Error loading modules [%d]\n", ch);
+		dprintf("Error loading static modules [%d]\n", ch);
 		exit(-1);
 	}
 

@@ -1,5 +1,5 @@
-/*	$CoreSDI: hash.c,v 1.23 2000/06/02 23:05:25 fgsch Exp $	*/
-
+/*	$CoreSDI: hash.c,v 1.24 2000/06/22 00:51:40 claudio Exp $	*/
+ 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
  * All rights reserved
