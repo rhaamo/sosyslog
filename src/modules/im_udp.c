@@ -1,4 +1,4 @@
- /*	$Id: im_udp.c,v 1.76 2002/09/17 06:30:41 alejo Exp $	*/
+ /*	$Id: im_udp.c,v 1.77 2002/09/24 22:00:07 alejo Exp $	*/
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
  * All rights reserved
@@ -64,12 +64,18 @@
 #endif
 
 struct im_udp_ctx {
+	union {
+		int	values[250];
+		char	strings[1000];
+	} names;	/* the name cache */
 	int	flags;
+	char	subst;
 };
 
-#define M_USEMSGHOST	0x01
-#define M_NOTFQDN	0x02
-#define M_CACHENAMES	0x04
+#define M_USEMSGHOST		0x01
+#define M_NOTFQDN		0x02
+#define M_CACHENAMES		0x04
+#define M_REPLACENONPRINT	0x08
 
 /* prototypes */
 struct sockaddr *resolv_name(char *, char *, char *, socklen_t *);
@@ -88,12 +94,12 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 	char   *host, *port;
 	int    ch, argcnt;
 
-  m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: entering\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "im_udp_init: entering\n");
 
 	if ( (I->im_ctx = calloc(1, sizeof(struct im_udp_ctx))) == NULL) {
-     m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: cannot alloc memory");
-return (-1);
-  }
+		m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: cannot alloc memory");
+		return (-1);
+	}
 
 	c = (struct im_udp_ctx *) I->im_ctx;
 
@@ -102,7 +108,9 @@ return (-1);
 
 	/* parse args (skip module name) */
 	for (argcnt = 1; (ch = getxopt(argc, argv, "h!host: p!port: "
-	    "a!addhost q!nofqdn c!cachenames", &argcnt)) != -1; argcnt++) {
+	    "a!addhost q!nofqdn c!cachenames r!replacechar: n!noresolv",
+	    &argcnt)) != -1;
+	    argcnt++) {
 
 		switch (ch) {
 		case 'h':
@@ -123,6 +131,11 @@ return (-1);
 		case 'c':
 			/* use cached hostnames */
 			c->flags |= M_CACHENAMES;
+			break;
+		case 'r':
+			/* use cached hostnames */
+			c->flags |= M_REPLACENONPRINT;
+			c->subst = *argv[argcnt];
 			break;
 		default:
 			m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: parsing error [%c]\n", ch);
@@ -159,7 +172,7 @@ return (1);
 
 
 /*
- * im_tcp_read: accept a connection and add it to the queue
+ * im_udp_read: accept a connection and add it to the queue
  * connections and modules are read in a round-robin so partial lines
  * must persist across calls to the im_read functions for the
  * various modules.
@@ -173,11 +186,11 @@ im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 	char   *p;
 	int    slen;
 
-  m_dprintf(MSYSLOG_INFORMATIVE, "im_udp_read: entering...\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "im_udp_read: entering...\n");
 
 	if (ret == NULL) {
 		m_dprintf(MSYSLOG_SERIOUS, "im_udp: arg is null\n");
-return (-1);
+		return (-1);
 	}
 
 	ret->im_pid = -1;
@@ -190,17 +203,18 @@ return (-1);
 	    (socklen_t *)&slen)) < 1) {
 		if (ret->im_len < 0 && errno != EINTR)
 			logerror("recvfrom inet");
-return (1);
+		return (1);
 	}
 
 	ret->im_msg[ret->im_len] = '\0';
 
 	c = (struct im_udp_ctx *) im->im_ctx;
 
-	/* change non printable chars to X, just in case */
-	for(p = ret->im_msg; *p != '\0'; p++)
-		if (!isprint((unsigned int) *p) && *p != '\n')
-			*p = 'X';
+	/* change non printable chars to c->subst, just in case */
+	if (c->flags & M_REPLACENONPRINT)
+		for(p = ret->im_msg; *p != '\0'; p++)
+			if (!isprint((unsigned int) *p) && *p != '\n')
+				*p = c->subst;
 
 	if (c->flags & M_USEMSGHOST) {
 		/* extract hostname from message */
