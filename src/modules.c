@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.111 2000/07/04 20:33:25 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.112 2000/07/04 21:13:27 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -292,6 +292,7 @@ addImodule(name)
 	   	return(NULL);
 	}
 
+#ifdef HAVE_LINUX
 	snprintf(buf, 127, "im_%s_init", name);
 	if ((im->im_init = dlsym(im->h, buf)) == NULL) {
 	   	dprintf("addImodule: error linking %s function \n", buf);
@@ -306,8 +307,24 @@ addImodule(name)
 
 	/* this one could be null */
 	snprintf(buf, 127, "im_%s_close", name);
-	im->im_close = dlsym(im->h, "im_close");
+	im->im_close = dlsym(im->h, buf);
+#else
+	snprintf(buf, 127, "_im_%s_init", name);
+	if ((im->im_init = dlsym(im->h, buf)) == NULL) {
+	   	dprintf("addImodule: error linking %s function \n", buf);
+	   	return(NULL);
+	}
 
+	snprintf(buf, 127, "_im_%s_getLog", name);
+	if ((im->im_getLog = dlsym(im->h, buf)) == NULL) {
+	   	dprintf("addImodule: error linking %s function \n", buf);
+	   	return(NULL);
+	}
+
+	/* this one could be null */
+	snprintf(buf, 127, "_im_%s_close", name);
+	im->im_close = dlsym(im->h, buf);
+#endif
 	im->im_name = strdup(name);
 
 	return(im);
@@ -354,6 +371,7 @@ addOmodule(char *name) {
 	   	return(NULL);
 	}
 
+#ifdef HAVE_LINUX
 	snprintf(buf, 127, "om_%s_init", name);
 	if ((om->om_init = dlsym(om->h, buf)) == NULL) {
 	   	dprintf("addOmodule: error linking %s function \n", buf);
@@ -367,10 +385,27 @@ addOmodule(char *name) {
 
 	/* this ones could be null */
 	snprintf(buf, 127, "om_%s_close", name);
-	om->om_close = dlsym(om->h, "om_close");
+	om->om_close = dlsym(om->h, buf);
 	snprintf(buf, 127, "om_%s_flush", name);
-	om->om_close = dlsym(om->h, "om_close");
+	om->om_flush = dlsym(om->h, buf);
+#else
+	snprintf(buf, 127, "_om_%s_init", name);
+	if ((om->om_init = dlsym(om->h, buf)) == NULL) {
+	   	dprintf("addOmodule: error linking %s function \n", buf);
+	   	return(NULL);
+	}
+	snprintf(buf, 127, "_om_%s_doLog", name);
+	if ((om->om_doLog = dlsym(om->h, buf)) == NULL) {
+	   	dprintf("addOmodule: error linking %s function \n", buf);
+	   	return(NULL);
+	}
 
+	/* this ones could be null */
+	snprintf(buf, 127, "_om_%s_close", name);
+	om->om_close = dlsym(om->h, buf);
+	snprintf(buf, 127, "_om_%s_flush", name);
+	om->om_flush = dlsym(om->h, buf);
+#endif
 	om->om_name = strdup(name);
 
 	return(om);
