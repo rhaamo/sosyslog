@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.6 2000/06/09 18:54:27 fgsch Exp $
+# $CoreSDI: Makefile.in,v 1.7 2000/06/09 19:53:22 fgsch Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -49,6 +49,8 @@ all: $(PROG)
 
 .c.o:
 	$(CC) $(CFLAGS) -I. -c $< -o $@
+
+modules.o: config.h
 
 $(PROG): $(OBJS)
 	$(CC) -o $@ $(OBJS) $(LDFLAGS) $(LIBS)
