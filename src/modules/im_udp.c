@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.44 2000/09/14 00:53:58 alejo Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.37.2.5.2.6.4.3 2000/10/12 00:39:46 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -55,14 +55,6 @@
 #include "../modules.h"
 #include "../syslogd.h"
 
-/* standard input module header variables in context */
-struct im_udp_ctx {
-	short	flags;
-#define M_FLAG_INITIALIZED 0x1
-#define M_FLAG_ERROR 0x2
-	int	size;
-	int	fd;
-};
 
 /*
  * get messge
@@ -70,7 +62,8 @@ struct im_udp_ctx {
  */
 
 int
-im_udp_getLog(struct imodule *im, struct im_msg *ret) {
+im_udp_getLog(struct imodule *im, struct im_msg *ret)
+{
 	struct sockaddr_in frominet;
 	struct hostent *hent;
 	int slen;
@@ -109,17 +102,18 @@ im_udp_getLog(struct imodule *im, struct im_msg *ret) {
  */
 
 int
-im_udp_init(struct i_module *I, char **argv, int argc) {
+im_udp_init(struct i_module *I, char **argv, int argc)
+{
 	struct sockaddr_in sin;
 	struct servent *sp;
 
-        if ((argc < 1 || argc > 2) || (argc == 2 &&
-			(argv == NULL || argv[1] == NULL))) {
+        if ((argc != 1 && argc != 2) || (argc == 2 &&
+	    (argv == NULL || argv[1] == NULL))) {
         	dprintf("im_udp: error on params!\n");
         	return(-1);
         }
 
-	I->im_fd = socket(AF_INET, SOCK_DGRAM, 0);
+        I->im_fd = socket(AF_INET, SOCK_DGRAM, 0);
 
 	sp = getservbyname("syslog", "udp");
 	if (sp == NULL) {
@@ -142,27 +136,27 @@ im_udp_init(struct i_module *I, char **argv, int argc) {
         I->im_path = NULL;
         if (finet < 0) {
 		/* finet not in use */
-		finet = I->im_fd;
+        	finet = I->im_fd;
 		DaemonFlags |= SYSLOGD_INET_IN_USE;
-		DaemonFlags |= SYSLOGD_FINET_READ;
+		DaemonFlags |= SYSLOGD_INET_READ;
         }
 
-	dprintf("im_udp: running.\n");
+        dprintf("im_udp: running\n");
         return(1);
 }
 
 int
-im_udp_close(struct i_module *im) {
- 
-	if (finet == im->im_fd) {
-		close(im->im_fd);
-		finet = im->im_fd;
+im_udp_close(struct i_module *im)
+{
+        if (finet == im->im_fd) {
+        	close(im->im_fd);
+        	finet = im->im_fd;
 		DaemonFlags &= ~SYSLOGD_INET_IN_USE;
-		DaemonFlags &= ~SYSLOGD_FINET_READ;
-	} else {
-		close(im->im_fd);
-	}
+		DaemonFlags &= ~SYSLOGD_INET_READ;
+        } else {
+        	close(im->im_fd);
+        }
  
-	return(0);
+        return(0);
 }
 

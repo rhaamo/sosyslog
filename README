@@ -1,10 +1,20 @@
-/*	$CoreSDI: README,v 1.5.4.3 2000/09/13 23:54:37 alejo Exp $	*/
+/*	$CoreSDI: README,v 1.5.4.3.4.1 2000/10/30 22:09:50 alejo Exp $	*/
 
 Installation
 ------------
 
 Please read the file INSTALL.
 
+About Modular Syslog
+--------------------
+
+This is a daemon for the syslog system log interface. It is based on OpenBSD's
+syslog daemon implementation, with many improvements (ie. log hash protection).
+
+This project is intended as a whole revision of previous Secure Syslogd
+project (wich is unsupported by now). It has all functionalities and some
+more. The remaining things are Solaris support and Audit compatibility
+(on the works).
 
 Reporting Bugs
 --------------

@@ -35,6 +35,9 @@
  */
 
 #ifndef lint
+#if 0
+static char sccsid[] = "@(#)ttymsg.c	8.2 (Berkeley) 11/16/93";
+#endif
 static char rcsid[] = "$OpenBSD: ttymsg.c,v 1.3 1996/10/25 06:06:30 downsj Exp $";
 #endif /* not lint */
 
@@ -80,8 +83,7 @@ ttymsg(struct iovec *iov, int iovcnt, char *line, int tmout)
 	    || (strncmp(line, "uucp", 4) == 0))
 		return (NULL);
 
-	(void) strncpy(device + sizeof(_PATH_DEV) - 1, line,
-			sizeof(device) - sizeof(_PATH_DEV) - 1);
+	(void) strcpy(device + sizeof(_PATH_DEV) - 1, line);
 
 #ifndef HAVE_LINUX
 	if (strchr(device + sizeof(_PATH_DEV) - 1, '/')) {

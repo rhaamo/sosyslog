@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.33 2000/09/09 00:42:13 alejo Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.27.2.4.4.1 2000/10/12 02:00:08 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -60,7 +60,8 @@
  */
 
 int
-im_unix_getLog(struct i_module *im, struct im_msg  *ret) {
+im_unix_getLog(struct i_module *im, struct im_msg  *ret)
+{
 	struct sockaddr_un fromunix;
 	int slen;
 
@@ -91,7 +92,8 @@ im_unix_getLog(struct i_module *im, struct im_msg  *ret) {
  */
 
 int
-im_unix_init(struct i_module *I, char **argv, int argc) {
+im_unix_init(struct i_module *I, char **argv, int argc)
+{
 	struct sockaddr_un sunx;
 
 	dprintf ("\nim_unix_init...\n");
@@ -122,7 +124,8 @@ im_unix_init(struct i_module *I, char **argv, int argc) {
 }
 
 int
-im_unix_close( struct i_module *im) {
+im_unix_close( struct i_module *im)
+{
 	close(im->im_fd);
 
 	if (im->im_path)
@@ -132,7 +135,7 @@ im_unix_close( struct i_module *im) {
 }
 
 
-#ifdef EXPERIMENTAL_CREDENTIALS_HANDLING
+#if 0
 /*
  * get user credentials
  */

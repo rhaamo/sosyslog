@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.127 2000/09/15 21:33:27 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.89.2.6.2.4.4.6 2000/10/23 23:54:33 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -49,7 +49,6 @@
 #include <limits.h>
 #include "syslogd.h"
 #include "modules.h"
-#include "modules_libs.h"
 
 #ifdef _POSIX_PATH_MAX
 #define LIB_PATH_MAX _POSIX_PATH_MAX
@@ -63,9 +62,6 @@
 #define DLOPEN_FLAGS RTLD_LAZY
 #endif
 
-int     modules_load(void);
-int     imodule_init(struct i_module *, char *);
-int     omodule_create(char *, struct filed *, char *);
 void    logerror(char *);
 
 int	parseParams(char ***, char *);
@@ -81,11 +77,28 @@ extern char *libdir;
 extern int Debug;
 char err_buf[MAXLINE];
 
+/*
+ *
+ * Here are declared needed module libs when dynamic
+ *
+ */
+
+struct {
+	char *name;
+	char *libs[MLIB_MAX];
+} mlibs[] = {
+	{"mysql", {"libmysqlclient.so", NULL} },
+	{"pgsql", {"libpq.so", NULL} },
+	{ NULL, { NULL } }
+};
+
+
 /* assign module functions to generic pointer */
 int
-imodule_init (struct i_module *I, char *line) {
-	int argc;
-	char **argv, *p;
+imodule_init(struct i_module *I, char *line)
+{
+	int argc, ret;
+	char *p, **argv = NULL;
 	struct i_module *im, *im_prev;
 
 	/* create initial node for Inputs list */
@@ -94,8 +107,12 @@ imodule_init (struct i_module *I, char *line) {
 	    return(-1);
 	}
 
+	/* go to last item on list */
 	for (im_prev = I; im_prev->im_next != NULL; im_prev = im_prev->im_next);
-	if (im_prev == I && im_prev->im_fd > -1) {
+
+	if (im_prev == I && im_prev->im_fd == -1) {
+		im = im_prev;
+	} else {
 		if((im_prev->im_next = (struct i_module *) calloc(1,
 		        sizeof(struct i_module))) == NULL) {
 		    dprintf("No memory available for calloc\n");
@@ -103,10 +120,6 @@ imodule_init (struct i_module *I, char *line) {
 		}
 		im = im_prev->im_next;
 		im->im_fd = -1;
-		im->im_prev = im_prev;
-	} else {
-		im = im_prev;
-		im->im_prev = NULL;
 	}
 
 	for (p = line; *p != '\0'; p++)
@@ -114,10 +127,10 @@ imodule_init (struct i_module *I, char *line) {
 	        *p = ' ';
 
 	if ((argc = parseParams(&argv, line)) < 1) {
-	    snprintf(err_buf, sizeof(err_buf), "Error initializing module "
-			"%s [%s]\n", argv[0], line);
-	    logerror(err_buf);
-	    return(-1);
+		snprintf(err_buf, sizeof(err_buf), "Error initializing module "
+		    "%s [%s]\n", argv[0], line);
+		ret = -1;
+		goto imodule_init_bad;
 	}
 
 	/* is it already initialized ? searching... */
@@ -126,24 +139,55 @@ imodule_init (struct i_module *I, char *line) {
 			snprintf(err_buf, sizeof(err_buf), "Error loading "
 					"dynamic input module %s [%s]\n",
 					argv[0], line);
-			logerror(err_buf);
-			return(-1);
+			ret = -1;
+			goto imodule_init_bad;
 		}
 
 	/* got it, now try to initialize it */
 	if ((*(im->im_func->im_init))(im, argv, argc) < 0) {
 		snprintf(err_buf, sizeof(err_buf), "Error initializing "
 				"input module %s [%s]\n", argv[0], line);
-		logerror(err_buf);
-		return(-1);
+		ret = -1;
+		goto imodule_init_bad;
 	}
 
-	return(1);
+	ret = 1;
+
+imodule_init_bad:
+
+	if (ret == -1) {
+
+		/* log error first */
+		logerror(err_buf);
+
+		/* free allocated input module on queue */
+		if (im_prev == I && im_prev->im_next == NULL) {
+			im_prev->im_fd = -1;
+		} else if (im_prev->im_next == im) {
+			free (im);
+			im_prev->im_next = NULL;
+		}
+	}
+
+	/* free argv params if there */
+	if (argv != NULL) {
+		char *f;
+		int i;
+
+		for (i = 0; (f = argv[i]) != NULL ; i++)
+				free(f);
+
+		free(argv);
+	}
+
+	return(ret);
+
 }
 
 /* create all necesary modules for a specific filed */
 int
-omodule_create(char *c, struct filed *f, char *prog) {
+omodule_create(char *c, struct filed *f, char *prog)
+{
 	char	*line, *p, quotes, *argv[20];
 	int	argc;
 	struct o_module	*om, *om_prev;
@@ -154,15 +198,13 @@ omodule_create(char *c, struct filed *f, char *prog) {
 	/* create context and initialize module for logging */
 	while (*p) {
 		if (f->f_omod == NULL) {
-			f->f_omod = (struct o_module *) calloc(1,
-			    	sizeof(*f->f_omod));
+			f->f_omod = (struct o_module *) calloc(1, sizeof(*f->f_omod));
 			om = f->f_omod;
 			om_prev = NULL;
 		} else {
 			for (om_prev = f->f_omod; om_prev->om_next; om_prev = om_prev->om_next);
 			om_prev->om_next = (struct o_module *) calloc(1, sizeof *f->f_omod);
 			om = om_prev->om_next;
-			om->om_prev = om_prev;
 		}
 
 		switch (*p) {
@@ -178,11 +220,12 @@ omodule_create(char *c, struct filed *f, char *prog) {
 				/* find for matching module */
 				if ((om->om_func = getOmodule(argv[0])) == NULL) {
 					if ((om->om_func = addOmodule(argv[0])) == NULL) {
+
 						snprintf(err_buf, sizeof(err_buf), "Error "
 								"loading dynamic output module "
 								"%s [%s]\n", argv[0], line);
-						logerror(err_buf);
-						goto om_error;
+						goto omodule_create_bad;
+
 					}
 				}
 
@@ -229,29 +272,45 @@ omodule_create(char *c, struct filed *f, char *prog) {
 						snprintf(err_buf, sizeof(err_buf), "Error "
 								"loading dynamic output module "
 								"%s [%s]\n", argv[0], line);
-						logerror(err_buf);
-						goto om_error;
+						goto omodule_create_bad;
 					}
 				}
 
 				break;
 		}
+
 		if ((*(om->om_func->om_init))(argc, argv, f,
 				prog, (void *) &(om->ctx)) < 0) {
 			snprintf(err_buf, sizeof(err_buf), "Error initializing "
 					"dynamic output module %s [%s]\n",
 					argv[0], line);
-			logerror(err_buf);
-			goto om_error;
+			goto omodule_create_bad;
 		}
 	}
+
 	free(line);
+
 	if (f->f_type == F_UNUSED)
 		f->f_type = F_MODULE;
+
 	return(1);
 
-om_error:
-	free(line);
+omodule_create_bad:
+
+	logerror(err_buf);
+
+	if (line)
+		free(line);
+
+	/* free allocated module */
+	if (f->f_omod == om) {
+		f->f_omod = NULL;
+	} else if (om_prev)
+			om_prev->om_next = NULL;
+
+	if (om)
+		free(om);
+
 	return(-1);
 
 }
@@ -264,11 +323,13 @@ om_error:
  */
 
 int
-parseParams(char ***ret, char *c) {
+parseParams(char ***ret, char *c)
+{
 	char	*line, *p, *q;
 	int	argc;
 
-	line = strdup(c); p = line;
+	line = strdup(c);
+	p = line;
 
 	/* initialize arguments before starting */
 	*ret = (char **) calloc(20, sizeof(char *));
@@ -307,7 +368,8 @@ parseParams(char ***ret, char *c) {
 }
 
 struct imodule *
-addImodule(char *name) {
+addImodule(char *name)
+{
 	struct imodule *im;
 	char buf[LIB_PATH_MAX], *r;
 	int i, j;
@@ -329,10 +391,10 @@ addImodule(char *name) {
 			for(j = 0; (r = mlibs[i].libs[j]) && j < MLIB_MAX; j++) { 
 				dprintf("addImodule: going to open library %s "
 						"for module %s\n", name, r);
-				if (dlopen(r, DLOPEN_FLAGS) == NULL) {
+				if ((im->ih[j] = dlopen(r, DLOPEN_FLAGS)) == NULL) {
 					dprintf("Error [%s] on file [%s]\n",
 							dlerror(), r);
-					return(NULL);
+					goto addImod_bad;
 				}
 			}
 		}
@@ -343,20 +405,20 @@ addImodule(char *name) {
 
 	if ((im->h = dlopen(buf, DLOPEN_FLAGS)) == NULL) {
 	   	dprintf("Error [%s] on file [%s]\n", dlerror(), buf);
-	   	return(NULL);
+	   	goto addImod_bad;
 	}
 
 #ifdef HAVE_LINUX
 	snprintf(buf, 127, "im_%s_init", name);
 	if ((im->im_init = dlsym(im->h, buf)) == NULL) {
 	   	dprintf("addImodule: error linking %s function \n", buf);
-	   	return(NULL);
+	   	goto addImod_bad;
 	}
 
 	snprintf(buf, 127, "im_%s_getLog", name);
 	if ((im->im_getLog = dlsym(im->h, buf)) == NULL) {
 	   	dprintf("addImodule: error linking %s function \n", buf);
-	   	return(NULL);
+	   	goto addImod_bad;
 	}
 
 	/* this one could be null */
@@ -366,13 +428,13 @@ addImodule(char *name) {
 	snprintf(buf, 127, "_im_%s_init", name);
 	if ((im->im_init = dlsym(im->h, buf)) == NULL) {
 	   	dprintf("addImodule: error linking %s function \n", buf);
-	   	return(NULL);
+	   	goto addImod_bad;
 	}
 
 	snprintf(buf, 127, "_im_%s_getLog", name);
 	if ((im->im_getLog = dlsym(im->h, buf)) == NULL) {
 	   	dprintf("addImodule: error linking %s function \n", buf);
-	   	return(NULL);
+	   	goto addImod_bad;
 	}
 
 	/* this one could be null */
@@ -383,44 +445,28 @@ addImodule(char *name) {
 
 	return(im);
 
-}
-
-int
-imoduleDestroy(struct imodule *im) {
-	if (im == NULL || im->h == NULL || im->im_next)
-		return(-1);
-
-	if (dlclose(im->h) < 0) {
-	   	dprintf("Error [%s]\n", dlerror());
-		return(-1);
+addImod_bad:
+	if (imodules == im) {
+		imodules = NULL;
+	} else {
+		struct imodule *i = imodules;
+		for (; i && i->im_next == im; i = i->im_next);
+		if (i)
+			i->im_next = NULL;
 	}
-	free(im->im_name);
-
-	return(1);
+	free(im);
 }
+
 
 struct omodule *
-addOmodule(char *name) {
+addOmodule(char *name)
+{
 	struct omodule *om;
 	char buf[LIB_PATH_MAX], *r;
 	int i, j;
 
 	if (name == NULL)
 		return(NULL);
-
-	for( i = 0; mlibs[i].name; i++) {
-		if(!strcmp(name, mlibs[i].name)) {
-			for(j = 0; (r = mlibs[i].libs[j]) && j < MLIB_MAX; j++) {
-				dprintf("addImodule: going to open library %s "
-						"for module %s\n", name, r);
-				if (dlopen(r, DLOPEN_FLAGS) == NULL) {
-					dprintf("Error [%s] on file [%s]\n",
-							dlerror(), r);
-					return(NULL);
-				}
-			}
-		}
-	}
 
 	if (omodules == NULL) {
 		omodules = (struct omodule *) calloc(1, sizeof(*om));
@@ -431,24 +477,38 @@ addOmodule(char *name) {
 		om = om->om_next;
 	}
 
+	for( i = 0; mlibs[i].name; i++) {
+		if(!strcmp(name, mlibs[i].name)) {
+			for(j = 0; (r = mlibs[i].libs[j]) && j < MLIB_MAX; j++) {
+				dprintf("addImodule: going to open library %s "
+						"for module %s\n", name, r);
+				if ((om->oh[j] = dlopen(r, DLOPEN_FLAGS)) == NULL) {
+					dprintf("Error [%s] on file [%s]\n",
+							dlerror(), r);
+				goto addOmod_bad;
+				}
+			}
+		}
+	}
+
 	snprintf(buf, LIB_PATH_MAX, "%s/libmsyslog_om_%s.so",
 			libdir ? libdir : INSTALL_LIBDIR, name);
 
 	if ((om->h = dlopen(buf, DLOPEN_FLAGS)) == NULL) {
 	   	dprintf("Error [%s] on file [%s]\n", dlerror(), buf);
-	   	return(NULL);
+	   	goto addOmod_bad;
 	}
 
 #ifdef HAVE_LINUX
 	snprintf(buf, 127, "om_%s_init", name);
 	if ((om->om_init = dlsym(om->h, buf)) == NULL) {
 	   	dprintf("addOmodule: error linking %s function \n", buf);
-	   	return(NULL);
+	   	goto addOmod_bad;
 	}
 	snprintf(buf, 127, "om_%s_doLog", name);
 	if ((om->om_doLog = dlsym(om->h, buf)) == NULL) {
 	   	dprintf("addOmodule: error linking %s function \n", buf);
-	   	return(NULL);
+	   	goto addOmod_bad;
 	}
 
 	/* this ones could be null */
@@ -460,12 +520,12 @@ addOmodule(char *name) {
 	snprintf(buf, 127, "_om_%s_init", name);
 	if ((om->om_init = dlsym(om->h, buf)) == NULL) {
 	   	dprintf("addOmodule: error linking %s function \n", buf);
-	   	return(NULL);
+	   	goto addOmod_bad;
 	}
 	snprintf(buf, 127, "_om_%s_doLog", name);
 	if ((om->om_doLog = dlsym(om->h, buf)) == NULL) {
 	   	dprintf("addOmodule: error linking %s function \n", buf);
-	   	return(NULL);
+	   	goto addOmod_bad;
 	}
 
 	/* this ones could be null */
@@ -478,10 +538,22 @@ addOmodule(char *name) {
 
 	return(om);
 
+addOmod_bad:
+	if (omodules == om) {
+		omodules = NULL;
+	} else {
+		struct omodule *o = omodules;
+		for (; o && o->om_next != om; o = o->om_next);
+		if (o)
+			o->om_next = NULL;
+	}
+	free(om);
+	return(NULL);
 }
 
 int
-omoduleDestroy(struct omodule *om) {
+omoduleDestroy(struct omodule *om)
+{
 	if (om == NULL || om->h == NULL || om->om_next)
 		return(-1);
 
@@ -496,7 +568,8 @@ omoduleDestroy(struct omodule *om) {
 }
 
 struct imodule *
-getImodule(char *name) {
+getImodule(char *name)
+{
 	struct imodule *im;
 	int len;
 
@@ -504,7 +577,7 @@ getImodule(char *name) {
 		return(NULL);
 
 	for(im = imodules, len = strlen(name); im; im = im->im_next)
-		if (!strncmp(im->im_name, name, len))
+		if (im->im_name && !strncmp(im->im_name, name, len))
 			break;
 
 	return(im);
@@ -519,10 +592,92 @@ getOmodule(char *name) {
 		return(NULL);
 
 	for(om = omodules, len = strlen(name); om; om = om->om_next)
-		if (!strcmp(om->om_name, name))
+		if (om->om_name && !strncmp(om->om_name, name, len))
 			break;
 
 	return(om);
+}
+
+
+/*
+ * This function removes an output module and
+ * its dynamic libraries
+ *
+ */
+
+int 
+imodules_destroy(struct imodule *i)
+{
+    struct imodule *im, *im_next, *last;
+    
+	for (im = i, last = NULL; im; im = im_next) {
+		int j;
+
+		im_next = im->im_next;
+
+		if (!im->h) {
+			last = im;
+			continue;
+		}
+
+		if (last)
+			last->im_next = im->im_next;
+
+		for (j = 0; j < MLIB_MAX && im->ih[j]; j++)
+			dlclose(im->ih[j]);
+
+		if (im->h)
+			dlclose(im->h);
+
+		free(im);
+	}
+
+	if (last) {
+		last->im_next = NULL;
+		return(1); /* there are some static modules on */
+	}
+
+	return (0);
+}
+
+
+/*
+ * This function removes an output module and
+ * its dynamic libraries
+ *
+ */
+
+int
+omodules_destroy(struct omodule *o)
+{
+    struct omodule *om, *om_next, *last;
+    
+	for (om = o, last = NULL; om; om = om_next) {
+		int j;
+
+		om_next = om->om_next;
+
+		if (!om->h) {
+			last = om;
+			continue;
+		}
+
+		if (last)
+			last->om_next = om->om_next;
+
+		for (j = 0; j < MLIB_MAX && om->oh[j]; j++)
+			dlclose(om->oh[j]);
+
+		dlclose(om->h);
+		free(om);
+	}
+
+	if (last) {
+		last->om_next = NULL;
+		return(1); /* there are some static modules on */
+	}
+
+	return (0);
 }
 
 

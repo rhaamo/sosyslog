@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.44 2000/09/15 22:05:29 fgsch Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.36.2.4.2.3.4.19 2000/10/30 23:14:21 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -53,58 +53,121 @@
 #include "../syslogd.h"
 #include "sql_misc.h"
 
+/* size of  query buffer */
 #define MAX_QUERY	8192
+/* how many seconds to wait to give again the error message */
+#define MSYSLOG_MYSQL_ERROR_DELAY	30
 
 struct om_mysql_ctx {
-	short	flags;
-	int	size;
-	MYSQL	*h;
+	MYSQL	h;
+	int	lost;
+	char	*table;
 	char	*host;
 	int	port;
 	char	*user;
 	char	*passwd;
 	char	*db;
-	char	*table;
-	char	*query;		/* speed hack: this is a buffer for queries */
 };
 
 int
-om_mysql_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *ctx) {
+om_mysql_doLog(struct filed *f, int flags, char *msg, void *ctx)
+{
 	struct om_mysql_ctx *c;
-	struct tm *t;
-	char	*msg_q;
+	char	query[MAX_QUERY], err_buf[100];
+	int i, j;
+	void (*sigsave)(int);
 
-	if (!ctx) {
-		dprintf("MySQL doLog: error, no context\n");
-		return(-1);
+	if (ctx == NULL) {
+		dprintf("om_mysql_dolog: error, no context\n");
+		return (-1);
 	}
 
 	if (f == NULL)
 		return (-1);
 
-	dprintf("MySQL doLog: entering [%s] [%s]\n", msg, f->f_prevline);
+	dprintf("om_mysql_dolog: entering [%s] [%s]\n", msg, f->f_prevline);
 
 	c = (struct om_mysql_ctx *) ctx;
 
-	if (!(c->h)) {
-		dprintf("MySQL doLog: error, no connection\n");
-		return(-1);
+	/* ignore sigpipes   for mysql_ping */
+	sigsave = signal(SIGPIPE, SIG_IGN);
+
+	if ((mysql_ping(&c->h) != 0) && ((mysql_init(&c->h) == NULL) ||
+	    (mysql_real_connect(&c->h, c->host, c->user, c->passwd, c->db,
+	    c->port, NULL, 0) == NULL))) {
+
+		/* restore previous SIGPIPE handler */
+		signal(SIGPIPE, sigsave);
+		c->lost++;
+		if (c->lost == 1) {
+			dprintf("om_mysql_dolog: Lost connection!");
+			logerror("om_mysql_dolog: Lost connection!");
+		}
+		return(1);
 	}
 
-	if ((msg_q = to_sql(msg)) == NULL)
-		return -1;
+	/* restore previous SIGPIPE handler */
+	signal(SIGPIPE, sigsave);
 
-	t = localtime(&f->f_time);
+	if (c->lost) {
+
+		/*
+		 * Report lost messages, but 2 of them are lost of
+		 * connection and this one (wich we are going
+		 * to log anyway)
+		 */
+		snprintf(err_buf, sizeof(err_buf), "om_mysql_dolog: %i "
+		    "messages were lost due to lack of connection",
+		    c->lost - 2);
+
+		/* count reset */
+		c->lost = 0;
+
+		/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
+		i = snprintf(query, sizeof(query), "INSERT INTO %s"
+		    " VALUES('%.4d-%.2d-%.2d', '%.2d:%.2d:%.2d', '%s', '", c->table,
+		    f->f_tm.tm_year + 1900, f->f_tm.tm_mon + 1, f->f_tm.tm_mday,
+		    f->f_tm.tm_hour, f->f_tm.tm_min, f->f_tm.tm_sec, f->f_prevhost);
+
+		/* put message escaping special SQL characters */
+		i += to_sql(query + i, err_buf, sizeof(query) - i);
+
+		/* finish it with "')" */
+		query[i++] =  '\'';
+		query[i++] =  ')';
+		if (i < sizeof(query))
+			query[i]   =  '\0';
+
+		/* just in case */
+		query[sizeof(query) - 1] = '\0';
+
+		dprintf("om_mysql_doLog: query [%s]\n", query);
+
+		if (mysql_query(&c->h, query) < 0)
+			return (-1);
+	}
 
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
-	snprintf(c->query, MAX_QUERY, "INSERT INTO %s "
-	    "VALUES('%d-%02d-%02d', '%02d:%02d:%02d', '%s', '%s')",
-	    c->table, t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
-	    t->tm_hour, t->tm_min, t->tm_sec, f->f_prevhost, msg_q);
+	i = snprintf(query, sizeof(query), "INSERT INTO %s"
+	    " VALUES('%.4d-%.2d-%.2d', '%.2d:%.2d:%.2d', '%s', '", c->table,
+	    f->f_tm.tm_year + 1900, f->f_tm.tm_mon + 1, f->f_tm.tm_mday,
+	    f->f_tm.tm_hour, f->f_tm.tm_min, f->f_tm.tm_sec, f->f_prevhost);
 
-	free(msg_q);
+	/* put message escaping special SQL characters */
+	i += to_sql(query + i, msg, sizeof(query) - i);
 
-	return (mysql_query(c->h, c->query) < 0? -1 : 1);
+	/* finish it with "')" */
+	query[i++] =  '\'';
+	query[i++] =  ')';
+	if (i < sizeof(query))
+		query[i]   =  '\0';
+
+	/* just in case */
+	query[sizeof(query) - 1] = '\0';
+
+	dprintf("om_mysql_doLog: query [%s]\n", query);
+
+	return (mysql_query(&c->h, query) < 0? -1 : 1);
 }
 
 /*
@@ -118,33 +181,24 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *ctx) {
  *         -p <password>
  *         -b <database_name>
  *         -t <table_name>
- *         -c			create table
  *
  */
 
-extern char *optarg;
-extern int optind;
-#ifdef HAVE_OPTRESET
-extern int optreset;
-#endif
-
 int
-om_mysql_init(int argc, char **argv, struct filed *f, char *prog,
-		struct om_hdr_ctx **c) {
-	MYSQL *h;
+om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
+{
 	struct om_mysql_ctx	*ctx;
-	char	*host, *user, *passwd, *db, *table, *p, *query;
-	int	port, client_flag, createTable, ch;
+	char	*host, *user, *passwd, *db, *table, *p, err_buf[256];
+	int	port, ch;
 
-	dprintf("MySQL: entering initialization\n");
+	dprintf("om_mysql_init: entering initialization\n");
 
 	if (argv == NULL || *argv == NULL || argc < 2 || f == NULL ||
-			c == NULL)
+	    c == NULL || *c != NULL)
 		return (-1);
 
-	h = (MYSQL *) calloc(1, sizeof(MYSQL));
-	user = NULL; passwd = NULL; db = NULL; port = 0; host = NULL; table = NULL;
-	client_flag = 0; createTable = 0;
+	user = NULL; passwd = NULL; db = NULL; port = 0;
+	host = NULL; table = NULL;
 
 	/* parse line */
 	optind = 1;
@@ -153,91 +207,92 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog,
 #endif
 	while ((ch = getopt(argc, argv, "s:u:p:d:t:")) != -1) {
 		switch (ch) {
-			case 's':
-				/* get database host name and port */
-				if ((p = strstr(optarg, ":")) == NULL) {
-					port = MYSQL_PORT;
-				} else {
-					*p = '\0';
-					port = atoi(++p);
-				}
-				host = optarg;
-				break;
-			case 'u':
-				user = optarg;
-				break;
-			case 'p':
-				passwd = optarg;
-				break;
-			case 'd':
-				db = optarg;
-				break;
-			case 't':
-				table = optarg;
-				break;
-			default:
-				return(-1);
+		case 's':
+			/* get database host name and port */
+			if ((p = strstr(optarg, ":")) == NULL) {
+				port = MYSQL_PORT;
+			} else {
+				*p = '\0';
+				port = atoi(++p);
+			}
+			host = optarg;
+			break;
+		case 'u':
+			user = optarg;
+			break;
+		case 'p':
+			passwd = optarg;
+			break;
+		case 'd':
+			db = optarg;
+			break;
+		case 't':
+			table = optarg;
+			break;
+		default:
+			return(-1);
 		}
 	}
 
 	if (user == NULL || passwd == NULL || db == NULL || port == 0 ||
-			host == NULL || table == NULL)
-		return (-3);
+	    host == NULL || table == NULL)
+		return (-1);
+
+	/* alloc context */
+	if ((*c = (void *) calloc(1, sizeof(struct om_mysql_ctx))) == NULL)
+		return(-1);
+	ctx = (struct om_mysql_ctx *) *c;
+
+	ctx->table = strdup(table);
+	ctx->host = strdup(host);
+	ctx->port = port;
+	ctx->user = strdup(user);
+	ctx->passwd = strdup(passwd);
+	ctx->db = strdup(db);
 
 	/* connect to the database */
-	if (!mysql_init(h)) {
-		dprintf("Error initializing handle\n");
-		return(-4);
-	}
-	if (!mysql_real_connect(h, host, user, passwd, db, port,
-			NULL, client_flag)) {
-		dprintf("MySQL module: Error connecting to db server"
-			" [%s:%i] user [%s] db [%s]\n",
-				host, port, user, db);
-		return(-5);
+	if (!mysql_init(&ctx->h)) {
+
+		snprintf(err_buf, sizeof(err_buf), "om_mysql_init: Error "
+		    "initializing handle");
+		logerror(err_buf);
+		return(-1);
 	}
 
-	/* save handle and stuff on context */
-	if (! (*c = (struct om_hdr_ctx *)
-		calloc(1, sizeof(struct om_mysql_ctx))))
-		return (-1);
+	if (!mysql_real_connect(&ctx->h, host, user, passwd, db, port,
+	    NULL, 0)) {
 
-	if (! (query = (char *) calloc(1, MAX_QUERY)))
-		return (-1);
-
-	ctx = (struct om_mysql_ctx *) *c;
-	ctx->size = sizeof(struct om_mysql_ctx);
-	ctx->h = h;
-	ctx->host = host;
-	ctx->port = port;
-	ctx->user = user;
-	ctx->passwd = passwd;
-	ctx->db = db;
-	ctx->table = table;
-	ctx->query = query;
+		snprintf(err_buf, sizeof(err_buf), "om_mysql_init: Error "
+		    "connecting to db server [%s:%i] user [%s] db [%s]",
+		    host, port, user, db);
+		logerror(err_buf);
+		return(1);
+	}
 
 	return (1);
+
 }
 
-void
-om_mysql_destroy_ctx(ctx)
-	struct om_mysql_ctx *ctx;
-{
-	free(ctx->h);
-	free(ctx->host);
-	free(ctx->user);
-	free(ctx->passwd);
-	free(ctx->db);
-	free(ctx->table);
-	free(ctx->query);
-}
 
 int
-om_mysql_close(struct filed *f, struct om_hdr_ctx *ctx) {
-	if (((struct om_mysql_ctx*)ctx)->h) {
-		mysql_close(((struct om_mysql_ctx*)ctx)->h);
-		om_mysql_destroy_ctx((struct om_mysql_ctx*)ctx);
-	}
+om_mysql_close(struct filed *f, void *ctx)
+{
+	struct om_mysql_ctx *c;
+
+	c = (struct om_mysql_ctx*) ctx;
+
+	if (c->table)
+		free(c->table);
+	if (c->table)
+		free(c->table);
+	if (c->host)
+		free(c->host);
+	if (c->user)
+		free(c->user);
+	if (c->passwd)
+		free(c->passwd);
+	if (c->db)
+		free(c->db);
 
 	return (0);
 }

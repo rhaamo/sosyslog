@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.17.2.8.2.3 2000/09/11 21:15:30 alejo Exp $
+dnl	$CoreSDI: configure.in,v 1.17.2.8.2.3.4.1 2000/10/11 20:45:28 alejo Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -86,17 +86,11 @@ then
 	DHASH_SRCS="$HASH_SRCS"
 fi
 
-dnl Both SQL cant be static
-if test "x$MYSQL" != "x" -a "x$PGSQL" != "x"
-then
-	AC_MSG_ERROR("You can not use more than one SQL module right now");
-fi
-
 if test "x$MYSQL" = "xstatic" -o "x$MYSQL" = "xdynamic"
 then
 	MSYSLOG_CHECK_MYSQL()
 fi
-MSYSLOG_CHECK_MODULE(mysql, $MYSQL, om, om_mysql.c, sql_misc.c)
+MSYSLOG_CHECK_MODULE(mysql, $MYSQL, om, om_mysql.c)
 
 dnl Add to LIBS and CPP params
 if test "x$MYSQL" = "xstatic"
@@ -117,7 +111,15 @@ then
 	CPPFLAGS="$CPPFLAGS $PGSQL_CPPFLAGS"
 fi
 
-MSYSLOG_CHECK_MODULE(pgsql, $PGSQL, om, om_pgsql.c, sql_misc.c)
+MSYSLOG_CHECK_MODULE(pgsql, $PGSQL, om, om_pgsql.c)
+
+
+dnl Assign sql_misc.c file as needed
+if test "x$MYSQL" != "x" -o "x$PGSQL" != "x"
+then
+	SSRCS="$SSRCS sql_misc.c"
+fi
+
 MSYSLOG_CHECK_MODULE(regex, $REGEX, om, om_regex.c)
 MSYSLOG_END_MODULES_CONF()
 

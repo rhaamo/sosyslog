@@ -1,20 +1,17 @@
-/*	$CoreSDI: TODO,v 1.42 2000/09/29 01:10:02 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.20.2.1.4.6 2000/10/12 22:25:13 alejo Exp $	*/
 
 Things to do:
 
-- remove memory leaks
-- do not generate coredumps (via resource limits)
+- remove memory leaks (needs adding an optional destroy function)
 - define STYLE for names (ie. underscore or caps, indentation)
 - solaris port
 - reconnect on SQL
 - module configuration file (ie. no more passwds in syslog.conf)
-- warn the when ignoring a line (DONE, TEST it)
 - fix time and date usage on syslogd.c and modules. it is UGLY.
 - minimize global variables even more (ie. now)
-- redo parsing functions
-- tell about -i linux in syslogd(8)
 - no more static modules
 - decide on default command line options
+- redo parsing functions
 - CHECK LIBC and GLIBC's way to work
 
 FOR FUTURE WORKING

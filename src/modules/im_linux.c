@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.34 2000/09/09 00:42:13 alejo Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.31.2.4.4.5 2000/10/12 01:48:32 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -109,7 +109,7 @@ im_linux_usage()
 		"   [ -x ]         Do not translate kernel symbols.\n"
 		"Defaults:\n"
 		"   Reads kernel messages from %s; "
-#ifdef SYSCALL_IMPLEMENTED
+#if 0
 		" if this file doesn't exists\n"
 		"   it uses the syscall method.\n"
 #endif
@@ -207,7 +207,7 @@ im_linux_init (struct i_module *I, char **argv, int argc)
 				break;
 
 /* not supported yet, we need to talk about somethings */
-#ifdef SYSCALL_IMPLEMENTED
+#if 0
 			case 's': /* force to use syscall instead
 				   * of _PATH_KLOG
 				   */
@@ -234,7 +234,7 @@ im_linux_init (struct i_module *I, char **argv, int argc)
 			I->im_path = _PATH_KLOG;
 
 /* if /proc not mounted.. sorry: syscall not supported yet */
-#ifdef SYSCALL_IMPLEMENTED
+#if 0
 		else if (errno != ENOENT) {
 			warn("%s: %s: %s\n",
 			     linux_input_module, _PATH_KLOG, strerror(errno));
@@ -242,7 +242,8 @@ im_linux_init (struct i_module *I, char **argv, int argc)
 		} else
 			/* /proc not mounted, use syscall */
 			I->im_fd = 0;
-#else
+#endif
+#if 1
 		else {
 			warn("%s: %s: %s\n",
 			     linux_input_module, _PATH_KLOG, strerror(errno));
@@ -269,7 +270,8 @@ im_linux_init (struct i_module *I, char **argv, int argc)
  * and log it.
  */
 int
-im_linux_getLog (struct i_module *im, struct im_msg *ret) {
+im_linux_getLog (struct i_module *im, struct im_msg *ret)
+{
 	int   i;
 	char *ptr;
 
@@ -279,7 +281,7 @@ im_linux_getLog (struct i_module *im, struct im_msg *ret) {
 	/* read message from kernel */
 
 /* syscall not supported yet */
-#ifdef SYSCALL_IMPLEMENTED
+#if 0
 	if (im->im_path == NULL || flags & KLOG_USE_SYSCALL)
 		/* this blocks */
 		/* i = klogctl(2, im->im_buf, sizeof(im->im_buf)-1);
@@ -305,7 +307,7 @@ im_linux_getLog (struct i_module *im, struct im_msg *ret) {
 			
 			/* get priority */
 			if (i >= 3 && ptr[0] == '<' &&
-			    ptr[2] == '>' && isdigit((int)ptr[1])) {
+			    ptr[2] == '>' && isdigit(ptr[1])) {
 				ret->im_pri = ptr[1] - '0';
 				ptr += 3;
 				i -= 3;
@@ -371,7 +373,7 @@ ksym_init()
 	if (flags & KSYM_READ_TABLE) {
 		last = NULL;
 		while (fgets(buf, sizeof(buf), ksym_fd) != NULL) {
-			if ( (next = (Symbol*)malloc(sizeof(Symbol))) == NULL) {
+			if ( (next = (Symbol*) malloc(1, sizeof(Symbol))) == NULL) {
 				warn("%s: ksym_init", linux_input_module);
 				ksym_close();
 				return(-1);
@@ -384,7 +386,7 @@ ksym_init()
 			if (ksym_parseline(buf, next) < 0) {
 				warnx("%s: ksym_init: incorrect symbol file: %s"
 				      , linux_input_module, ksym_path);
-				ksym_close();
+				ksym_close(); /* this also frees *next */
 				return(-1);
 			}
 			last = next;
@@ -437,7 +439,7 @@ ksym_snprintf (char *buf, int bufsize, char *raw)
 	while (bufsize && *raw != '\0') {
 		if ( (p1 = strstr(raw, "[<")) != NULL &&
 		     (p2 = strstr(p1, ">]")) != NULL) {
-			for (i = 2; p1+i < p2 && isxdigit((int)p1[i]); i++);
+			for (i = 2; p1+i < p2 && isxdigit(p1[i]); i++);
 			if (p1+i == p2) {
 				*p2 = '\0';
 				if (ksym_lookup(&sym, p1+2) != NULL) {

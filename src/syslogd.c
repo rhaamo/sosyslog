@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.139 2000/09/29 01:13:36 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.90.2.9.2.4.4.11 2000/10/23 23:54:33 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -40,8 +40,8 @@ static char copyright[] =
 #endif /* not lint */
 
 #ifndef lint
-/*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.139 2000/09/29 01:13:36 alejo Exp $";
+/*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.90.2.9.2.4.4.11 2000/10/23 23:54:33 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -75,7 +75,10 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.139 2000/09/29 01:13:36 alejo Exp
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/un.h>
+#include <sys/types.h>
+#include <sys/time.h>
 #include <sys/resource.h>
+#include <sys/sysctl.h>
 
 #include <ctype.h>
 #include <errno.h>
@@ -86,16 +89,12 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.139 2000/09/29 01:13:36 alejo Exp
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/sysctl.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 
 #define SYSLOG_NAMES
 #include <syslog.h>
 #include "syslogd.h"
-#include "config.h"
 
-#ifdef PATH_MAX
+#ifdef PATH_MAX   
 #define PID_PATH_MAX PATH_MAX
 #else
 #include <limits.h>
@@ -111,43 +110,6 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.139 2000/09/29 01:13:36 alejo Exp
 #define _PATH_CONSOLE "/dev/console"
 #warning Using _PATH_CONSOLE as "/dev/console"
 #endif /* _PATH_CONSOLE */
-  
-#ifndef NAME_MAX
-#define NAME_MAX 255
-#warning Using NAME_MAX as 255
-#endif /* NAME_MAX */
-  
-#ifndef INTERNAL_NOPRI
-#define INTERNAL_NOPRI 0x10
-#warning Using INTERNAL_NOPRI as 0x10
-#endif /* INTERNAL_NOPRI */
-
-#ifndef HAVE_CODE_TYPEDEF
-typedef struct _code {
-        char    *c_name;
-        int     c_val;
-} CODE;
-#endif
- 
-#ifdef NEED_PRIORITYNAMES
-CODE prioritynames[] = {
-        { "alert",      LOG_ALERT },
-        { "crit",       LOG_CRIT },
-        { "debug",      LOG_DEBUG },
-        { "emerg",      LOG_EMERG },
-        { "err",        LOG_ERR },
-        { "error",      LOG_ERR },              /* DEPRECATED */
-        { "info",       LOG_INFO },
-        { "none",       INTERNAL_NOPRI },       /* INTERNAL */
-        { "notice",     LOG_NOTICE },
-        { "panic",      LOG_EMERG },            /* DEPRECATED */
-        { "warn",       LOG_WARNING },          /* DEPRECATED */
-        { "warning",    LOG_WARNING },
-        { NULL,         -1 },
-};
-#warning defined prioritynames
-#endif /* prioritynames */
-
 
 /*
  * Intervals at which we flush out "message repeated" messages,
@@ -159,27 +121,25 @@ int	repeatinterval[] = { 30, 120, 600 };	/* # of secs before flush */
 
 struct	filed *Files;
 struct	filed consfile;
-struct	log_buf *log_queue = NULL;
-int		log_queue_in = 0;
-#define LOG_QUEUE_MAX	100;
 
 int	Initialized = 0;	/* set when we have initialized ourselves */
 int	MarkInterval = 20 * 60;	/* interval between marks in seconds */
 int	MarkSeq = 0;		/* mark sequence number */
 char	*ConfFile = _PATH_LOGCONF;	/* configuration file */
 #define MAX_PIDFILE_LOCK_TRIES 5
-char pidfile[PATH_MAX];
-FILE *pidf = NULL;
+char pidfile[PID_PATH_MAX];
+FILE *pidf;
 
-char *ctty = _PATH_CONSOLE;
-char *TypeNames[] = { "UNUSED", "FILE", "TTY", "CONSOLE", "FORW",
-	"USERS", "WALL", "MODULE", NULL };
-char  LocalHostName[MAXHOSTNAMELEN];  /* our hostname */
-char *LocalDomain = NULL;
-int finet = -1;
-int LogPort = -1;
-int Debug = 0;
-int DaemonFlags = 0; /* running daemon flags */
+/* names for f_types */
+char    *TypeNames[] = { "UNUSED", "FILE", "TTY", "CONSOLE",
+	"FORW", "USERS", "WALL", "MODULE", NULL};
+char    *ctty;
+char    LocalHostName[MAXHOSTNAMELEN];  /* our hostname */
+char    *LocalDomain = NULL;	/* our domain */
+int     finet = -1;		/* Internet datagram socket */
+int     LogPort = -1;		/* port number for INET connections */
+int     Debug = 0;		/* debug flag */
+int	DaemonFlags = 0;
 
 char *libdir = NULL;
 
@@ -194,10 +154,11 @@ void    usage(void);
 int     modules_load(void);
 int     imodule_init(struct i_module *, char *);
 int     omodule_create(char *, struct filed *, char *);
+int	omodules_destroy(struct omodule *);
+int	imodules_destroy(struct imodule *);
 void    logerror(char *);
 void    logmsg(int, char *, char *, int);
 void    die(int);
-char   *ttymsg (struct iovec *, int, char *, int);
 
 
 extern	struct  omodule *omodules;
@@ -208,22 +169,28 @@ int
 main(int argc, char **argv) {
 	int ch;
 	char *p;
-	struct timeval timeout, tnow, nextcall;
 
-	memset(&Inputs, 0, sizeof(Inputs));
-
+	Inputs.im_next = NULL;
 	Inputs.im_fd = -1;
-
-	timeout.tv_sec = SYSLOG_TIMEOUT_SEC;
-	timeout.tv_usec = SYSLOG_TIMEOUT_USEC;
+	ctty = strdup(_PATH_CONSOLE);
 
 	/* assign functions and init input */
 	if ((ch = modules_load()) < 0) {
 		dprintf("Error loading static modules [%d]\n", ch);
 		exit(-1);
 	}
+	if (!Debug) {
+		struct rlimit r;
 
-	while ((ch = getopt(argc, argv, "dubSf:m:p:a:i:l:h")) != -1)
+		/* no core dumping */
+		r.rlim_cur = 0;
+		r.rlim_max = 0;
+		if (setrlimit(RLIMIT_CORE, &r)) {
+			logerror("ERROR setting limits for coredump");
+		}
+	}
+
+	while ((ch = getopt(argc, argv, "dubSf:m:p:a:i:h")) != -1)
 		switch (ch) {
 		case 'd':		/* debug */
 			Debug++;
@@ -236,15 +203,13 @@ main(int argc, char **argv) {
 			break;
 		case 'u':		/* allow udp input port */
 			if (imodule_init(&Inputs, "udp") < 0) {
-				fprintf(stderr, "syslogd: error on udp input module\n");
-				exit(-1);
+				fprintf(stderr, "syslogd: WARNING error on udp input module\n");
 			}
 			break;
 		case 'i':		/* inputs */
 			if (imodule_init(&Inputs, optarg) < 0) {
-				fprintf(stderr, "syslogd: error on input module, ignoring"
-						"%s\n", optarg);
-				exit(-1);
+				fprintf(stderr, "syslogd: WARNING error on input module, ignoring"
+				    " %s\n", optarg);
 			}
 			break;
 		case 'p':		/* path */
@@ -255,14 +220,10 @@ main(int argc, char **argv) {
 			    snprintf(buf, 512, "unix %s", optarg); 
 			    if (imodule_init(&Inputs, buf) < 0) {
 				fprintf(stderr,
-					"syslogd: out of descriptors, ignoring %s\n",
-					optarg);
-			        exit(-1);
+				    "syslogd: WARNING out of descriptors, ignoring %s\n",
+				    optarg);
 			    }
 			}
-			break;
-		case 'l':
-			libdir = optarg;
 			break;
 		case '?':
 		case 'h':
@@ -273,39 +234,28 @@ main(int argc, char **argv) {
 		usage();
 
 	if (!Debug) {
-		struct rlimit r;
- 
-		/* no core dumping */
-		r.rlim_cur = 0;
-		r.rlim_max = 0;
-		if (setrlimit(RLIMIT_CORE, &r)) {
-			logerror("ERROR setting limits for coredump");
-		}
- 
+
 		/* go daemon */
 		daemon(0, 0);
- 
+
 	} else {
 		setlinebuf(stdout);
 	}
-
-	if (!(DaemonFlags & SYSLOGD_CONSOLE_ACTIVE)) {
-		/* this should get into Files and be way nicer */
-		if (omodule_create(ctty, &consfile, NULL) == -1) {
-			dprintf("Error initializing console output!\n");
-		} else
-			DaemonFlags |= SYSLOGD_CONSOLE_ACTIVE;
+	
+	consfile.f_type = F_CONSOLE;
+	/* this should get into Files and be way nicer */
+	if (omodule_create(ctty, &consfile, NULL) == -1) {
+		dprintf("Error initializing classic output module!\n");
 	}
 
-	/* get our hostname */
+	(void)strncpy(consfile.f_un.f_fname, ctty,
+			sizeof(consfile.f_un.f_fname) - 1);
 	(void)gethostname(LocalHostName, sizeof(LocalHostName));
 	if ((p = strchr(LocalHostName, '.')) != NULL) {
 		*p++ = '\0';
 		LocalDomain = p;
 	} else
 		LocalDomain = "";
-
-	/* define signal actions */
 	(void)signal(SIGTERM, die);
 	(void)signal(SIGINT, Debug ? die : SIG_IGN);
 	(void)signal(SIGQUIT, Debug ? die : SIG_IGN);
@@ -313,7 +263,7 @@ main(int argc, char **argv) {
 	(void)signal(SIGALRM, domark);
 	(void)alarm(TIMERINTVL);
 
-	snprintf(pidfile, PATH_MAX, "%s/syslog.pid", PID_DIR);
+	snprintf(pidfile, PID_PATH_MAX, "%s/syslog.pid", PID_DIR);
 
 	/* took my process id away */
 	if (!Debug) {
@@ -374,9 +324,8 @@ main(int argc, char **argv) {
 					return(0);
 				}
 
-				snprintf(buf, sizeof(buf), "ERROR: another syslog"
-						" daemon is running, with lock on %s being"
-						"held by it sys=%u pid=%d", pidfile,
+				snprintf(buf, sizeof(buf), "Lock on %s is being "
+						"held by sys=%u pid=%d", pidfile,
 #ifdef HAS_FLOCK_SYSID
 						fl.l_sysid,
 #else
@@ -405,8 +354,6 @@ main(int argc, char **argv) {
 	init(0);
 	(void)signal(SIGHUP, init);
 
-	nextcall.tv_sec = 0;
-	nextcall.tv_usec = 0;
 	for (;;) {
 		fd_set readfds;
 		int nfds = 0;
@@ -423,71 +370,22 @@ main(int argc, char **argv) {
 			}
 		}
 
-		/* get current time */
-		gettimeofday(&tnow, NULL);
-		if (finet > 0 && !(DaemonFlags & SYSLOGD_FINET_READ))
+		if (finet > 0 && !(DaemonFlags & SYSLOGD_INET_READ))
 			FD_SET(finet, &readfds);
 
-		if (nextcall.tv_sec == tnow.tv_sec &&
-				nextcall.tv_usec > tnow.tv_usec) {
-			timeout.tv_sec = 0L;
-			timeout.tv_usec = nextcall.tv_usec - tnow.tv_usec;
-			if (timeout.tv_usec < SYSLOG_TIMEOUT_MINUSEC)
-				timeout.tv_usec = SYSLOG_TIMEOUT_MINUSEC;
-		} else if (nextcall.tv_sec > tnow.tv_sec) {
-			timeout.tv_sec = nextcall.tv_sec - tnow.tv_sec;
-			if (timeout.tv_sec > SYSLOG_TIMEOUT_MAXSEC)
-				timeout.tv_sec = SYSLOG_TIMEOUT_MAXSEC;
-			if (nextcall.tv_usec > tnow.tv_usec) {
-				timeout.tv_usec = nextcall.tv_usec - tnow.tv_usec;
-			} else {
-				timeout.tv_usec = 0L;
-			}
-		} else {
-			timeout.tv_sec = SYSLOG_TIMEOUT_SEC;
-			timeout.tv_usec = SYSLOG_TIMEOUT_USEC;
-		}
-
-		/* dprintf("readfds = %#x\n", readfds); */
-		dprintf("Entering select and waiting %li secs and %li usecs\n",
-				timeout.tv_sec, timeout.tv_usec);
+		/*dprintf("readfds = %#x\n", readfds);*/
 		nfds = select(nfds+1, &readfds, (fd_set *)NULL,
-			(fd_set *)NULL, &timeout);
-
+			(fd_set *)NULL, (struct timeval *)NULL);
+		if (nfds == 0)
+			continue;
 		if (nfds < 0) {
 			if (errno != EINTR)
 				logerror("select");
 			continue;
 		}
 
-		gettimeofday(&nextcall, NULL);
-		nextcall.tv_sec += SYSLOG_TIMEOUT_MAXSEC;
-
-		/* dprintf("got a message (%d, %#x)\n", nfds, readfds); */
-		/* call requested im_timer()  and read inputs */
+		/*dprintf("got a message (%d, %#x)\n", nfds, readfds);*/
 		for (im = &Inputs; im ; im = im->im_next) {
-
-			/* get current time each pass */
-			gettimeofday(&tnow, NULL);
-
-			if (im->im_func->im_timer &&
-					im->im_nextcall.tv_sec < tnow.tv_sec &&
-					im->im_nextcall.tv_usec < tnow.tv_usec) {
-
-				/* call this input module timer */
-				if ((*im->im_func->im_timer)(im, &log) < 0) {
-					dprintf("Error calling timer for [%s]\n", im->im_name);
-				}
-
-				if ((nextcall.tv_sec = im->im_nextcall.tv_sec) &&
-						(nextcall.tv_usec > im->im_nextcall.tv_usec)) {
-					nextcall.tv_usec = im->im_nextcall.tv_usec;
-				} else if (nextcall.tv_sec > im->im_nextcall.tv_sec) {
-					nextcall.tv_sec = im->im_nextcall.tv_sec;
-					nextcall.tv_usec = im->im_nextcall.tv_usec;
-				}
-			}
-
 			if (im->im_fd != -1 && FD_ISSET(im->im_fd, &readfds)) {
 				int i = 0;
 
@@ -499,14 +397,15 @@ main(int argc, char **argv) {
 		       				" %s, for fd %d\n", im->im_name, im->im_fd);
 				}
 
-				if (i > -1) {
+				/* log it if normal (1), (2) already logged */
+				if (i == 1) {
 					printline(log.im_host, log.im_msg, im->im_flags);
 				}
 			}
-			/* silently DROP what comes */
-			if ((finet > 0) && !(DaemonFlags & SYSLOGD_FINET_READ) &&
-					(FD_ISSET(finet, &readfds))) {
 
+			/* silently DROP what comes */
+			if ((finet > 0) && !(DaemonFlags & SYSLOGD_INET_READ) &&
+					(FD_ISSET(finet, &readfds))) {
 				struct sockaddr_in frominet;
 				int len = sizeof(frominet);
 				char line[MAXLINE];
@@ -514,7 +413,6 @@ main(int argc, char **argv) {
 				recvfrom(finet, line, MAXLINE, 0,
 						(struct sockaddr *)&frominet, &len);
 			}
-
 
 		}
 	}
@@ -525,9 +423,8 @@ void
 usage(void) {
 
 	(void)fprintf(stderr,
-			"usage: syslogd [-d] [-u] [-f conffile] [-m markinterval] \\\n"
-			" [-p logpath] [-a logpath] -i input1 [-i input2] [-i inputn] \\\n"
-			" [-l libdir]");
+	    "usage: syslogd [-d] [-u] [-f conffile] [-m markinterval] \\\n"
+	    " [-p logpath] [-a logpath] -i input1 [-i input2] [-i inputn]\n\n");
 	exit(1);
 }
 
@@ -569,13 +466,12 @@ printline(char *hname, char *msg, int flags) {
 			*q++ = '^';
 			*q++ = c ^ 0100;
 		} else if ((c == 0177 || (c & 0177) < 040) &&
-		     q < &line[sizeof(line) - 4]) {
+				q < &line[sizeof(line) - 4]) {
 			*q++ = '\\';
 			*q++ = '0' + ((c & 0300) >> 6);
 			*q++ = '0' + ((c & 0070) >> 3);
 			*q++ = '0' + (c & 0007);
-		}
-		else
+		} else
 			*q++ = c;
 	}
 
@@ -583,8 +479,6 @@ printline(char *hname, char *msg, int flags) {
 
 	logmsg(pri, line, hname, 0);
 }
-
-time_t	now;
 
 /*
  * Log a message to the appropriate log files, users, etc. based on
@@ -595,8 +489,9 @@ logmsg(int pri, char *msg, char *from, int flags) {
 	struct filed *f;
 	int fac, msglen, prilev, i;
 	sigset_t mask, omask;
-	char *timestamp;
  	char prog[NAME_MAX+1];
+	time_t now;
+	struct tm timestamp;
 
 	dprintf("logmsg: pri 0%o, flags 0x%x, from %s, msg %s\n",
 	    pri, flags, from, msg);
@@ -607,18 +502,30 @@ logmsg(int pri, char *msg, char *from, int flags) {
 	sigprocmask(SIG_BLOCK, &mask, &omask);
 
 	/*
-	 * Check to see if msg looks non-standard.
+	 * Process date and time as needed
+	 *
+	 * ctime   gives    "Thu Nov 24 18:22:48 1986\n"
+	 * msg may give         "Nov 24 18:22:48"
+	 *                   0123456789012345678901234
 	 */
+
 	msglen = strlen(msg);
-	if (msglen < 16 || msg[3] != ' ' || msg[6] != ' ' ||
-	    msg[9] != ':' || msg[12] != ':' || msg[15] != ' ')
+	if (!(flags & ADDDATE) && (msglen < 16 || msg[3] != ' ' ||
+	    msg[6] != ' ' || msg[9] != ':' || msg[12] != ':' ||
+	    msg[15] != ' '))
 		flags |= ADDDATE;
 
-	(void)time(&now);
-	if (flags & ADDDATE)
-		timestamp = ctime(&now) + 4;
-	else {
-		timestamp = msg;
+	time(&now);
+	localtime_r(&now, &timestamp);
+
+	if (!(flags & ADDDATE)) {
+		int year, mon;
+
+		mon = timestamp.tm_mon;
+		year = timestamp.tm_mon;
+		strptime(msg, "%b %d %I:%M:%S", &timestamp);
+		if (timestamp.tm_mon == 12 && mon == 0)
+			timestamp.tm_year = --year;
 		msg += 16;
 		msglen -= 16;
 	}
@@ -631,7 +538,7 @@ logmsg(int pri, char *msg, char *from, int flags) {
 	prilev = LOG_PRI(pri);
 
 	/* extract program name */
-	for(i = 0; i < NAME_MAX; i++) {
+	for (i = 0; i < NAME_MAX; i++) {
 		if (!isalnum((int)msg[i]))
 			break;
 		prog[i] = msg[i];
@@ -640,21 +547,15 @@ logmsg(int pri, char *msg, char *from, int flags) {
 
 	/* log the message to the particular outputs */
 	if (!Initialized) {
+		f = &consfile;
+		f->f_file = open(ctty, O_WRONLY, 0);
 
-		if (!(DaemonFlags & SYSLOGD_CONSOLE_ACTIVE)) {
-			if (omodule_create(ctty, &consfile, NULL) == -1) {
-				dprintf("Error initializing console output!\n");
-
-			} else
-				DaemonFlags |= SYSLOGD_CONSOLE_ACTIVE;
+		if (f->f_file >= 0) {
+			doLog(f, flags, msg);
+			close(f->f_file);
+			f->f_file = -1;
 		}
-
-		if (DaemonFlags & SYSLOGD_CONSOLE_ACTIVE) {
-			doLog(&consfile, flags, msg);
-		}
-
 		(void)sigprocmask(SIG_SETMASK, &omask, NULL);
-
 		return;
 	}
 
@@ -673,6 +574,7 @@ logmsg(int pri, char *msg, char *from, int flags) {
 			continue;
 
 		/* don't output marks to recently written files */
+		time(&now);
 		if ((flags & MARK) && (now - f->f_time) < MarkInterval / 2)
 			continue;
 
@@ -682,8 +584,7 @@ logmsg(int pri, char *msg, char *from, int flags) {
 		if ((flags & MARK) == 0 && msglen == f->f_prevlen &&
 		    !strcmp(msg, f->f_prevline) &&
 		    !strcmp(from, f->f_prevhost)) {
-			(void)strncpy(f->f_lasttime, timestamp, 15);
-			f->f_lasttime[15] = '\0';
+			memcpy(&f->f_tm, &timestamp, sizeof(f->f_tm));
 			f->f_prevcount++;
 			dprintf("msg repeated %d times, %ld sec of %d\n",
 			    f->f_prevcount, (long)(now - f->f_time),
@@ -695,28 +596,34 @@ logmsg(int pri, char *msg, char *from, int flags) {
 			 * in the future.
 			 */
 			if (now > REPEATTIME(f)) {
-				doLog(f, flags, (char *)NULL);
+				doLog(f, flags, NULL);
 				BACKOFF(f);
 			}
 		} else {
 			/* new line, save it */
+
+			/* flush previous line */
 			if (f->f_prevcount)
-				doLog(f, 0, (char *)NULL);
+				doLog(f, 0, NULL);
+
+			/*
+			 * Start counting again, save host data etc.
+			 */
+			f->f_prevcount = 0;
 			f->f_repeatcount = 0;
 			f->f_prevpri = pri;
-			(void)strncpy(f->f_lasttime, timestamp, 15);
-			f->f_lasttime[15] = '\0';
-			(void)strncpy(f->f_prevhost, from,
-					sizeof(f->f_prevhost)-1);
-			f->f_prevhost[sizeof(f->f_prevhost)-1] = '\0';
+			memcpy(&f->f_tm, &timestamp, sizeof(f->f_tm));
+			strncpy(f->f_prevhost, from,
+			    sizeof(f->f_prevhost) - 1);
+			f->f_prevhost[sizeof(f->f_prevhost) - 1] = '\0';
 			if (msglen < MAXSVLINE) {
 				f->f_prevlen = msglen;
-				(void)strncpy(f->f_prevline, msg, sizeof(f->f_prevline) - 1);
+				strncpy(f->f_prevline, msg, sizeof(f->f_prevline) - 1);
 				f->f_prevline[sizeof(f->f_prevline) - 1] = '\0';
-				doLog(f, flags, (char *)NULL);
+				doLog(f, flags, NULL);
 			} else {
-				f->f_prevline[0] = 0;
 				f->f_prevlen = 0;
+				f->f_prevline[0] = 0;
 				doLog(f, flags, msg);
 			}
 		}
@@ -728,26 +635,23 @@ void
 doLog(struct filed *f, int flags, char *message) {
 	struct	o_module *om;
 	char	repbuf[80], *msg;
-	int	len, ret;
+	int	ret;
 
 	if (message) {
 		msg = message;
-	        len = strlen(message);
 	} else if (f->f_prevcount > 1) {
 		msg = repbuf;
-		len = snprintf(repbuf, 80, "last message repeated %d times",
-				f->f_prevcount);
+		snprintf(repbuf, 80, "last message repeated %d times",
+		    f->f_prevcount);
 	} else {
 		msg = f->f_prevline;
-		len = f->f_prevlen;
 	}
 
-	f->f_time = now;
-
+	time(&f->f_time);
 	for (om = f->f_omod; om; om = om->om_next) {
-		if(!om->om_func || !om->om_func || !om->om_func->om_doLog) {
+		if (!om->om_func || !om->om_func->om_doLog) {
 			dprintf("doLog: error, no doLog function in output "
-				"module [%s], message [%s]\n", om->om_func->om_name, msg);
+			    "module [%s], message [%s]\n", om->om_func->om_name, msg);
 			continue;
 		};
 
@@ -760,7 +664,6 @@ doLog(struct filed *f, int flags, char *message) {
 			/* stop going on */
 			break;
 	}
-	f->f_prevcount = 0;
 }
 
 
@@ -777,8 +680,9 @@ reapchild(int signo) {
 void
 domark(int signo) {
 	struct filed *f;
+	time_t now;
 
-	now = time((time_t *)NULL);
+	time(&now);
 	MarkSeq += TIMERINTVL;
 	if (MarkSeq >= MarkInterval) {
 		logmsg(LOG_INFO, "-- MARK --", LocalHostName, ADDDATE|MARK);
@@ -844,7 +748,7 @@ die(int signo) {
 		else if (im->im_fd)
 			close(im->im_fd);
 
-	if (!Debug && (DaemonFlags & SYSLOGD_LOCKED_PIDFILE)) {
+	if (!Debug && (DaemonFlags == SYSLOGD_LOCKED_PIDFILE)) {
 		struct flock fl;
 		int lfd;
 
@@ -856,8 +760,7 @@ die(int signo) {
 
 		fcntl(lfd, F_SETLK, &fl);
 
-		if (pidf != NULL)
-			(void) fclose(pidf);
+		(void) fclose(pidf);
 		if (unlink(pidfile) < 0)
 			logerror("error deleting pidfile");
 	}
@@ -869,14 +772,15 @@ die(int signo) {
  *  INIT -- Initialize syslogd from configuration table
  */
 void
-init(int signo) {
+init(int signo)
+{
 	int i;
 	FILE *cf;
 	struct filed *f, *next, **nextp;
 	char *p;
 	char cline[LINE_MAX];
  	char prog[NAME_MAX+1];
-	struct o_module *om;
+	struct o_module *om, *om_next;
 
 	dprintf("init\n");
 
@@ -885,28 +789,49 @@ init(int signo) {
 	 */
 	Initialized = 0;
 	for (f = Files; f != NULL; f = next) {
+
 		/* flush any pending output */
 		if (f->f_prevcount)
 			doLog(f, 0, (char *)NULL);
 
-		for (om = f->f_omod; om; om = om->om_next) {
+		for (om = f->f_omod; om; om = om_next) {
 			/* flush any pending output */
-			if (f->f_prevcount &&
+			if (f->f_prevcount && om->om_func &&
 			    om->om_func->om_flush != NULL) {
 				(*om->om_func->om_flush) (f,om->ctx);
 			}
 
-			if (om->om_func->om_close != NULL) {
+			if (om->om_func && om->om_func->om_close != NULL) {
 				(*om->om_func->om_close) (f,om->ctx);
 			}
+
+			/* free om_ctx om_func and stuff */
+			om_next = om->om_next;
+
+			free(om->ctx);
 		}
+
 		next = f->f_next;
+
 		if (f->f_program)
 			free(f->f_program);
-		free((char *)f);
+
+		free(f);
 	}
+
+	/* list of filed is now empty */
 	Files = NULL;
 	nextp = &Files;
+
+	/* free all modules and their dynamic libs */
+	if (signo == SIGHUP) {
+		if (omodules_destroy(omodules) == 0)
+			omodules = NULL;
+#if DESTROY_INPUTS_ON_HUP
+		if (imodules_destroy(imodules) == 0)
+			imodules = NULL;
+#endif
+	}
 
 	/* open the configuration file */
 	if ((cf = fopen(ConfFile, "r")) == NULL) {
@@ -981,6 +906,28 @@ init(int signo) {
 				else
 					printf("%d ", f->f_pmask[i]);
 			printf("%s: ", TypeNames[f->f_type]);
+			switch (f->f_type) {
+			case F_FILE:
+			case F_TTY:
+			case F_CONSOLE:
+				printf("%s", f->f_un.f_fname);
+				break;
+
+			case F_FORW:
+				printf("%s", f->f_un.f_forw.f_hname);
+				break;
+
+			case F_USERS:
+				for (i = 0; i < MAXUNAMES && *f->f_un.f_uname[i]; i++)
+					printf("%s, ", f->f_un.f_uname[i]);
+				break;
+			case F_MODULE:
+				for (om = f->f_omod; om; om = om->om_next) 
+					printf("%s, ", om->om_func->om_name);
+				break;
+			}
+			if (f->f_program)
+				printf(" (%s)", f->f_program);
 			printf("\n");
 		}
 	}
@@ -1032,8 +979,8 @@ cfline(char *line, struct filed *f, char *prog) {
 			pri = LOG_PRIMASK + 1;
 		else {
 			/* ignore trailing spaces */
-			int i;
-			for (i=strlen(buf)-1; i >= 0 && buf[i] == ' '; i--) {
+			for (i = strlen(buf) - 1; i >= 0 && buf[i] == ' ';
+			    i--) {
 				buf[i]='\0';
 			}
 
@@ -1105,113 +1052,5 @@ decode(const char *name, CODE *codetab) {
 			return (c->c_val);
 
 	return (-1);
-}
-
-struct log_buf *
-log_getnext(void) {
-
-	if (log_buf_queue) {
-		struct log_buf *ret, *last = log_buf_queue;
-
-		for(ret = last; ret->l_next; last = ret, ret = ret->next);
-
-		last->l_next = NULL;
-
-		return(ret_l);
-
-	} else {
-
-		log_buf_avail = (struct logbuf *) calloc(1,sizeof(struct log_buf);
-
-		if (!log_buf_avail) {
-			dprintf("logGetNext: ERROR No memory available for a new log_buffer!\n");
-			return(NULL);
-		}
-
-		return(log_buf_queue);
-
-	}
-
-}
-
-int
-log_deref(struct log_buf *log) {
-
-	if (log == NULL) {
-		dprintf("log_deref: WARNING we received a NULL pointer\n");
-		return (-1);
-	}
-
-	if (log_queue_in > LOG_QUEUE_MAX) {
-		free(log);
-	} else {
-		struct log_buf *l = log_queue;
-
-		if (log_queue != NULL)
-			for(; l->l_next; l = l->l_next);
-
-		l->next = log;
-		log->next = NULL; /* just in case */
-	}
-
-	return(1);
-}
-
-int
-msgAdjust(struct log_buf *log) {
-
-	/* set it first */
-	time(&now);
-
-    /* check if data has original date */
-    if ( log->l_dlen < 16
-			|| log->l_data[3] != ' '
-			|| log->l_data[6] != ' '
-			|| log->l_data[9] != ':'
-			|| log->l_data[12] != ':'
-			|| log->l_data[15] != ' ') {
-
-		/* move original date to l_tm */
-		if (!strptime(log->l_data, "%b %d %T", &log->l_tm) {
-			dprintf("logAdjust: ERROR reading date and time!\n");
-			return (-1);
-		}
-
-		/* move original data to start of l_data */
-		bcopy(log->l_data + 16, log->l_data, log->l_dlen - 16);
-		log->l_dlen -= 16;
-        
-#error finish this sucker
-
-	} else {
-		/* set l_tm to now */
-		localtime_r(&now, &log->l_tm)
-	}
-
-	/* zero all unused data */
-	memset(log->l_data + log->l_dlen, 0, sizeof(log->l_data) - log->l_dlen);
-	memset(log->l_host + log->l_hlen, 0, sizeof(log->l_host) - log->l_hlen);
-
-}
-
-/*
- * Compares two log buffers
- * Returns 1 if equal, 0 if different
- *
- */
-
-int
-logCompare(struct log_buf *log1, struct log_buf *log2) {
-
-	if (log1 == NULL || log2 == NULL)
-		return(0);
-
-	if (memcmp(log1 + LOG_BUF_IGNORE_HDR,
-			log2 + LOG_BUF_IGNORE_HDR,
-			sizeof(*log1) - LOG_BUF_IGNORE_HDR)
-		return(1);
-	else
-		return(0);
-	
 }
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI$	*/
+/*	$CoreSDI: sql_misc.h,v 1.1.2.1.4.3 2000/10/20 22:46:36 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -35,5 +35,5 @@
  * Author: Gerardo_Richarte@core-sdi.com
  */
 
-char *to_sql(char *);
-int month_number(char *);
+int to_sql(char *, const char *, int);
+

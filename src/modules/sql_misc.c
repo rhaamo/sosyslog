@@ -1,4 +1,4 @@
-/*	$CoreSDI: sql_misc.c,v 1.5 2000/09/15 00:00:02 alejo Exp $	*/
+/*	$CoreSDI: sql_misc.c,v 1.3.2.1.2.1.4.3 2000/10/20 22:46:36 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -40,40 +40,33 @@
 #include <stdlib.h>
 #include <string.h>
 
-char *
-to_sql(s)
-	char *s;
-{
-	char *p, *b;
-	int ns;
-
-	if (s == NULL)
-		return NULL;
-	
-	for (p=s, ns=1+strlen(s); *p; p++) 
-		if (*p=='\'') ns++;
-
-	if (NULL==(b=malloc(ns))) return NULL;
-
-	p=b; 
-	for (;*s; s++) {
-		if (*s=='\'') *p++='\\';
-		*p++=*s;
-	}
-	*p=0;
-	
-	return b;
-}
-
 int
-month_number(month_name)
-	char *month_name;
+to_sql(char *dst, char *src, int maxlen)
 {
-	const char *Months[] = {
-		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-	int i=0;
-	for (;i<sizeof(Months)/sizeof(Months[0]);i++)
-		if (!strncmp(Months[i],month_name,3)) return i+1;
-	return 0;
+	int i;
+
+	if(dst == NULL || src == NULL || maxlen < 2)
+		return -1;
+
+	for(i = 0; *src && i < (maxlen - 2) ; src++) {
+
+		/*
+		 * escape \n \r \\ \' " and del (ctrl-z 127)
+		 */
+
+		if (*src == '\'' || *src == '\n' || *src == '\r' ||
+		    *src == '\\' || *src == '"' || *src == 127) {
+			dst[i++] = '\\';
+		}
+
+		dst[i++] = *src;
+
+	}
+
+	/* terminate string if possible */
+	if (i < maxlen)
+		dst[i] = 0;
+	
+	return i;
 }
+

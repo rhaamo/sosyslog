@@ -1,4 +1,4 @@
-.\"	$CoreSDI: syslogd.8,v 1.8.2.1.2.1 2000/09/11 23:07:03 alejo Exp $
+.\"	$CoreSDI: syslogd.8,v 1.8.2.1.2.1.4.2 2000/10/30 22:00:33 alejo Exp $
 .\"
 .\" Copyright (c) 1983, 1986, 1991, 1993
 .\"	The Regents of the University of California.  All rights reserved.
@@ -48,10 +48,12 @@ modular
 .Fl i Ar input
 .Sh DESCRIPTION
 Modular
-.Nm syslogd
-reads and logs messages to the system console, log files, other
-machines and/or users as specified by its configuration file.
-The options are as follows:
+.Nm syslog
+daemon reads and logs messages to the system console, log files, other
+machines and/or users as specified by its configuration file. This
+implementation was based on OpenBSD's syslog daemon.
+.Pp
+Supported command line options are:
 .Bl -tag -width Ds
 .It Fl d
 Enable debugging to the standard output,
@@ -128,7 +130,7 @@ include file
 .Sh EXAMPLES
 To run modular
 .Nm
-on bsd systems you should:
+on BSD systems you should:
 .Pp
 .Dl # syslogd -i bsd -i unix:/dev/log
 .Pp
@@ -138,7 +140,22 @@ that logs kernel messages from
 .Pa /dev/klog,
 and
 .Cm unix,
-that opens
+opens
+.Pa /dev/log
+socket to log standard messages.
+To run modular
+.Nm
+on Linux systems you should:
+.Pp
+.Dl # syslogd -i linux -i unix:/dev/log
+.Pp
+with the command above two inputs modules are created,
+.Cm linux,
+that logs kernel messages from
+.Pa /dev/klog,
+and
+.Cm unix,
+opens
 .Pa /dev/log
 socket to log standard messages.
 .Sh FILES

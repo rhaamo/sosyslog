@@ -1,4 +1,4 @@
-dnl	$CoreSDI: aclocal.m4,v 1.11.2.5.2.2 2000/09/11 21:15:30 alejo Exp $
+dnl	$CoreSDI: aclocal.m4,v 1.11.2.5.2.2.4.1 2000/10/09 22:47:30 alejo Exp $
 
 
 dnl
@@ -179,8 +179,8 @@ dnl	adds a new static output module
 dnl
 AC_DEFUN(MSYSLOG_ADD_om, [ 
 SMODULES_HEADER="$SMODULES_HEADER \
-int om_$1_init (int, char**, struct filed*, char*, struct om_hdr_ctx**); \
-int om_$1_doLog (struct filed*, int, char*, struct om_hdr_ctx*);"
+int om_$1_init (int, char**, struct filed*, char*, void **); \
+int om_$1_doLog (struct filed*, int, char*, void *);"
 
 SMODULES_LOAD="$SMODULES_LOAD \
 if ( (om = (struct omodule*)calloc(1, sizeof(struct omodule))) == NULL) \
@@ -204,14 +204,14 @@ SMODULES_LOAD="$SMODULES_LOAD \
 
 MSYSLOG_GREP(om_$1_flush, "$MODULES_DIR/$2", [
 SMODULES_HEADER="$SMODULES_HEADER \
-	int om_$1_flush (struct filed*, struct om_hdr_ctx*);" 
+	int om_$1_flush (struct filed*, void *);" 
 SMODULES_LOAD="$SMODULES_LOAD \
 	olast->om_flush=om_$1_flush;"
 ]) 
 
 MSYSLOG_GREP(om_$1_close, "$MODULES_DIR/$2", [
 SMODULES_HEADER="$SMODULES_HEADER \
-	int om_$1_close (struct filed*, struct om_hdr_ctx*);"
+	int om_$1_close (struct filed*, void *);"
 SMODULES_LOAD="$SMODULES_LOAD \
 	olast->om_close=om_$1_close;" ])
 ])

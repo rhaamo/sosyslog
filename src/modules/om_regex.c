@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.19 2000/09/09 00:42:14 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.13.2.10.4.8 2000/10/20 22:46:36 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -40,7 +40,6 @@
 
 #include <sys/time.h>
 #include <sys/param.h>
-
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -50,7 +49,6 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <regex.h>
-
 #include "../syslogd.h"
 #include "../modules.h"
 
@@ -58,18 +56,17 @@
 
 struct om_regex_ctx {
 	short		flags;
-	int			size;
-	int		 filters;
+	int		size;
+	int		filters;
 #define	OM_FILTER_INVERSE	0x01
 #define	OM_FILTER_MESSAGE	0x02
 #define	OM_FILTER_HOST		0x04
 #define	OM_FILTER_DATE		0x08
 #define	OM_FILTER_TIME		0x10
-	regex_t		*msg_exp;
-	regex_t		*host_exp;
-	regex_t		*date_exp;
-	regex_t		*time_exp;
-	char		date[16];
+	regex_t	       *msg_exp;
+	regex_t	       *host_exp;
+	regex_t	       *date_exp;
+	regex_t	       *time_exp;
 };
 
 
@@ -78,23 +75,22 @@ struct om_regex_ctx {
  *
  */
 int
-om_regex_init(int argc, char **argv, struct filed *f, char *prog,
-		struct om_hdr_ctx **ctx) {
+om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
+{
 	struct om_regex_ctx *c;
 	int ch;
 
 	/* for debugging purposes */
 	dprintf("om_regex init\n");
 
-
 	if (argc < 2 || argv == NULL || argv[1] == NULL) {
 		dprintf("om_regex: error on initialization\n");
 		return(-1);
 	}
 
-	if (! (*ctx = (struct om_hdr_ctx *)
-			calloc(1, sizeof(struct om_regex_ctx))))
+	if ((*ctx = (void *) calloc(1, sizeof(struct om_regex_ctx))) == NULL)
 		return (-1);
+
 	c = (struct om_regex_ctx *) *ctx;
 	c->size = sizeof(struct om_regex_ctx);
 
@@ -115,59 +111,66 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog,
 #endif
 	while ((ch = getopt(argc, argv, "vm:h:d:t:")) != -1) {
 		switch (ch) {
-			case 'v':
-				c->filters |= OM_FILTER_INVERSE;
-				break;
-			case 'm':
-				c->filters |= OM_FILTER_MESSAGE;
-				c->msg_exp = (regex_t *) calloc(1, sizeof(regex_t));
-				if (regcomp(c->msg_exp, optarg, REG_EXTENDED) != 0) {
-					dprintf("om_regex: error compiling regular "
-							"expression [%s] for message\n", optarg);
-					return(-1);
-				}
-				break;
-			case 'h':
-				c->filters |= OM_FILTER_HOST;
-				c->host_exp = (regex_t *) calloc(1, sizeof(regex_t));
-				if (regcomp(c->host_exp, optarg, REG_EXTENDED) != 0) {
-					dprintf("om_regex: error compiling regular "
-							"expression [%s] for message\n", optarg);
-					return(-1);
-				}
-				break;
-			case 'd':
-				c->filters |= OM_FILTER_DATE;
-				c->date_exp = (regex_t *) calloc(1, sizeof(regex_t));
-				if (regcomp(c->date_exp, optarg, REG_EXTENDED) != 0) {
-					dprintf("om_regex: error compiling regular "
-							"expression [%s] for message\n", optarg);
-					return(-1);
-				}
-				break;
-			case 't':
-				c->filters |= OM_FILTER_TIME;
-				c->time_exp = (regex_t *) calloc(1, sizeof(regex_t));
-				if (regcomp(c->time_exp, optarg, REG_EXTENDED) != 0) {
-					dprintf("om_regex: error compiling regular "
-							"expression [%s] for message\n", optarg);
-					return(-1);
-				}
-				break;
-			default:
-				dprintf("om_regex: unknown parameter [%c]\n", ch);
-				return(-1);
-				break;
+		case 'v':
+			c->filters |= OM_FILTER_INVERSE;
+			break;
+		case 'm':
+			c->filters |= OM_FILTER_MESSAGE;
+			c->msg_exp = (regex_t *) malloc(sizeof(regex_t));
+			if (regcomp(c->msg_exp, optarg, REG_EXTENDED) != 0) {
+				dprintf("om_regex: error compiling regular "
+				    "expression [%s] for message\n", optarg);
+				free(c->msg_exp);
+				goto bad;
+			}
+			break;
+		case 'h':
+			c->filters |= OM_FILTER_HOST;
+			c->host_exp = (regex_t *) malloc(sizeof(regex_t));
+			if (regcomp(c->host_exp, optarg, REG_EXTENDED) != 0) {
+				dprintf("om_regex: error compiling regular "
+				    "expression [%s] for message\n", optarg);
+				free(c->host_exp);
+				goto bad;
+			}
+			break;
+		case 'd':
+			c->filters |= OM_FILTER_DATE;
+			c->date_exp = (regex_t *) malloc(sizeof(regex_t));
+			if (regcomp(c->date_exp, optarg, REG_EXTENDED) != 0) {
+				dprintf("om_regex: error compiling regular "
+				    "expression [%s] for message\n", optarg);
+				free(c->date_exp);
+				goto bad;
+			}
+			break;
+		case 't':
+			c->filters |= OM_FILTER_TIME;
+			c->time_exp = (regex_t *) malloc(sizeof(regex_t));
+			if (regcomp(c->time_exp, optarg, REG_EXTENDED) != 0) {
+				dprintf("om_regex: error compiling regular "
+				    "expression [%s] for message\n", optarg);
+				free(c->time_exp);
+				goto bad;
+			}
+			break;
+		default:
+			dprintf("om_regex: unknown parameter [%c]\n", ch);
+			goto bad;
 		}
 	}
 
-	return(1);
+	return (1);
+bad:
+	free(*ctx);
+	return (-1);
 }
 
 int
-om_regex_doLog(struct filed *f, int flags, char *msg,
-		struct om_hdr_ctx *ctx) {
+om_regex_doLog(struct filed *f, int flags, char *msg, void *ctx)
+{
 	struct om_regex_ctx *c;
+	char time_buf[16];
 
 	c = (struct om_regex_ctx *) ctx;
 
@@ -182,29 +185,30 @@ om_regex_doLog(struct filed *f, int flags, char *msg,
 	 */
 
 	if ((c->filters & OM_FILTER_MESSAGE) &&
-			regexec(c->msg_exp, msg, 0, NULL, 0)) {
+	    regexec(c->msg_exp, msg, 0, NULL, 0))
 		goto nomatch;
-	}
+
 	if ((c->filters & OM_FILTER_HOST) &&
-			regexec(c->host_exp, f->f_prevhost, 0, NULL, 0)) {
+	    regexec(c->host_exp, f->f_prevhost, 0, NULL, 0))
 		goto nomatch;
-	}
 
 	/* get message time and separate date and time */
 	if ((c->filters & OM_FILTER_DATE) || (c->filters & OM_FILTER_TIME)) {
-		strncpy(c->date, f->f_lasttime, sizeof(c->date));
-		c->date[6] = 0;
+
+		strftime(time_buf, sizeof(time_buf), "%b %d %H:%M:%S",
+		    &f->f_tm);
+
+		time_buf[6] = 0;
+		time_buf[15] = 0;
 	}
 
 	if ((c->filters & OM_FILTER_DATE) &&
-			regexec(c->date_exp, c->date, 0, NULL, 0)) {
+	    regexec(c->date_exp, time_buf, 0, NULL, 0))
 		goto nomatch;
-	}
+
 	if ((c->filters & OM_FILTER_TIME) &&
-			regexec(c->time_exp, (char *)((c->date) + 7),
-					0, NULL, 0)) {
+	    regexec(c->time_exp, time_buf + 7, 0, NULL, 0))
 		goto nomatch;
-	}
 
 	/* matched */
 	return (c->filters & OM_FILTER_INVERSE ? 0 : 1);
@@ -212,12 +216,11 @@ om_regex_doLog(struct filed *f, int flags, char *msg,
 nomatch:
 	/* not  matched */
 	return (c->filters & OM_FILTER_INVERSE ? 1 : 0);
-
 }
 
-
 int
-om_regex_close(struct filed *f, struct om_hdr_ctx *ctx) {
+om_regex_close(struct filed *f, void *ctx)
+{
 	struct om_regex_ctx *c;
 
 	c = (struct om_regex_ctx *) ctx;
@@ -233,10 +236,3 @@ om_regex_close(struct filed *f, struct om_hdr_ctx *ctx) {
 
 	return (1);
 }
-
-int
-om_regex_flush(struct filed *f, struct om_hdr_ctx *context) {
-	return(1);
-
-}
-

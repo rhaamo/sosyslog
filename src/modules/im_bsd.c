@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.64 2000/09/04 23:43:45 alejo Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.51.2.6.4.1 2000/10/12 01:04:32 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -61,8 +61,8 @@
 
 
 int
-im_bsd_init(struct i_module *I, char **argv, int argc) {
-
+im_bsd_init(struct i_module *I, char **argv, int argc)
+{
 	if ((I->im_fd = open(_PATH_KLOG, O_RDONLY, 0)) < 0) {
 		dprintf("can't open %s (%d)\n", _PATH_KLOG, errno);
 		return (-1);
@@ -70,8 +70,6 @@ im_bsd_init(struct i_module *I, char **argv, int argc) {
 	
 	I->im_path = _PATH_KLOG;
 	I->im_flags |= IMODULE_FLAG_KERN;
-	gettimeofday(&I->im_nextcall, NULL);
-	I->im_nextcall.tv_sec += 11;
 	return(I->im_fd);
 }
 
@@ -83,7 +81,8 @@ im_bsd_init(struct i_module *I, char **argv, int argc) {
  */
 
 int
-im_bsd_getLog(struct i_module *im, struct im_msg *ret) {
+im_bsd_getLog(struct i_module *im, struct im_msg *ret)
+{
 	char *p, *q, *lp;
 	int i, c;
 
@@ -100,7 +99,7 @@ im_bsd_getLog(struct i_module *im, struct im_msg *ret) {
 			ret->im_pri = DEFSPRI;
 			if (*p == '<') {
 				ret->im_pri = 0;
-				while (isdigit((int)*++p))
+				while (isdigit(*++p))
 					ret->im_pri = 10 * ret->im_pri +
 					    (*p - '0');
 				if (*p == '>')
@@ -132,21 +131,10 @@ im_bsd_getLog(struct i_module *im, struct im_msg *ret) {
 }
 
 int
-im_bsd_close (struct i_module *im) {
+im_bsd_close (struct i_module *im)
+{
 	if (im->im_fd >= 0)
 		close(im->im_fd);
 
 	return(0);
 }
-
-
-
-int
-im_bsd_timer(struct i_module *im, struct im_msg *ret) {
-	dprintf("im_bsd_timer: called! \n");
-	gettimeofday(&(im->im_nextcall), NULL);
-	im->im_nextcall.tv_sec += 3;
-	im->im_nextcall.tv_usec += 3;
-	return(1);
-}
-
