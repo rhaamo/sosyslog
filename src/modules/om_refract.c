@@ -9,7 +9,7 @@
  * The following example will prevent the rule from firing within
  * 32 second refraction_period from the time of last firing.
  *
- * *.notice   %refract -p 32  %classic /var/log/notices
+ * *.notice   %refract -p 32 -r 2 %classic /var/log/notices
  *
  */
 
@@ -43,11 +43,12 @@
 
 struct om_refract_ctx {
   time_t refraction_end_time;
-  int fire_count;
+  int fired_count;
   int refraction_period;
 
-#define  OM_FILTER_PERIOD  0x01  /* FILTER BASED ON TIME ONLY */
-#define  OM_FILTER_HURST   0x02  /* FILTER BASED ON CHANGE IN FRACTAL DIMENSION */
+#define  OM_FILTER_PERIOD  0x01  /* FILTER BASED ON TIME */
+#define  OM_FILTER_RULES   0x02  /* FILTER BASED ON PRIOR RULES */
+#define  OM_FILTER_HURST   0x04  /* FILTER BASED ON CHANGE IN FRACTAL DIMENSION */
   int filter_bitstring;          /* BITWISE 'OR' OF ABOVE FILTER TYPES */
 
 /* FUTURE STUFF -- NOT CURRENTLY USED
@@ -96,7 +97,7 @@ om_refract_init(
   ctx = (struct om_refract_ctx *) *context;
   ctx->refraction_period = 0;  /* a zero indicates no time need pass until next firing */
   ctx->refraction_end_time = 0;
-  ctx->fire_count = -1;  /* a negative indicates not refracted on firing */
+  ctx->fired_count = -1;  /* a negative indicates not refracted on firing */
 
 
   /*
@@ -124,20 +125,20 @@ om_refract_init(
             free(*context);
             return(-1);
           }
-  
           ctx->filter_bitstring |= OM_FILTER_PERIOD;
           break;
   
-        case 'c':
-          ctx->fire_count = strtol(optarg, &endptr, 0);
+        case 'r':
+          ctx->fired_count = strtol(optarg, &endptr, 0);
           if (endptr == NULL || endptr == optarg) { 
             snprintf(statbuf, sizeof(statbuf), "om_refract_init: "
-              "bad argument to -c option [%s], should be numeric firing count", optarg);
+              "bad argument to -r option [%s], should be numeric, rules fired count", optarg);
             m_dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
             *status = strdup(statbuf);
             free(*context);
             return(-1);
           }
+          ctx->filter_bitstring |= OM_FILTER_RULES;
           break;
   
         default:
@@ -189,7 +190,7 @@ om_refract_write(
 
   ctx = (struct om_refract_ctx *) context;
 
-  /* VERIFY THAT AT LEAST ONE REFRACTION CONSTRAINT IS MET */
+  /* DETERMINE IF AT LEAST ONE REFRACTION CONSTRAINT IS MET */
 
   filter_bitstring = ctx->filter_bitstring;
   for (ix = 1 ; filter_bitstring ; ix <<= 1) {
@@ -199,23 +200,23 @@ om_refract_write(
 
     switch (ix) {
       case OM_FILTER_PERIOD:
-        if ( fil->f_time < ctx->refraction_end_time ) continue;
-        ctx->refraction_end_time = fil->f_time + ctx->refraction_period;
-        return (1);
+        if ( fil->f_time < ctx->refraction_end_time ) 
+return (0);
+    break;
+
+      case OM_FILTER_RULES:
+        if ( m->fired >= ctx->fired_count )
+return (0);
+    break;
 
       case OM_FILTER_HURST:
-        continue;
+    break;
     }
   }
 
-  /* if fire_count is negative then the rules fired by the message is irrelevant */
-  if (ctx->fire_count < 0) return ( 0 );
-
-  /* if the message has fired too many rules then don't fire this one */
-  if (ctx->fire_count < msg->fired) return( 1 );
-
-  /* I guess this rule can fire */
-  return (0);
+  /* I guess this module fires */
+  ctx->refraction_end_time = fil->f_time + ctx->refraction_period;
+return (1);
 }
 
 /*

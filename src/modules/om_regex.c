@@ -418,14 +418,14 @@ int om_regex_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 
   if (m == NULL || m->msg == NULL || !strcmp(m->msg, "")) {
     logerror("om_regex_write: no message!");
-    return (-1);
+return (-1);
   }
 
   iflag = ( (c->filters & OM_FILTER_INVERSE) != 0 );
 
   for (i = 1; i < OM_FILTER_INVERSE; i <<= 1) {
 
-    if ( (c->filters & i) == 0 ) continue;
+  if ( (c->filters & i) == 0 ) continue;
 
     {
       char *string, *new_string;
@@ -460,7 +460,7 @@ int om_regex_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
         regmatch_t pmatch[no_subexp + 1];
 
         if (  ( regexec(regex_comp, string, no_subexp + 1, pmatch, 0) != 0 )  ^  iflag  )
-          return (0);
+return (0);
 
         if (non_subst != NULL) {
 
@@ -493,11 +493,8 @@ int om_regex_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 
       }
     }
-
   }
-
-  return (1);
-
+return (1);
 }
 
 
