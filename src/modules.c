@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.129 2000/10/31 19:42:12 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.130 2000/11/01 18:18:02 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -137,7 +137,7 @@ imodule_init(struct i_module *I, char *line)
 	if ((im->im_func = getImodule(argv[0])) == NULL)
 		if ((im->im_func = addImodule(argv[0])) == NULL) {
 			snprintf(err_buf, sizeof(err_buf), "Error loading "
-					"dynamic input module %s [%s]\n",
+			    "dynamic input module %s [%s]\n",
 					argv[0], line);
 			ret = -1;
 			goto imodule_init_bad;
@@ -146,7 +146,7 @@ imodule_init(struct i_module *I, char *line)
 	/* got it, now try to initialize it */
 	if ((*(im->im_func->im_init))(im, argv, argc) < 0) {
 		snprintf(err_buf, sizeof(err_buf), "Error initializing "
-				"input module %s [%s]\n", argv[0], line);
+		    "input module %s [%s]\n", argv[0], line);
 		ret = -1;
 		goto imodule_init_bad;
 	}
@@ -210,20 +210,24 @@ omodule_create(char *c, struct filed *f, char *prog)
 		switch (*p) {
 			case '%':
 				/* get this module name */
-				argc=0;
+				argc = 0;
 				while (isspace((int)*(++p)));
 				argv[argc++] = p;
 				while (!isspace((int)*p)) p++;
 
-				*p++=0;
+				*p++ = 0;
 
 				/* find for matching module */
-				if ((om->om_func = getOmodule(argv[0])) == NULL) {
-					if ((om->om_func = addOmodule(argv[0])) == NULL) {
+				if ((om->om_func = getOmodule(argv[0]))
+				    == NULL) {
+					if ((om->om_func = addOmodule(argv[0]))
+					    == NULL) {
 
-						snprintf(err_buf, sizeof(err_buf), "Error "
-								"loading dynamic output module "
-								"%s [%s]\n", argv[0], line);
+						snprintf(err_buf,
+						    sizeof(err_buf), "Error "
+						    "loading dynamic output "
+						    "module %s [%s]\n",
+						    argv[0], line);
 						goto omodule_create_bad;
 
 					}
@@ -231,27 +235,34 @@ omodule_create(char *c, struct filed *f, char *prog)
 
 				/* build argv and argc, modifies input p */
 				while (isspace((int)*p)) p++;
-				while (*p && *p!='%' && *p !='\n' && *p!='\r'
-						&& argc<sizeof(argv)/sizeof(argv[0])) { 
+				while (*p && *p != '%' && *p != '\n' &&
+				    *p != '\r' && argc<sizeof(argv) /
+				    sizeof(argv[0])) { 
 				
-					(*p=='"' || *p=='\'')? quotes = *p++ : 0;
+					(*p == '"' || *p == '\'') ?
+					    quotes = *p++ : 0;
 						
 					argv[argc++] = p;
 					if (quotes) {
-						while (*p != '\0' && *p != quotes) p++;
+						while (*p != '\0' &&
+						    *p != quotes) p++;
 						if (*p == '\0') {
-							/* *p == '\0' quote not ending, fix */
+							/* not ending, fix */
 							quotes = 0;
 							break;
 						} else {
-							/* *p == quotes closing */
+							/* closing */
 							quotes = 0;
 						}
 					} else {
-						while ( *p != '\0' && !isspace((int)*p)) p++;
+						while ( *p != '\0' &&
+						    !isspace((int)*p))
+							p++;
 					}
 					*p++ = 0;
-					while (*p != '\0' && isspace((int)*p)) p++;
+					while (*p != '\0' &&
+					    isspace((int) *p))	
+						p++;
 				}
 
 
@@ -262,16 +273,20 @@ omodule_create(char *c, struct filed *f, char *prog)
 			default:
 				/* classic style */
 				/* prog is already on this filed */
-				argc=0;
-				argv[argc++]="classic";
-				argv[argc++]=p;
-				p+=strlen(p);
+				argc = 0;
+				argv[argc++] = "classic";
+				argv[argc++] = p;
+				p += strlen(p);
 				/* find for matching module */
-				if ((om->om_func = getOmodule(argv[0])) == NULL) {
-					if ((om->om_func = addOmodule(argv[0])) == NULL) {
-						snprintf(err_buf, sizeof(err_buf), "Error "
-								"loading dynamic output module "
-								"%s [%s]\n", argv[0], line);
+				if ((om->om_func = getOmodule(argv[0]))
+				    == NULL) {
+					if ((om->om_func = addOmodule(argv[0]))
+					    == NULL) {
+						snprintf(err_buf,
+						    sizeof(err_buf), "Error "
+						    "loading dynamic output "
+						    "module %s [%s]\n",
+						    argv[0], line);
 						goto omodule_create_bad;
 					}
 				}
@@ -279,11 +294,11 @@ omodule_create(char *c, struct filed *f, char *prog)
 				break;
 		}
 
-		if ((*(om->om_func->om_init))(argc, argv, f,
-				prog, (void *) &(om->ctx)) < 0) {
-			snprintf(err_buf, sizeof(err_buf), "Error initializing "
-					"dynamic output module %s [%s]\n",
-					argv[0], line);
+		if ((*(om->om_func->om_init))(argc, argv, f, prog,
+		    (void *) &(om->ctx)) < 0) {
+			snprintf(err_buf, sizeof(err_buf), "Error "
+			    "initializing dynamic output module %s [%s]\n",
+			    argv[0], line);
 			goto omodule_create_bad;
 		}
 	}
@@ -390,7 +405,7 @@ addImodule(char *name)
 		if(!strcmp(name, mlibs[i].name)) {
 			for(j = 0; (r = mlibs[i].libs[j]) && j < MLIB_MAX; j++) { 
 				dprintf("addImodule: going to open library %s "
-						"for module %s\n", name, r);
+				    "for module %s\n", name, r);
 				if ((im->ih[j] = dlopen(r, DLOPEN_FLAGS)) == NULL) {
 					dprintf("Error [%s] on file [%s]\n",
 							dlerror(), r);
@@ -481,7 +496,7 @@ addOmodule(char *name)
 		if(!strcmp(name, mlibs[i].name)) {
 			for(j = 0; (r = mlibs[i].libs[j]) && j < MLIB_MAX; j++) {
 				dprintf("addImodule: going to open library %s "
-						"for module %s\n", name, r);
+				    "for module %s\n", name, r);
 				if ((om->oh[j] = dlopen(r, DLOPEN_FLAGS)) == NULL) {
 					dprintf("Error [%s] on file [%s]\n",
 							dlerror(), r);

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.141 2000/10/31 19:42:12 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.142 2000/11/01 18:18:02 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.141 2000/10/31 19:42:12 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.142 2000/11/01 18:18:02 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -203,13 +203,14 @@ main(int argc, char **argv) {
 			break;
 		case 'u':		/* allow udp input port */
 			if (imodule_init(&Inputs, "udp") < 0) {
-				fprintf(stderr, "syslogd: WARNING error on udp input module\n");
+				fprintf(stderr, "syslogd: WARNING error on udp"
+				    " input module\n");
 			}
 			break;
 		case 'i':		/* inputs */
 			if (imodule_init(&Inputs, optarg) < 0) {
-				fprintf(stderr, "syslogd: WARNING error on input module, ignoring"
-				    " %s\n", optarg);
+				fprintf(stderr, "syslogd: WARNING error on "
+				    "input module, ignoring %s\n", optarg);
 			}
 			break;
 		case 'p':		/* path */
@@ -220,8 +221,8 @@ main(int argc, char **argv) {
 			    snprintf(buf, 512, "unix %s", optarg); 
 			    if (imodule_init(&Inputs, buf) < 0) {
 				fprintf(stderr,
-				    "syslogd: WARNING out of descriptors, ignoring %s\n",
-				    optarg);
+				    "syslogd: WARNING out of descriptors,"
+				    " ignoring %s\n", optarg);
 			    }
 			}
 			break;
@@ -280,17 +281,21 @@ main(int argc, char **argv) {
 		pidf = fopen(pidfile, "a+");
 		if (pidf != NULL) {
 			lfd = fileno(pidf);
-			for (tries = 0; tries < MAX_PIDFILE_LOCK_TRIES; tries++) {
+			for (tries = 0; tries < MAX_PIDFILE_LOCK_TRIES;
+			    tries++) {
 				errno = 0;
 				status = fcntl(lfd, F_SETLK, &fl);
 				if (status == -1) {
-					if (errno == EACCES || errno == EAGAIN) {
+					if (errno == EACCES ||
+					    errno == EAGAIN) {
 						sleep(1);
 						continue;
 					} else {
-						snprintf(buf, sizeof(buf), "fcntl lock error "
-								"status %d on %s %d %s", status,
-								pidfile, lfd, sys_errlist[errno]);
+						snprintf(buf, sizeof(buf),
+						    "fcntl lock error status %d"
+						    " on %s %d %s", status,
+						    pidfile, lfd,
+						    sys_errlist[errno]);
 						logerror(buf);
 						die(0);
 					}
@@ -300,9 +305,9 @@ main(int argc, char **argv) {
 			}
 
 			if (errno != 0) {
-				snprintf(buf, sizeof(buf), "Cannot lock %s fd %d "
-						"in %d tries %s", pidfile, lfd,
-						tries+1, sys_errlist[errno]);
+				snprintf(buf, sizeof(buf), "Cannot lock %s fd "
+				    "%d in %d tries %s", pidfile, lfd,
+				    tries + 1, sys_errlist[errno]);
 				logerror(buf);
 
 				/* who is hogging this lock */
@@ -317,15 +322,16 @@ main(int argc, char **argv) {
 
 				status = fcntl(lfd, F_GETLK, &fl);
 				if ((status == -1) || (fl.l_type == F_UNLCK)) {
-					snprintf(buf, sizeof(buf), "Cannot determine "
-							"%s lockholder status=%d type=%d",
-							pidfile, status, fl.l_type);
+					snprintf(buf, sizeof(buf), "Cannot "
+					    "determine %s lockholder status = "
+					    "%d type=%d", pidfile, status,
+					    fl.l_type);
 					logerror(buf);
 					return (0);
 				}
 
-				snprintf(buf, sizeof(buf), "Lock on %s is being "
-						"held by sys=%u pid=%d", pidfile,
+				snprintf(buf, sizeof(buf), "Lock on %s is "
+				    "being held by sys = %u pid = %d", pidfile,
 #ifdef HAS_FLOCK_SYSID
 						fl.l_sysid,
 #else
@@ -394,7 +400,7 @@ main(int argc, char **argv) {
 				if ( !(im->im_func->im_getLog) || (i =
 						(*im->im_func->im_getLog)(im, &log)) < 0) {
 					dprintf("Syslogd: Error calling input module"
-		       				" %s, for fd %d\n", im->im_name, im->im_fd);
+		       			    " %s, for fd %d\n", im->im_name, im->im_fd);
 				}
 
 				/* log it if normal (1), (2) already logged */
@@ -659,7 +665,7 @@ doLog(struct filed *f, int flags, char *message) {
 		ret = (*(om->om_func->om_doLog))(f,flags,msg,om->ctx);
 		if (ret < 0) {
 			dprintf("doLog: error with output module [%s] "
-				"for message [%s]\n", om->om_func->om_name, msg);
+			    "for message [%s]\n", om->om_func->om_name, msg);
 		} else if (ret == 0)
 			/* stop going on */
 			break;
