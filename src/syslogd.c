@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.63 2000/05/15 23:56:32 alejo Exp $
+/*	$Id: syslogd.c,v 1.64 2000/05/17 18:34:07 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -772,13 +772,8 @@ cfline(line, f, prog)
 		f->f_pmask[i] = INTERNAL_NOPRI;
 
 	/* save program name if any */
-	if (!strcmp(prog, "*"))
-		prog = NULL;
-	else {
-		f->f_program = calloc(1, strlen(prog)+1);
-		if (f->f_program)
-			strcpy(f->f_program, prog);
-	}
+	if (!strcmp(prog, "*")) prog = NULL;
+		else f->f_program = strdup(prog);
 
 	/* scan through the list of selectors */
 	for (p = line; *p && *p != '\t';) {
