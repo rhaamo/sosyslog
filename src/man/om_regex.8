@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_regex.8,v 1.1.2.5 2000/09/04 21:45:23 alejo Exp $
+.\"	$CoreSDI: om_regex.8,v 1.4 2000/09/04 21:46:58 alejo Exp $
 .\"
 .\" Copyright (c) 2000
 .\"	Core-SDI SA. All rights reserved.
@@ -31,7 +31,7 @@
 .Dt OM_REGEXP 8
 .Os Core-SDI
 .Sh NAME
-.Nm msyslog regexp output module
+.Nm msyslog regex output module
 .Nd
 .Xr syslogd 8
 output module used to filter and redirect logs
@@ -40,7 +40,7 @@ output module used to filter and redirect logs
 .Op Fl v
 .Op Fl mhdt Ar exp
 .Sh DESCRIPTION
-.Nm regexp output module 
+.Nm regex output module 
 receives a message and checks whether the regular expression exp matches
 fiven field of a log. You must select ONE of the following parameters:
 .Bl -tag -width Ds
