@@ -321,7 +321,7 @@ if test $PEO = "yes" ; then
 	        HASH_SRCS="$HASH_SRCS sha1.c")
 	AC_CHECK_FUNC(RMD160Init, AC_DEFINE(HAVE_RMD160),
 	        HASH_SRCS="$HASH_SRCS rmd160.c")
-	if test -f /dev/srandom ; then
+	if test -r /dev/srandom ; then
 		AC_DEFINE(HAVE_SRANDOM)
 	fi
 fi

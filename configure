@@ -2475,7 +2475,7 @@ else
 HASH_SRCS="$HASH_SRCS rmd160.c"
 fi
 
-	if test -f /dev/srandom ; then
+	if test -r /dev/srandom ; then
 		cat >> confdefs.h <<\EOF
 #define HAVE_SRANDOM 1
 EOF
