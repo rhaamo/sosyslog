@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.71 2001/05/02 22:36:23 claudio Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.77 2002/03/01 07:31:03 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -71,7 +71,7 @@ extern char *default_keyfile;
 #define	SHA1	0
 #endif
 
-#define MAXBUF	MAXSVLINE+SIZEOF_MAXHOSTNAMELEN+20
+#define MAXBUF	MAXSVLINE+MAXHOSTNAMELEN+20
 
 struct om_peo_ctx {
 	short	flags;
@@ -82,7 +82,7 @@ struct om_peo_ctx {
 };
 
 int
-om_peo_write(struct filed *f, int flags, char *msg, void *ctx)
+om_peo_write(struct filed *f, int flags, struct m_msg *msg, void *ctx)
 {
 	struct om_peo_ctx	*c;
 	int			 fd, mfd, len, keylen, newkeylen;
@@ -92,7 +92,7 @@ om_peo_write(struct filed *f, int flags, char *msg, void *ctx)
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "om_peo_write: Entering\n");
 	
-	if (f == NULL || ctx == NULL)
+	if (f == NULL || ctx == NULL || msg == NULL)
 		return (-1);
 
 	c = (struct om_peo_ctx *) ctx;
@@ -100,9 +100,9 @@ om_peo_write(struct filed *f, int flags, char *msg, void *ctx)
 	strftime(time_buf, sizeof(time_buf), "%b %e %H:%M:%S", &f->f_tm);
 	time_buf[15] = '\0';
 	len = snprintf((char *) m, MAXBUF, "%s %s %s\n", time_buf,
-	    f->f_prevhost, msg ? msg : f->f_prevline) - 1;
+	    f->f_prevhost, msg->msg ? msg->msg : f->f_prevline) - 1;
 
-	m_dprintf(MSYSLOG_INFORMATIVE, "om_peo_write: len = %i, msg = %s\n ",
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_peo_write: len = %i, msg->msg = %s\n ",
 	    len, m);
 
 	/* Open keyfile and read last key */
@@ -178,11 +178,12 @@ int
 om_peo_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	    char **status)
 {
-	int			 ch;
+	char			 statbuf[2048];
 	struct om_peo_ctx	*c;
 	int			 hash_method;
 	int			 mfd;
-	char			 statbuf[2048];
+	int			 ch;
+	int			 argcnt;
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "om_peo_init: Entering, called by %s\n",
 	    prog);
@@ -197,18 +198,18 @@ om_peo_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	macfile = NULL;
 	mfd = 0;
 
-	/* parse command line */
-#ifdef HAVE_OPTRESET
-	optreset = 1;
-#endif
-	optind = 1;
-	while ( (ch = getopt(argc, argv, "k:lm:")) != -1) {
+	argcnt = 1;	/* skip module name */
+
+	while ( (ch = getxopt(argc, argv, "k!keyfile: l!macfile m!method:",
+	    &argcnt)) != -1) {
+
 		switch (ch) {
 		case 'k':
 			/* set keyfile */
 			release();
-			if ( (keyfile = strdup(optarg)) == NULL)
+			if ((keyfile = strdup(argv[argcnt])) == NULL) {
 				return (-1);
+			}
 			break;
 		case 'l':
 			/* set macfile */
@@ -216,7 +217,7 @@ om_peo_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 			break;
 		case 'm':
 			/* set method */
-			if ( (hash_method = gethash(optarg)) < 0) {
+			if ( (hash_method = gethash(argv[argcnt])) < 0) {
 				release();
 				errno = EINVAL;
 				return (-1);
@@ -227,6 +228,7 @@ om_peo_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 			errno = EINVAL;
 			return (-1);
 		}
+		argcnt++;
 	}
 
 	/* set macfile */

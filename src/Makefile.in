@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.53 2001/04/28 01:52:18 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.56 2002/03/01 03:38:11 alejo Exp $
 #
 # Copyright (c) 2001, Core SDI S.A., Argentina
 # All rights reserved
@@ -40,7 +40,7 @@ INSTALL_DIR=    @prefix@/sbin
 
 PROG=		@MSYSLOG_DAEMON_NAME@
 PROG_FLAGS=	$(CFLAGS) $(CPPFLAGS) $(LIBS) $(SYSLOGD_LIBS) $(MAIN_CPPFLAGS)
-SRCS=		modules.c syslogd.c
+SRCS=		modules.c syslogd.c options.c
 OBJS=		$(SRCS:.c=.o)
 
 all: $(PROG)
@@ -66,7 +66,7 @@ distclean: clean
 
 install-prog:
 	@if [ ! -d $(INSTALL_DIR) ]; then \
-		$(INSTALL) -d $(INSTALL_DIR); \
+		mkdir -p $(INSTALL_DIR); \
 	fi
 	@if [ -f "$(INSTALL_DIR)/$(PROG)" ]; then \
 		mv -f "$(INSTALL_DIR)/$(PROG)" "$(INSTALL_DIR)/$(PROG).old"; \

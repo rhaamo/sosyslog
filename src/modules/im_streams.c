@@ -1,4 +1,4 @@
-/*      $CoreSDI: im_streams.c,v 1.15 2001/05/01 02:26:16 alejo Exp $   */
+/*      $CoreSDI: im_streams.c,v 1.17 2001/11/21 05:15:25 alejo Exp $   */
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -114,8 +114,9 @@ im_streams_read (struct i_module *im, int infd, struct im_msg *ret)
 			ret->im_len = dat.len;
 			ret->im_pri = lc.pri;
 
-			logmsg (ret->im_pri, ret->im_msg,
-			    LocalHostName, ret->im_flags);
+			ret->im_host[0] = '\0';
+			logmsg(ret->im_pri, ret->im_msg, ret->im_host,
+			    ret->im_flags);
 		} else {
 			m_dprintf(MSYSLOG_INFORMATIVE, "im_streams_read: "
 			    "STREAMS device offered no data?\n");

@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.162 2001/10/24 08:10:08 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.167 2002/02/08 18:25:06 claudio Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -42,7 +42,9 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <sys/socket.h>
+
 #include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -51,6 +53,7 @@
 #include <dlfcn.h>
 #include <limits.h>
 #include <time.h>
+
 #include "modules.h"
 #include "syslogd.h"
 
@@ -71,88 +74,101 @@ struct omodule *addOmodule(char *);
 struct omodule *omodules;
 struct imodule *imodules;
 
-extern char *libdir;
-extern int Debug;
 char err_buf[MAXLINE];
 
+extern char *libdir;
 extern void *main_lib;
+extern int Debug;
 
 
 /*
  * Prepare libraries for a module
  */
-
 int
-prepare_module_libs(const char *modname, void **ret) {
+prepare_module_libs(const char *modname, void **ret)
+{
 #if BUGGY_LIBRARY_OPEN
 	int i;
 	char buf[LIB_PATH_MAX];
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "prepare_module_libs: called for "
-	    "module:%s\n", modname);
+	    "module: %s\n", modname);
 
+	/* Try to open LIBDIR/MYSLOG_LIB */
 	snprintf(buf, sizeof(buf), "%s/" MLIBNAME_STR,
-	    libdir ? libdir : INSTALL_LIBDIR);
-
+	    (libdir != NULL) ? libdir : INSTALL_LIBDIR);
 	m_dprintf(MSYSLOG_INFORMATIVE, "prepare_module_libs: Going to open %s\n",
 	    buf);
+	*ret = dlopen(buf, DLOPEN_FLAGS);
 
 	/* Try ./ if debugging. We don't care if it is not open */
-	if ( Debug && ((*ret = dlopen(buf, DLOPEN_FLAGS)) == NULL) ) {
+	if (Debug && *ret == NULL) {
 		snprintf(buf, sizeof(buf), "./" MLIBNAME_STR);
 		m_dprintf(MSYSLOG_INFORMATIVE, "prepare_module_libs: Going"
 		    " to open %s\n", buf);
 		*ret = dlopen(buf, DLOPEN_FLAGS);
 	}
 
-
 	m_dprintf(MSYSLOG_INFORMATIVE, "prepare_module_libs: lib %s was "
-	    "%sopened\n", buf, *ret == NULL?  "not " : "");
+	    "%sopened\n", buf, (*ret == NULL) ?  "not " : "");
 
 #endif
 	return (1);
 }
 
-/*
- * This function gets function name from
- * the main libalat.so.X.X library or
- * if not there try to open this module
- * library. (main libname is MLIBNAME_STR !
- */
 
+/*
+ * This function gets function name from the main libmsyslog.so.X.X
+ * library or if not there try to open the external module library
+ * called libmsyslog_<modulename>.so
+ */
 int
-get_symbol(const char *modname, const char *funcname, void *h, void **ret) {
+get_symbol(const char *modname, const char *funcname, void **h, void **ret)
+{
 	char buf[LIB_PATH_MAX];
 
 	snprintf(buf, sizeof(buf), SYMBOL_PREFIX "%s_%s", modname, funcname);
-
 	*ret = NULL;
+
 	/*
 	 * Search for symbol on main library
 	 * and in module libs
 	 */
-	if (main_lib == NULL || ( (*ret = dlsym(main_lib, buf)) == NULL &&
-	    (*ret = dlsym(main_lib, buf +  1)) == NULL ) ) {
+	if (*h == NULL) {
+		if (main_lib == NULL || ((*ret = dlsym(main_lib, buf)) == NULL
+		    && (*ret = dlsym(main_lib, buf + 1)) == NULL)) {
 
-		m_dprintf(MSYSLOG_INFORMATIVE, "get_symbol: func %s not found "
-		    "on main lib \n", buf);
+			m_dprintf(MSYSLOG_INFORMATIVE, "get_symbol: func %s "
+			    "not found on main library\n", buf);
 
+			/* Try to open libmsyslog_<modulename>.so */
+			if (*h == NULL) {
+				char extlib[LIB_PATH_MAX];
+
+				snprintf(extlib, sizeof(extlib),
+				    "%s/libmsyslog_%s.so", (libdir == NULL) ?
+				    INSTALL_LIBDIR : libdir, modname);
+
+				m_dprintf(MSYSLOG_INFORMATIVE, "get_symbol: "
+				    "Trying to open %s... ", extlib);
+				*h = dlopen(extlib, DLOPEN_FLAGS);
+				m_dprintf(MSYSLOG_INFORMATIVE, "%s\n",
+				    (*h == NULL) ? "failed" : "ok");
+			}
+
+		}
 	}
 
-	if (*ret == NULL && h && ( (*ret = dlsym(h, buf)) == NULL &&
-	    (*ret = dlsym(h, buf + 1)) == NULL) ) {
-	   	m_dprintf(MSYSLOG_SERIOUS, "get_symbol: error linking function "
-		    "%s, %s\n", buf, dlerror());
-	   	return(-1);
+	/* If can't found the symbol on the main library try the external one */
+	if (*ret == NULL && *h != NULL) {
+		*ret = dlsym(*h, buf);
+		m_dprintf(MSYSLOG_INFORMATIVE, "get_symbol: func %s %sfound on "
+		    "external lib\n", buf, (*ret == NULL) ? "not " : "");
 	}
 
-	/* not on main lib, not on this module's lib */
-	if (*ret == NULL)
-		return(-1);
-
-	return(1);
-
+	return ((*ret == NULL) ? -1 : 1);
 }
+
 
 /*
  * Create a new input module, and assign module functions to generic pointer
@@ -160,12 +176,11 @@ get_symbol(const char *modname, const char *funcname, void *h, void **ret) {
  *  I is a pointer to a list of input modules, where new one will be appended
  *  line is the command line of the input module
  */
-
 int
 imodule_create(struct i_module *I, char *line)
 {
 	int argc, ret, i;
-	char *p, **argv = NULL;
+	char **argv = NULL;
 	struct i_module *im, *im_prev;
 
 	/* create initial node for Inputs list */
@@ -180,7 +195,7 @@ imodule_create(struct i_module *I, char *line)
 	if (im_prev == I && im_prev->im_fd == -1) {
 		im = im_prev;
 	} else {
-		if((im_prev->im_next = (struct i_module *) calloc(1,
+		if ((im_prev->im_next = (struct i_module *)calloc(1,
 		    sizeof(struct i_module))) == NULL) {
 			m_dprintf(MSYSLOG_SERIOUS, "No memory available for "
 			    "calloc\n");
@@ -189,10 +204,6 @@ imodule_create(struct i_module *I, char *line)
 		im = im_prev->im_next;
 		im->im_fd = -1;
 	}
-
-	for (p = line; *p != '\0'; p++)
-	    if (*p == ':')
-	        *p = ' ';
 
 	if ((argc = parseParams(&argv, line)) < 1) {
 		snprintf(err_buf, sizeof(err_buf), "Error initializing module "
@@ -248,8 +259,8 @@ imodule_create_bad:
 	}
 
 	return (ret);
-
 }
+
 
 /*
  * Create a new input module, and assign module functions to generic pointer
@@ -260,11 +271,11 @@ imodule_create_bad:
  *  prog is the program to match
  *
  */
-
 int
 omodule_create(char *c, struct filed *f, char *prog)
 {
-	char	*line, *p, quotes, *argv[20];
+#define OMODULE_ARGV_MAX 20
+	char	*line, *p, quotes, *argv[OMODULE_ARGV_MAX];
 	int	argc;
 	struct o_module	*om, *om_prev;
 
@@ -274,109 +285,106 @@ omodule_create(char *c, struct filed *f, char *prog)
 	/* create context and initialize module for logging */
 	while (*p) {
 		if (f->f_omod == NULL) {
-			f->f_omod = (struct o_module *) calloc(1, sizeof(*f->f_omod));
+			f->f_omod = (struct o_module *)
+			    calloc(1, sizeof(struct o_module));
 			om = f->f_omod;
 			om_prev = NULL;
 		} else {
-			for (om_prev = f->f_omod; om_prev->om_next; om_prev = om_prev->om_next);
-			om_prev->om_next = (struct o_module *) calloc(1, sizeof *f->f_omod);
+			for (om_prev = f->f_omod; om_prev->om_next;
+			    om_prev = om_prev->om_next);
+			om_prev->om_next = (struct o_module *)
+			    calloc(1, sizeof(struct o_module));
 			om = om_prev->om_next;
 		}
 
 		switch (*p) {
-			case '%':
-				/* get this module name */
-				argc = 0;
-				while (isspace((int)*(++p)));
-				argv[argc++] = p;
-				while (!isspace((int)*p)) p++;
+		case '%':
+			/* get this module name */
+			argc = 0;
+			while (isspace((int)*(++p)));
+			argv[argc++] = p;
+			while (!isspace((int)*p)) p++;
 
-				*p++ = 0;
+			*p++ = 0;
 
-				/* find for matching module */
-				if ((om->om_func = getOmodule(argv[0]))
+			/* find for matching module */
+			if ((om->om_func = getOmodule(argv[0])) == NULL) {
+				if ((om->om_func = addOmodule(argv[0]))
 				    == NULL) {
-					if ((om->om_func = addOmodule(argv[0]))
-					    == NULL) {
-
-						snprintf(err_buf,
-						    sizeof(err_buf), "Error "
-						    "loading dynamic output "
-						    "module %s [%s]\n",
-						    argv[0], line);
-						goto omodule_create_bad;
-
-					}
+					snprintf(err_buf,
+					    sizeof(err_buf), "Error "
+					    "loading dynamic output "
+					    "module %s [%s]\n",
+					    argv[0], line);
+					goto omodule_create_bad;
 				}
+			}
 
-				m_dprintf(MSYSLOG_INFORMATIVE, "omodule_create: "
-				    "got output module %s\n", argv[0]);
+			m_dprintf(MSYSLOG_INFORMATIVE, "omodule_create: "
+			    "got output module %s\n", argv[0]);
 
-				/* build argv and argc, modifies input p */
-				while (isspace((int)*p)) p++;
-				while (*p && *p != '%' && *p != '\n' &&
-				    *p != '\r' && argc<sizeof(argv) /
-				    sizeof(argv[0])) { 
-				
-					if (*p == '"' || *p == '\'')
-					    quotes = *p++;
+			/* build argv and argc, modifies input p */
+			while (isspace((int)*p)) p++;
+/* XXX
+			while (*p && *p != '%' && *p != '\n' && *p != '\r' &&
+			    argc < sizeof(argv) / sizeof(argv[0])) {
+*/
+			while (*p && *p != '%' && *p != '\n' && *p != '\r' &&
+			    argc < OMODULE_ARGV_MAX) {
+			
+				if (*p == '"' || *p == '\'')
+				    quotes = *p++;
 
-					argv[argc++] = p;
-					if (quotes) {
-						while (*p != '\0' &&
-						    *p != quotes) p++;
-						if (*p == '\0') {
-							/* not ending, fix */
-							quotes = 0;
-							break;
-						} else {
-							/* closing */
-							quotes = 0;
-						}
+				argv[argc++] = p;
+				if (quotes) {
+					while (*p != '\0' && *p != quotes)
+						p++;
+					if (*p == '\0') {
+						/* not ending, fix */
+						quotes = 0;
+						break;
 					} else {
-						while ( *p != '\0' &&
-						    !isspace((int)*p))
-							p++;
+						/* closing */
+						quotes = 0;
 					}
-					if (*p != 0)
-						*p++ = 0;
-					while (*p != '\0' &&
-					    isspace((int) *p))	
+				} else {
+					while ( *p != '\0' && !isspace((int)*p))
 						p++;
 				}
+				if (*p != 0)
+					*p++ = 0;
+				while (*p != '\0' && isspace((int) *p))	
+					p++;
+			}
 
-				m_dprintf(MSYSLOG_INFORMATIVE, "omodule_create:"
-				    " successfully made output module "
-				    "%s's argv[]\n", argv[0]);
+			m_dprintf(MSYSLOG_INFORMATIVE, "omodule_create:"
+			    " successfully made output module %s's argv[]\n",
+			    argv[0]);
+			break;
 
-				break;
-			case '@':
-			case '/':
-			case '-':
-			case '|':
-			case '*':
-			default:
-				/* classic style */
-				/* prog is already on this filed */
-				argc = 0;
-				argv[argc++] = "classic";
-				argv[argc++] = p;
-				p += strlen(p);
-				/* find for matching module */
-				if ((om->om_func = getOmodule(argv[0]))
+		case '@':
+		case '/':
+		case '-':
+		case '|':
+		case '*':
+		default:
+			/* classic style */
+			/* prog is already on this filed */
+			argc = 0;
+			argv[argc++] = "classic";
+			argv[argc++] = p;
+			p += strlen(p);
+			/* find for matching module */
+			if ((om->om_func = getOmodule(argv[0])) == NULL) {
+				if ((om->om_func = addOmodule(argv[0]))
 				    == NULL) {
-					if ((om->om_func = addOmodule(argv[0]))
-					    == NULL) {
-						snprintf(err_buf,
-						    sizeof(err_buf), "Error "
-						    "loading dynamic output "
-						    "module %s [%s]\n",
-						    argv[0], line);
-						goto omodule_create_bad;
-					}
+					snprintf(err_buf,
+					    sizeof(err_buf), "Error loading "
+					    "dynamic output module %s [%s]\n",
+					    argv[0], line);
+					goto omodule_create_bad;
 				}
-
-				break;
+			}
 		}
 
 		if (!om->om_func->om_init ||
@@ -398,7 +406,7 @@ omodule_create(char *c, struct filed *f, char *prog)
 
 omodule_create_bad:
 
-	m_dprintf(MSYSLOG_SERIOUS, err_buf);
+	m_dprintf(MSYSLOG_SERIOUS, "%s", err_buf);
 
 	if (line)
 		free(line);
@@ -413,8 +421,8 @@ omodule_create_bad:
 		free(om);
 
 	return (-1);
-
 }
+
 
 /*
  * Parse a line and return argc & argv
@@ -422,7 +430,6 @@ omodule_create_bad:
  * space and tabs are separators
  *
  */
-
 int
 parseParams(char ***ret, char *c)
 {
@@ -436,14 +443,22 @@ parseParams(char ***ret, char *c)
 	*ret = (char **) calloc(20, sizeof(char *));
 	argc = 0;
 
-	for(q = p; *p != '\0'; p = q) {
+	for (q = p; *p != '\0'; p = q) {
 		/* skip initial spaces */
-		while (isspace((int)*p)) p++;
+		while (isspace((int)*p))
+			p++;
 		if (*p == '\0')
 		    break;
 
-		if (*p == '\'') {
-		    for(q = ++p; *q != '\'' && *q != '\0'; q++);
+		if (*p == '\"') {
+		    for (q = ++p; *q != '\"' && *q != '\0'; q++);
+
+		    if (*q != '\0') {
+		        *q++ = '\0';
+		    }
+
+		} else if (*p == '\'') {
+		    for (q = ++p; *q != '\'' && *q != '\0'; q++);
 
 		    if (*q != '\0') {
 		        *q++ = '\0';
@@ -451,7 +466,7 @@ parseParams(char ***ret, char *c)
 
 		} else {
 		    /* see how long this word is, alloc, and copy */
-		    for(q = p; *q != '\0' && !isspace((int)*q); q++);
+		    for (q = p; *q != '\0' && !isspace((int)*q); q++);
 		    if (*q != '\0') {
 		        *q++ = '\0';
 		    }
@@ -459,11 +474,11 @@ parseParams(char ***ret, char *c)
 		}
 
 		(*ret)[argc++] = strdup(p);
-		if ((argc % 20) == 18)
-			if ( (*ret = (char **) realloc(*ret, sizeof(char *) *
+		if ((argc % OMODULE_ARGV_MAX) == 18)
+			if ( (*ret = (char **)realloc(*ret, sizeof(char *) *
 			    (argc + 20))) == NULL) {
 				free(line);
-				return(-1);
+				return (-1);
 			}
 		if (*ret != NULL)
 			(*ret)[argc] = NULL;
@@ -472,6 +487,7 @@ parseParams(char ***ret, char *c)
 	free(line);
 	return (argc);
 }
+
 
 struct imodule *
 addImodule(char *name)
@@ -483,19 +499,20 @@ addImodule(char *name)
 		return (NULL);
 
 	if (imodules == NULL) {
-		imodules = (struct imodule *) calloc(1, sizeof(*im));
+		imodules = (struct imodule *)calloc(1, sizeof(struct imodule));
 		im = imodules;
 	} else {
-		for(im = imodules; im->im_next; im = im->im_next);
-		im->im_next = (struct imodule *) calloc(1, sizeof(*im));
+		for (im = imodules; im->im_next; im = im->im_next);
+		im->im_next = (struct imodule *) calloc(1,
+		    sizeof(struct imodule));
 		im = im->im_next;
 	}
 
 	snprintf(buf, sizeof(buf), "im_%s", name);
 
 	if (prepare_module_libs(buf, &im->h) == -1 ||
-	    get_symbol(buf, "init", im->h, (void *) &im->im_init) == -1 ||
-	    get_symbol(buf, "read", im->h, (void *) &im->im_read) == -1) {
+	    get_symbol(buf, "init", &im->h, (void *) &im->im_init) == -1 ||
+	    get_symbol(buf, "read", &im->h, (void *) &im->im_read) == -1) {
 
 		if (imodules == im) {
 			imodules = NULL;
@@ -514,7 +531,7 @@ addImodule(char *name)
 	}
 
 	/* this is not mandatory */
-	get_symbol(buf, "close", im->h, (void *) &im->im_close); 
+	get_symbol(buf, "close", &im->h, (void *) &im->im_close); 
 
 	im->im_name = strdup(name);
 
@@ -535,47 +552,52 @@ addOmodule(char *name)
 		return (NULL);
 
 	if (omodules == NULL) {
-		omodules = (struct omodule *) calloc(1, sizeof(*om));
+		omodules = (struct omodule *) calloc(1, sizeof(struct omodule));
 		om = omodules;
 	} else {
-		for(om = omodules; om->om_next; om = om->om_next);
-		om->om_next = (struct omodule *) calloc(1, sizeof(*om));
+		for (om = omodules; om->om_next != NULL; om = om->om_next);
+		om->om_next =
+		    (struct omodule *)calloc(1, sizeof(struct omodule));
 		om = om->om_next;
+	}
+
+	if (om == NULL) {
+		m_dprintf(MSYSLOG_CRITICAL, "addOmodule: %s\n", strerror(errno));
+		return (NULL);
 	}
 
 	snprintf(buf, sizeof(buf), "om_%s", name);
 
 	if (prepare_module_libs(buf, &om->h) == -1 ||
-	    get_symbol(buf, "init", om->h, (void *) &om->om_init) == -1 ||
-	    get_symbol(buf, "write", om->h, (void *) &om->om_write) == -1) {
+	    get_symbol(buf, "init", &om->h, (void *) &om->om_init) == -1 ||
+	    get_symbol(buf, "write", &om->h, (void *) &om->om_write) == -1) {
 
 		if (omodules == om) {
 			omodules = NULL;
 		} else {
 			struct omodule *o = omodules;
 
-			for (; o && o->om_next == om; o = o->om_next);
-			if (o)
+			for (; o != NULL && o->om_next != om; o = o->om_next);
+			if (o != NULL)
 				o->om_next = NULL;
 		}
 
 		free(om);
-
-		return(NULL);
+		return (NULL);
 	}
 
 	/* this is not mandatory */
-	get_symbol(buf, "close", om->h, (void *) &om->om_close); 
-	get_symbol(buf, "flush", om->h, (void *) &om->om_flush); 
+	get_symbol(buf, "close", &om->h, (void *)&om->om_close); 
+	get_symbol(buf, "flush", &om->h, (void *)&om->om_flush); 
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "addOmodule: successfully configured %s "
 	    "output module\n", buf);
-
 
 	om->om_name = strdup(name);
 
 	return (om);
 }
+
 
 int
 omoduleDestroy(struct omodule *om)
@@ -593,6 +615,7 @@ omoduleDestroy(struct omodule *om)
 	return (1);
 }
 
+
 struct imodule *
 getImodule(char *name)
 {
@@ -609,15 +632,17 @@ getImodule(char *name)
 	return (im);
 }
 
+
 struct omodule *
-getOmodule(char *name) {
+getOmodule(char *name)
+{
 	struct omodule *om;
 	unsigned int len;
 
 	if (omodules == NULL || name == NULL)
 		return (NULL);
 
-	for(om = omodules, len = strlen(name); om; om = om->om_next)
+	for (om = omodules, len = strlen(name); om; om = om->om_next)
 		if (om->om_name && !strncmp(om->om_name, name, len))
 			break;
 
@@ -630,7 +655,6 @@ getOmodule(char *name) {
  * its dynamic libraries
  *
  */
-
 int 
 imodules_destroy(struct imodule *i)
 {
@@ -667,29 +691,28 @@ imodules_destroy(struct imodule *i)
  * its dynamic libraries
  *
  */
-
 int
 omodules_destroy(struct omodule *o)
 {
-    struct omodule *om, *om_next, *last;
+	struct omodule *om, *om_next, *last;
     
-	for (om = o, last = NULL; om; om = om_next) {
+	for (om = o, last = NULL; om != NULL; om = om_next) {
 
 		om_next = om->om_next;
 
-		if (!om->h) {
+		if (om->h == NULL) {
 			last = om;
 			continue;
 		}
 
-		if (last)
+		if (last != NULL)
 			last->om_next = om->om_next;
 
 		dlclose(om->h);
 		free(om);
 	}
 
-	if (last) {
+	if (last != NULL) {
 		last->om_next = NULL;
 		return (1); /* there are some static modules on */
 	}

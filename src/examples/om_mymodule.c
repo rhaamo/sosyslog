@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mymodule.c,v 1.13 2001/03/22 20:16:09 alejo Exp $	*/
+/*	$CoreSDI: om_mymodule.c,v 1.15 2002/03/01 07:31:02 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -106,33 +106,33 @@ om_mymodule_init (int argc, char **argv, struct filed *f, char *prog,
  * char *prog;			Program name doing this log
  * void **context; Our context
  */
-	char *myArg;
+	char	*myArg;
+	int	argcnt;
 
 	/* for debugging purposes */
 	m_dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_init: Entering\n");
 
 	/*
-	 * Parse your options with getopt(3)
+	 * Parse your options with getxopt()
 	 *
 	 * we give an example for a -s argument
 	 *
 	 *
 	 */
 
-	 optind = 1;
-#ifdef HAVE_OPTRESET 
-	optreset = 1;
-#endif
-	while ((ch = getopt(argc, argv, "s:")) != -1) {
+	argcnt = 1; /* skip module name */
+
+	while ((ch = getxopt(argc, argv, "s!myargname:", &argcnt)) != -1) {
 		switch (ch) { 
 			case 's':
-				myArg = optarg;
+				myArg = argv[argcnt];
 				break;
-			default :
+			default:
 				m_dprintf(MSYSLOG_INFORMATIVE, "om_mymodule: "
 				    "error on arguments\n");
 				return (-1);
 		}
+		argcnt++;
 	}
 
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.28 2001/09/20 01:21:13 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.35 2002/03/01 07:31:02 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -61,6 +61,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/uio.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
@@ -80,8 +81,9 @@
 struct tcp_conn {
 	struct tcp_conn *next;
 	int		 fd;
-	char		 name[SIZEOF_MAXHOSTNAMELEN + 1];
+	char		 name[MAXHOSTNAMELEN + 1];
 	char		 port[20];
+	char		 saveline[MAXLINE + 3]; /* maxline + cr lf */
 };
 
 struct im_tcp_ctx {
@@ -113,7 +115,7 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 {
 	struct im_tcp_ctx	*c;
 	char			*host, *port;
-	int			ch, optind_s;
+	int			ch, argcnt;
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: entering\n");
 
@@ -127,21 +129,19 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 	host = "0.0.0.0";
 	port = "syslog";
 
-	/* parse command line */
-	optind_s = optind;	/* save main's optind */
-	optind = 1;
-#ifdef HAVE_OPTRESET
-	optreset = 1;
-#endif
-	while ((ch = getopt(argc, argv, "h:p:aq")) != -1) {
+	argcnt = 1; /* skip module name */
+
+	while ((ch = getxopt(argc, argv, "h!host: p!port: a!addhost q!nofqdn",
+	    &argcnt)) != -1) {
+
 		switch (ch) {
 		case 'h':
 			/* get addr to bind */
-			host = optarg;
+			host = argv[argcnt];
 			break;
 		case 'p':
 			/* get remote host port */
-			port = optarg;
+			port = argv[argcnt];
 			break;
 		case 'a':
 			c->flags |= M_USEMSGHOST;
@@ -156,9 +156,8 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 			free(c);
 			return (-1);
 		}
+		argcnt++;
 	}
-
-	optind = optind_s;	/* restore main's optind */
 
 	if ( (I->im_fd = listen_tcp(host, port, &c->addrlen)) < 0) {
 		m_dprintf(MSYSLOG_SERIOUS, "im_tcp_init: error with listen_tcp() %s\n",
@@ -189,6 +188,8 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 	struct tcp_conn *con;
 	int n;
 
+	m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: entering...\n");
+
 	if (im == NULL || ret == NULL) {
 		m_dprintf(MSYSLOG_SERIOUS, "im_tcp_read: arg %s%s is null\n",
 		    ret? "ret":"", im? "im" : "");
@@ -201,6 +202,8 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 	}
 
 	if (infd == im->im_fd) {
+
+		m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: new connection\n");
 
 		/* create a new connection */
 		if ((con = (struct tcp_conn *) calloc(1, sizeof(*con)))
@@ -274,8 +277,12 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 			prev->next = con->next;
 		}
 
-		free(con);
+		if (con->saveline[0] != '\0')
+			printline(ret->im_host, con->saveline,
+			    strlen(con->saveline),  0);
 
+		free(con);
+	
 		return (0);
 
 	} else if (n < 0 && errno != EINTR) {
@@ -290,15 +297,33 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 
 		/* terminate it */
 		(im->im_buf)[n] = '\0';
+		p = &im->im_buf[0];
 
+		m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: read: %s [%s]",
+		    con->name, im->im_buf);
+
+		/* change non printable chars to X, just in case */
+		for(p = im->im_buf; *p != '\0'; p++)
+			if (!isprint((unsigned int) *p) && *p != '\n')
+				*p = 'X';
 		p = im->im_buf;
 
 		do {
+			char	*msg;
+
+			msg = p;
 
 			/* multiple lines ? */
 			if((nextline = strchr(p, '\n')) != NULL) {
 				/* terminate this line and advance */
 				*nextline++ = '\0';
+				if (*nextline == '\0')
+					nextline = NULL; /* no more lines */
+			} else {
+				/* save this partial line and return */
+				strncat(con->saveline, p,
+				    sizeof(con->saveline) - 1);
+				con->saveline[sizeof(con->saveline) - 1] = '\0';
 			}
 
 			/* remove trailing carriage returns */
@@ -317,22 +342,34 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 				char	host[90];
 				int	n1, n2;
 
+				if (con->saveline[0] != '\0') {
+					strncat(con->saveline, p,
+					    sizeof(con->saveline) - 1);
+					con->saveline[sizeof(con->saveline) - 1]
+					    = '\0';
+					msg = con->saveline;
+				} else {
+					msg = p;
+				}
+
 				/* extract hostname from message */
-				if ((sscanf(p, "<%*d>%*3s %*i %*i:%*i:%*i %n%89s"
+				if ((sscanf(msg, "<%*d>%*3s %*i %*i:%*i:%*i %n%89s"
 				    " %n", &n1, host, &n2) != 1 &&
-				    sscanf(p, "%*3s %*i %*i:%*i:%*i %n%89s %n",
+				    sscanf(msg, "%*3s %*i %*i:%*i:%*i %n%89s %n",
 				    &n1, host, &n2) != 1 &&
-				    sscanf(p, "%n%89s %n", &n1,
+				    sscanf(msg, "%n%89s %n", &n1,
 				    host, &n2) != 1)
 				    || im->im_buf[n2] == '\0') {
 					m_dprintf(MSYSLOG_INFORMATIVE,
 					    "im_tcp_read: ignoring invalid "
-					    "message [%s]\n", p);
+					    "message [%s]\n", msg);
 					if (nextline != NULL) {
 						p = nextline;
 						continue;
-					} else
+					} else {
 						return (0);
+						con->saveline[0] = '\0';
+					}
 				}
 
 				/* remove host from message */
@@ -359,7 +396,8 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 					*dot = '\0';
 			}
 
-			printline(ret->im_host, p,  strlen(p),  0);
+			printline(ret->im_host, msg,  strlen(msg),  0);
+			*msg = '\0';
 
 			p = nextline;
 

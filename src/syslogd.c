@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.217 2001/10/25 23:49:48 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.229 2002/03/01 08:30:47 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.217 2001/10/25 23:49:48 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.229 2002/03/01 08:30:47 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -84,6 +84,7 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.217 2001/10/25 23:49:48 alejo Exp
 # define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
 #endif
 #include <sys/un.h>
+#include <sys/utsname.h>
 
 #ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
@@ -174,13 +175,15 @@ FILE	*pidf;
 
 #define MAX_PIDFILE_LOCK_TRIES 5
 
-char    *ctty;					/* console path */
+char    *ctty = "%classic -t CONSOLE " _PATH_CONSOLE;	/* console path */
 int	UseConsole = 1;
-char     LocalHostName[SIZEOF_MAXHOSTNAMELEN];  /* our hostname */
-char    *LocalDomain = NULL;			/* our domain */
-int      finet = -1;				/* Internet datagram socket */
+char     LocalHostName[MAXHOSTNAMELEN];  /* our hostname */
 int      Debug = 0;				/* debug flag */
-int	 DaemonFlags = 0;
+int	 DaemonFlags = 0;		/* running daemon flags */
+#define SYSLOGD_LOCKED_PIDFILE  0x01    /* pidfile is locked */
+#define SYSLOGD_MARK		0x02    /* call domark() */
+#define SYSLOGD_DIE		0x04    /* call die() */
+#define USE_LOCALDOMAIN		0x08    /* use hostname with local domain */
 
 char	*libdir = NULL;
 
@@ -216,8 +219,6 @@ struct i_module	**fd_inputs_mod = NULL;
 int
 main(int argc, char **argv)
 {
-	int		   ch;
-	char		  *p;
 	struct im_msg	   log;
 #ifndef SIGALTSTACK_WITH_STACK_T
 	struct sigaltstack alt_stack;
@@ -225,7 +226,10 @@ main(int argc, char **argv)
 	stack_t alt_stack;
 #endif
 	struct sigaction   sa;
+	int		   ch;
+	int		   argcnt;
 	int		default_inputs = 1; /* start default modules? */
+	int		(*resolv_domain)(char *, int, char *);
 
 	Inputs.im_next = NULL;
 	Inputs.im_fd = -1;
@@ -251,35 +255,46 @@ main(int argc, char **argv)
 		return(-1);
 	}
 
-	/* console config line */
-	ctty = (char *) malloc(sizeof(_PATH_CONSOLE) + 19);
-	strcpy(ctty, "%classic -t CONSOLE " _PATH_CONSOLE);
+	/*
+	 * Daemon options
+	 *
+	 * -d -debug		<level>
+	 * -i -input		[input module name and args]
+	 * -f -conf		[configuration file]
+	 * -P -pidfile		[pid file]
+	 * -m -markinterval	[mark interval seconds]
+	 * -c -noconsole
+	 * -A -uselocaldomain
+	 * -n -nodefault
+	 *
+	 * legacy options
+	 * -u -unix
+	 * -p -path -a 		[additional unix input module in /dev/log]
+	 */
 
-	/* use ':' at start to allow -d to be used without argument */
-	opterr = 0;
+	argcnt = 1;	/* skip argv[0] getxopt() */
 
-	while ( (ch = getopt(argc, argv, ":d:f:m:ui:p:a:P:hcn")) != -1) {
+	while ((ch = getxopt(argc, argv, "d!debug: i!input: f!conf:"
+	    " m!markinterval: P!pidfile: c!console A!localdomain"
+	    " n!nodefault h!help", &argcnt)) != -1) {
 		char buf[512];
 
 		switch (ch) {
-		case ':':	/* missing arg, bsd */
-		case '?':	/* missing arg, sysv */
-			break;
 		case 'd':	/* debug */
-			if (optarg == NULL) {
+			if (argcnt >= argc || *argv[argcnt] == '-'
+			    || !isdigit((int) *argv[argcnt])) {
+				/* missing level */
 				Debug = 20;
-			} else if (isdigit((int) *optarg)) {
-				Debug = atoi(optarg);
-			} else {
-				Debug++;
-				optind--;
+				argcnt--;	/* no arg specified */
+			} else if (isdigit((int) *argv[argcnt])) {
+				Debug = strtol(argv[argcnt], NULL, 10);
 			}
 			break;
 		case 'f':	/* configuration file */
-			ConfFile = optarg;
+			ConfFile = argv[argcnt];
 			break;
 		case 'm':	/* mark interval */
-			MarkInterval = atoi(optarg) * 60;
+			MarkInterval = strtol(argv[argcnt], NULL, 10) * 60;
 			break;
 		case 'u':	/* allow udp input port */
 			if (imodule_create(&Inputs, "udp") < 0) {
@@ -288,17 +303,17 @@ main(int argc, char **argv)
 			}
 			break;
 		case 'i':	/* inputs */
-			if (imodule_create(&Inputs, optarg) < 0) {
+			if (imodule_create(&Inputs, argv[argcnt]) < 0) {
 				fprintf(stderr, "syslogd: WARNING error on "
-				    "input module, ignoring %s\n", optarg);
+				    "input module, ignoring %s\n", argv[argcnt]);
 			}
 			break;
 		case 'p':	/* path */
 		case 'a':	/* additional im_unix socket */
-			snprintf(buf, sizeof(buf), "unix %s", optarg);
+			snprintf(buf, sizeof(buf), "unix %s", argv[argcnt]);
 			if (imodule_create(&Inputs, buf) < 0) {
 				fprintf(stderr, "syslogd: WARNING out of "
-				    "descriptors, ignoring %s\n", optarg);
+				    "descriptors, %s ignored\n", argv[argcnt]);
 			}
 			break;
 		case 'c':	/* don't use console */
@@ -308,12 +323,16 @@ main(int argc, char **argv)
 			default_inputs = 0;
 			break;
 		case 'P':	/* alternate pidfile */
-			pidfile = optarg;
+			pidfile = argv[argcnt];
+			break;
+		case 'A':	/* use local domain name too */
+			DaemonFlags |= USE_LOCALDOMAIN;
 			break;
 		case 'h':
 		default:
 			usage();
 		}
+		argcnt++;
 	}
 
 	if ( default_inputs && Inputs.im_fd < 0 && Inputs.im_next == NULL ) {
@@ -353,7 +372,7 @@ main(int argc, char **argv)
 		usage();
 	}
 
-	if ( (argc -= optind) != 0 )
+	if (argc != argcnt)
 		m_dprintf(MSYSLOG_SERIOUS, "syslogd: remaining command"
 		    " line not parsed!\n");
 
@@ -399,11 +418,11 @@ main(int argc, char **argv)
 	}
 
 	gethostname(LocalHostName, sizeof(LocalHostName));
-	if ((p = strchr(LocalHostName, '.')) != NULL) {
-		*p++ = '\0';
-		LocalDomain = p;
-	} else
-		LocalDomain = "";
+	if ((DaemonFlags & USE_LOCALDOMAIN) &&
+	    (resolv_domain = dlsym(main_lib, SYMBOL_PREFIX "resolv_domain"))
+	    != NULL && resolv_domain(LocalHostName, sizeof(LocalHostName) - 1,
+	    LocalHostName) == -1)
+		gethostname(LocalHostName, sizeof(LocalHostName)); /* again */
 
 	/* Set signal handlers */
 	/* XXX: use one signal handler for all signals other than HUP */
@@ -537,15 +556,6 @@ main(int argc, char **argv)
 	init(0);
 	place_signal(SIGHUP, init);
 
-	log.im_mlen = getmsgbufsize();
-	if (log.im_mlen < MAXLINE)
-		log.im_mlen = MAXLINE;
-	log.im_mlen++;
-	if ( (log.im_msg = malloc(log.im_mlen)) == NULL) {
-		m_dprintf(MSYSLOG_CRITICAL, "malloc log struct");
-		exit(-1);
-	}
-
 	for (;;) {
 		int count, i, done;
 
@@ -558,10 +568,6 @@ main(int argc, char **argv)
 			m_dprintf(MSYSLOG_CRITICAL, "no input struct");
 			exit(-1);
 		}
-
-		/* this may not be on inputs */
-		if (finet != -1 && !(DaemonFlags & SYSLOGD_INET_READ))
-			add_fd_input(finet, NULL);
 
 		/* count will always be less than fd_in_count */
 		switch (count = poll(fd_inputs, fd_in_count, -1)) {
@@ -580,7 +586,7 @@ main(int argc, char **argv)
 			if (fd_inputs[i].revents & POLLIN) {
 				char	*mname;
 				int	fd;
-				int val = -1;
+				int	val = -1;
 
 				log.im_pid = 0;
 				log.im_pri = 0;
@@ -589,19 +595,8 @@ main(int argc, char **argv)
 				mname = fd_inputs_mod[i]->im_func->im_name;
 				fd = fd_inputs[i].fd;
 
-				if (!fd_inputs_mod[i]) {
-					/* silently DROP what comes */
-					if (fd == finet) {
-						struct sockaddr_in frominet;
-						socklen_t len;
-						char line[MAXLINE];
-
-						len = sizeof(frominet);
-						recvfrom(finet, line, MAXLINE,
-						    0, (struct sockaddr *)
-						    &frominet, &len);
-					}
-				} else if (!fd_inputs_mod[i]->im_func ||
+				if (!fd_inputs_mod[i] ||
+				    !fd_inputs_mod[i]->im_func ||
 				    !fd_inputs_mod[i]->im_func->im_read ||
 				    (val = (*fd_inputs_mod[i]->im_func->im_read)
 				    (fd_inputs_mod[i], fd_inputs[i].fd,
@@ -709,6 +704,9 @@ logmsg(int pri, char *msg, char *from, int flags)
 	time_t now;
 	struct tm timestamp;
 
+	if (from == NULL || *from == '\0')
+		from = LocalHostName;
+
 	m_dprintf(MSYSLOG_INFORMATIVE2, "logmsg: pri 0%o, flags 0x%x, from %s,"
 	    " msg %s\n", pri, flags, from, msg);
 
@@ -784,7 +782,7 @@ logmsg(int pri, char *msg, char *from, int flags)
 
 	/* log the message to the particular outputs */
 	if (!Initialized) {
-		if (UseConsole && ctty && omodule_create(ctty, &consfile,
+		if (UseConsole && omodule_create(ctty, &consfile,
 		    NULL) != -1) {
 			doLog(&consfile, flags, msg, prilev, fac);
 			if (consfile.f_omod && consfile.f_omod->om_func
@@ -1512,10 +1510,17 @@ decode(const char *name, CODE *codetab) {
  *  decode_name a numeric value to a symbolic name
  */
 char *
-decode_val(int val, CODE *codetab) {
+decode_val(int val, int codetab) {
 	CODE *c;
 
-	for (c = codetab; c->c_name; c++)
+	if (codetab == CODE_FACILITY)
+		c = facilitynames;
+	else if (codetab == CODE_PRIORITY)
+		c = prioritynames;
+	else
+		return (NULL);
+
+	for (; c->c_name; c++)
 		if (val == c->c_val)
 			return (c->c_name);
 

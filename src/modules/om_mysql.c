@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.78 2001/10/22 22:49:42 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.85 2002/03/01 07:31:03 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -56,7 +56,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define SYSLOG_NAMES
 #include <syslog.h>
 #include <unistd.h>
 #include <dlfcn.h>
@@ -93,7 +92,6 @@ struct om_mysql_ctx {
 #define	OM_MYSQL_PRIORITY		0x8
 
 int om_mysql_close(struct filed *, void *);
-char	*decode_val(int, CODE *);
 
 /*
  * Define our prototypes for MySQL functions
@@ -105,10 +103,11 @@ char	*decode_val(int, CODE *);
 int
 om_mysql_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 {
-	struct om_mysql_ctx *c;
-	char	query[MAX_QUERY], err_buf[100], facility[11], priority[11];
-	int i;
-	RETSIGTYPE (*sigsave)(int);
+	struct om_mysql_ctx	*c;
+	char			query[MAX_QUERY], err_buf[100];
+	char			facility[16], priority[16], *p;
+	int			i;
+	RETSIGTYPE		(*sigsave)(int);
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "om_mysql_write: entering [%s] [%s]\n",
 	    m->msg, f->f_prevline);
@@ -127,13 +126,8 @@ om_mysql_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 		c->lost++;
 		if (c->lost == 1) {
 			snprintf(err_buf, sizeof(err_buf), "om_mysql_write: "
-			    "Lost connection! [%s]",
-#ifndef mysql_error
-			    (c->mysql_error)
-#else
-			    mysql_error
-#endif
-			    (c->h));
+			    "Lost connection! [%s]", c->mysql_error?
+			    c->mysql_error(c->h) : "<unknown>");
 			m_dprintf(MSYSLOG_SERIOUS, "%s", err_buf);
 			logerror(err_buf);
 		}
@@ -143,13 +137,19 @@ om_mysql_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 	/* restore previous SIGPIPE handler */
 	place_signal(SIGPIPE, sigsave);
 
-	/*
-	 * NOTE: could use prioritynames[] and facilitynames[]
-	 */
-	if (c->flags & OM_MYSQL_FACILITY)
-		snprintf(facility, sizeof(facility), "'%s',", decode_val(m->fac<<3, facilitynames));
-	if (c->flags & OM_MYSQL_PRIORITY)
-		snprintf(priority, sizeof(priority), "'%s',", decode_val(m->pri, prioritynames));
+	if (c->flags & OM_MYSQL_FACILITY) {
+		if ((p = decode_val(m->fac<<3, CODE_FACILITY)) != NULL)
+			snprintf(facility, sizeof(facility), "'%s',", p);
+		else
+			snprintf(facility, sizeof(facility), "'%d',", m->fac<<3);
+	}
+
+	if (c->flags & OM_MYSQL_PRIORITY) {
+		if ((p = decode_val(m->pri, CODE_PRIORITY)) != NULL)
+			snprintf(priority, sizeof(priority), "'%s',", p);
+		else
+			snprintf(priority, sizeof(priority), "'%d',", m->pri);
+	}
 
 	/* table, yyyy-mm-dd, hh:mm:ss, host, msg  */ 
 	i = snprintf(query, sizeof(query), "INSERT %sINTO %s (%s%s date, time, "
@@ -211,13 +211,8 @@ om_mysql_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 
 	if ((i = (c->mysql_query)(c->h, query)) < 0) {
 		snprintf(err_buf, sizeof(err_buf), "om_mysql_write: error "
-		    "inserting on table [%s]",
-#ifndef mysql_error
-		    (c->mysql_error)
-#else
-		    mysql_error
-#endif
-		    (c->h));
+		    "inserting on table [%s]", c->mysql_error?
+		    c->mysql_error(c->h) : "<unknown>");
 		m_dprintf(MSYSLOG_SERIOUS, "%s\n", err_buf);
 		return (-1);
 	}
@@ -245,9 +240,12 @@ int
 om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
     char **status)
 {
+	char			err_buf[256];
+	char			statbuf[1024];
 	struct om_mysql_ctx	*ctx;
-	char	*p, err_buf[256], statbuf[1024];
-	int	ch;
+	char			*p;
+	int			ch;
+	int			argcnt;
 
 	if (argv == NULL || *argv == NULL || argc < 2 || f == NULL ||
 	    c == NULL || *c != NULL)
@@ -275,59 +273,59 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	    || !(ctx->mysql_query = (int (*)(void *, char *)) dlsym(ctx->lib,
 	    SYMBOL_PREFIX "mysql_query"))
 	    || !(ctx->mysql_close = (void (*)(void *)) dlsym(ctx->lib,
-	    SYMBOL_PREFIX "mysql_close"))
-#ifndef mysql_error
-	    || !(ctx->mysql_error = (char * (*)(void *)) dlsym(ctx->lib,
-	    SYMBOL_PREFIX "mysql_error"))
-#endif
-	    ) {
+	    SYMBOL_PREFIX "mysql_close")) ) {
 		m_dprintf(MSYSLOG_SERIOUS, "om_mysql_init: Error resolving"
 		    " api symbols, %s\n", dlerror());
 		free(ctx);  
 		return (-1);
 	}
 
-	/* parse line */
-	optind = 1;
-#ifdef HAVE_OPTRESET
-	optreset = 1;
-#endif
-	while ((ch = getopt(argc, argv, "s:u:p:d:t:DPF")) != -1) {
+	/* this may be missing on old versions */
+	ctx->mysql_error = (char * (*)(void *)) dlsym(ctx->lib, SYMBOL_PREFIX
+	    "mysql_error");
+
+	argcnt = 1; /* skip module name */
+
+	while ((ch = getxopt(argc, argv, "s!server: u!user: p!password:"
+	    " d!database: t!table: D!delayed P!priority F!facility", &argcnt))
+	    != -1) {
+
 		switch (ch) {
 		case 's':
 			/* get database host name and port */
-			if ((p = strstr(optarg, ":")) == NULL) {
+			if ((p = strstr(argv[argcnt], ":")) == NULL) {
 				ctx->port = MYSQL_PORT;
 			} else {
 				*p = '\0';
-				ctx->port = atoi(++p);
+				ctx->port = strtol(++p, NULL, 10);
 			}
-			ctx->host = strdup(optarg);
+			ctx->host = strdup(argv[argcnt]);
 			break;
 		case 'u':
-			ctx->user = strdup(optarg);
+			ctx->user = strdup(argv[argcnt]);
 			break;
 		case 'p':
-			ctx->passwd = strdup(optarg);
+			ctx->passwd = strdup(argv[argcnt]);
 			break;
 		case 'd':
-			ctx->db = strdup(optarg);
+			ctx->db = strdup(argv[argcnt]);
 			break;
 		case 't':
-			ctx->table = strdup(optarg);
+			ctx->table = strdup(argv[argcnt]);
 			break;
 		case 'D':
 			ctx->flags |= OM_MYSQL_DELAYED_INSERTS;
 			break;
 		case 'P':
-			ctx->flags |= OM_MYSQL_FACILITY;
+			ctx->flags |= OM_MYSQL_PRIORITY;
 			break;
 		case 'F':
-			ctx->flags |= OM_MYSQL_PRIORITY;
+			ctx->flags |= OM_MYSQL_FACILITY;
 			break;
 		default:
 			goto om_mysql_init_bad;
 		}
+		argcnt++;
 	}
 
 	if (ctx->user == NULL || ctx->db == NULL || ctx->port == 0 ||
@@ -359,11 +357,7 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 
 		snprintf(err_buf, sizeof(err_buf), "om_mysql_init: Error "
 		    "connecting to db server [%s], [%s:%i] user [%s] db [%s]",
-#ifndef mysql_error
-			    (ctx->mysql_error)(ctx->h),
-#else
-			    mysql_error(ctx->h),
-#endif
+		    ctx->mysql_error? ctx->mysql_error(ctx->h) : "<unknown>",
 		    ctx->host, ctx->port, ctx->user, ctx->db);
 		logerror(err_buf);
 		return (1);

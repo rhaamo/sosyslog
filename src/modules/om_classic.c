@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.85 2001/10/25 22:41:23 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.89 2001/11/21 05:30:46 alejo Exp $	*/
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
@@ -102,7 +102,7 @@ struct om_classic_ctx {
 	union {
 		char    f_uname[MAXUNAMES][UT_NAMESIZE+1];
 		struct {
-			char    f_hname[SIZEOF_MAXHOSTNAMELEN];
+			char    f_hname[MAXHOSTNAMELEN];
 			struct sockaddr		f_addr;
 		} f_forw;	/* forwarding address */
 		char    f_fname[MAXPATHLEN];
@@ -177,7 +177,7 @@ om_classic_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 		break;
 	
 	case F_FORW:
-		if (finet < 0) {
+		if (c->fd < 0) {
 			m_dprintf(MSYSLOG_SERIOUS, "om_classic: write: "
 			    "can't forward message, socket down\n");
 			return(-1);
@@ -187,7 +187,7 @@ om_classic_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 		l = snprintf(line, sizeof(line), "<%d>%.15s %s", f->f_prevpri,
 		    (char *) iov[0].iov_base, (char *) iov[4].iov_base);
 
-		if (sendto(finet, line, l, 0, &c->f_un.f_forw.f_addr,
+		if (sendto(c->fd, line, l, 0, &c->f_un.f_forw.f_addr,
 #ifdef AF_INET6
 		    c->f_un.f_forw.f_addr.sa_family == AF_INET6 ?
 		    sizeof(struct sockaddr_in6) :
@@ -276,7 +276,7 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 {
 	struct sockaddr *sa;
 	struct  om_classic_ctx *c;
-	socklen_t salen;
+	size_t salen;
 	int i, statbuf_len;
 	char *p, *q, statbuf[1024];
 
@@ -331,30 +331,7 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 
 	switch (*p) {
 	case '@':
-		if (!(DaemonFlags & SYSLOGD_INET_IN_USE)) {
-
-			finet = socket(AF_INET, SOCK_DGRAM, 0);
-
-			if ((sa = resolv_name("0.0.0.0", "syslog", "udp",
-			    &salen)) == NULL) {
-				errno = 0;
-				m_dprintf(MSYSLOG_SERIOUS, "om_classic_init: "
-				    "can't bind udp port");
-				free(*ctx);
-				*ctx = NULL;
-   				return (-1);
-			}
-
-			if (bind(finet, sa, salen) < 0) {
-				m_dprintf(MSYSLOG_WARNING, "om_classic: error "
-				    "on bind()");
-				free(sa);
-				free(*ctx);
-				*ctx = NULL;
-				return (-1);
-			}
-			free(sa);
-		}
+		c->fd = socket(AF_INET, SOCK_DGRAM, 0);
 
 		strncpy(c->f_un.f_forw.f_hname, ++p,
 		    sizeof(c->f_un.f_forw.f_hname) - 1);
@@ -451,19 +428,10 @@ om_classic_close(struct filed *f, void *ctx)
 
 	c = (struct om_classic_ctx *) ctx;
 
-	switch (c->f_type) {
-	case F_FILE:
-	case F_PIPE:
-	case F_TTY:
-	case F_CONSOLE:
-		return (close(c->fd));
-	case F_FORW:
-		if ((finet > -1) && (DaemonFlags & SYSLOGD_INET_IN_USE)
-		    && !(DaemonFlags & SYSLOGD_INET_READ))
-			return (close(finet));
-	default:
-		return (0);
-	}
+	if (c->fd > -1)
+		close(c->fd);
+
+	return (0);
 }
 
 int

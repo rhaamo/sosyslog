@@ -1,4 +1,4 @@
-/*      $CoreSDI: im_doors.c,v 1.12 2001/03/07 21:35:14 alejo Exp $   */
+/*      $CoreSDI: im_doors.c,v 1.13 2001/03/23 00:12:29 alejo Exp $   */
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina

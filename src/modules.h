@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.45 2001/03/07 21:35:12 alejo Exp $	*/
+/*	$CoreSDI: modules.h,v 1.50 2002/03/04 21:38:25 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -32,8 +32,16 @@
 #ifndef SYSLOG_MODULES_H
 #define SYSLOG_MODULES_H
 
+#ifndef MAXHOSTNAMELEN
+# include <netdb.h>
+# ifndef MAXHOSTNAMELEN
+#  define MAXHOSTNAMELEN 254
+# endif
+#endif
+
+
 /* this MUST be the same value as syslogd.h */
-#define MAXLINE 1024
+#define MAXLINE 2048
 
 #define MAX_MODULE_NAME_LEN 255
 
@@ -58,8 +66,8 @@ struct i_module {
 	struct	 imodule *im_func; /* where are this puppy's functions? */
 	int	 im_fd;	/*  for use with select() */
 	int	 im_flags;  /* 1 to 8 are reserved */
-#define IMODULE_FLAG_KERN	0x01
-#define IMODULE_FLAG_CONN	0x02
+#define IMODULE_FLAG_KERN	0x10
+#define IMODULE_FLAG_CONN	0x20
 	char	*im_path;
 	char	 im_buf[MAXLINE + 1];
 	void	*im_ctx;
@@ -78,10 +86,9 @@ struct im_msg {
 	int	im_flags;
 #define  SYSLOG_IM_PID_CHECKED	0x01
 #define  SYSLOG_IM_HOST_CHECKED	0x02
-	char	*im_msg;
-	size_t	im_mlen; /* size of im_msg buffer */
+	char	im_msg[MAXLINE + 1];
 	int	im_len; /* size of contents of im_msg buffer */
-	char	im_host[SIZEOF_MAXHOSTNAMELEN + 1];
+	char	im_host[MAXHOSTNAMELEN + 1];
 };
 
 #endif

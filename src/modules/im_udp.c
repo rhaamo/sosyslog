@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.67 2001/09/20 01:11:42 alejo Exp $	*/
+ /*	$CoreSDI: im_udp.c,v 1.75 2002/03/01 07:31:02 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -46,6 +46,7 @@
 #include <sys/param.h>
 
 #include <netinet/in.h>
+#include <ctype.h>
 #include <errno.h>
 #include <syslog.h>
 #include <netdb.h>
@@ -82,9 +83,10 @@ struct sockaddr *resolv_name(char *, char *, char *, socklen_t *);
 int
 im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 {
+	struct sockaddr_in	 frominet;
 	struct im_udp_ctx	*c;
-	struct sockaddr_in frominet;
-	int slen;
+	char			*p;
+	int			 slen;
 
 	if (ret == NULL) {
 		m_dprintf(MSYSLOG_SERIOUS, "im_udp: arg is null\n");
@@ -96,8 +98,9 @@ im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 	ret->im_flags = 0;
 
 	slen = sizeof(frominet);
-	if ((ret->im_len = recvfrom(im->im_fd, ret->im_msg, ret->im_mlen - 1, 0,
-	    (struct sockaddr *)&frominet, (socklen_t *)&slen)) < 1) {
+	if ((ret->im_len = recvfrom(im->im_fd, ret->im_msg,
+	    sizeof(ret->im_msg) - 1, 0, (struct sockaddr *)&frominet,
+	    (socklen_t *)&slen)) < 1) {
 		if (ret->im_len < 0 && errno != EINTR)
 			logerror("recvfrom inet");
 		return (1);
@@ -106,6 +109,11 @@ im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 	ret->im_msg[ret->im_len] = '\0';
 
 	c = (struct im_udp_ctx *) im->im_ctx;
+
+	/* change non printable chars to X, just in case */
+	for(p = ret->im_msg; *p != '\0'; p++)
+		if (!isprint((unsigned int) *p) && *p != '\n')
+			*p = 'X';
 
 	if (c->flags & M_USEMSGHOST) {
 		char	host[90];
@@ -174,7 +182,7 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 	struct sockaddr		*sa;
 	struct im_udp_ctx	*c;
 	char			*host, *port;
-	int			ch;
+	int			ch, argcnt;
 	socklen_t		salen;
 
 	if ( (I->im_ctx = calloc(1, sizeof(struct im_udp_ctx))) == NULL)
@@ -185,20 +193,18 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 	port = "syslog";
 	host = "0.0.0.0";
 
-	/* parse command line */
-	optind = 1;
-#ifdef HAVE_OPTRESET
-	optreset = 1;
-#endif
-	while ((ch = getopt(argc, argv, "h:p:aq")) != -1) {
+	argcnt = 1; /* skip module name */
+
+	while ((ch = getxopt(argc, argv, "h!host: p!port: a!addhost q!nofqdn",
+	    &argcnt)) != -1) {
 		switch (ch) {
 		case 'h':
 			/* get addr to bind */
-			host = optarg;
+			host = argv[argcnt];
 			break;
 		case 'p':
 			/* get remote host port */
-			port = optarg;
+			port = argv[argcnt];
 			break;
 		case 'a':
 			c->flags |= M_USEMSGHOST;
@@ -208,36 +214,31 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 			c->flags |= M_NOTFQDN;
 			break;
 		default:
-			m_dprintf(MSYSLOG_SERIOUS, "om_udp_init: parsing error"
+			m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: parsing error"
 			    " [%c]\n", ch);
 			free(c);
 			return (-1);
 		}
+		argcnt++;
 	}
 
 	I->im_fd = socket(AF_INET, SOCK_DGRAM, 0);
 
 	if ((sa = resolv_name(host, port, "udp", &salen)) == NULL) {
-		m_dprintf(MSYSLOG_SERIOUS, "om_udp_init: error resolving host"
+		m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: error resolving host"
 		    "[%s] and port [%s]", host, port);
 		free(c);
 		return (-1);
 	}
 
 	if (bind(I->im_fd, sa, salen) < 0) {
-		m_dprintf(MSYSLOG_SERIOUS, "om_udp_init: error binding to host"
+		m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: error binding to host"
 		    "[%s] and port [%s]", host, port);
 		free(c);
 		return (-1);
 	}
 
 	I->im_path = NULL;
-	if (finet < 0) {
-		/* finet not in use */
-		finet = I->im_fd;
-		DaemonFlags |= SYSLOGD_INET_IN_USE;
-		DaemonFlags |= SYSLOGD_INET_READ;
-	}
 
 	add_fd_input(I->im_fd , I);
 
@@ -248,14 +249,8 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 int
 im_udp_close(struct i_module *im)
 {
-	if (finet == im->im_fd) {
-		finet = -1;
-		DaemonFlags &= ~SYSLOGD_INET_IN_USE;
-		DaemonFlags &= ~SYSLOGD_INET_READ;
-	}
 
 	close(im->im_fd);
 
 	return (0);
 }
-

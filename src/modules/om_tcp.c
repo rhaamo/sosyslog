@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_tcp.c,v 1.21 2001/09/19 11:46:13 alejo Exp $	*/
+/*	$CoreSDI: om_tcp.c,v 1.27 2002/03/01 07:31:03 alejo Exp $	*/
 /*
      Copyright (c) 2001, Core SDI S.A., Argentina
      All rights reserved
@@ -100,9 +100,10 @@ int
 om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
     char **status)
 {
-	struct	om_tcp_ctx *c;
-	int	ch;
-	char	statbuf[1024];
+	char			statbuf[1024];
+	struct om_tcp_ctx	*c;
+	int			ch;
+	int			argcnt;
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "om_tcp init: Entering\n");
 
@@ -112,30 +113,28 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		return (-1);
 	}
 	c = (struct om_tcp_ctx *) *ctx;
-  c->inc = 0;
 
-	/* parse line */
-	optind = 1;
-#ifdef HAVE_OPTRESET
-	optreset = 1;
-#endif
-	while ((ch = getopt(argc, argv, "h:p:m:s:a")) != -1) {
+	argcnt = 1;
+
+	while ((ch = getxopt(argc, argv, "h!host: p!port: m!maxretrywait:"
+	    " s!savesize: a!addhost", &argcnt)) != -1) {
+
 		switch (ch) {
 		case 'h':
 			/* get remote host name/addr */
-			c->host = strdup(optarg);
+			c->host = strdup(argv[argcnt]);
 			break;
 		case 'p':
 			/* get remote host port */
-			c->port = strdup(optarg);
+			c->port = strdup(argv[argcnt]);
 			break;
 		case 'm':
 			/* get maximum seconds to wait on connect retry */
-			c->msec = (unsigned int) strtol(optarg, NULL, 10);
+			c->msec = (unsigned int) strtol(argv[argcnt], NULL, 10);
 			break;
 		case 's':
 			/* set saved buffer size */
-			c->savesize = strtol(optarg, NULL, 10);
+			c->savesize = strtol(argv[argcnt], NULL, 10);
 			c->saved = (char *) malloc(c->savesize);
 			break;
 		case 'a':
@@ -151,6 +150,7 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 			free(*ctx);
 			return (-1);
 		}
+		argcnt++;
 	}
 
 	if ( !c->host || !c->port ) {
@@ -180,7 +180,7 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
  */
 
 int
-om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
+om_tcp_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 {
 	struct om_tcp_ctx *c;
 	RETSIGTYPE (*sigsave)(int);
@@ -188,7 +188,7 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 	char line[MAXLINE + 1];
 	int l;
 
-	if (msg == NULL || !strcmp(msg, "")) {
+	if (m->msg == NULL || !strcmp(m->msg, "")) {
 		logerror("om_tcp_write: no message!");
 		return (-1);
 	}
@@ -200,10 +200,10 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 	/* we give a newline termination to difference lines, unlike UDP */
 	if (c->flags & M_ADDHOST) {
 		l = snprintf(line, sizeof(line), "<%d>%.15s %s %s\n",
-		    f->f_prevpri, time_buf, f->f_prevhost, msg);
+		    f->f_prevpri, time_buf, f->f_prevhost, m->msg);
 	} else {
 		l = snprintf(line, sizeof(line), "<%d>%.15s %s\n",
-		    f->f_prevpri, time_buf, msg);
+		    f->f_prevpri, time_buf, m->msg);
 	}
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "om_tcp_write: sending to %s, %s",
@@ -263,11 +263,10 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 	 	    (c->savelen && (write(c->fd, c->saved, c->savelen)
 		    != c->savelen)) || (write(c->fd, line, l) != l) ) {
 
-			c->inc++;
-
 			m_dprintf(MSYSLOG_SERIOUS, "still down! next retry "
-			    "in %i seconds\n", c->msec - (c->msec / c->inc ));
+			    "in %i seconds\n", c->msec - (c->msec / c->inc));
 
+			c->inc++;
 			c->savet = t;
 			if (c->fd)
 				close(c->fd);

@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.26 2001/03/07 21:35:12 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.32 2002/03/04 21:47:00 claudio Exp $
 #
 # Copyright (c) 2001, Core SDI S.A., Argentina
 # All rights reserved
@@ -31,6 +31,10 @@
 MODULES_SUBDIR = src/modules
 SUBDIRS = src/peo $(MODULES_SUBDIR) src src/man
 INSTALL_SUBDIRS = src/modules src/peo src/man src 
+MSYSLOG_VERSION = @MSYSLOG_VERSION@
+RELEASE=        msyslog-v${MSYSLOG_VERSION}
+TARBALL=        ${RELEASE}-src.tar.gz
+
 
 all: all-recursive
 
@@ -56,8 +60,24 @@ modules-install:
 
 
 .PHONY: clean distclean install
-clean: clean-recursive
+
+clean: clean-recursive port-clean
+
 install: all install-recursive
 
-distclean: distclean-recursive
-	-rm -f Makefile config.cache config.log config.status
+distclean: distclean-recursive port-distclean
+	-rm -f Makefile config.cache config.log config.status ${TARBALL}
+
+dist distribution: src-dist
+
+src src-dist: clean
+	@tar -z -c -s '/\./${RELEASE}/' -f ${TARBALL} \
+		`find ./ -type f -print | egrep -v \
+		"CVS|config\.log|config\.status|config\.h$$|gz$$|akefile$$|/files"` && \
+		echo "Distribution file ${TARBALL} has been created."
+
+ports port: src-dist
+
+port-clean port-distclean port ports:
+	@cd packaging && env DISTDIR=../`pwd` make $@
+

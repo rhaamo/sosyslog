@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.46 2001/08/06 20:22:39 claudio Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.53 2002/03/01 07:31:03 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -51,7 +51,6 @@
 #include "config.h"
 
 #include <sys/types.h>
-#include <sys/syslog.h>
 #if TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>
@@ -69,6 +68,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 #include <unistd.h>
 #include <dlfcn.h>
 #include "../modules.h"
@@ -101,6 +101,7 @@ struct om_pgsql_ctx {
 	int	lost;
 	void	*lib;
 	int	(*PQstatus)(void *);
+	char *	(*PQerrorMessage)(void *);
 	int	(*PQresultStatus)(void *);
 	void	(*PQreset)(void *);
 	void *	(*PQexec)(void *, char *);
@@ -109,18 +110,27 @@ struct om_pgsql_ctx {
 	void *	(*PQsetdbLogin)(char *, char *, void *, void *,
 	    char *, char *,char *);
 	void	(*PQfinish)(void *); 
+	int	flags;
 };
+#define	OM_PGSQL_DELAYED_INSERTS	0x2
+#define	OM_PGSQL_FACILITY		0x4
+#define	OM_PGSQL_PRIORITY		0x8
+
+
+/*
+ * Send to database
+ */
 
 int
-om_pgsql_write(struct filed *f, int flags, char *msg, void *ctx)
+om_pgsql_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 {
 	void	*r;
 	struct	om_pgsql_ctx *c;
 	int	err, i;
-	char    query[MAX_QUERY], err_buf[512];
+	char    query[MAX_QUERY], err_buf[512], facility[18], priority[18], *p;
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "om_pgsql_write: entering [%s] [%s]\n",
-	    msg, f->f_prevline);
+	    m->msg, f->f_prevline);
 
 	c = (struct om_pgsql_ctx *) ctx;
 
@@ -147,10 +157,29 @@ om_pgsql_write(struct filed *f, int flags, char *msg, void *ctx)
 
 	}
 
+	if (c->flags & OM_PGSQL_FACILITY) {
+		if ((p = decode_val(m->fac<<3, CODE_FACILITY)) != NULL)
+			snprintf(facility, sizeof(facility), "'%s',", p);
+		else
+			snprintf(facility, sizeof(facility), "'%d',", m->fac<<3);
+	}
+
+	if (c->flags & OM_PGSQL_PRIORITY) {
+		if ((p = decode_val(m->pri, CODE_PRIORITY)) != NULL)
+			snprintf(priority, sizeof(priority), "'%s',", p);
+		else
+			snprintf(priority, sizeof(priority), "'%d',", m->pri);
+	}
+
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
-        i = snprintf(query, sizeof(query), "INSERT INTO %s (date, time, "
-            "host, message) VALUES('%.4d-%.2d-%.2d', '%.2d:%.2d:%.2d', '%s', '",
-            c->table, f->f_tm.tm_year + 1900, f->f_tm.tm_mon + 1,
+	i = snprintf(query, sizeof(query), "INSERT INTO %s (%s%sdate, time, "
+	    "host, message) VALUES(%s%s'%.4d-%.2d-%.2d', '%.2d:%.2d:%.2d', '%s', '",
+	    c->table,
+	    (c->flags & OM_PGSQL_FACILITY)? "facility, " : "",
+	    (c->flags & OM_PGSQL_PRIORITY)? "priority, " : "",
+	    (c->flags & OM_PGSQL_FACILITY)? facility : "",
+	    (c->flags & OM_PGSQL_PRIORITY)? priority : "",
+	    f->f_tm.tm_year + 1900, f->f_tm.tm_mon + 1,
 	    f->f_tm.tm_mday, f->f_tm.tm_hour, f->f_tm.tm_min, f->f_tm.tm_sec,
 	    f->f_prevhost);
 
@@ -193,7 +222,7 @@ om_pgsql_write(struct filed *f, int flags, char *msg, void *ctx)
 	}
 
 	/* put message escaping special SQL characters */
-	i += to_sql(query + i, msg, sizeof(query) - i);
+	i += to_sql(query + i, m->msg, sizeof(query) - i);
 
 	/* finish it with "')" */
 	query[i++] =  '\'';
@@ -236,11 +265,12 @@ int
 om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
     char **status)
 {
-	void	*h;
-	struct	om_pgsql_ctx *ctx;
-	char	*host, *user, *passwd, *db, *table, *port, *p;
-	char	statbuf[1024];
-	int	ch = 0;
+	char			statbuf[1024];
+	void			*h;
+	struct om_pgsql_ctx	*ctx;
+	char			*host, *user, *passwd, *db, *table, *port, *p;
+	int			ch;
+	int			argcnt;
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "om_pgsql_init: entering "
 	    "initialization\n");
@@ -266,6 +296,8 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 
 	if ( !(ctx->PQstatus = (int (*)(void *)) dlsym(ctx->lib,
 	    SYMBOL_PREFIX "PQstatus"))   
+	    || !(ctx->PQerrorMessage = (char * (*)(void *)) dlsym(ctx->lib,
+	    SYMBOL_PREFIX "PQerrorMessage"))   
 	    || !(ctx->PQresultStatus = (int (*)(void *)) dlsym(ctx->lib,
 	    SYMBOL_PREFIX "PQresultStatus"))   
 	    || !(ctx->PQreset = (void (*)(void *)) dlsym(ctx->lib,
@@ -288,46 +320,51 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 		return (-1);
 	}
 
-	/* parse line */
-	optind = 1;
+	argcnt = 1;	/* skip module name */
 
-#ifdef HAVE_OPTRESET
-	optreset = 1;
-#endif
+	while ((ch = getxopt(argc, argv, "s!server: u!user: p!password:"
+	    " d!database: t!table: c!create F!facility P!priority", &argcnt))
+	    != -1) {
 
-	while ((ch = getopt(argc, argv, "s:u:p:d:t:c")) != -1) {
 		switch (ch) {
 		case 's':
 			/* get database host name and port */
-			if ((p = strstr(optarg, ":")) == NULL) {
+			if ((p = strstr(argv[argcnt], ":")) == NULL) {
 				port = NULL;
 			} else {
 				*p = '\0';
 				port = ++p;
 			}
-			host = optarg;
+			host = argv[argcnt];
 			break;
 		case 'u':
-			user = optarg;
+			user = argv[argcnt];
 			break;
 		case 'p':
-			passwd = optarg;
+			passwd = argv[argcnt];
 			break;
 		case 'd':
-			db = optarg;
+			db = argv[argcnt];
 			break;
 		case 't':
-			table = optarg;
+			table = argv[argcnt];
+			break;
+		case 'F':
+			ctx->flags |= OM_PGSQL_FACILITY;
+			break;
+		case 'P':
+			ctx->flags |= OM_PGSQL_PRIORITY;
 			break;
 		case 'c':
 			m_dprintf(MSYSLOG_INFORMATIVE, "(om_pgsql_init: "
-			    "ignoring 'c')\n");
+			    "TABLE CREATION NOT SUPPORTED ANYMORE)\n");
 			break;
 		default:
 			m_dprintf(MSYSLOG_INFORMATIVE, "(om_pgsql_init: "
 			    "error on parameter '%c')\n", ch);
 			return (-1);
 		}
+		argcnt++;
 	}
 
 	if (user == NULL || db == NULL || table == NULL) {
@@ -345,8 +382,9 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	/* check to see that the backend connection was successfully made */
 	if ((ctx->PQstatus)(h) == CONNECTION_BAD) {
 		m_dprintf(MSYSLOG_SERIOUS, "om_pgsql_init: Error connecting "
-		    "to db server [%s:%s] user [%s] db [%s]\n",
-		    host?host:"(unix socket)", port?port:"(none)", user, db);
+		    "to db server [%s:%s] user [%s] db [%s] error[%s]\n",
+		    host?host:"(unix socket)", port?port:"(none)", user, db,
+		    ctx->PQerrorMessage(h));
 		(ctx->PQfinish)(h); 
 		dlclose(ctx->lib);
 		free(ctx);

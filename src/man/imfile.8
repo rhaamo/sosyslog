@@ -1,4 +1,4 @@
-.\"	$CoreSDI: im_udp.8,v 1.6 2001/11/06 23:08:53 alejo Exp $
+.\"	$CoreSDI: im_file.8,v 1.1 2001/11/06 22:59:18 alejo Exp $
 .\"
 .\" Copyright (c) 2000, 2001
 .\"	Core-SDI SA. All rights reserved.
@@ -27,52 +27,48 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd Apr 05, 2001
-.Dt IM_UDP 8
+.Dd Nov 06, 2001
+.Dt IM_FILE 8
 .Os Core-SDI
 .Sh NAME
-.Nm UDP input module
+.Nm FILE input module
 .Nd
 .Xr syslogd 8
-input module for UDP network logging
+input module for reading files and pipes
 .Sh SYNOPSIS
-.Nm udp
-.Op Fl a
-.Op Fl q
-.Op Fl h Ar host
-.Op Fl p Ar port
+.Nm file
+.Op Fl f Ar path
+.Op Fl p Ar path
+.Op Fl n Ar program
 .Sh DESCRIPTION
-Listens on an UDP port for incoming log messages for the
+Reads the log messages from a file/pipe writen by another program
+for processing by the
 .Xr syslogd 8
-daemon.
+daemon. It's options are:
+.Bl -tag -width Ds
+.It Ar log_socket
+Socket to use, default is /dev/log.
 .Sh EXAMPLES
 .Bl -bullet
 .It
-The following command starts the
+The following command installs
 .Xr syslogd 8
-daemon and logs UDP logging information coming in on the default port only:
+daemon reading from file /some/path:
 .Pp
-.Dl syslogd -i udp
-.Pp
-.It
-This does the same as above, but listens on address local.example.com
-port 1777 instead:
-.Pp
-.Dl syslogd -i udp '-h local.example.com -p 1777'
-.El
-.Pp
-.Bl -bullet
-.It
-This does the same as above, but gets host name from message:
-.Pp
-.Dl syslogd -i udp '-a -h local.example.com -p 1777'
+.Dl syslogd -i 'file -f /some/path'
 .El
 .Bl -bullet
 .It
-The following is the same, but avoids adding full fomain (FQDN):
+Same as above, but sets the name to 'myapp':
 .Pp
-.Dl syslogd -i 'udp -q -a -h local.example.com -p 1777'
+.Dl syslogd -i 'file -n myapp -f /some/path'
+.El
+.Bl -bullet
+.It
+Same as above, but on /some/named/pipe pipe instead of the file:
 .Pp
+.Dl syslogd -i 'file -n myapp -p /some/named/pipe'
+.El
 .Sh SEE ALSO
 .Xr syslog 3 ,
 .Xr im_bsd 8 ,
@@ -80,12 +76,12 @@ The following is the same, but avoids adding full fomain (FQDN):
 .Xr im_linux 8 ,
 .Xr im_streams 8 ,
 .Xr im_tcp 8 ,
-.Xr im_unix 8 ,
+.Xr im_udp 8 ,
 .Xr syslogd 8
 .Sh BUGS
 .Bl -bullet
 .It
-Submit bugs at this project's Sourceforge Bug reporting system at:    
+Submit bugs at this project's Sourceforge Bug reporting system at:
 http://sourceforge.net/tracker/?func=add&group_id=25741&atid=385117
 You may also report them directly to the authors; send an email to
 core.devel.alat@corest.com, describing the problem the most you can,

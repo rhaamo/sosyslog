@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_peo.8,v 1.19 2001/10/18 21:19:12 alejo Exp $
+.\"	$CoreSDI: om_peo.8,v 1.22 2001/11/17 00:41:19 alejo Exp $
 .\"
 .\" Copyright (c) 2001
 .\"	Core-SDI SA. All rights reserved.
@@ -46,11 +46,7 @@ output module receives a message as an ascii string and calculates its
 .Em hash
 key based on the last one generated for the previous message; the
 module removes the last key and writes the new one into
-.Ar keyfile
-. NOTE: it needs a random device (/dev/srandom or /dev/random); if your
-operating system lacks both, you should use some random number generator
-device such as "prngd" or some extra package from your os vendor.
-.Pp
+.Ar keyfile .
 This module's options are as follows:
 .Bl -tag -width Ds
 .It Fl k Ar keyfile
@@ -97,15 +93,15 @@ you can check the logfile integrity with the same program.
 .Sh SEE ALSO
 .Li Vcr and Peo Revised documentation - http://www.corest.com/papers/peo.ps
 .Xr syslog 3 ,
-.Xr syslog.conf.5 ,
-.Xr om_classic.8 ,
-.Xr om_mysql.8 ,
-.Xr om_pgsql.8 ,
-.Xr om_regex.8 ,
-.Xr om_tcp.8 ,
-.Xr om_udp.8 ,
-.Xr peochk.8 ,
-.Xr syslogd.8
+.Xr syslog.conf 5 ,
+.Xr om_classic 8 ,
+.Xr om_mysql 8 ,
+.Xr om_pgsql 8 ,
+.Xr om_regex 8 ,
+.Xr om_tcp 8 ,
+.Xr om_udp 8 ,
+.Xr peochk 8 ,
+.Xr syslogd 8
 .Sh BUGS
 .Bl -bullet
 .It

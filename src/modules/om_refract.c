@@ -78,17 +78,17 @@ om_refract_init(
 
 
   /* FOR DEBUGGING PURPOSES */
-  dprintf(MSYSLOG_INFORMATIVE, "om_refract_init: starting\n");
+  m_dprintf(MSYSLOG_INFORMATIVE, "om_refract_init: starting\n");
 
   if (argc < 2 || argv == NULL || argv[1] == NULL) {
     snprintf( statbuf, sizeof(statbuf), "om_refract_init: error on initialization" );
-    dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
+    m_dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
     *status = strdup(statbuf);
     return (-1);
   }
 
   snprintf( statbuf, sizeof(statbuf), "om_refract: filtering" );
-  dprintf(MSYSLOG_INFORMATIVE, "%s\n", statbuf);
+  m_dprintf(MSYSLOG_INFORMATIVE, "%s\n", statbuf);
 
   *context = (void *) calloc(1, sizeof(struct om_refract_ctx));
   if (*context == NULL) return (-1);
@@ -116,7 +116,7 @@ om_refract_init(
         if (endptr == NULL || endptr == optarg) { 
           snprintf(statbuf, sizeof(statbuf), "om_refract_init: "
             "bad argument to -p option [%s], should be numeric refraction period", optarg);
-          dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
+          m_dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
           *status = strdup(statbuf);
           free(*context);
           return(-1);
@@ -127,7 +127,7 @@ om_refract_init(
 
       default:
         snprintf(statbuf, sizeof(statbuf), "om_refract_init: bad option [%c]", ch);
-        dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
+        m_dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
         *status = strdup(statbuf);
         free(*context);
         return (-1);
@@ -136,8 +136,8 @@ om_refract_init(
   }
 
   snprintf(statbuf, sizeof(statbuf), "om_refract_init: initialization completed");
-  dprintf(MSYSLOG_INFORMATIVE, "%s\n", statbuf);
-  dprintf(MSYSLOG_INFORMATIVE, "refraction period is %d\n", ctx->refraction_period);
+  m_dprintf(MSYSLOG_INFORMATIVE, "%s\n", statbuf);
+  m_dprintf(MSYSLOG_INFORMATIVE, "refraction period is %d\n", ctx->refraction_period);
 
   *status = strdup(statbuf);
   return (1);
@@ -206,7 +206,7 @@ om_refract_write(
 int
 om_refract_close (struct filed *f, void *context) {
 /*  struct om_refract_context *ctx = (struct om_refract_context *) context; */
-  dprintf(MSYSLOG_INFORMATIVE, "om_refract_close: Not implemented\n");
+  m_dprintf(MSYSLOG_INFORMATIVE, "om_refract_close: Not implemented\n");
   return (1);
 }
 
@@ -219,6 +219,6 @@ om_refract_close (struct filed *f, void *context) {
 int
 om_refract_flush (struct filed *f, void *context) {
 /*  struct om_refract_context *ctx = (struct om_refract_context *) context; */
-  dprintf(MSYSLOG_INFORMATIVE, "om_refract_flush: Not implemented\n");
+  m_dprintf(MSYSLOG_INFORMATIVE, "om_refract_flush: Not implemented\n");
   return (1);
 }

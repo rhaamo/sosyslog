@@ -141,11 +141,11 @@ om_queue_write(
   time_t time_rc = 0;
   int ix = 0;
 
-  dprintf(MSYSLOG_INFORMATIVE, "om_queue_write: Entering\n");
+  m_dprintf(MSYSLOG_INFORMATIVE, "om_queue_write: Entering\n");
 
   /* always check, just in case ;) */
   if (msg == NULL || msg->msg == NULL || !strcmp(msg->msg, "")) {
-    dprintf(MSYSLOG_INFORMATIVE, "om_queue_write: no message!");
+    m_dprintf(MSYSLOG_INFORMATIVE, "om_queue_write: no message!");
 return (-1);
   }
 
@@ -165,24 +165,24 @@ return (-1);
               ctx->directory, (int) timer, ix );
     filedes = open( filename, O_WRONLY|O_CREAT|O_EXCL, S_IWUSR );
   if (ix > 26) {
-    dprintf(MSYSLOG_SERIOUS, "om_queue_write: cannot open file\n");
+    m_dprintf(MSYSLOG_SERIOUS, "om_queue_write: cannot open file\n");
 return (-1);
     }
   }
-  dprintf(MSYSLOG_INFORMATIVE, "om_queue_write: "
+  m_dprintf(MSYSLOG_INFORMATIVE, "om_queue_write: "
          "filename (%s)\n", filename);
 
   /* XML */
     filehandle = fdopen( filedes, "w" );
     if (! filehandle) {
-      dprintf(MSYSLOG_SERIOUS, "om_queue_write: filehandle not created\n");
+      m_dprintf(MSYSLOG_SERIOUS, "om_queue_write: filehandle not created\n");
 return (-1);
     }
     /* the target is separated from the payload with the RS(record separator) character */
     fprintf( filehandle, "send\n%s\x1e", ctx->target);
 
     fprintf( filehandle, "<?xml version=\"1.0\"?>");
-    dprintf(MSYSLOG_INFORMATIVE, "om_queue_write: xml header\n");
+    m_dprintf(MSYSLOG_INFORMATIVE, "om_queue_write: xml header\n");
 
     fprintf( filehandle, "\n<ticket xmlns=\"%s\">", 
         (ctx->namespace ? ctx->namespace : "urn:Netarx:Sensor/Basic") );
@@ -219,7 +219,7 @@ return (-1);
 
   /* semaphore updated to indicate a new message has been added */
   semctl( ctx->semaphore, DATA_PRESENT_LOCK, SETVAL, QUEUE_UNLOCKED );
-  dprintf(MSYSLOG_INFORMATIVE, "om_queue_write: semaphore update\n");
+  m_dprintf(MSYSLOG_INFORMATIVE, "om_queue_write: semaphore update\n");
 
 return (1);
 }
@@ -254,7 +254,7 @@ om_queue_init (
 
   if ((*context = (void *) calloc(1, sizeof(struct om_queue_context))) == NULL) {
     snprintf(statbuf, sizeof(statbuf), "om_queue: " "cannot allocate context");
-    dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
+    m_dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
     *status = strdup(statbuf);
 return (-1);
   }
@@ -279,7 +279,7 @@ return (-1);
   ctx->footer_node = NULL;
 
   /* for debugging purposes */
-  dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: Entering\n");
+  m_dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: Entering\n");
 
   /* Parse your options with getopt(3) */
 
@@ -294,7 +294,7 @@ return (-1);
     switch (ch) { 
       case 'o':  /* output type [xml,text] */
         ctx->outtype = optarg[0];
-        dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
+        m_dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
             "output type (%s) specified\n", ((ctx->outtype == 'x') ? "xml":"raw"));
         break;
       case 't':  /* target  (where you want the ticket to go) */
@@ -314,7 +314,7 @@ return (-1);
         ctx->key = (char*) malloc( ctx->key_len+1 );
         strncpy( ctx->key, optarg, ctx->key_len );
         ctx->key[ctx->key_len] = '\0';
-        dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
+        m_dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
             "key (%s) specified\n", ctx->key);
         break;
       case 'n':  /* namespace for the message */
@@ -322,7 +322,7 @@ return (-1);
         ctx->namespace = (char*) malloc( ctx->namespace_len+1 );
         strncpy( ctx->namespace, optarg, ctx->namespace_len );
         ctx->namespace[ctx->namespace_len] = '\0';
-        dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
+        m_dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
             "namespace (%s) specified\n", ctx->key);
         break;
       case 'h':  /* header element */
@@ -358,7 +358,7 @@ return (-1);
           mark = node->payload;
         }
 
-        dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
+        m_dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
             "element (%s:%s) specified\n", node->element, node->payload);
 
         /* ... to the beginning of the element node list */
@@ -376,7 +376,7 @@ return (-1);
       default :
         snprintf(statbuf, sizeof(statbuf), "om_queue: "
             "error on arguments (%c)", ch);
-        dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
+        m_dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
         *status = strdup(statbuf);
 return (-1);
     }
@@ -393,22 +393,22 @@ return (-1);
   if (directory_stat_rc && (! S_ISDIR( directory_stat.st_mode ))) {
       snprintf(statbuf, sizeof(statbuf), "om_queue: "
             "directory does not exist");
-      dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
+      m_dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
       *status = strdup(statbuf);
 return (-1);
   }
-  dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
+  m_dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
             "directory (%s) exists\n", ctx->directory);
 
   semkey = ftok( ctx->directory, '\0' );  
   if (semkey < 0) {
     snprintf(statbuf, sizeof(statbuf), "om_queue: "
             "semaphore key for directory (%s) could not be generated", ctx->directory);
-    dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
+    m_dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
     *status = strdup(statbuf);
 return(-1);
   }
-  dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
+  m_dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
             "semaphore key (0x%x) created\n", semkey);
 
   /* determine if the semaphore set already exists */
@@ -420,34 +420,34 @@ return(-1);
     case 0:
     case EEXIST:
       ctx->semaphore = semget( semkey, 1, 0 );  
-      dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
+      m_dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
             "errno(%d) attempt to get an existing semaphore\n", errno);
     break;
     case ENOENT:
       ctx->semaphore = semget( semkey, 1, IPC_CREAT | IPC_EXCL | S_IRWXU | S_IRWXG );  
-      dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
+      m_dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
             "errno(%d) attempting to create an semaphore\n", errno);
     break;
     default:
-      dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
+      m_dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
             "errno(%d) attempting to create an semaphore\n", errno);
     }
   if (ctx->semaphore >= 0) break;
     if (ix > 5) {
       snprintf(statbuf, sizeof(statbuf), "om_queue: "
             "semaphore set for key (0x%x) NOT created", semkey);
-      dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
+      m_dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
       *status = strdup(statbuf);
 return (-1);
     }
-    dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
+    m_dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
             "semaphore set for key (0x%x) NOT obtained, trying again\n", semkey);
   }
-  dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
+  m_dprintf(MSYSLOG_INFORMATIVE, "om_queue_init: "
             "semaphore set (%d) obtained\n", ctx->semaphore);
 
   snprintf(statbuf, sizeof(statbuf), "om_queue_init: Leaving ok");
-  dprintf(MSYSLOG_INFORMATIVE, "%s\n", statbuf);
+  m_dprintf(MSYSLOG_INFORMATIVE, "%s\n", statbuf);
   *status = strdup(statbuf);
 return (1);
 }
@@ -461,7 +461,7 @@ return (1);
 int
 om_queue_close (struct filed *f, void *context) {
    /*  struct om_queue_context *ctx = (struct om_queue_context *) context; */
-   dprintf(MSYSLOG_INFORMATIVE, "om_queue_close: Not implemented\n");
+   m_dprintf(MSYSLOG_INFORMATIVE, "om_queue_close: Not implemented\n");
 return (1);
 }
 
@@ -474,7 +474,7 @@ return (1);
 int
 om_queue_flush (struct filed *f, void *context) {
    /*  struct om_queue_context *ctx = (struct om_queue_context *) context; */
-   dprintf(MSYSLOG_INFORMATIVE, "om_queue_flush: Not implemented\n");
+   m_dprintf(MSYSLOG_INFORMATIVE, "om_queue_flush: Not implemented\n");
 return (1);
 }
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.36 2001/04/24 12:55:40 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.41 2002/03/01 07:31:03 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -90,10 +90,13 @@ int
 om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
     char **status)
 {
-	struct	om_regex_ctx *c;
-	regex_t	*creg;
-	int	ch, statbuf_len;
-	char	statbuf[1048], *p;
+	char			statbuf[1048];
+	struct om_regex_ctx	*c;
+	regex_t			*creg;
+	char			*p;
+	int			ch;
+	int			statbuf_len;
+	int			argcnt;
 
 	creg = NULL;
 	p = NULL;
@@ -128,11 +131,11 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	 *
 	 */
 	p = NULL;
-	optind = 1;
-#ifdef HAVE_OPTRESET
-	optreset = 1;
-#endif
-	while ((ch = getopt(argc, argv, "vm:h:d:t:")) != -1) {
+	argcnt = 1;	/* skip module name */
+
+	while ((ch = getxopt(argc, argv, "v!reverse!inverse m!message: h!host:"
+	    " d!date: t!time:", &argcnt)) != -1) {
+
 		switch (ch) {
 		case 'v':
 			c->filters |= OM_FILTER_INVERSE;
@@ -171,17 +174,22 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 			return (-1);
 		}
 
-		if (regcomp(creg, optarg, REG_EXTENDED | REG_NOSUB) != 0) {
+		if (regcomp(creg, argv[argcnt], REG_EXTENDED | REG_NOSUB) != 0) {
+
 			m_dprintf(MSYSLOG_SERIOUS, "om_regex: error compiling "
-			    "regular expression [%s] for message\n", optarg);
+			    "regular expression [%s] for message\n",
+			    argv[argcnt]);
 			free(*ctx);
+
 			return (-1);
 		}
 
 		if (p)
 			statbuf_len += snprintf(statbuf + statbuf_len,
 			    sizeof(statbuf) - statbuf_len, " %s [%s]", p,
-			    optarg);
+			    argv[argcnt]);
+
+		argcnt++;
 	}
 
 	*status = strdup(statbuf);
@@ -196,7 +204,7 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
  */
 
 int
-om_regex_write(struct filed *f, int flags, char *msg, void *ctx)
+om_regex_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 {
 	struct om_regex_ctx *c;
 	regex_t *creg;
@@ -208,7 +216,7 @@ om_regex_write(struct filed *f, int flags, char *msg, void *ctx)
 
 	c = (struct om_regex_ctx *) ctx;
 
-	if (msg == NULL || !strcmp(msg, "")) {
+	if (m == NULL || m->msg == NULL || !strcmp(m->msg, "")) {
 		logerror("om_regex_write: no message!");
 		return (-1);
 	}
@@ -231,7 +239,7 @@ om_regex_write(struct filed *f, int flags, char *msg, void *ctx)
 		switch (i) {
 		case OM_FILTER_MESSAGE:
 			creg = &c->msg_exp;
-			str = msg;
+			str = m->msg;
 			break;
 
 		case OM_FILTER_HOST:
