@@ -2428,7 +2428,7 @@ if test "X$temp_res" = "Xyes" ; then
 	MANPAGES="$MANPAGES im_udp.8";
 fi
 
-temp_res="no";
+temp_res="yes";
 
 # Check whether --with-unix or --without-unix was given.
 if test "${with_unix+set}" = set; then
