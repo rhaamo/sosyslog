@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.25 2000/07/08 00:52:51 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.26 2000/07/10 23:58:39 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -71,5 +71,52 @@ clean:
 distclean: clean
 	-rm -f Makefile config.h static_modules.c static_modules.h
 
-install:
-	-$(INSTALL) $(PROG) $(INSTALL_DIR)
+install-prog:
+	-$(INSTALL) $(PROG) $(INSTALL_DIR) ;
+
+install: install-prog
+	@echo -e \
+	" **********************************************************\n"\
+	"**********************************************************\n"\
+	"**       A new syslog daemon was installed !!           **\n"\
+	"**                                                      **\n"\
+	"**   If previous syslogd wasn't msyslog                 **\n"\
+	"**   you should change your syslog daemon               **\n"\
+	"**   flags to msyslog's syntax (ie. -i)                 **\n"\
+	"**                                                      **\n"\
+	"**   RedHat Linux:                                      **\n"\
+	"**                                                      **\n"\
+	"**   Edit /etc/rc.d/init.d/syslog, and                  **\n"\
+	"**   change the line \"daemon syslogd -m 0\"              **\n"\
+	"**   to \"daemon syslogd -m 0 -i linux -i unix:/dev/log\" **\n"\
+	"**                                                      **\n"\
+	"**   OpenBSD:                                           **\n"\
+	"**                                                      **\n"\
+	"**   Edit /etc/rc.conf, and change the line             **\n"\
+	"**   syslogd_flags=                                     **\n"\
+	"**   to                                                 **\n"\
+	"**   syslogd_flags=\"-i bsd -i unix:/dev/log\"            **\n"\
+	"**                                                      **\n"\
+	"**   UDP input                                          **\n"\
+	"**                                                      **\n"\
+	"**   Add to your flags '-i udp' or '-i udp <port>'      **\n"\
+	"**   being <port> the port number you want it to        **\n"\
+	"**   listen to.                                         **\n"\
+	"**                                                      **\n"\
+	"**   NOTE: your new syslogd daemon was installed on     **\n"\
+	"**         directory  *** $(INSTALL_DIR) ***            **\n"\
+	"**         if that wasn't your previous syslogd daemon  **\n"\
+	"**         directory, either copy the new binary to the **\n"\
+	"**         previous path, or change the path on the     **\n"\
+	"**         calling script. On RedHat the file is        **\n"\
+	"**         RedHat /etc/rc.d/init.d/syslogd, and for     **\n"\
+	"**         OpenBSD is /etc/rc. We STRONGLY recommend    **\n"\
+	"**         installing to real path (ie. /sbin/syslogd)  **\n"\
+	"**         or /usr/sbin/syslogd)                        **\n"\
+	"**                                                      **\n"\
+	"**  PLEASE read the INSTALL and README files.           **\n"\
+	"**                                                      **\n"\
+	"**********************************************************\n"\
+	"**********************************************************\n"
+       
+

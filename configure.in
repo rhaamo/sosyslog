@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.55 2000/07/26 21:00:37 alejo Exp $
+dnl	$CoreSDI: configure.in,v 1.56 2000/08/04 01:55:10 alejo Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -10,7 +10,7 @@ AC_PROG_CC
 AC_PROG_INSTALL
 AC_PREFIX_DEFAULT(/usr/local)
 
-CFLAGS="-Wall -O -ggdb"
+CFLAGS="-Wall -O2"
 LDFLAGS=
 LDDFLAGS=
 DCCFLAGS="-fPIC"
@@ -82,6 +82,12 @@ then
 	DHASH_SRCS="$HASH_SRCS"
 fi
 
+dnl Both SQL cant be static
+if test "x$MYSQL" != "x" -a "x$PGSQL" != "x"
+then
+	AC_MSG_ERROR("You can not use more than one SQL module right now");
+fi
+
 if test "x$MYSQL" = "xstatic" -o "x$MYSQL" = "xdynamic"
 then
 	MSYSLOG_CHECK_MYSQL()
@@ -100,8 +106,6 @@ then
 	MSYSLOG_CHECK_PGSQL()
 fi
 
-MSYSLOG_CHECK_MODULE(pgsql, $PGSQL, om, om_pgsql.c, sql_misc.c)
-
 dnl Add to LIBS and CPP params
 if test "x$PGSQL" = "xstatic"
 then
@@ -109,11 +113,11 @@ then
 	CPPFLAGS="$CPPFLAGS $PGSQL_CPPFLAGS"
 fi
 
+MSYSLOG_CHECK_MODULE(pgsql, $PGSQL, om, om_pgsql.c, sql_misc.c)
 MSYSLOG_CHECK_MODULE(regex, $REGEX, om, om_regex.c)
 MSYSLOG_END_MODULES_CONF()
 
 AC_CHECK_TYPE_HDR()
-
 AC_SUBST(HASH_SRCS)
 AC_SUBST(SHASH_SRCS)
 AC_SUBST(DHASH_SRCS)
@@ -130,6 +134,7 @@ AC_SUBST(MYSQL_CPPFLAGS)
 AC_SUBST(MYSQL_LIBS)
 AC_SUBST(PGSQL_CPPFLAGS)
 AC_SUBST(PGSQL_LIBS)
+AC_SUBST(MSYSLOG_VERSION)
 
 AC_OUTPUT([Makefile
 	   src/Makefile src/static_modules.h src/static_modules.c
@@ -137,3 +142,26 @@ AC_OUTPUT([Makefile
 	   src/peo/Makefile
 	   src/man/BSDmakefile
 	   src/man/GNUmakefile])
+
+dnl Give final message
+echo -e "\n ***************************************\n"\
+	"***************************************\n"\
+	"*                                     *\n"\
+	"* Msyslog was properly configured!    *\n"\
+	"*                                     *\n"\
+	"* Now you can compile it with         *\n"\
+	"* make                                *\n"\
+	"* or compile and install with         *\n"\
+	"* make install                        *\n"\
+	"*                                     *\n"\
+	"* Make sure the file modules.conf     *\n"\
+	"* meets your needs. If not, modify    *\n"\
+	"* it to meet your needs and run       *\n"\
+	"* again ./configure                   *\n"\
+	"*                                     *\n"\
+	"* For more info please read INSTALL   *\n"\
+	"* and README files.                   *\n"\
+	"*                                     *\n"\
+	"***************************************\n"\
+	"***************************************\n"
+

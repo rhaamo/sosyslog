@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.118 2000/08/08 00:37:29 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.119 2000/08/22 18:38:57 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -57,6 +57,12 @@
 #define LIB_PATH_MAX 254
 #endif
 
+#ifdef HVE_LINUX
+#define DLOPEN_FLAGS RTLD_LAZY | RTLD_GLOBAL
+#else
+#define DLOPEN_FLAGS RTLD_LAZY
+#endif
+
 int     modules_load(void);
 int     imodule_init(struct i_module *, char *);
 int     omodule_create(char *, struct filed *, char *);
@@ -109,7 +115,7 @@ imodule_init (struct i_module *I, char *line) {
 
 	if ((argc = parseParams(&argv, line)) < 1) {
 	    dprintf("Error initializing module %s [%s]\n", argv[0], line);
-	    return(-1);
+	    die(0);
 	}
 
 	/* is it already initialized ? searching... */
@@ -214,7 +220,7 @@ omodule_create(char *c, struct filed *f, char *prog) {
 				prog, (void *) &(om->ctx), sglobals) < 0) {
 			dprintf("Error initializing dynamic output module "
 								"%s [%s]\n", argv[0], line);
-			return(-1);
+			die(0);
 		}
 	}
 	free(line);
@@ -296,10 +302,10 @@ addImodule(char *name) {
 			for(j = 0; (r = mlibs[i].libs[j]) && j < MLIB_MAX; j++) { 
 				dprintf("addImodule: going to open library %s "
 						"for module %s\n", name, r);
-				if (dlopen(r, RTLD_LAZY) == NULL) {
-				   	dprintf("Error [%s] on file [%s]\n",
+				if (dlopen(r, DLOPEN_FLAGS) == NULL) {
+					dprintf("Error [%s] on file [%s]\n",
 							dlerror(), r);
-				   	return(NULL);
+					return(NULL);
 				}
 			}
 		}

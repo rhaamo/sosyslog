@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.17 2000/06/30 19:46:13 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.18 2000/07/06 01:21:51 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -29,12 +29,20 @@
 #
 
 SUBDIRS = src src/modules src/peo src/man
+INSTALL_SUBDIRS = src/modules src/peo src/man src
 
 all: all-recursive
 
-all-recursive install-recursive clean-recursive distclean-recursive:
+all-recursive clean-recursive distclean-recursive:
 	@target=`echo $@ | sed s/-recursive//`; \
 	list='$(SUBDIRS)'; \
+	for subdir in $$list; do \
+		(cd $$subdir && exec $(MAKE) $$target) \
+	done
+
+install-recursive:
+	@target=`echo $@ | sed s/-recursive//`; \
+	list='$(INSTALL_SUBDIRS)'; \
 	for subdir in $$list; do \
 		(cd $$subdir && exec $(MAKE) $$target) \
 	done

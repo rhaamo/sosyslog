@@ -1,4 +1,4 @@
-$Id: INSTALL,v 1.4 2000/07/11 01:21:07 claudio Exp $
+$Id: INSTALL,v 1.5 2000/08/22 19:43:38 alejo Exp $
 ==============================================================================
                          Modular Syslog package
                              INSTALL file
@@ -6,8 +6,7 @@ $Id: INSTALL,v 1.4 2000/07/11 01:21:07 claudio Exp $
                  (C)2000 Core-SDI. Buenos Aires, Argentina.
 ==============================================================================
 
-  This file describes how to compile and install modular syslog both auditor
-and server.	
+  This file describes how to compile and install modular syslog.
 
 
          ------- WARNING: THIS IS A PRE-RELEASE VERSION ---------
@@ -69,6 +68,8 @@ specific modules, or to save memory on systems with more than one
 msyslog daemon running; if you won't a module, just leave it without
 asignment.
 
+NOTE FOR LINUX USERS: set the input module LINUX to log kernel messages!
+
   Then, you must run the script "configure" to prepare the compilation
 headers and Makefiles for your system. You can also specify the include
 and lib paths for mysql and pgsql modules (run "configure --help" for
@@ -88,7 +89,6 @@ contact the developer's mailing list (see note on mailing-lists).
 
 1.d. Compiling
 
-  If you are compiling both client auditor and server.
   Execute:
 		make clean
 		make
@@ -106,7 +106,7 @@ official distribution (see note on contacting us below).
 
 2.a Linux
 
-  Under Linux you need to have 'LINUX' module activated (either static or
+  Under Linux you need to have 'linux' module activated (either static or
   dynamic) to log kernel messages; this module acts like klogd daemon so,
   if you have it installed on your system, you should kill it before
   running msyslog, otherwise im_linux will conflict with it.

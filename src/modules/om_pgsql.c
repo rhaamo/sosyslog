@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.15 2000/07/04 16:44:08 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.16 2000/07/10 21:01:53 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -82,14 +82,17 @@ om_pgsql_doLog(struct filed *f, int flags, char *msg,
 	struct om_hdr_ctx *ctx, struct sglobals *sglobals) {
 	PGresult *r;
 	struct om_pgsql_ctx *c;
-	char    *dummy, *y, *m, *d, *h, *host;
+	char    *dummy, *y, *mo, *d, *h, *host, *m;
 	int     err;
 
 	dprintf("PostgreSQL doLog: entering [%s] [%s]\n", msg, f->f_prevline);
-	if (f == NULL)
-		return (-1);
 
 	c = (struct om_pgsql_ctx *) ctx;
+	if ( !(f  && c && c->h)) {
+		dprintf("om_pgsql: Error, handle not working\n");
+		return (-1);
+	}
+
 	/*
 	memset(c->query, 0, MAX_QUERY);
 	*/
@@ -100,7 +103,7 @@ om_pgsql_doLog(struct filed *f, int flags, char *msg,
 	dummy = strdup(f->f_lasttime);
 	*(dummy + 3)  = '\0'; *(dummy + 6)  = '\0';
 	*(dummy + 15) = '\0'; *(dummy + 20) = '\0';
-	m = dummy;
+	mo = dummy;
 	d = dummy + 4;
 	h = dummy + 7;
 	y = strdup(dummy + 16);
@@ -123,7 +126,7 @@ om_pgsql_doLog(struct filed *f, int flags, char *msg,
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
 	snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s"
 			" VALUES('%s-%02d-%s', '%s', '%s', '%s')",
-			c->table, y, month_number(m), d, h, host, m);
+			c->table, y, month_number(mo), d, h, host, m);
 
 	free(m);
 	free(dummy);
