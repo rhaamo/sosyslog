@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mymodule.c,v 1.11 2001/03/06 21:49:43 alejo Exp $	*/
+/*	$CoreSDI: om_mymodule.c,v 1.12 2001/03/07 21:35:13 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -60,9 +60,6 @@
 #include <unistd.h>
 #include "syslogd.h"
 #include "modules.h"
-
-/* current time from syslogd */
-extern time_t now;
 
 int
 om_mymodule_write(struct filed *f, int flags, char *msg,
