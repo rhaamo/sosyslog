@@ -41,7 +41,8 @@
 #define DEFSPRI		(LOG_KERN|LOG_CRIT)
 #define TIMERINTVL	30		/* interval for checking flush, mark */
 #define TTYMSGTIME	1		/* timeout passed to ttymsg */
-#define MAX_N_MODULES	64		/* maximum types of modules */
+#define MAX_N_OMODULES	64		/* maximum types of out modules */
+#define MAX_N_IMODULES	64		/* maximum types of in  modules */
 
 #include <paths.h>
 #include <utmp.h>
@@ -87,6 +88,14 @@ struct om_header {
 	int	size;
 };
 
+/* standard input module header variables in context */
+struct im_header {
+	short	flags;
+#define M_FLAG_INITIALIZED 0x1
+#define M_FLAG_ERROR 0x2
+	int	size;
+};
+
 /*
  * This structure represents main details for the output modules
  */
@@ -127,17 +136,28 @@ struct filed {
         struct	o_module *f_mod;			/* module details */
 };
 
-struct	Modules {
+struct	OModules {
 	char	*om_name;
 	short	om_type;
 	int	(*om_doLog) (struct filed *, int, char *, struct om_header *);
 	int	(*om_init) (int, char **, struct filed *, char *, struct om_header **);
 	int	(*om_close) (struct filed *, struct om_header **);
 	int	(*om_flush) (struct filed *, struct om_header *);
-} Modules[MAX_N_MODULES];
+} OModules[MAX_N_OMODULES];
+
+struct IModules {
+	char	*im_name;
+	short	im_type;
+	int	fd;      			/*  for use with select() */
+	int	(*im_getmsg) (char *, int); 	/* buf, bufsize */ 
+	int	(*im_init) (int, char **, struct im_header **);
+	int	(*im_close) (struct im_header *);
+} IModules[MAX_N_IMODULES];
+
 
 int modules_init();
 int omodule_create(char *, struct filed *, char *);
+
 
 #define	MAXREPEAT ((sizeof(repeatinterval) / sizeof(repeatinterval[0])) - 1)
 #define	REPEATTIME(f)	((f)->f_time + repeatinterval[(f)->f_repeatcount])
@@ -167,7 +187,5 @@ int omodule_create(char *, struct filed *, char *);
 #define	I_SHA		4
 #define DEFAULT_INTEG_FACILITY	I_NONE
 
-
-time_t now;
 
 #endif

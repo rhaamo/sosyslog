@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_classic.c,v 1.1 2000/04/06 22:29:31 alejo Exp $";
+static char rcsid[] = "$Id: om_classic.c,v 1.2 2000/04/07 22:57:57 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -67,6 +67,7 @@ static char rcsid[] = "$Id: om_classic.c,v 1.1 2000/04/06 22:29:31 alejo Exp $";
 void	wallmsg __P((struct filed *, struct iovec *));
 char   *ttymsg __P((struct iovec *, int, char *, int));
 
+extern time_t now;
 
 int
 om_classic_doLog(f, flags, msg, context)

@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.12 2000/04/07 19:53:49 alejo Exp $
+/*	$Id: syslogd.c,v 1.13 2000/04/07 22:57:57 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -577,14 +577,14 @@ doLog(f, flags, msg)
 	struct	o_module *m;
 
         for (m = f->f_mod; m; m = m->om_next) {
-		if(Modules[m->om_type].om_doLog == NULL) {
+		if(OModules[m->om_type].om_doLog == NULL) {
 			dprintf("Unsupported module type [%i] "
 			        "for message [%s]\n", m->om_type, msg);
 			continue;
 		};
 
 		/* call this module doLog */
-		if((*(Modules[m->om_type].om_doLog))(f,flags,msg,m->context) != 0) {
+		if((*(OModules[m->om_type].om_doLog))(f,flags,msg,m->context) != 0) {
 			dprintf("doLog error with module type [%i] "
 			        "for message [%s]\n",
 				m->om_type, msg);
@@ -739,12 +739,12 @@ init(signo)
 		for (m = f->f_mod; m; m = m->om_next) {
 			/* flush any pending output */
 			if (f->f_prevcount &&
-			    Modules[m->om_type].om_flush != NULL) {
-				(*Modules[m->om_type].om_flush) (f,m->context);
+			    OModules[m->om_type].om_flush != NULL) {
+				(*OModules[m->om_type].om_flush) (f,m->context);
 			}
 
-			if (Modules[m->om_type].om_close != NULL) {
-				(*Modules[m->om_type].om_close) (f,&(m->context));
+			if (OModules[m->om_type].om_close != NULL) {
+				(*OModules[m->om_type].om_close) (f,&(m->context));
 			}
 		}
 		next = f->f_next;

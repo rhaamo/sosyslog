@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.19 2000/04/07 19:53:48 alejo Exp $
+/*	$Id: modules.c,v 1.20 2000/04/07 22:57:56 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -55,24 +55,24 @@ static char copyright[] =
 int modules_init ()
 {
 	/* initialize module function assignations */
-	memset(Modules, 0, sizeof(Modules));
+	memset(OModules, 0, sizeof(OModules));
 
 	/* classic module */
 	/* classic module */
-	Modules[M_CLASSIC].om_name 		= "classic";
-	Modules[M_CLASSIC].om_type 		= M_CLASSIC;
-	Modules[M_CLASSIC].om_doLog 		= om_classic_doLog;
-	Modules[M_CLASSIC].om_init 		= om_classic_init;
-	Modules[M_CLASSIC].om_close 		= om_classic_close;
-	Modules[M_CLASSIC].om_flush 		= om_classic_flush;
+	OModules[M_CLASSIC].om_name 		= "classic";
+	OModules[M_CLASSIC].om_type 		= M_CLASSIC;
+	OModules[M_CLASSIC].om_doLog 		= om_classic_doLog;
+	OModules[M_CLASSIC].om_init 		= om_classic_init;
+	OModules[M_CLASSIC].om_close 		= om_classic_close;
+	OModules[M_CLASSIC].om_flush 		= om_classic_flush;
 
 	/* mysql module */
-	Modules[M_MYSQL].om_name 		= "mysql";
-	Modules[M_MYSQL].om_type 		= M_MYSQL;
-	Modules[M_MYSQL].om_doLog	 	= om_mysql_doLog;
-	Modules[M_MYSQL].om_init 		= om_mysql_init;
-	Modules[M_MYSQL].om_close 		= om_mysql_close;
-	Modules[M_MYSQL].om_flush 		= om_mysql_flush;
+	OModules[M_MYSQL].om_name 		= "mysql";
+	OModules[M_MYSQL].om_type 		= M_MYSQL;
+	OModules[M_MYSQL].om_doLog	 	= om_mysql_doLog;
+	OModules[M_MYSQL].om_init 		= om_mysql_init;
+	OModules[M_MYSQL].om_close 		= om_mysql_close;
+	OModules[M_MYSQL].om_flush 		= om_mysql_flush;
 
 }
 
@@ -122,18 +122,18 @@ int omodule_create(c, f, prog)
 				*p++=0;
 
 				/* find for matching module */
-				for (i = 0; i < MAX_N_MODULES; i++) {
-					if (Modules[i].om_name == NULL)
+				for (i = 0; i < MAX_N_OMODULES; i++) {
+					if (OModules[i].om_name == NULL)
 						continue;
-					if (strncmp(argv[0], Modules[i].om_name,
+					if (strncmp(argv[0], OModules[i].om_name,
 							MAX_MODULE_NAME_LEN) == 0)
 						break;
 				}
 				/* no matching module */
-				if (i == MAX_N_MODULES)
+				if (i == MAX_N_OMODULES)
 					return(-1);
 
-				m->om_type = Modules[i].om_type;
+				m->om_type = OModules[i].om_type;
 
 				/* build argv and argc, modifies input p */
 				while (isspace(*p)) p++;
@@ -166,31 +166,49 @@ int omodule_create(c, f, prog)
 				m->om_type = M_CLASSIC;
 				break;
 		}
-		(Modules[m->om_type].om_init)(argc, argv, f, prog, (void *) &(m->context));
+		(OModules[m->om_type].om_init)(argc, argv, f, prog, (void *) &(m->context));
 	}
 	free(line);
 }
 
-char *getmodulename(type)
+char *getomodulename(type)
 	int type;
 {
 	int i;
 
-	for(i = 0; i < MAX_N_MODULES && Modules[i].om_type != type; i++);
-	if (i == MAX_N_MODULES)
+	for(i = 0; i < MAX_N_OMODULES && OModules[i].om_type != type; i++);
+	if (i == MAX_N_OMODULES)
 		return (NULL);
-	return Modules[i].om_name;
+	return OModules[i].om_name;
 }
 
-int getmoduleid(mname)
+int getomoduleid(mname)
 	char *mname;
 {
 	int i;
 
-	for(i = 0; i < MAX_N_MODULES && Modules[i].om_name != NULL
-			&& !strcmp(Modules[i].om_name, mname); i++);
-	if (i == MAX_N_MODULES)
+	for(i = 0; i < MAX_N_OMODULES && OModules[i].om_name != NULL
+			&& !strcmp(OModules[i].om_name, mname); i++);
+	if (i == MAX_N_OMODULES)
 		return (-1);
-	return Modules[i].om_type;
+	return OModules[i].om_type;
 }
 
+
+/*
+ *
+ * Input modules
+ *
+ *
+ *
+ *
+ *
+ */
+
+/* create all necesary modules for a specific input */
+int imodule_create(c, f, prog)
+	char *c;
+	struct filed *f;
+	char *prog;
+{
+}
