@@ -60,7 +60,7 @@ im_bsd_getLog(im, ret)
 	char *p, *q, *lp;
 	int i, c;
 
-	(void)strncpy(ret->im_msg, _PATH_UNIX, sizeof(ret->im_msg) - 1);
+	(void)strncpy(ret->im_msg, _PATH_UNIX, sizeof(ret->im_msg) - 3);
 	(void)strncat(ret->im_msg, ": ", 2);
 	lp = ret->im_msg + strlen(ret->im_msg);
 
