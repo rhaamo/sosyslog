@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.73 2001/03/22 20:30:37 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.74 2001/03/23 00:12:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -92,11 +92,11 @@
 #define F_FORW		4		/* remote machine */
 #define F_USERS		5		/* list of users */
 #define F_WALL		6		/* everyone logged on */
-#define F_MODULE	7		/* module only */
+#define F_PIPE		7		/* named pipe */
 
 /* names for f_types */
 char    *TypeNames[] = { "UNUSED", "FILE", "TTY", "CONSOLE",
-	    "FORW", "USERS", "WALL", "MODULE", NULL};
+	    "FORW", "USERS", "WALL", "PIPE", NULL};
 
 struct om_classic_ctx {
 	int	fd;
@@ -204,6 +204,7 @@ om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
 		/* FALLTHROUGH */
 
 	case F_TTY:
+	case F_PIPE:
 	case F_FILE:
 		dprintf(MSYSLOG_INFORMATIVE, " %s\n", c->f_un.f_fname);
 		if (c->f_type != F_FILE) {
@@ -216,7 +217,14 @@ om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
 		again:
 		if (writev(c->fd, iov, 6) < 0) {
 			int e = errno;
-			(void)close(c->fd);
+
+                        /* from sysklogd */
+                        /* If a named pipe is full, just ignore */
+                        if (c->f_type == F_PIPE && e == EAGAIN)
+                                break;
+
+			close(c->fd);
+
 			/*
 			 * Check for errors on TTY's due to loss of tty
 			 */
@@ -235,7 +243,7 @@ om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
 				logerror(c->f_un.f_fname);
 			}
 		} else if (flags & SYNC_FILE)
-			(void)fsync(c->fd);
+			fsync(c->fd);
 		break;
 
 	case F_USERS:
@@ -361,20 +369,34 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		    c->f_un.f_forw.f_hname);
 		break;
 
+	case '|':  /* from sysklogd */
 	case '/':
 		strncpy(c->f_un.f_fname, p, sizeof c->f_un.f_fname);
-		c->f_un.f_fname[sizeof (c->f_un.f_fname) - 1]=0;
-		if ((c->fd = open(p, O_WRONLY|O_APPEND, 0)) < 0) {
-			c->f_type = F_UNUSED;
+		c->f_un.f_fname[sizeof (c->f_un.f_fname) - 1] = 0;
+                if ( *p == '|' ) {
+			c->fd = open(++p, O_RDWR|O_NONBLOCK);
+                        c->f_type = F_PIPE;
+                } else {
+			c->fd = open(p, O_WRONLY|O_APPEND, 0);
+                        c->f_type = F_FILE;
+                }
+
+		if (c->fd < 0) {
+                        dprintf(MSYSLOG_CRITICAL, "Error opening log file: "
+			    "%s\n", p);
 			logerror(p);
-			break;
+			free(*ctx);
+			*ctx = NULL;
+			return (-1);
 		}
+
 		if (!c->f_type) {
 			if (isatty(c->fd))
 				c->f_type = F_TTY;
 			else
 				c->f_type = F_FILE;
 		}
+
 		snprintf(statbuf, sizeof(statbuf), "om_classic: "
 		    "saving messages to file %s", c->f_un.f_fname);
 		break;
@@ -423,6 +445,7 @@ om_classic_close(struct filed *f, void *ctx)
 
 	switch (c->f_type) {
 	case F_FILE:
+	case F_PIPE:
 	case F_TTY:
 	case F_CONSOLE:
 		return (close(c->fd));

@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.152 2001/03/07 21:35:12 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.153 2001/03/23 00:12:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -341,6 +341,7 @@ omodule_create(char *c, struct filed *f, char *prog)
 				break;
 			case '@':
 			case '/':
+			case '|':
 			case '*':
 			default:
 				/* classic style */
