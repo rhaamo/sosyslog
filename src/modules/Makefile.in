@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.51 2000/11/03 23:25:48 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.52 2000/11/03 23:52:10 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -35,12 +35,10 @@ LDFLAGS=	@LDFLAGS@
 LDDFLAGS=	@LDDFLAGS@
 DCCFLAGS=	@DCCFLAGS@
 CPPFLAGS=	-I. -I.. 
-CPPFLAGS+=	@CPPFLAGS@
+CPPFLAGS +=	@CPPFLAGS@
 LDCONFIG_FLAGS=	@LDCONFIG_FLAGS@
 
 INSTALL=	@INSTALL@
-prefix=		@prefix@
-exec_prefix=	@exec_prefix@
 INSTALL_LIBDIR=	@MSYSLOG_LIBDIR@
 UNAME=		@UNAME@
 
@@ -190,4 +188,6 @@ install:
 	@if [ "$(DMYSQL)" -a -f "$(DMYSQL)" ]; then $(INSTALL) $(DMYSQL) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DMYSQL) $(INSTALL_LIBDIR)/$(DMYSQL_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DMYSQL)" ; fi
 	@if [ "$(DPGSQL)" -a -f "$(DPGSQL)" ]; then $(INSTALL) $(DPGSQL) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DPGSQL) $(INSTALL_LIBDIR)/$(DPGSQL_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DPGSQL)" ; fi
 	@if [ "$(DREGEX)" -a -f "$(DREGEX)" ]; then $(INSTALL) $(DREGEX) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DREGEX) $(INSTALL_LIBDIR)/$(DREGEX_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DREGEX)" ; fi
+	@if [ "$(DSTREAMS)" -a -f "$(DSTREAMS)" ]; then $(INSTALL) $(DSTREAMS) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DSTREAMS) $(INSTALL_LIBDIR)/$(DSTREAMS_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DSTREAMS)" ; fi
+	@if [ "$(DDOORS)" -a -f "$(DDOORS)" ]; then $(INSTALL) $(DDOORS) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DDOORS) $(INSTALL_LIBDIR)/$(DDOORS_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DDOORS)" ; fi
 

@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.33 2000/10/31 19:42:12 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.34 2000/11/03 19:35:00 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -33,7 +33,7 @@ CFLAGS=		@CFLAGS@ -Wall
 LDFLAGS=	@LDFLAGS@
 LDDFLAGS=	@LDDFLAGS@
 CPPFLAGS=	@CPPFLAGS@
-CPPFLAGS+=	-I.
+CPPFLAGS +=	-I.
 LIBS=		@LIBS@
 
 INSTALL=	@INSTALL@

@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.12 2000/10/31 19:42:15 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.13 2000/11/03 19:35:04 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -33,7 +33,6 @@ CFLAGS=		@CFLAGS@ -Wall
 LDFLAGS=	@LDFLAGS@
 LDDFLAGS=	@LDDFLAGS@
 CPPFLAGS=	@CPPFLAGS@
-CPPFLAGS+=	-I..
 
 INSTALL=	@INSTALL@
 prefix=		@prefix@
@@ -42,7 +41,7 @@ INSTALL_DIR=	@sbindir@
 
 PROG=		peochk
 SRCS=		peochk.c
-SRCS+=		@HASH_SRCS@
+SRCS +=		@HASH_SRCS@
 OBJS=		$(SRCS:.c=.o)
 
 all: $(PROG) $(OBJS)
