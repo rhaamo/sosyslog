@@ -1,5 +1,4 @@
- /*	$Id: im_udp.c,v 1.75 2002/09/17 05:20:28 alejo Exp $	*/
-
+ /*	$Id: im_udp.c,v 1.76 2002/09/17 06:30:41 alejo Exp $	*/
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
  * All rights reserved
@@ -70,6 +69,7 @@ struct im_udp_ctx {
 
 #define M_USEMSGHOST	0x01
 #define M_NOTFQDN	0x02
+#define M_CACHENAMES	0x04
 
 /* prototypes */
 struct sockaddr *resolv_name(char *, char *, char *, socklen_t *);
@@ -100,10 +100,10 @@ return (-1);
 	host = "0.0.0.0";
 	port = "syslog";
 
-	for (argcnt = 1;  /* skip module name */
-       (ch = getxopt(argc, argv, "h!host: p!port: a!addhost q!nofqdn", &argcnt)) != -1;
-       argcnt++ )
-  {
+	/* parse args (skip module name) */
+	for (argcnt = 1; (ch = getxopt(argc, argv, "h!host: p!port: "
+	    "a!addhost q!nofqdn c!cachenames", &argcnt)) != -1; argcnt++) {
+
 		switch (ch) {
 		case 'h':
 			/* get addr to bind */
@@ -119,6 +119,10 @@ return (-1);
 		case 'q':
 			/* dont use domain in hostname (FQDN) */
 			c->flags |= M_NOTFQDN;
+			break;
+		case 'c':
+			/* use cached hostnames */
+			c->flags |= M_CACHENAMES;
 			break;
 		default:
 			m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: parsing error [%c]\n", ch);
