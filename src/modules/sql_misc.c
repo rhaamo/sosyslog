@@ -1,4 +1,4 @@
-/*	$CoreSDI: sql_misc.c,v 1.2 2000/06/08 22:57:32 gera Exp $	*/
+/*	$CoreSDI: sql_misc.c,v 1.3 2000/06/09 20:38:44 gera Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -47,13 +47,9 @@ to_sql(s)
 	char *p, *b;
 	int ns;
 
-#if 0
-	if(!s) return NULL;
+	if(s == NULL)
+		return NULL;
 	
-	if(s[0]=='-' && s[1]=='0')
-		return strdup("NULL");
-#endif
-
 	for(p=s, ns=1+strlen(s); *p; p++) 
 		if(*p=='\'') ns++;
 
