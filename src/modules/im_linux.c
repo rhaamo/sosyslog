@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.26 2000/07/03 22:23:18 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.27 2000/07/04 16:44:06 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -309,7 +309,7 @@ im_linux_getLog(struct i_module *im, struct im_msg *ret, struct sglobals *sgloba
 			/* log msg */
 			if (ret->im_len < 0)
 				ret->im_len = sizeof(ret->im_msg);
-			strncpy(ret->im_host, globals->LocalHostName, sizeof(ret->im_host));
+			strncpy(ret->im_host, sglobals->LocalHostName, sizeof(ret->im_host));
 			ret->im_host[sizeof(ret->im_host)-1] = '\0';
 			logmsg(ret->im_pri, ret->im_msg, ret->im_host, ret->im_flags);
 			ptr += i + 1;

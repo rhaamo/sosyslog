@@ -33,11 +33,11 @@ LD=		ld
 CFLAGS=		@CFLAGS@
 LDFLAGS=	@LDFLAGS@
 CPPFLAGS=	-I. -I..
+LDCONFIG_FLAGS=	@LDCONFIG_FLAGS@
 INSTALL_LIBDIR=	@INSTALL_LIBDIR@
-LINUX_INSTALL=	@LINUX_INSTALL@
 
 SSRCS=		@SSRCS@
-SOBJS=		$(SSRCS:.c=.o)
+SOBJS=		${SSRCS:.c=.o}
 DUNIX=		@Dunix@
 DUDP=		@Dudp@
 DBSD=		@Dbsd@
@@ -46,8 +46,8 @@ DCLASSIC=	@Dclassic@
 DPEO=		@Dpeo@
 SHASH_SRCS=	@SHASH_SRCS@
 DHASH_SRCS=	@DHASH_SRCS@
-SHASH_OBJS=	$(SHASH_SRCS:.c=.o)
-DHASH_OBJS=	$(DHASH_SRCS:.c=.o)
+SHASH_OBJS=	${SHASH_SRCS:.c=.o}
+DHASH_OBJS=	${DHASH_SRCS:.c=.o}
 DMYSQL=		@Dmysql@
 DPGSQL=		@Dpgsql@
 DREGEX=		@Dregex@
@@ -60,17 +60,20 @@ DPEO_SRC=	@Dpeo_SRC@
 DMYSQL_SRC=	@Dmysql_SRC@
 DPGSQL_SRC=	@Dpgsql_SRC@
 DREGEX_SRC=	@Dregex_SRC@
-DUNIX_OBJ=	$(DUNIX_SRC:.c=.o)
-DUDP_OBJ=	$(DUDP_SRC:.c=.o)
-DBSD_OBJ=	$(DBSD_SRC:.c=.o)
-DLINUX_OBJ=	$(DLINUX_SRC:.c=.o)
-DCLASSIC_OBJ=	$(DCLASSIC_SRC:.c=.o)
-DPEO_OBJ=	$(DPEO_SRC:.c=.o)
-DMYSQL_OBJ=	$(DMYSQL_SRC:.c=.o)
-DPGSQL_OBJ=	$(DPGSQL_SRC:.c=.o)
-DREGEX_OBJ=	$(DREGEX_SRC:.c=.o)
+DUNIX_OBJ=	${DUNIX_SRC:.c=.o}
+DUDP_OBJ=	${DUDP_SRC:.c=.o}
+DBSD_OBJ=	${DBSD_SRC:.c=.o}
+DLINUX_OBJ=	${DLINUX_SRC:.c=.o}
+DCLASSIC_OBJ=	${DCLASSIC_SRC:.c=.o}
+DPEO_OBJ=	${DPEO_SRC:.c=.o}
+DMYSQL_OBJ=	${DMYSQL_SRC:.c=.o}
+DPGSQL_OBJ=	${DPGSQL_SRC:.c=.o}
+DREGEX_OBJ=	${DREGEX_SRC:.c=.o}
 
-all: DYNAMIC_LIBS $(SOBJS)
+DYNAMIC_COMP=	${CC} ${CFLAGS} ${CPPFLAGS} -fPIC -c
+DYNAMIC_LINK=	${LD} -Bshareable
+
+all: DYNAMIC_LIBS ${SOBJS}
 
 $(SOBJS) DYNAMIC_LIBS: ../config.h
 
@@ -80,9 +83,9 @@ $(SOBJS):
 DYNAMIC_LIBS:	$(DUNIX) $(DUDP) $(DBSD) $(DLINUX) \
 		$(DCLASSIC) $(DPEO) $(DMYSQL) $(DPGSQL) $(DREGEX)
 
-$(DUNIX):
-	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DUNIX_SRC)
-	$(LD) -Bshareable -o $@ $(DUNIX_OBJ)
+${DUNIX}:
+	${DYNAMIC_COMP} ${DUNIX_SRC}
+	${DYNAMIC_LINK} -o $@ ${DUNIX_OBJ}
 
 $(DUDP): 
 	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DUDP_SRC)
@@ -124,12 +127,15 @@ distclean: clean
 	-rm -f Makefile
 
 install:
-	-chmod 111 *.so.* && cp -f *.so.* $(INSTALL_LIBDIR)
-	-if test $(LINUX_INSTALL) = yes; \
-	then if test -z `grep $(INSTALL_LIBDIR) /etc/ld.so.conf`; \
-	then echo $(INSTALL_LIBDIR) >> /etc/ld.so.conf; \
-	fi; fi
-	-ldconfig $(INSTALL_LIBDIR)
+	-chmod 111 libmsyslog.*.so.* && cp -f libmsyslog.*.so.* ${INSTALL_LIBDIR}
+	-if test "`uname`" = "Linux"; \
+	then \
+		if test -z "`grep ${INSTALL_LIBDIR} /etc/ld.so.conf`"; \
+		then \
+			echo "${INSTALL_LIBDIR}" >> /etc/ld.so.conf; \
+		fi; \
+	fi
+	-ldconfig ${LDCONFIG_FLAGS} ${INSTALL_LIBDIR}
 	
 
 
