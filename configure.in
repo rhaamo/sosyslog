@@ -1,8 +1,11 @@
-dnl	$CoreSDI: configure.in,v 1.49 2000/07/07 18:55:34 claudio Exp $
+dnl	$CoreSDI: configure.in,v 1.50 2000/07/08 00:52:50 claudio Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
-MSYSLOG_GET_VERSION()
+
+MSYSLOG_VERSION=`awk '/#define VERSION/ { print $3 }' src/syslogd.h`
+echo msyslog version... $MSYSLOG_VERSION
+
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PREFIX_PROGRAM(syslogd)

@@ -1,13 +1,4 @@
-dnl	$CoreSDI: aclocal.m4,v 1.1 2000/07/07 18:55:34 claudio Exp $
-
-dnl
-dnl get msyslog version
-dnl
-AC_DEFUN(MSYSLOG_GET_VERSION, [
-MSYSLOG_VERSION=`awk '/#define VERSION/ { print $3 }' src/syslogd.h`
-echo msyslog version... $MSYSLOG_VERSION
-])
-
+dnl	$CoreSDI: aclocal.m4,v 1.2 2000/07/08 00:52:50 claudio Exp $
 
 dnl
 dnl grep pattern file command
