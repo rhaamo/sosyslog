@@ -1,5 +1,5 @@
 /*
- *  im_udp -- classic behaviour module for BDS like systems
+ *  im_unix -- classic behaviour module for BDS like systems
  *      
  * Author: Alejo Sanchez for Core-SDI SA
  *         form syslogd.c by Eric Allman and Ralph Campbell
@@ -22,7 +22,7 @@ char   *cvthname __P((struct sockaddr_in *));
 
 
 /* standard input module header variables in context */
-struct im_udp_ctx {
+struct im_unix_ctx {
 	short	flags;
 #define M_FLAG_INITIALIZED 0x1
 #define M_FLAG_ERROR 0x2
@@ -38,7 +38,7 @@ struct im_udp_ctx {
  */
 
 int
-im_udp_getLog(buf, size, c, r)
+im_unix_getLog(buf, size, c, r)
 	char   *buf;
 	int   size;
 	struct im_header_ctx  *c;
@@ -64,7 +64,7 @@ im_udp_getLog(buf, size, c, r)
 }
 
 /*
- * initialize udp input
+ * initialize unix input
  *
  */
 
@@ -73,16 +73,15 @@ extern char *funixn[];
 extern int *funix[];
 
 int
-im_udp_init(I)
+im_unix_init(I)
 	struct i_module *I;
 {
-	struct im_udp_ctx *ctx;
+	struct im_unix_ctx *ctx;
 	int i;
 	char line[MAXLINE + 1];
+	struct sockaddr_un sunx;
 
-	*c = (struct im_header_ctx *) calloc(1, sizeof(struct im_udp_ctx));
-	ctx = (struct im_udp_ctx *) *c;
-
+	ctx = (struct im_unix_ctx *) calloc(1, sizeof(struct im_unix_ctx));
 
 #ifndef SUN_LEN
 #define SUN_LEN(unp) (strlen((unp)->sun_path) + 2)
@@ -109,10 +108,10 @@ im_udp_init(I)
         if (finet >= 0) {
                 struct servent *sp;
 
-                sp = getservbyname("syslog", "udp");
+                sp = getservbyname("syslog", "unix");
                 if (sp == NULL) {
                         errno = 0;
-                        logerror("syslog/udp: unknown service");
+                        logerror("syslog/unix: unknown service");
                         die(0);
                 }
                 memset(&sin, 0, sizeof(sin));
@@ -145,12 +144,12 @@ im_udp_init(I)
  */
 
 char *
-im_udp_getLog(c)
+im_unix_getLog(c)
 	struct im_header_ctx  *c;
 {
-	struct im_udp_ctx *ctx;
+	struct im_unix_ctx *ctx;
 
-	ctx = (struct im_udp_ctx *) c;
+	ctx = (struct im_unix_ctx *) c;
 
 
 
