@@ -148,10 +148,7 @@ return (-1);
   	}
  	}
 
-	I->im_path = NULL;
-
 	add_fd_input(I->im_fd , I);
-
 	m_dprintf(MSYSLOG_INFORMATIVE, "im_udp: running\n");
 return (1);
 }
@@ -202,19 +199,19 @@ return (1);
 			*p = 'X';
 
 	if (c->flags & M_USEMSGHOST) {
-		char	host[90];
-		int	n1, n2;
-
-		n1 = 0;
-		n2 = 0;
 		/* extract hostname from message */
-		if ((sscanf(ret->im_msg, "<%*d>%*3s %*i %*i:%*i:%*i %n%89s "
-		    "%n%*s", &n1, host, &n2) != 1 &&
-		    sscanf(ret->im_msg, "%*3s %*i %*i:%*i:%*i %n%89s %n%*s",
-		    &n1, host, &n2) != 1 &&
-		    sscanf(ret->im_msg, "%n%89s %n%*s", &n1, host,
-		    &n2) != 1) ||
-		    ret->im_msg[n2] == '\0') {
+		char  host[90];
+		int   n1 = 0;
+		int   n2 = 0;
+
+		if ((sscanf(ret->im_msg, "<%*d>%*3s %*i %*i:%*i:%*i %n%89s %n%*s",
+                &n1, host, &n2) != 1 &&
+		     sscanf(ret->im_msg, "%*3s %*i %*i:%*i:%*i %n%89s %n%*s",
+		            &n1, host, &n2) != 1 &&
+		     sscanf(ret->im_msg, "%n%89s %n%*s", &n1, host, &n2) != 1)
+       ||
+		    ret->im_msg[n2] == '\0')
+    {
 			m_dprintf(MSYSLOG_INFORMATIVE, "im_udp_read: skipped"
 			    " invalid message [%s]\n", ret->im_msg);
 return (0);
@@ -229,30 +226,37 @@ return (0);
 		ret->im_msg[n1] = '\0';
 
 		strncat(ret->im_host, host, sizeof(ret->im_host));
-		ret->im_host[sizeof(ret->im_host) - 1] = '\0';
 
-	} else {
+    /* strip domain from hostname */
+    /* There is no assurance that the hostname is not an ip address
+     * in which case stripping off the domain would be inappropriate.
+     *
+	  if (c->flags & M_NOTFQDN) { 
+	    char   *dot;
+  		if ((dot = strchr(ret->im_host, '.')) != NULL) *dot = '\0';
+   	}
+    */
+	}
+  else {
+		/* extract host ip address from ip header, and attempt to look up the name */
 		struct hostent *hent;
 
 		hent = gethostbyaddr((char *) &frominet.sin_addr,
 		    sizeof(frominet.sin_addr), frominet.sin_family);
 		if (hent) {
-			strncpy(ret->im_host, hent->h_name,
-			    sizeof(ret->im_host));
-		} else {
-			strncpy(ret->im_host, inet_ntoa(frominet.sin_addr),
-			    sizeof(ret->im_host));
+			strncpy(ret->im_host, hent->h_name, sizeof(ret->im_host));
+      /* strip domain from hostname */
+	    if (c->flags & M_NOTFQDN) { 
+		    char   *dot;
+    		if ((dot = strchr(ret->im_host, '.')) != NULL) *dot = '\0';
+    	}
+		}
+    else {
+			strncpy(ret->im_host, inet_ntoa(frominet.sin_addr), sizeof(ret->im_host));
 		}
 	}
 
 	ret->im_host[sizeof(ret->im_host) - 1] = '\0';
-
-	if (c->flags & M_NOTFQDN) {
-		char     *dot;
-
-		if ((dot = strchr(ret->im_host, '.')) != NULL)
-			*dot = '\0';
-	}
 
 return (1);
 }

@@ -74,7 +74,6 @@ im_bsd_init(struct i_module *I, char **argv, int argc)
 		return (-1);
 	}
 	
-	I->im_path = _PATH_KLOG;
 	I->im_flags |= IMODULE_FLAG_KERN;
 	add_fd_input(I->im_fd , I);
 	return (I->im_fd);

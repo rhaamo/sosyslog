@@ -55,13 +55,64 @@
 #include "../modules.h"
 #include "../syslogd.h"
 
-/* local functions */
-int do_streams_init ();
-void streams_datfmt ();
+struct im_streams_ctx {
+  char*   path;
+};
 
 /* global variables and definitions */
 #define DEFAULT_LOGGER "/dev/log"
 
+/*
+ * initialize streams input
+ *
+ */
+
+int
+im_streams_init (struct i_module *I, char **argv, int argc)
+{
+	m_dprintf(MSYSLOG_INFORMATIVE, "im_streams_init: Entering\n");
+
+	if (I == NULL || argv == NULL || argc < 1 || argc > 2) {
+		m_dprintf(MSYSLOG_SERIOUS, "usage: -i streams[:path]\n\n");
+		return(-1);
+	}
+
+  if ( (I->im_ctx = calloc(1, sizeof(struct im_streams_ctx))) == NULL) {
+    m_dprintf(MSYSLOG_SERIOUS, "om_streams_init: cannot alloc memory");
+return (-1);
+  }
+  c = (struct im_streams_ctx *) I->im_ctx;
+
+	if (argc == 2) {
+		c->path = strdup(argv[1]);
+	}
+  else {
+		c->path = strdup(DEFAULT_LOGGER);
+	}
+	m_dprintf(MSYSLOG_INFORMATIVE, "streams_logpath = %s\n", c->path);
+	I->im_fd = open (c->path, O_RDONLY|O_NOCTTY|O_NONBLOCK);
+
+	if (I->im_fd == -1) {
+		m_dprintf(MSYSLOG_SERIOUS, "couldn't open %s: %s\n", c->path,
+		    strerror (errno));
+return (-1);
+	}
+
+  {
+		struct strioctl ioctbuf;
+
+		memset (&ioctbuf, 0, sizeof(ioctbuf));
+
+		ioctbuf.ic_cmd = I_CONSLOG; /* why I_CONSLOG? */
+		if (ioctl (I->im_fd, I_STR, &ioctbuf) == -1) {
+			m_dprintf(MSYSLOG_SERIOUS, "ioctl(%s): %s\n", c->path, strerror (errno));
+			close (I->im_fd);
+			return (-1);
+		}
+		add_fd_input(I->im_fd , I);
+	}
+return (1);
+}
 
 
 /*
@@ -105,7 +156,30 @@ im_streams_read (struct i_module *im, int infd, struct im_msg *ret)
 			    "to come) ...\n");
 		}
 
-		streams_datfmt(&dat);
+
+    /* ensure the data buffer is in the proper format */
+    {
+    	register char *dataptr;
+    	register char c;
+    	register int i;
+
+    	dataptr = dat.buf;
+    	i       = dat.len;
+
+    	/* this is necessary on some platforms (i.e. irix), but
+    	   not others (i.e. solaris). */
+    	if (*dataptr == '<') {
+    		for (;;) {
+    			c = *(++dataptr); --i;
+    			if (c == '>') { ++dataptr; --i; break; }
+    			if (c >= '0' && c <= '9') continue;
+    			break; /* not a digit, not an end-bracket */
+    		}
+    	}
+    	dat.buf = dataptr;
+    	dat.len = i;
+    }
+
 		/* msgbuf still points to the old data */
 
 		if (dat.len) {
@@ -129,103 +203,19 @@ im_streams_read (struct i_module *im, int infd, struct im_msg *ret)
 }
 
 /*
- * initialize streams input
- *
- */
-
-int
-im_streams_init (struct i_module *I, char **argv, int argc)
-{
-	char *streams_logpath;
-
-	m_dprintf(MSYSLOG_INFORMATIVE, "im_streams_init: Entering\n");
-
-	if (I == NULL || argv == NULL || argc < 1 || argc > 2) {
-		m_dprintf(MSYSLOG_SERIOUS, "usage: -i streams[:path]\n\n");
-		return(-1);
-	}
-
-	if (argc == 2) {
-		streams_logpath = strdup(argv[1]);
-	} else {
-		streams_logpath = strdup(DEFAULT_LOGGER);
-	}
-	m_dprintf(MSYSLOG_INFORMATIVE, "streams_logpath = %s\n",
-	    streams_logpath);
-
-	I->im_path = streams_logpath;
-
-        return(do_streams_init(I));
-}
-
-
-/*
  * the following function is not mandatory, you can omit it
  */
 int
 im_streams_close (struct i_module *im) 
 {
-	close (im->im_fd);
-	if (im->im_path)
-		free(im->im_path);
-	im->im_path = NULL;
+  struct im_streams_ctx *c = (im_streams_ctx *) im->ctx;
 
-        return(1);
+  if (c->path != NULL) free(c->path);
+  if (im->ctx != NULL) free(im->ctx);
+
+	close (im->im_fd); 
+
+return(1);
 }
 
-
-/* local function */
-int do_streams_init (I)
-	struct i_module *I;
-{
-	I->im_fd = open (I->im_path, O_RDONLY|O_NOCTTY|O_NONBLOCK);
-
-	if (I->im_fd == -1) {
-		m_dprintf(MSYSLOG_SERIOUS, "couldn't open %s: %s\n", I->im_path,
-		    strerror (errno));
-		return (-1);
-	} else {
-		struct strioctl ioctbuf;
-
-		memset (&ioctbuf, 0, sizeof(ioctbuf));
-
-		ioctbuf.ic_cmd = I_CONSLOG; /* why I_CONSLOG? */
-		if (ioctl (I->im_fd, I_STR, &ioctbuf) == -1) {
-			m_dprintf(MSYSLOG_SERIOUS, "ioctl(%s): %s\n",
-			    I->im_path, strerror (errno));
-			close (I->im_fd);
-			return (-1);
-		}
-		add_fd_input(I->im_fd , I);
-	}
-
-	return (1);
-}
-
-
-/* ensure the data buffer is in the proper format */
-void streams_datfmt (data)
-	struct strbuf *data;
-{
-	register char *dataptr;
-	register char c;
-	register int i;
-
-	dataptr = data->buf;
-	i       = data->len;
-
-	/* this is necessary on some platforms (i.e. irix), but
-	   not others (i.e. solaris). */
-	if (*dataptr == '<') {
-		for (;;) {
-			c = *(++dataptr); --i;
-			if (c == '>') { ++dataptr; --i; break; }
-			if (c >= '0' && c <= '9') continue;
-			break; /* not a digit, not an end-bracket */
-		}
-	}
-	
-	data->buf = dataptr;
-	data->len = i;
-}
 

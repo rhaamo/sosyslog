@@ -49,14 +49,18 @@
 #include <string.h>
 #include <syslog.h>
 #include <time.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include "../modules.h"
 #include "../syslogd.h"
 
 struct im_file_ctx {
-	char	*timefmt;
-	int	start;
+	int   start;     /* start position of timestamp in the message */
+	char  *timefmt;  /* the format to use in extracting the timestamp */
+	char  *path;     /* the pathname of the file to open */
+	char  *name;     /* the alias for the file (hostname) */
+	struct stat stat;  /* the file statistics (useful in determining if reg file, pipe, or whatever */
 };
 
 /*
@@ -65,84 +69,78 @@ struct im_file_ctx {
  */
 
 int
-im_file_init(struct i_module *I, char **argv, int argc)
+im_file_init(struct i_module *im, char **argv, int argc)
 {
-	char			*path;
 	struct im_file_ctx	*c;
-	int			ch, argcnt, start;
+	int    ch, argcnt;
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "im_file_init: Entering\n");
 
-	I->im_path = NULL;
-	start = 0;
-	path = NULL;
-	c = NULL;	/* just to make compiler happy */
+
+	if ((im->im_ctx = malloc(sizeof(struct im_file_ctx))) == NULL) {
+		m_dprintf(MSYSLOG_SERIOUS, "om_file_init: error allocating context!\n");
+return (-1);
+	}
+	c = (struct im_file_ctx *) im->im_ctx;
+	c->start = 0;
 
 	/* parse command line */
-	argcnt = 1;	/* skip module name */
-
-	while ((ch = getxopt(argc, argv, "f!file: p!pipe: n!program:"
-	    " t!timeformat: s!startpos:", &argcnt)) != -1) {
+	for ( argcnt = 1;	/* skip module name */
+        (ch = getxopt(argc, argv,
+          "f!file: p!pipe: n!program: t!timeformat: s!startpos:", &argcnt)) != -1;
+        argcnt++ )
+  {
 		switch (ch) {
 		case 'f':
 			/* file to read */
-			path = argv[argcnt];
-			break;
-		case 'p':
-			/* pipe to read */
-			path = argv[argcnt];
+			c->path = argv[argcnt];
 			break;
 		case 'n':
-			I->im_path = strdup(argv[argcnt]);
+      /* create a alternate name, it will act as the hostname */
+			c->name = strdup(argv[argcnt]);
 			break;
 		case 's':
-			start = strtol(argv[argcnt], NULL, 10);
+			c->start = strtol(argv[argcnt], NULL, 10);
 			break;
 		case 't':
-			if ((I->im_ctx = malloc(sizeof(struct im_file_ctx)))
-			    == NULL) {
-				m_dprintf(MSYSLOG_SERIOUS, "om_file_init: error"
-				    " allocating context!\n");
-				return (-1);
-			}
-			c = (struct im_file_ctx *) I->im_ctx;
+			/* time format to use */
 			c->timefmt = strdup(argv[argcnt]);
 			break;
 		default:
-			m_dprintf(MSYSLOG_SERIOUS, "om_file_init: command line"
-			    " error, at arg %c [%s]\n", ch,
+			m_dprintf(MSYSLOG_SERIOUS,
+          "om_file_init: command line error, at arg %c [%s]\n", ch,
 			    argv[argcnt]? argv[argcnt]: "");
-			return (-1);
+return (-1);
 		}
-		argcnt++;
 	}
 
-	if (I->im_ctx != NULL && c->timefmt == NULL) {
-		m_dprintf(MSYSLOG_SERIOUS, "om_file_init: start of time string but"
-		    " no string!\n");
-		return (-1);
+	if (c->timefmt == NULL) {
+		m_dprintf(MSYSLOG_SERIOUS, "om_file_init: start of time string but no string!\n");
+return (-1);
 	}
 
-	if (I->im_ctx != NULL)
-		c->start = start;
-
-	if (path == NULL) {
-		m_dprintf(MSYSLOG_SERIOUS, "om_file_init: no file/pipe to read\n");
-		return (-1);
+	if (c->path == NULL) {
+		m_dprintf(MSYSLOG_SERIOUS, "om_file_init: no file to read\n");
+return (-1);
 	}
 
-	if ((I->im_fd = open(path, O_RDONLY, 0)) < 0) {
-		m_dprintf(MSYSLOG_SERIOUS, "im_file_init: can't open %s (%d)\n",
-		    argv[1], errno);
-		return (-1);
+	if ( stat( c->path, &c->stat )) {
+  	m_dprintf(MSYSLOG_SERIOUS,
+        "om_file_init: could not stat file [%s] due to [%s]\n", 
+        strerror( errno ), c->path);
+return (-1);
+ 	}
+
+	if ((im->im_fd = open(c->path, O_RDONLY, 0)) < 0) {
+		m_dprintf(MSYSLOG_SERIOUS, "im_file_init: can't open %s (%d)\n", argv[1], errno);
+return (-1);
 	}
 
-	if (I->im_path == NULL)
-		I->im_path = path;	/* no name specified */
+	if (c->name == NULL) c->name = c->path;	/* no name specified */
 
-	add_fd_input(I->im_fd , I);
+	add_fd_input(im->im_fd , im);
 
-	return (1);
+return (1);
 }
 
 /*
@@ -154,11 +152,13 @@ int
 im_file_read(struct i_module *im, int infd, struct im_msg  *ret)
 {
 	char *p, *q;
-	int i, c;
+  int r;
+	int i;
+	struct im_file_ctx	*c = (struct im_file_ctx *) (im->im_ctx);
 	RETSIGTYPE (*sigsave)(int);
 
-        /* ignore sigpipes   for mysql_ping */
-        sigsave = place_signal(SIGPIPE, SIG_IGN);
+  /* ignore sigpipes   for mysql_ping */
+  sigsave = place_signal(SIGPIPE, SIG_IGN);
 
 	i = read(im->im_fd, im->im_buf, sizeof(im->im_buf) - 1);
 	if (i > 0) {
@@ -171,21 +171,15 @@ im_file_read(struct i_module *im, int infd, struct im_msg  *ret)
 
 			if (im->im_ctx != NULL) {
 				struct tm		tm;
-				struct im_file_ctx	*c;
 				char			*start, *end;
 
 				/* apply strftime */
 				c = (struct im_file_ctx *) im->im_ctx;
-				if ((end = strptime((p + c->start), c->timefmt, &tm))
-				    == NULL) {
-
-					m_dprintf(MSYSLOG_WARNING, "om_file_read"
-					    ": error parsing time!\n");
-
-				} else {
-
-					for (start = p + c->start; *end != '\0';)
-						*start++ = *end++;
+				if ((end = strptime((p + c->start), c->timefmt, &tm)) == NULL) {
+					m_dprintf(MSYSLOG_WARNING, "om_file_read: error parsing time!\n");
+				}
+        else {
+					for (start = p + c->start; *end != '\0';) *start++ = *end++;
 					*start = '\0';
 
 					if (strftime(ret->im_msg,
@@ -198,28 +192,23 @@ im_file_read(struct i_module *im, int infd, struct im_msg  *ret)
 						ret->im_flags &= !ADDDATE;
 					}
 				}
-			} else if (*p == '<') {
+			}
+      else if (*p == '<') {
 				ret->im_pri = 0;
-				while (isdigit((int)*++p))
-					ret->im_pri = 10 * ret->im_pri +
-					    (*p - '0');
+				while (isdigit((int)*++p)) ret->im_pri = 10 * ret->im_pri + (*p - '0');
 				if (*p == '>')
 					++p;
 			}
 
-			strncat(ret->im_msg, im->im_path, strlen(ret->im_msg)
-			    - sizeof(ret->im_msg) - 1);
-			strncat(ret->im_msg, ":", strlen(ret->im_msg)
-			    - sizeof(ret->im_msg) - 1);
-			m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: Entering "
-			    "with header %s\n", ret->im_msg);
+			strncat(ret->im_msg, c->name, strlen(ret->im_msg) - sizeof(ret->im_msg) - 1);
+			strncat(ret->im_msg, ":", strlen(ret->im_msg) - sizeof(ret->im_msg) - 1);
+			m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: Entering with header %s\n", ret->im_msg);
 
-			if (ret->im_pri &~ (LOG_FACMASK|LOG_PRIMASK))
-				ret->im_pri = DEFSPRI;
+			if (ret->im_pri &~ (LOG_FACMASK|LOG_PRIMASK)) ret->im_pri = DEFSPRI;
 			q = ret->im_msg + strlen(ret->im_msg);
-			while (*p != '\0' && (c = *p++) != '\n' &&
+			while (*p != '\0' && (r = *p++) != '\n' &&
 			    q < &ret->im_msg[sizeof(ret->im_msg) - 1]) {
-				*q++ = c;
+				*q++ = r;
 			}
 			*q = '\0';
 			ret->im_host[0] = '\0';
@@ -227,7 +216,8 @@ im_file_read(struct i_module *im, int infd, struct im_msg  *ret)
 			logmsg(ret->im_pri, ret->im_msg, ret->im_host,
 			    ret->im_flags);
 		}
-	} else if (i < 0 && errno != EINTR) {
+	}
+  else if (i < 0 && errno != EINTR) {
 		logerror("im_file_read");
 		im->im_fd = -1;
 	}
@@ -236,27 +226,24 @@ im_file_read(struct i_module *im, int infd, struct im_msg  *ret)
 	place_signal(SIGPIPE, sigsave);
 
 	/* if ok return (2) wich means already logged */
-	return (im->im_fd == -1 ? -1: 2);
+return (im->im_fd == -1 ? -1 : 2);
 }
+
+/*
+ * close the file descriptor and release all resources
+ */
 
 int
 im_file_close( struct i_module *im)
 {
-	if (im->im_ctx != NULL) {
-		struct im_file_ctx	*c;
+	struct im_file_ctx	*c = (struct im_file_ctx *) (im->im_ctx);
 
-		c = (struct im_file_ctx *) im->im_ctx;
+	if (c->timefmt != NULL) free(c->timefmt);
+	if (c->name != NULL) free(c->name);
+	if (c->path != NULL) free(c->path);
 
-		if (c->timefmt)
-			free(c->timefmt);
-		free(c);
-	}
+	if (im->im_ctx != NULL) free(im->im_ctx);
+	if (im->im_fd >= 0) close(im->im_fd);
 
-	if (im->im_path != NULL)
-		free(im->im_path);
-
-	if (im->im_fd >= 0)
-		close(im->im_fd);
-
-	return (0);
+return (0);
 }

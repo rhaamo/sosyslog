@@ -68,8 +68,7 @@ struct i_module {
 	int	 im_flags;  /* 1 to 8 are reserved */
 #define IMODULE_FLAG_KERN	0x10
 #define IMODULE_FLAG_CONN	0x20
-	char	*im_path;
-	char	 im_buf[MAXLINE + 1];
+	char	im_buf[MAXLINE + 1];
 	void	*im_ctx;
 };
 

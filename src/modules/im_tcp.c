@@ -166,8 +166,6 @@ return (-1);
 return (-1);
 	}
 
-	I->im_path = NULL;
-
 	add_fd_input(I->im_fd , I);
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: running\n");
@@ -415,17 +413,14 @@ return (0);
       else {
 				/* get hostname from originating addr */
 
-				strncpy(ret->im_host, con->name,
-				    sizeof(ret->im_host) - 1);
+				strncpy(ret->im_host, con->name, sizeof(ret->im_host) - 1);
 				ret->im_host[sizeof(ret->im_host) - 1] = '\0';
 			}
 			m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: hostname obtained [%s]\n", ret->im_host);
 
 			if (c->flags & M_NOTFQDN) {
 				char	*dot;
-
-				if ((dot = strchr(ret->im_host, '.')) != NULL)
-					*dot = '\0';
+				if ((dot = strchr(ret->im_host, '.')) != NULL) *dot = '\0';
 			}
 
       /* invoke rules on this message */

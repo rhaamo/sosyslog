@@ -66,8 +66,49 @@
 #define DEFAULT_LOGGER "/dev/log"
 
 /*
- * get message
- *
+ * initialize input
+ */
+
+int
+im_unix_init(struct i_module *I, char **argv, int argc)
+{
+	struct sockaddr_un sunx;
+	char *logger;
+
+	m_dprintf(MSYSLOG_INFORMATIVE, "im_unix_init: Entering\n");
+
+	if (I == NULL || argv == NULL || (argc != 2 && argc != 1)) 
+return (-1);
+
+	logger = (argc == 2) ? argv[1] : DEFAULT_LOGGER;
+
+#ifndef SUN_LEN
+#define SUN_LEN(unp) (strlen((unp)->sun_path) + 2)
+#endif
+	(void) unlink(logger);
+
+	memset(&sunx, 0, sizeof(sunx));
+	sunx.sun_family = AF_UNIX;
+	(void)strncpy(sunx.sun_path, logger, sizeof(sunx.sun_path));
+	I->im_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
+	if (I->im_fd < 0 ||
+	    bind(I->im_fd, (struct sockaddr *)&sunx, SUN_LEN(&sunx)) < 0 ||
+	    chmod(logger, 0666) < 0) {
+		(void) snprintf(I->im_buf, sizeof(I->im_buf),
+		    "cannot create %s", logger);
+		logerror(I->im_buf);
+		m_dprintf(MSYSLOG_SERIOUS, "cannot create %s (%d)\n",
+		    logger, errno);
+return (-1);
+	}
+
+	add_fd_input(I->im_fd , I);
+return (1);
+}
+
+
+/*
+ * read message
  */
 
 int
@@ -89,74 +130,27 @@ im_unix_read(struct i_module *im, int infd, struct im_msg  *ret)
 	if (ret->im_len > 0) {
 		ret->im_msg[ret->im_len] = '\0';
 		ret->im_host[0] = '\0';
-	} else if (ret->im_len < 0 && errno != EINTR) {
+	}
+  else if (ret->im_len < 0 && errno != EINTR) {
 		logerror("recvfrom unix");
 		ret->im_msg[0] = '\0';
 		ret->im_len = 0;
 		ret->im_host[0] = '\0';
-		return (-1);
+return (-1);
 	}
 
-	return (1);
+return (1);
 }
 
 /*
- * initialize unix input
- *
+ * close input
  */
-
-int
-im_unix_init(struct i_module *I, char **argv, int argc)
-{
-	struct sockaddr_un sunx;
-	char *logger;
-
-	m_dprintf(MSYSLOG_INFORMATIVE, "im_unix_init: Entering\n");
-
-	if (I == NULL || argv == NULL || (argc != 2 && argc != 1)) 
-		return (-1);
-
-	if (argc == 2)
-		logger = argv[1];
-	else
-		logger = DEFAULT_LOGGER;
-
-#ifndef SUN_LEN
-#define SUN_LEN(unp) (strlen((unp)->sun_path) + 2)
-#endif
-	(void) unlink(logger);
-
-	memset(&sunx, 0, sizeof(sunx));
-	sunx.sun_family = AF_UNIX;
-	(void)strncpy(sunx.sun_path, logger, sizeof(sunx.sun_path));
-	I->im_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
-	if (I->im_fd < 0 ||
-	    bind(I->im_fd, (struct sockaddr *)&sunx, SUN_LEN(&sunx)) < 0 ||
-	    chmod(logger, 0666) < 0) {
-		(void) snprintf(I->im_buf, sizeof(I->im_buf),
-		    "cannot create %s", logger);
-		logerror(I->im_buf);
-		m_dprintf(MSYSLOG_SERIOUS, "cannot create %s (%d)\n",
-		    logger, errno);
-		return (-1);
-	}
-
-	I->im_path = strdup(logger);
-
-	add_fd_input(I->im_fd , I);
-
-	return (1);
-}
 
 int
 im_unix_close( struct i_module *im)
 {
 	close(im->im_fd);
-
-	if (im->im_path)
-		unlink(im->im_path);
-
-	return (0);
+return (0);
 }
 
 
