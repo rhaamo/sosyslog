@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.34 2000/06/12 21:13:29 claudio Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.35 2000/06/13 19:54:39 claudio Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -62,19 +62,14 @@
 void	wallmsg (struct filed *, struct iovec *);
 char   *ttymsg (struct iovec *, int, char *, int);
 
-extern time_t now;
-
 int
-om_classic_doLog(f, flags, msg, context)
-	struct filed *f;
-	int flags;
-	char *msg;
-	struct om_hdr_ctx *context;
-{
+om_classic_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *context) {
 	struct iovec iov[6];
 	struct iovec *v;
 	int l;
 	char line[MAXLINE + 1], greetings[500];
+	time_t now;
+
 
 	if (msg == NULL || !strcmp(msg, "")) {
 		logerror("om_classic_doLog: no message!");
@@ -195,13 +190,8 @@ om_classic_doLog(f, flags, msg, context)
  *  taken mostly from syslogd's cfline
  */
 int
-om_classic_init(argc, argv, f, prog, context)
-	int argc;
-	char **argv;
-	struct filed *f;
-	char *prog;
-	struct om_hdr_ctx **context;
-{
+om_classic_init( int argc, char **argv, struct filed *f,
+		char *prog, struct om_hdr_ctx **context) {
 	struct hostent *hp;
 	int i;
 	char *p, *q;
@@ -275,10 +265,7 @@ om_classic_init(argc, argv, f, prog, context)
 }
 
 int
-om_classic_close(f, ctx)
-	struct filed *f;
-	struct om_hdr_ctx *ctx;
-{
+om_classic_close( struct filed *f, struct om_hdr_ctx *ctx) {
 	int ret;
 
 	ret = -1;
