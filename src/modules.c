@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.70 2000/05/26 19:18:13 claudio Exp $	*/
+/*	$CoreSDI: modules.c,v 1.71 2000/05/26 19:25:08 claudio Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -79,7 +79,7 @@ int	im_unix_close __P((struct i_module *));
 int	im_udp_init __P((struct i_module *, char **, int));
 int	im_udp_getLog __P((struct i_module *, struct im_msg *));
 int	im_udp_close __P((struct i_module *));
-int	im_linux_init __P(struct i_module *, char **, int));
+int	im_linux_init __P((struct i_module *, char **, int));
 int	im_linux_getLog __P((struct i_module *, struct im_msg *));
 int	im_linux_close __P((struct i_module *));
 
