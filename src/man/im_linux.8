@@ -1,4 +1,4 @@
-.\"	$CoreSDI: im_linux.8,v 1.5 2000/06/14 18:34:49 claudio Exp $
+.\"	$CoreSDI: im_linux.8,v 1.6 2000/06/14 23:22:17 claudio Exp $
 .\"
 .\" Copyright (c) 2000
 .\"	Core-SDI SA. All rights reserved.
@@ -36,7 +36,9 @@
 .Os Core-SDI
 .Sh NAME
 .Nm linux input module
-.Nd syslogd(8) input module used to log linux kernel messages
+.Nd
+.Xr syslogd 8
+input module used to log linux kernel messages
 .Sh SYNOPSIS
 .Nm linux 
 .Op Fl c Ar loglevel
@@ -46,11 +48,11 @@
 .Op Fl s
 .Op Fl x
 .Op Fl h
-.Op Fl ?
 .Sh DESCRIPTION
 .Nm linux input module 
-allows syslogd(8) daemon to log linux kernel messges. The
-options are as follows:
+allows
+.Xr syslogd 8
+daemon to log linux kernel messges. The options are as follows:
 .Bl -tag -width Ds
 .It Fl c Ar loglevel
 Sets the default console log level.
@@ -74,8 +76,9 @@ This options prints a little help on standard output and exits.
 .Sh EXAMPLES
 .Bl -bullet
 .It
-The following command installs syslogd(8) daemon and logs linux kernel
-messages only:
+The following command installs
+.Xr syslogd 8
+daemon and logs linux kernel messages only:
 .Pp
 .Dl syslogd -i "linux -r"
 .Pp
