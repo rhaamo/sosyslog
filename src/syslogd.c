@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.30 2000/04/17 23:26:01 alejo Exp $
+/*	$Id: syslogd.c,v 1.31 2000/04/18 17:34:06 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -68,7 +68,9 @@ static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $"
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#ifdef __OpenBSD__
 #include <sys/msgbuf.h>
+#endif
 #include <sys/un.h>
 #include <sys/resource.h>
 
@@ -142,7 +144,7 @@ main(argc, argv)
 	struct sockaddr_un sunx, fromunix;
 	struct sockaddr_in sin, frominet;
 	FILE *fp;
-	char *p, line[MSG_BSIZE + 1];
+	char *p;
 	struct	i_module *Inputs;
 	int	inputBSD, inputSYSV;
 
