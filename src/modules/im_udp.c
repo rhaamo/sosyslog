@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.36 2000/06/05 23:22:06 fgsch Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.37 2000/06/07 21:27:37 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -152,8 +152,6 @@ im_udp_init(I, argv, argc)
 		InetInuse = 1;
 	}
 
-        I->im_type = IM_UDP;
-        I->im_name = "udp";
         I->im_path = NULL;
         I->im_fd   = finet;
         return(1);

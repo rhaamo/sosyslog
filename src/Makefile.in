@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.7 2000/06/09 19:53:22 fgsch Exp $
+# $CoreSDI: Makefile.in,v 1.8 2000/06/09 20:16:33 gera Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -29,13 +29,15 @@
 #
 
 CC=		@CC@
+SH=		@SH@
 CFLAGS=		@CFLAGS@
+SCFLAGS=	@SCFLAGS@
 LDFLAGS=	@LDFLAGS@
 LIBS=		@LIBS@
 
 PROG=		syslogd
-SRCS=		modules.c syslogd.c ttymsg.c \
-		modules/im_bsd.c modules/im_udp.c modules/im_unix.c \
+SRCS=		modules.c syslogd.c ttymsg.c  imodules.c omodules.c
+SSRCS=		modules/im_bsd.c modules/im_udp.c modules/im_unix.c \
 		modules/om_classic.c modules/om_regex.c modules/om_peo.c \
 		peo/hash.c
 LINUX_SRCS=	modules/im_linux.c
@@ -44,15 +46,32 @@ MYSQL_SRCS=	modules/om_mysql.c $(SQL_SRCS)
 PGSQL_SRCS=	modules/om_pgsql.c $(SQL_SRCS)
 SRCS+=		@EXTRA_SRCS@
 OBJS=		${SRCS:.c=.o}
+SOBJS=		${SRCS:.c=.so}
 
 all: $(PROG)
 
 .c.o:
 	$(CC) $(CFLAGS) -I. -c $< -o $@
 
+.c.so:
+	$(CC) $(CFLAGS) -I. -c $< -o $@
+	$(CC) $(CFLAGS) -I. -c $< -o $@
+
 modules.o: config.h
 
-$(PROG): $(OBJS)
+$(PROG): 
+	ifndef STATICSI
+	$(SH) ./statics_headers_create.sh imodules.c im bsd unix udp
+	else
+	$(SH) ./statics_headers_create.sh imodules.c im $(STATICSI)
+	endif
+	ifndef STATICSO
+	$(SH) ./statics_headers_create.sh omodules.c om classic peo regex
+	else
+	$(SH) ./statics_headers_create.sh omodules.c om $(STATICSO)
+	endif
+	$(OBJS)
+	$(SOBJS)
 	$(CC) -o $@ $(OBJS) $(LDFLAGS) $(LIBS)
 
 .PHONY: clean distclean

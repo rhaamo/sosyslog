@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.27 2000/06/06 20:20:00 fgsch Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.28 2000/06/08 01:06:49 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -124,8 +124,6 @@ im_unix_init(I, argv, argc)
 		dprintf("cannot create %s (%d)\n", argv[1], errno);
 		return (-1);
 	}
-	I->im_type = IM_UNIX;
-	I->im_name = "unix";
 	I->im_path = argv[1];
 	return(1);
 }

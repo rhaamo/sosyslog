@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.51 2000/06/07 21:27:36 claudio Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.52 2000/06/07 23:57:23 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -70,8 +70,6 @@ im_bsd_init(I, argv, argc)
 		return (-1);
 	}
 	
-	I->im_type = IM_BSD;
-	I->im_name = "bsd";
 	I->im_path = _PATH_KLOG;
 	I->im_flags |= IMODULE_FLAG_KERN;
 	return(I->im_fd);

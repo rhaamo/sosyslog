@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.92 2000/06/08 23:14:24 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.93 2000/06/09 19:20:06 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -45,157 +45,30 @@
 #include <string.h>
 #include <syslog.h>
 #include <unistd.h>
+#include <dlfcn.h>
 #include "syslogd.h"
 #include "modules.h"
 
-int	om_peo_doLog(struct filed *, int, char *, struct om_hdr_ctx *);
-int	om_peo_init(int, char **, struct filed *, char *,
-	    struct om_hdr_ctx **);
-int	om_peo_close(struct filed *, struct om_hdr_ctx *);
-
-int	om_classic_doLog(struct filed *, int , char *,
-	    struct om_hdr_ctx *);
-int	om_classic_init(int, char **, struct filed *, char *,
-	    struct om_hdr_ctx **);
-int	om_classic_close(struct filed*, struct om_hdr_ctx *);
-int	om_classic_flush(struct filed*, struct om_hdr_ctx *);
-
-int	om_regex_doLog(struct filed *, int , char *,
-	    struct om_hdr_ctx *);
-int	om_regex_init(int, char **, struct filed *, char *,
-	    struct om_hdr_ctx **);
-int	om_regex_close(struct filed*, struct om_hdr_ctx *);
-int	om_regex_flush(struct filed*, struct om_hdr_ctx *);
-
-#ifdef ENABLE_MYSQL
-int	om_mysql_doLog(struct filed *, int , char *,
-	    struct om_hdr_ctx *);
-int	om_mysql_init(int, char **, struct filed *, char *,
-	    struct om_hdr_ctx **);
-int	om_mysql_close(struct filed*, struct om_hdr_ctx *);
-#endif /* ENABLE_MYSQL */
-
-int	im_bsd_init(struct i_module *, char **, int);
-int	im_bsd_getLog(struct i_module *, struct im_msg *);
-
-int	im_unix_init(struct i_module *, char **, int);
-int	im_unix_getLog(struct i_module *, struct im_msg *);
-int	im_unix_close(struct i_module *);
-
-int	im_udp_init(struct i_module *, char **, int);
-int	im_udp_getLog(struct i_module *, struct im_msg *);
-
-#ifdef HAVE_LINUX
-int	im_linux_init(struct i_module *, char **, int);
-int	im_linux_getLog(struct i_module *, struct im_msg *);
-int	im_linux_close(struct i_module *);
-#endif
-
-#ifdef ENABLE_PGSQL
-int	om_pgsql_doLog(struct filed *, int , char *, struct om_hdr_ctx *);
-int	om_pgsql_init(int, char **, struct filed *, char *,
-	    struct om_hdr_ctx **);
-int	om_pgsql_close(struct filed*, struct om_hdr_ctx *);
-#endif
-
 int	parseParams(char ***, char *);
+struct imodule *getImFunc(char *);
+struct omodule *getOmFunc(char *);
+struct imodule *addImFunc(char *);
+struct omodule *addOmFunc(char *);
 
-extern struct OModule OModules[];
-extern struct IModule IModules[];
+struct omodule *omodules = NULL;
+struct imodule *imodules = NULL;
 
-int
-modules_load(void)
-{
-	/* initialize module function assignations */
-	memset(OModules, 0, MAX_N_OMODULES);
-	memset(IModules, 0, MAX_N_IMODULES);
-
-	/* classic module */
-	OModules[OM_CLASSIC].om_name 		= "classic";
-	OModules[OM_CLASSIC].om_type 		= OM_CLASSIC;
-	OModules[OM_CLASSIC].om_doLog 		= om_classic_doLog;
-	OModules[OM_CLASSIC].om_init 		= om_classic_init;
-	OModules[OM_CLASSIC].om_close 		= om_classic_close;
-	OModules[OM_CLASSIC].om_flush 		= om_classic_flush;
-
-	/* regex module */
-/*
-	OModules[OM_FILTER].om_name 		= "regex";
-	OModules[OM_FILTER].om_type 		= OM_FILTER;
-	OModules[OM_FILTER].om_doLog	 	= om_regex_doLog;
-	OModules[OM_FILTER].om_init 		= om_regex_init;
-	OModules[OM_FILTER].om_close 		= om_regex_close;
-	OModules[OM_FILTER].om_flush 		= om_regex_flush;
-*/
-
-#ifdef ENABLE_MYSQL
-	/* mysql module */
-	OModules[OM_MYSQL].om_name 		= "mysql";
-	OModules[OM_MYSQL].om_type 		= OM_MYSQL;
-	OModules[OM_MYSQL].om_doLog	 	= om_mysql_doLog;
-	OModules[OM_MYSQL].om_init 		= om_mysql_init;
-	OModules[OM_MYSQL].om_close 		= om_mysql_close;
-	OModules[OM_MYSQL].om_flush 		= NULL;
-#endif /* ENABLE_MYSQL */
-
-#ifdef ENABLE_PGSQL
-	/* pgsql module */
-	OModules[OM_PGSQL].om_name              = "pgsql";
-	OModules[OM_PGSQL].om_type              = OM_PGSQL;
-	OModules[OM_PGSQL].om_doLog             = om_pgsql_doLog;
-	OModules[OM_PGSQL].om_init              = om_pgsql_init;
-	OModules[OM_PGSQL].om_close             = om_pgsql_close;
-	OModules[OM_PGSQL].om_flush             = NULL;
-#endif
-
-	/* peo module */
-	OModules[OM_PEO].om_name		= "peo";
-	OModules[OM_PEO].om_type		= OM_PEO;
-	OModules[OM_PEO].om_doLog		= om_peo_doLog;
-	OModules[OM_PEO].om_init		= om_peo_init;
-	OModules[OM_PEO].om_close		= om_peo_close;
-	OModules[OM_PEO].om_flush		= NULL;
-
-	/* bsd kernel input module */
-	IModules[IM_BSD].im_name		= "bsd";
-	IModules[IM_BSD].im_type		= IM_BSD;
-	IModules[IM_BSD].im_init		= im_bsd_init;
-	IModules[IM_BSD].im_getLog		= im_bsd_getLog;
-  	IModules[IM_BSD].im_close		= NULL;
-
-	/* unix standard input module */
-	IModules[IM_UNIX].im_name		= "unix";
-	IModules[IM_UNIX].im_type		= IM_UNIX;
-	IModules[IM_UNIX].im_init		= im_unix_init;
-	IModules[IM_UNIX].im_getLog		= im_unix_getLog;
-  	IModules[IM_UNIX].im_close		= im_unix_close;
-
-	/* unix standard udp input module */
-	IModules[IM_UDP].im_name		= "udp";
-	IModules[IM_UDP].im_type		= IM_UDP;
-	IModules[IM_UDP].im_init		= im_udp_init;
-	IModules[IM_UDP].im_getLog		= im_udp_getLog;
-  	IModules[IM_UDP].im_close		= NULL;
-
-#ifdef HAVE_LINUX
-	/* linux kernel input module */
-	IModules[IM_LINUX].im_name		= "linux";
-	IModules[IM_LINUX].im_type		= IM_LINUX;
-	IModules[IM_LINUX].im_init		= im_linux_init;
-	IModules[IM_LINUX].im_getLog		= im_linux_getLog;
-	IModules[IM_LINUX].im_close		= im_linux_close;
-#endif
-	
-	return(1);
-}
 
 /* assign module functions to generic pointer */
 int
-modules_init (struct i_module *I, char *line)
+modules_init (I, line)
+	struct i_module *I;
+	char *line;
 {
 	int argc;
 	char **argv, *p;
 	struct i_module *im;
+	struct imodule *imod;
 
 	/* create initial node for Inputs list */
 	if (I == NULL) {
@@ -219,29 +92,17 @@ modules_init (struct i_module *I, char *line)
 	    return(-1);
 	}
 
-	if (!strncmp(argv[0], "bsd", 3)) {
-	    if (im_bsd_init(im, argv, argc) < 0) {
-	    	dprintf("Error initializing module %s [%s]\n", argv[0], line);
-	        die(0);
-	    }
+	/* is it already initialized ? searching... */
+	if ((im->im_func = getImFunc(argv[0])) == NULL)
+		if ((im->im_func = addImFunc(argv[0])) != NULL) {
+	   		dprintf("Error loading dynamic input module %s [%s]\n", argv[0], line);
+			die(0);
+		}
 
-	} else if (!strncmp(argv[0], "unix", 4)) {
-	    if (im_unix_init(im, argv, argc) < 0) {
-	    	dprintf("Error initializing module %s [%s]\n", argv[0], line);
-	        die(0);
-	    }
-	} else if (!strncmp(argv[0], "udp", 3)) {
-	    if (im_udp_init(im, argv, argc) < 0) {
-	    	dprintf("Error initializing module %s [%s]\n", argv[0], line);
-	        die(0);
-	    }
-#ifdef HAVE_LINUX
-	} else if (!strncmp(argv[0], "linux", 5)) {
-	    if (im_linux_init(im, argv, argc) < 0) {
-		dprintf("Error initializing module %s [%s]\n", argv[0], line);
+	/* got it, now try to initialize it */
+	if ((*(im->im_func->im_init))(im, argv, argc) < 0) {
+	   	dprintf("Error initializing input module %s [%s]\n", argv[0], line);
 		die(0);
-	    }
-#endif
 	}
 
 	return(1);
@@ -253,7 +114,7 @@ omodule_create(char *c, struct filed *f, char *prog)
 {
 	char	*line, *p, quotes, *argv[20];
 	int	argc, i;
-	struct o_module	*m, *prev;
+	struct o_module	*om, *prev;
 
 	line = strdup(c); quotes = 0;
 	p = line; prev = NULL;
@@ -263,12 +124,12 @@ omodule_create(char *c, struct filed *f, char *prog)
 		if (f->f_omod == NULL) {
 			f->f_omod = (struct o_module *) calloc(1,
 			    sizeof(*f->f_omod));
-			m = f->f_omod;
+			om = f->f_omod;
 			prev = NULL;
 		} else {
 			for (prev = f->f_omod; prev->om_next; prev = prev->om_next);
 			prev->om_next = (struct o_module *) calloc(1, sizeof *f->f_omod);
-			m = prev->om_next;
+			om = prev->om_next;
 		}
 
 		switch (*p) {
@@ -282,18 +143,13 @@ omodule_create(char *c, struct filed *f, char *prog)
 				*p++=0;
 
 				/* find for matching module */
-				for (i = 0; i < MAX_N_OMODULES; i++) {
-					if (OModules[i].om_name == NULL)
-						continue;
-					if (strncmp(argv[0], OModules[i].om_name,
-							MAX_MODULE_NAME_LEN) == 0)
-						break;
+				if ((om->om_func = getOmFunc(argv[0])) == NULL) {
+					if ((om->om_func = addOmFunc(argv[0])) != NULL) {
+				   		dprintf("Error loading dynamic output module "
+								"%s [%s]\n", argv[0], line);
+						die(0);
+					}
 				}
-				/* no matching module */
-				if (i == MAX_N_OMODULES)
-					return(-1);
-
-				m->om_type = OModules[i].om_type;
 
 				/* build argv and argc, modifies input p */
 				while (isspace(*p)) p++;
@@ -320,21 +176,26 @@ omodule_create(char *c, struct filed *f, char *prog)
 				/* classic style */
 				/* prog is already on this filed */
 				argc=0;
-				argv[argc++]="auto_classic";
+				argv[argc++]="classic";
 				argv[argc++]=p;
 				p+=strlen(p);
-				m->om_type = OM_CLASSIC;
+				om->om_type = OM_CLASSIC;
+				/* find for matching module */
+				if ((om->om_func = getOmFunc(argv[0])) == NULL) {
+					if ((om->om_func = addOmFunc(argv[0])) != NULL) {
+				   		dprintf("Error loading dynamic output module "
+								"%s [%s]\n", argv[0], line);
+						die(0);
+					}
+				}
+
 				break;
 		}
-		if ((OModules[m->om_type].om_init)(argc, argv, f,
-				prog, (void *) &(m->ctx)) < 0) {
-			free(m);
-			m = NULL;
-			if (prev == NULL) {
-				f->f_omod = NULL;
-			} else {
-				prev->om_next = NULL;
-			}
+		if ((*(om->om_func->om_init))(argc, argv, f,
+				prog, (void *) &(om->ctx)) < 0) {
+			dprintf("Error initializing dynamic output module "
+								"%s [%s]\n", argv[0], line);
+			return(-1);
 		}
 	}
 	free(line);
@@ -393,3 +254,155 @@ parseParams(char ***ret, char *c)
 	free(line);
 	return(argc);
 }
+
+struct imodule *
+getImFunc(name)
+	char *name;
+{
+	struct imodule *im;
+	int len;
+
+	if (imodules == NULL || name == NULL)
+		return(NULL);
+
+	for(im = imodules, len = strlen(name); im; im = im->im_next)
+		if (!strncmp(im->im_name, name, len))
+			break;
+
+	return(im);
+}
+
+struct omodule *
+getOmFunc(name)
+	char *name;
+{
+	struct omodule *om;
+	int len;
+
+	if (omodules == NULL || name == NULL)
+		return(NULL);
+
+	for(om = omodules, len = strlen(name); om; om = om->om_next)
+		if (!strncmp(om->om_name, name, len))
+			break;
+
+	return(om);
+}
+
+
+struct imodule *
+addImFunc(name)
+	char *name;
+{
+	struct imodule *im;
+	char path[256];
+	int len;
+
+	if (name == NULL)
+		return(NULL);
+
+	if (imodules == NULL) {
+		imodules = (struct imodule *) calloc(1, sizeof(*im));
+		im = imodules;
+	} else {
+		for(im = imodules; im->im_next; im = im->im_next)
+		im->im_next = (struct imodule *) calloc(1, sizeof(*im));
+		im = im->im_next;
+	}
+
+	if ((im->h = dlopen(path, DL_LAZY)) == NULL) {
+	   	dprintf("Error [%s]\n", dlerror());
+	   	return(NULL);
+	}
+
+	if ((im->im_init = dlsym(im->h, "im_init")) == NULL ||
+			(im->im_getLog = dlsym(im->h, "im_getLog")) == NULL ||
+			(im->im_close = dlsym(im->h, "im_close")) == NULL ) {
+	   	dprintf("Error [%s]\n", dlerror());
+	   	return(NULL);
+	}
+
+	im->im_name = strdup(name);
+
+	return(im);
+
+}
+
+int
+imoduleDestroy(im)
+	struct imodule *im;
+{
+	if (im == NULL || im->h == NULL || im->im_next)
+		return(-1);
+
+	if (dlclose(im->h) < 0) {
+	   	dprintf("Error [%s]\n", dlerror());
+		return(-1);
+	}
+	free(im->im_name);
+	free(im->im_init);
+	free(im->im_getLog);
+	free(im->im_close);
+
+	return(1);
+}
+
+struct omodule *
+addOmFunc(name)
+	char *name;
+{
+	struct omodule *om;
+	char path[256];
+	int len;
+
+	if (name == NULL)
+		return(NULL);
+
+	if (omodules == NULL) {
+		omodules = (struct omodule *) calloc(1, sizeof(*om));
+		om = omodules;
+	} else {
+		for(om = omodules; om->om_next; om = om->om_next)
+		om->om_next = (struct omodule *) calloc(1, sizeof(*om));
+		om = om->om_next;
+	}
+
+	if ((om->h = dlopen(path, DL_LAZY)) == NULL) {
+	   	dprintf("Error [%s]\n", dlerror());
+	   	return(NULL);
+	}
+
+	if ((om->om_init = dlsym(om->h, "om_init")) == NULL ||
+			(om->om_doLog = dlsym(om->h, "om_getLog")) == NULL ||
+			(om->om_close = dlsym(om->h, "om_close")) == NULL ) {
+	   	dprintf("Error [%s]\n", dlerror());
+	   	return(NULL);
+	}
+
+	om->om_name = strdup(name);
+
+	return(om);
+
+}
+
+int
+omoduleDestroy(om)
+	struct omodule *om;
+{
+	if (om == NULL || om->h == NULL || om->om_next)
+		return(-1);
+
+	if (dlclose(om->h) < 0) {
+	   	dprintf("Error [%s]\n", dlerror());
+		return(-1);
+	}
+
+	free(om->om_name);
+	free(om->om_init);
+	free(om->om_doLog);
+	free(om->om_flush);
+	free(om->om_close);
+
+	return(1);
+}
+

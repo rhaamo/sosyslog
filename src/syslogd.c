@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.93 2000/06/09 19:24:15 fgsch Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.94 2000/06/09 19:43:23 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -126,8 +126,8 @@ void    printline(char *, char *, int);
 void    reapchild(int);
 void    usage(void);
 
-struct  OModule OModules[MAX_N_OMODULES];
-struct  IModule IModules[MAX_N_IMODULES];
+extern	struct  omodule omodules[];
+extern	struct  imodule imodules[];
 struct	i_module Inputs;
 
 int
@@ -193,8 +193,12 @@ main(int argc, char **argv)
 		setlinebuf(stdout);
 
 	/* assign functions and init input */
-	if (modules_load() < 0) {
-		dprintf("Error loading modules\n");
+	if ((ch = imodules_load()) < 0) {
+		dprintf("Error loading input modules [%d]\n", ch);
+		exit(-1);
+	}
+	if ((ch = omodules_load()) < 0) {
+		dprintf("Error loading output modules [%d]\n", ch);
 		exit(-1);
 	}
 
@@ -266,7 +270,7 @@ main(int argc, char **argv)
 
 				memset(&log, 0,sizeof(struct im_msg));
 
-				if ((i = (*(IModules[im->im_type].im_getLog))(im, &log)) < 0) {
+				if ((i = (*im->im_func->im_getLog)(im, &log)) < 0) {
 					dprintf("Syslogd: Error calling input module"
 		       				" %s, for fd %d\n", im->im_name, im->im_fd);
 				}
@@ -491,14 +495,14 @@ doLog(struct filed *f, int flags, char *message)
 	}
 
 	for (om = f->f_omod; om; om = om->om_next) {
-		if(OModules[om->om_type].om_doLog == NULL) {
+		if(omodules[om->om_type].om_doLog == NULL) {
 			dprintf("Unsupported module type [%i] "
 				"for message [%s]\n", om->om_type, msg);
 			continue;
 		};
 
 		/* call this module doLog */
-		ret = (*(OModules[om->om_type].om_doLog))(f,flags,msg,om->ctx);
+		ret = (*(omodules[om->om_type].om_doLog))(f,flags,msg,om->ctx);
 		if( ret < 0) {
 			dprintf("doLog error with module type [%i] "
 				"for message [%s]\n", om->om_type, msg);
@@ -588,8 +592,8 @@ die(int signo)
 	}
 
 	for (im = &Inputs; im; im = im->im_next)
-		if (IModules[im->im_type].im_close)
-			(*IModules[im->im_type].im_close)(im);
+		if (im->im_func->im_close)
+			(*im->im_func->im_close)(im);
 		else if (im->im_fd)
 			close(im->im_fd);
 
@@ -624,12 +628,12 @@ init(int signo)
 		for (om = f->f_omod; om; om = om->om_next) {
 			/* flush any pending output */
 			if (f->f_prevcount &&
-			    OModules[om->om_type].om_flush != NULL) {
-				(*OModules[om->om_type].om_flush) (f,om->ctx);
+			    omodules[om->om_type].om_flush != NULL) {
+				(*omodules[om->om_type].om_flush) (f,om->ctx);
 			}
 
-			if (OModules[om->om_type].om_close != NULL) {
-				(*OModules[om->om_type].om_close) (f,om->ctx);
+			if (omodules[om->om_type].om_close != NULL) {
+				(*omodules[om->om_type].om_close) (f,om->ctx);
 			}
 		}
 		next = f->f_next;
@@ -730,7 +734,7 @@ init(int signo)
 				break;
 			case F_MODULE:
 				for (om = f->f_omod; om; om = om->om_next) 
-					printf("%s, ", OModules[om->om_type].om_name);
+					printf("%s, ", omodules[om->om_type].om_name);
 				break;
 			}
 			if (f->f_program)

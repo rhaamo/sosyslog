@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.55 2000/06/09 19:43:24 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.56 2000/06/09 20:38:43 gera Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -135,24 +135,25 @@ void    logerror(char *);
 void	logmsg(int, char *, char *, int);
 void    die(int);
 
-struct OModule {
-        char   *om_name;
-        short	om_type;
-        int	(*om_doLog) (struct filed *, int, char *,
-		    struct om_hdr_ctx *);
+struct omodule {
+        char	*om_name;
+        struct	omodule *om_next;
         int	(*om_init) (int, char **, struct filed *, char *,
 		    struct om_hdr_ctx **);
-        int	(*om_close) (struct filed *, struct om_hdr_ctx *);
+        int	(*om_doLog) (struct filed *, int, char *,
+		    struct om_hdr_ctx *);
         int	(*om_flush) (struct filed *, struct om_hdr_ctx *);
+        int	(*om_close) (struct filed *, struct om_hdr_ctx *);
+        void	*h;  /* handle to open dynamic library */
 };
 
-struct IModule {
+struct imodule {
         char   *im_name;
-        short	im_type;
-        /* buf, bufsize */
-        int	(*im_getLog) (struct i_module *, struct im_msg *);
+        struct	imodule *im_next;
         int	(*im_init) (struct i_module *, char **, int);
+        int	(*im_getLog) (struct i_module *, struct im_msg *);
         int	(*im_close) (struct i_module *);
+        void	*h;  /* handle to open dynamic library */
 };
 
 #define	MAXREPEAT ((sizeof(repeatinterval) / sizeof(repeatinterval[0])) - 1)
