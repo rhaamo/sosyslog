@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.40 2000/05/26 18:31:39 fgsch Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.41 2000/05/26 18:34:46 fgsch Exp $	*/
 
 /*
  *  im_bsd -- classic behaviour module for BDS like systems
@@ -39,7 +39,7 @@ im_bsd_init(I, argv, argc)
         I->im_type = IM_BSD;
         I->im_name = "bsd";
         I->im_path = strdup(_PATH_KLOG);
-        I->im_flags  ^= IMODULE_FLAG_KERN;
+        I->im_flags |= IMODULE_FLAG_KERN;
         return(I->im_fd);
 }
 
