@@ -5,8 +5,7 @@ SRCS=	syslogd.c ttymsg.c modules.c om_classic.c om_mysql.c im_bsd.c im_udp.c im_
 #OBJS=	./peo/hash.o ./peo/rmd160.o ./peo/om_peo.c
 .PATH:	${.CURDIR}/../../usr.bin/wall
 MAN=	syslogd.8 syslog.conf.5
-DEBUG=	-ggdb -Wall
 LDADD=	-L/usr/local/lib/mysql -lmysqlclient
-CFLAGS=	-D WANT_MYSQL
+CFLAGS=	-ggdb -Wall -D WANT_MYSQL
 
 .include <bsd.prog.mk>

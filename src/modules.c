@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.40 2000/04/27 17:24:28 gera Exp $
+/*	$Id: modules.c,v 1.41 2000/04/28 00:12:23 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -99,23 +99,27 @@ int modules_init (I, inputs)
 	IModules[IM_BSD].im_type		= IM_BSD;
 	IModules[IM_BSD].im_init		= im_bsd_init;
 	IModules[IM_BSD].im_getLog		= im_bsd_getLog;
-//	IModules[IM_BSD].im_close		= im_bsd_close;
+  	IModules[IM_BSD].im_close		= im_bsd_close;
  #if 0 
 	IModules[IM_SYSV].im_name		= "sysv";
 	IModules[IM_SYSV].im_type		= IM_SYSV;
 	IModules[IM_SYSV].im_init		= im_sysv_init;
 	IModules[IM_SYSV].im_getLog		= im_sysv_getLog;
-//	IModules[IM_SYSV].im_close		= im_sysv_close;
+  	IModules[IM_SYSV].im_close		= im_sysv_close;
 #endif
 	IModules[IM_UNIX].im_name		= "unix";
 	IModules[IM_UNIX].im_type		= IM_UNIX;
 	IModules[IM_UNIX].im_init		= im_unix_init;
 	IModules[IM_UNIX].im_getLog		= im_unix_getLog;
-//	IModules[IM_UNIX].im_close		= im_unix_close;
+  	IModules[IM_UNIX].im_close		= im_unix_close;
 
 	*I = (struct i_module *) calloc(1, sizeof(struct i_module));
 	if (inputs & IM_BSD)
-		im_bsd_init(*I);
+	    if (im_bsd_init(*I) < 0) {
+	if (inputs & IM_UNIX)
+	    if (im_unix_init(*I) < 0) {
+	        die(0);
+       	    }
 #if 0
 	if (inputs & IM_SYSV)
 		im_sysv_init(I);
