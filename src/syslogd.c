@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.87 2000/06/06 17:12:49 fgsch Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.88 2000/06/06 17:47:19 claudio Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -143,7 +143,7 @@ main(argc, argv)
 	memset(&Inputs, 0, sizeof(Inputs));
 	Inputs.im_fd = -1;
 
-	while ((ch = getopt(argc, argv, "dubSf:m:p:a:i:?h")) != -1)
+	while ((ch = getopt(argc, argv, "dubSf:m:p:a:i:h")) != -1)
 		switch (ch) {
 		case 'd':		/* debug */
 			Debug++;
@@ -222,7 +222,7 @@ main(argc, argv)
 
 	snprintf(pidfile, PATH_MAX, "%s/syslog.pid", PID_DIR);
 
-	/* tuck my process id away */
+	/* took my process id away */
 	if (!Debug) {
 		fp = fopen(pidfile, "w");
 		if (fp != NULL) {
