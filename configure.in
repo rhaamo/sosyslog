@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.37 2000/07/04 18:33:13 claudio Exp $
+dnl	$CoreSDI: configure.in,v 1.38 2000/07/04 19:11:21 claudio Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -254,7 +254,7 @@ then
 elif test "x$2" = "xdynamic"
 then
 	D$1_SRC="$3"
-	D$1="libmsyslog_$1.so.$MSYSLOG_VERSION"
+	D$1="libmsyslog_$4_$1.so.$MSYSLOG_VERSION"
 	AC_SUBST(D$1)
 	AC_SUBST(D$1_SRC)
 	AC_MSG_RESULT([dynamic]);
