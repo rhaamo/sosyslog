@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.9 2000/05/04 00:39:17 claudio Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.10 2000/05/04 21:13:04 claudio Exp $";
 #endif /* not lint */
 
 /*
@@ -118,8 +118,6 @@ om_peo_doLog(f, flags, msg, context)
 		return(-1);
 	}
 
-	dprintf ("last key: %s\n", key);
-
 	/* open macfile and write mac'ed msg */
 	if (c->macfile) {
 		if ( (mfd = open(c->macfile, O_WRONLY, 0)) == -1) {
@@ -130,7 +128,6 @@ om_peo_doLog(f, flags, msg, context)
 		lseek(mfd, 0, SEEK_END);
 		write(mfd, mkey, mac2(key, keylen, m, len, mkey));
 		close(mfd);
-		dprintf ("new entry added on %s\n", c->macfile);
 	}
 
 	/* generate new key and save it on keyfile */
@@ -141,9 +138,6 @@ om_peo_doLog(f, flags, msg, context)
 		return (-1);
 	}
 	write(fd, newkey, newkeylen);
-
-	dprintf (" new key: %s\n", newkey);
-
 	close(fd);
 	return(0);
 }

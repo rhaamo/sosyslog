@@ -1,4 +1,4 @@
-/*      $Id: hash.c,v 1.7 2000/05/04 00:39:17 claudio Exp $
+/*      $Id: hash.c,v 1.8 2000/05/04 21:13:04 claudio Exp $
  *
  * hash -- few things used by both peo output module and peochk 
  *
@@ -49,8 +49,7 @@ typedef union {
  *	data2len:	data2 lenght
  *	dest:		destination buffer
  *
- *	Fills dest with a key converted to string (including final \0)
- *	and returns dest lenght on (without the final \0).
+ *	Fills dest with a key and returns dest lenght
  *	dest should have enough space.
  *	On error returns -1
  */
@@ -100,25 +99,54 @@ mac (method, data1, data1len, data2, data2len, dest)
 		case MD5:
 			MD5Init(&ctx.md5);
 			MD5Update(&ctx.md5, tmp, tmplen);
-			MD5End(&ctx.md5, dest);
-			destlen = 32;
+			MD5Final(dest, &ctx.md5);
+			destlen = 16;
 			break;
 		case RMD160:
 			RMD160Init(&ctx.rmd160);
 			RMD160Update(&ctx.rmd160, tmp, tmplen);
-			RMD160End(&ctx.rmd160, dest);
-			destlen = 40;
+			RMD160Final(dest, &ctx.rmd160);
+			destlen = 20;
 			break;
 		case SHA1:
 		default:
 			SHA1Init(&ctx.sha1);
 			SHA1Update(&ctx.sha1, tmp, tmplen);
-			SHA1End(&ctx.sha1, dest);
-			destlen = 40;
+			SHA1Final(dest, &ctx.sha1);
+			destlen = 20;
 			break;
 	}
 		
 	free(tmp);
+	return (destlen);
+}
+
+
+/*
+ * mac2:
+ *	data1:		buffer 1 (commonly key[i])
+ *	data1len:	data1 lenght
+ *	data2:		buffer 2 (commonly message)
+ *	data2len:	data2 lenght
+ *	dest:		destination buffer (commonly key[i+1])
+ *
+ *	Fills dest with a digest and returns dest lenght
+ *	dest should have enough space.
+ *	On error returns -1
+ */
+int
+mac2 (data1, data1len, data2, data2len, dest)
+	const char	*data1;
+	int		 data1len;
+	const char	*data2;
+	int		 data2len;
+	char		*dest;
+{
+	int destlen;
+
+	if ( (destlen = mac(SHA1, data1, data1len, data2, data2len, dest)) != -1)
+		destlen = mac(RMD160, dest, destlen, data2, data2len, dest);
+
 	return (destlen);
 }
 
@@ -166,36 +194,6 @@ strkey (logfile)
 
 
 /*
- * mac2:
- *	data1:		buffer 1 (commonly key[i])
- *	data1len:	data1 lenght
- *	data2:		buffer 2 (commonly message)
- *	data2len:	data2 lenght
- *	dest:		destination buffer (commonly key[i+1])
- *
- *	Fills dest with a digest converted to string (including final \0)
- *	and returns dest lenght (without the final \0).
- *	dest should have enough space.
- *	On error returns -1
- */
-int
-mac2 (data1, data1len, data2, data2len, dest)
-	const char	*data1;
-	int		 data1len;
-	const char	*data2;
-	int		 data2len;
-	char		*dest;
-{
-	int destlen;
-
-	if ( (destlen = mac(SHA1, data1, data1len, data2, data2len, dest)) != -1)
-		destlen = mac(RMD160, dest, destlen, data2, data2len, dest);
-
-	return (destlen);
-}
-
-
-/*
  * strmac:
  *	generates macfile name based on keyfile name
  *	macfile = keyfile + ".mac"
@@ -213,6 +211,63 @@ strmac (keyfile)
 	}
 
 	return (macfile);
+}
+
+
+/*
+ * asc2bin:
+ *	Translates a hex string to binary buffer
+ *	Buffer lenght = string lenght / 2
+ *	(2 byte string "ab" is translated to 1 byte buffer 0xab)
+ */
+char*
+asc2bin (dst, src)
+	char       *dst;
+	const char *src;
+{
+	return (dst);
+}
+
+
+/*
+ * bin2asc:
+ *	Translates a binary buffer to string
+ *	Based on XXXEnd function
+ *	(2 byte buffer 0x3, 0x9a is translated to 4 byte string "039a")
+ */
+
+char hex[] = { "0123456789ABCDEF" };
+
+char*
+bin2asc (dst, src, srclen)
+	char       *dst;
+	const char *src;
+	int         srclen;
+{
+	int i;
+
+	if (dst == NULL || src == NULL)
+		return (NULL);
+
+    	for (i = 0; i < srclen; i++) {
+        	dst[i + i] = hex[src[i] >> 4];
+        	dst[i + i + 1] = hex[src[i] & 0x0f];
+    	}
+    	dst[i + i] = '\0';
+
+	return (dst);
+}
+
+
+#include <stdio.h>
+int main()
+{
+char s1[] = { "010203040506070809" };
+char s2[128];
+
+asc2bin(s2, s1);
+
+return 0;
 }
 
 

@@ -1,4 +1,4 @@
-/*      $Id: hash.h,v 1.6 2000/05/04 00:39:17 claudio Exp $
+/*      $Id: hash.h,v 1.7 2000/05/04 21:13:04 claudio Exp $
  *
  * hash -- some things used by both peo output module and peochk
  *
@@ -20,10 +20,12 @@ enum {
 extern char *default_keyfile;
 
 extern int   mac (int, const char*, int, const char*, int, char*);
+extern int   mac2 (const char*, int, const char*, int, char*);
 extern int   gethash (const char*);
 extern char *strkey (const char*);
-extern int   mac2 (const char*, int, const char*, int, char*);
 extern char *strmac (const char*);
+extern char *asc2bin (char*, const char*);
+extern char *bin2asc (char*, const char*, int);
 
 #endif
 

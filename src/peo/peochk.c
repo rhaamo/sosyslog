@@ -1,4 +1,4 @@
-/*      $Id: peochk.c,v 1.16 2000/05/04 17:17:25 claudio Exp $
+/*      $Id: peochk.c,v 1.17 2000/05/04 21:13:05 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
@@ -45,7 +45,7 @@
 #include "hash.h"
 #include "../syslogd.h"
 
-char	*corrupted = "corrupted\n";
+char	*corrupted = "corrupted";
 char	*default_logfile = "/var/log/messages";
 char	*keyfile;
 char	*key0file;
@@ -81,32 +81,32 @@ void
 usage()
 {
 	fprintf (stderr,
-	"Usage:\n"
-	"Check mode:\n"
-	"    peochk [-f logfile] [-i key0file] [-k keyfile]"
-	"[-m hash_method] [logfile]\n\n"
-	"Initial key generator mode:\n"
-	"    peochk -g [-k keyfile] [-m hash_method] [logfile]\n\n"
-	"hash_method options:\n"
-	"\tmd5, rmd160, sha1\n\n"
-	"When no logfile is specified or it is without the -f switch "
-	"the data is read\n"
-	"from the standard input.\n"
- 	"If logfile is specified using both -f switch and without "
-	"it, the -f argument\n"
-	"is used and data is readed from that file.\n"
-	"If the logfile is specified but not the keyfile, the default key"
-	"file is\n"
-	"/var/ssyslog/xxx where xxx is the logfile with all '/' "
-	"replaced by '.'\n\n"
-	"Default values:\n"
-	"\tlogfile    : /var/log/messages\n"
-	"\tkeyfile    : /var/ssyslog/.var.log.messages.key\n"
-	"\tkey0file   : strcat(keyfile, \"0\");\n"
-	"\thash_method: sha1\n\n"
-	"\tIf -l switch is specified, the mac'ed log file is "
-	"strcat(keyfile, \".mac\");\n");
-	exit(1);
+		"Usage:\n"
+		"Check mode:\n"
+		"    peochk [-f logfile] [-i key0file] [-k keyfile]"
+		"[-m hash_method] [logfile]\n\n"
+		"Initial key generator mode:\n"
+		"    peochk -g [-k keyfile] [-m hash_method] [logfile]\n\n"
+		"hash_method options:\n"
+		"\tmd5, rmd160, sha1\n\n"
+		"When no logfile is specified or it is without the -f switch "
+		"the data is read\n"
+		"from the standard input.\n"
+ 		"If logfile is specified using both -f switch and without "
+		"it, the -f argument\n"
+		"is used and data is readed from that file.\n"
+		"If the logfile is specified but not the keyfile, the default key"
+		"file is\n"
+		"/var/ssyslog/xxx where xxx is the logfile with all '/' "
+		"replaced by '.'\n\n"
+		"Default values:\n"
+		"\tlogfile    : /var/log/messages\n"
+		"\tkeyfile    : /var/ssyslog/.var.log.messages.key\n"
+		"\tkey0file   : strcat(keyfile, \"0\");\n"
+		"\thash_method: sha1\n\n"
+		"\tIf -l switch is specified, the mac'ed log file is "
+		"strcat(keyfile, \".mac\");\n");
+	exit(2);
 }
 
 
@@ -147,12 +147,13 @@ check()
 	int   mfd;
 	char  key[41];
 	int   keylen;
-	char  lastkey[41];
+	char  lastkey[20];
 	int   lastkeylen;
 	int   line;
-	char  mkey1[41];
-	char  mkey2[41];
-	int   mkeylen;
+	char  mkey1[20];
+	char  mkey2[20];
+	int   mkey1len;
+	int   mkey2len;
 	char  msg[MAXLINE];
 	int   msglen;
 	
@@ -160,60 +161,63 @@ check()
 	if (use_stdin)
 		input = STDIN_FILENO;
 	else if ( (input = open(logfile, O_RDONLY, 0)) == -1)
-		err(1, logfile);
+		err(2, logfile);
 
 	/* open macfile */
 	if (macfile)
 		if ( (mfd = open(macfile, O_RDONLY, 0)) == -1)
-			err(1, macfile);
+			err(2, macfile);
 
-	/* read initial key */
+	/* read initial key (as ascii string) and tranlate it to binary */
 	if ( (i = open(key0file, O_RDONLY, 0)) == -1)
-		err(1, key0file);
+		err(2, key0file);
 	if ( (keylen = read(i, key, 40)) == -1)
-		err(1, key0file);
+		err(2, key0file);
 	if (!keylen)
-		errx(1, "%s: %s", key0file, corrupted);
+		errx(1, "%s: %s\n", key0file, corrupted);
 	key[keylen] = 0;
+	asc2bin(key, key);
+	keylen >>= 1;
 	close(i);
 
 	/* read last key */
 	if ( (i = open(keyfile, O_RDONLY, 0)) == -1)
-		err(1, keyfile);
-	if ( (lastkeylen = read(i, lastkey, 40)) == -1)
-		err(1, keyfile);
+		err(2, keyfile);
+	if ( (lastkeylen = read(i, lastkey, 20)) == -1)
+		err(2, keyfile);
 	if (!lastkeylen)
-		errx(1, "%s: %s", keyfile, corrupted);
-	lastkey[lastkeylen] = 0;
+		errx(1, "%s: %s\n", keyfile, corrupted);
 	close(i);
 
 	/* test both key lenghts */
 	if (lastkeylen != keylen)
-		errx(1, "%s and/or %s %s", key0file, keyfile, corrupted);
+		errx(1, "%s and/or %s %s\n", key0file, keyfile, corrupted);
 
 	/* check it */
 	line = 1;
 	while( (msglen = readline(input, msg, MAXLINE)) > 0) {
 		if (macfile) {
-			if ( (mkeylen = mac2(key, keylen, msg, msglen, mkey1)) < 0)
-				err(1, macfile);
-			if (readline(mfd, mkey2, mkeylen) < 0)
-				err(1, macfile);
-			if (strcmp(mkey2, mkey1))
+			if ( (mkey1len = mac2(key, keylen, msg, msglen, mkey1)) < 0)
+				err(2, macfile);
+			if ( (mkey2len = readline(mfd, mkey2, mkey1len)) < 0)
+				err(2, macfile);
+			if (mkey2len != mkey1len)
+				errx(1, "%s %s\n", macfile, corrupted);
+			if (memcmp(mkey2, mkey1, mkey1len))
 				errx(1, "%s %s on line %i\n", logfile, corrupted, line);
 			line++;
 		}
 		if ( (keylen = mac(method, key, keylen, msg, msglen, key)) == -1)
-			err(1, "mac function");
+			err(2, "fatal");
 	}
 
 	if (macfile)
 		close(mfd);
 
 	if (i < 0)
-		errx(1, "error reading logs form %s", (use_stdin) ? "standard input" : logfile);
+		errx(2, "error reading logs form %s", (use_stdin) ? "standard input" : logfile);
 
-	if (strcmp(lastkey, key)) 
+	if (memcmp(lastkey, key, keylen)) 
 		errx(1, "%s %s\n", logfile, corrupted);
 
 	fprintf(stderr, "%s file is ok\n", logfile);
@@ -223,35 +227,38 @@ check()
 /*
  * generate:
  *	generate initial key and write it on keyfile and key0file
+ *	in the last file data is written as ascii string
  */
 void
 generate()
 {
-	int	 ctimelen;
-	char	*ctimestr;
 	int	 kfd;
 	int	 k0fd;
-	char	 newkey[41];
-	int	 newkeylen;
-	time_t	 t;
+	char	 key[20];
+	char	 keyasc[41];
+	int	 keylen;
+	long	 randvalue;
 
-	time(&t);
-	ctimelen = strlen( (ctimestr = ctime(&t)));
-	newkeylen = mac(method, NULL, 0, ctimestr, ctimelen, newkey);
+	srandom(time(NULL));
+	randvalue = random();
+	if ( (keylen = mac(method, NULL, 0, (const char*)&randvalue, sizeof(long), key)) == -1) {
+		release();
+		err(2, "fatal");
+	}
 	if ( (kfd = open(keyfile, O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR)) == -1) {
 		release();
-		err(1, keyfile);
+		err(2, keyfile);
 	}
 	if ( (k0fd = open(key0file, O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR)) == -1) {
 		unlink(keyfile);
 		close(kfd);
 		release();
-		err(1, key0file);
+		err(2, key0file);
 	}
 
 	/* write key 0 */
-	write(kfd, newkey, newkeylen);
-	write(k0fd, newkey, newkeylen);
+	write(kfd, key, keylen);
+	write(k0fd, bin2asc(keyasc, key, keylen), keylen << 1);
 	close(kfd);
 	close(k0fd);
 }
@@ -290,7 +297,7 @@ main (argc, argv)
 					free(logfile);
 				if ( (logfile = strdup(optarg)) == NULL) {
 					release();
-					err(1, optarg);
+					err(2, optarg);
 				}
 				use_stdin = 0;
 				break;
@@ -304,7 +311,7 @@ main (argc, argv)
 					free(key0file);
 				if ( (key0file = strdup(optarg)) == NULL) {
 					release();
-					err(1, optarg);
+					err(2, optarg);
 				}
 				break;
 			case 'k':
@@ -313,7 +320,7 @@ main (argc, argv)
 					free(keyfile);
 				if ( (keyfile = strdup(optarg)) == NULL) {
 					release();
-					err(1, optarg); 
+					err(2, optarg); 
 				}
 				break;
 			case 'l':
@@ -340,7 +347,7 @@ main (argc, argv)
 	if (argc && use_stdin)
 		if ( (logfile = strdup(argv[argc-1])) == NULL) {
 			release();
-			err(1, argv[argc-1]);
+			err(2, argv[argc-1]);
 		}
 
 	/* if keyfile was not specified converted logfile is used instead */
@@ -348,7 +355,7 @@ main (argc, argv)
 		char *tmp;
 		if ( (tmp = strkey(logfile)) == NULL) {
 			release();
-			err(1, logfile);
+			err(2, logfile);
 		}
 		keyfile = (char*) calloc(1, 14+strlen(tmp));
 		strcpy(keyfile, "/var/ssyslog/");
@@ -360,7 +367,7 @@ main (argc, argv)
 	if (key0file == NULL) {
 		if ( (key0file = calloc(1, strlen(keyfile)+1)) == NULL) {
 			release();
-			err(1, keyfile);
+			err(2, keyfile);
 		}
 		strcpy(key0file, keyfile);
 		strcat(key0file, "0");
@@ -370,7 +377,7 @@ main (argc, argv)
 	if (mac)
 		if ( (macfile = strmac(keyfile)) == NULL) {
 			release();
-			err(1, "creating %s.mac", keyfile);
+			err(2, "creating %s.mac", keyfile);
 		}
 
 	/* execute action */
