@@ -1,4 +1,4 @@
-/*      $Id: peochk.c,v 1.10 2000/04/27 20:03:25 claudio Exp $
+/*      $Id: peochk.c,v 1.11 2000/04/28 17:59:49 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
@@ -9,8 +9,8 @@
  *
  * supported hash_method values:
  *			md5
- *			sha1
  *			rmd160
+ *			sha1
  *
  * defaults:
  *	logfile: 	/var/log/messages
@@ -84,7 +84,7 @@ usage()
 	"Initial key generator mode:\n"
 	"    peochk -g [-k keyfile] [-m hash_method] [logfile]\n\n"
 	"hash_method options:\n"
-	"\tmd5, sha1, rmd160\n\n"
+	"\tmd5, rmd160, sha1\n\n"
 	"When no logfile is specified or it is without the -f switch "
 	"the data is read\n"
 	"from the standard input.\n"
@@ -145,11 +145,8 @@ check()
 	char msg[MAXLINE];
 	
 	/* open logfile */
-	if (use_stdin) {
+	if (use_stdin)
 		input = STDIN_FILENO;
-		if (fcntl(input, F_SETFL, O_NONBLOCK) == -1)
-			err(1, "standard input");
-	}
 	else if ( (input = open(logfile, O_RDONLY, 0)) == -1)
 		err(1, logfile);
 
@@ -282,13 +279,7 @@ main (argc, argv)
 				break;
 			case 'm':
 				/* hash method */
-				if (strcasecmp("md5", optarg) == 0)
-					method = MD5;
-				else if (strcasecmp("rmd160", optarg) == 0)
-					method = RMD160;
-				else if (strcasecmp("sha1", optarg) == 0)
-					method = SHA1;
-				else {
+				if ( (method = gethash(optarg)) < 0) {
 					release();
 					usage();
 				}

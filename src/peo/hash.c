@@ -1,5 +1,9 @@
-/*      $Id: hash.c,v 1.2 2000/04/27 00:50:45 claudio Exp $
+/*      $Id: hash.c,v 1.3 2000/04/28 17:59:48 claudio Exp $
+ *
  * hash -- few things used by both peo output module and peochk 
+ *
+ * Author: Claudio Castiglia for Core-SDI SA
+ *
  */
 
 #include <sys/types.h>
@@ -18,16 +22,22 @@ typedef union {
 	SHA1_CTX	sha1;
 } HASH_CTX;
 
+char *hmstr[] = { /* enum order */
+	"md5",
+	"rmd160",
+	"sha1"
+};
+
 
 /*
  * hash:
- *	method:		hash method to use (see enum)
+ *	method:		hash method to use (see enum, gethash(..) output)
  *	lastkey:	buffer with last key
  *	llastkey:	lastkey buffer lenght
  *	data:		buffer with new data (string ending with \0)
  *	nkbuf:		new key buffer
  *
- * returns the new key lenght and puts it on nkbuf as a string
+ * Returns the new key lenght and puts it on nkbuf as a string
  * The nkbuf should have enough space
  */
 int
@@ -67,6 +77,26 @@ hash (method, lastkey, llastkey, data, nkbuf)
 	}
 
 return len;
+}
+
+
+/*
+ * gethash:
+ *	Converts method string to method number.
+ *	The string should be one of: "md5", "rmd160", or "sha1",
+ *	if not -1 is returned instead.
+ *	Case is ignored
+ */
+int
+gethash (str)
+	char *str;
+{
+	int i;
+	for (i = 0; i < LAST_HASH; i++)
+		if (!strcasecmp(str, hmstr[i]))
+			return (i);
+
+	return (-1);
 }
 
 
