@@ -20,6 +20,7 @@
 #include <string.h>
 
 void    logerror __P((char *));
+void    logmsg __P((int, char *, char *, int));
 
 
 
@@ -34,15 +35,14 @@ im_bsd_init(I, argv, argc)
 	char	**argv;
 	int	argc;
 {
-	if ((I->fd = open(_PATH_KLOG, O_RDONLY, 0)) < 0) {
+	if ((I->im_fd = open(_PATH_KLOG, O_RDONLY, 0)) < 0) {
 		dprintf("can't open %s (%d)\n", _PATH_KLOG, errno);
 	}
 	
         I->im_type = IM_BSD;
         I->im_name = "bsd";
-        I->context = NULL;  
-        I->flags  ^= IMODULE_FLAG_KERN;
-        return(I->fd);
+        I->im_flags  ^= IMODULE_FLAG_KERN;
+        return(I->im_fd);
 }
 
 
@@ -55,56 +55,56 @@ im_bsd_init(I, argv, argc)
 int
 im_bsd_getLog(im, ret)
 	struct i_module *im;
-        struct im_msg  *ret;
+	struct im_msg  *ret;
 {
-	char *p, line[MAXLINE + 1], outLine[MAXLINE + 1], *q, *lp;
-        int i, c;
+	char *p, *q, *lp;
+	int i, c;
 
-	(void)strcpy(outLine, _PATH_UNIX);
-	(void)strcat(outLine, ": ");
-	lp = line + strlen(outLine);
+	(void)strncpy(ret->im_msg, _PATH_UNIX, sizeof(ret->im_msg) - 1);
+	(void)strncat(ret->im_msg, ": ", 2);
+	lp = ret->im_msg + strlen(ret->im_msg);
 
-	i = read(im->fd, line, sizeof(line) - 1);
+	i = read(im->im_fd, im->im_buf, sizeof(im->im_buf) - 1);
 	if (i > 0) {
-		line[i] = '\0';
-		ret->len = i;
-		for (p = line; *p != '\0'; ) {
-		        /* fsync file after write */
-		        ret->flags = SYNC_FILE | ADDDATE;
-		        ret->pri = DEFSPRI;
-		        if (*p == '<') {
-		            ret->pri = 0;
-		            while (isdigit(*++p))
-		                ret->pri = 10 * ret->pri + (*p - '0');
-		            if (*p == '>')
-		                    ++p;
-		        } else {
-		                /* kernel printf's come out on console */
-		                ret->flags |= IGN_CONS;
-		        }
-		        if (ret->pri &~ (LOG_FACMASK|LOG_PRIMASK))
-				ret->pri = DEFSPRI;
+		(ret->im_msg)[i] = '\0';
+		ret->im_len = i;
+		for (p = ret->im_msg; *p != '\0'; ) {
+			/* fsync file after write */
+			ret->im_flags = SYNC_FILE | ADDDATE;
+			ret->im_pri = DEFSPRI;
+			if (*p == '<') {
+				ret->im_pri = 0;
+				while (isdigit(*++p))
+				    ret->im_pri = 10 * ret->im_pri + (*p - '0');
+				if (*p == '>')
+				        ++p;
+			} else {
+				/* kernel printf's come out on console */
+				ret->im_flags |= IGN_CONS;
+			}
+			if (ret->im_pri &~ (LOG_FACMASK|LOG_PRIMASK))
+				ret->im_pri = DEFSPRI;
 			q = lp;
 			while (*p != '\0' && (c = *p++) != '\n' &&
-					q < &line[MAXLINE])
+					q < &(ret->im_msg)[MAXLINE])
 				*q++ = c;
 			*q = '\0';
-			ret->msg = strdup(outLine);
-			ret->host = strdup(LocalHostName);
+			strncat(ret->im_host, LocalHostName, sizeof(ret->im_host) - 1);
+			logmsg(ret->im_pri, ret->im_msg, ret->im_host, ret->im_flags);
 		}
 
 	} else if (i < 0 && errno != EINTR) {
 		logerror("im_bsd_getLog");   
-		im->fd = -1;
+		im->im_fd = -1;
 	}
 
-
-	return(im->fd == -1 ? -1: 1);
+	/* if ok return (2) wich means already logged */
+	return(im->im_fd == -1 ? -1: 2);
 }
 
 int
 im_bsd_close(im)
 	struct i_module *im;
 {
-	return(close(im->fd));
+	return(close(im->im_fd));
 }

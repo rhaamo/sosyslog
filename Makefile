@@ -25,10 +25,11 @@ syslogd:	syslogd.c\
 	$(LINK)
 	
 peochk:
-	@cd peo; make peochk; cd ..
+	@(cd peo && make peochk);
 
 peo/om_peo.o peo/hash.o peo/rmd160.o:
-	@cd peo; make om_peo; cd ..
+	@(cd peo && make om_peo);
 
 clean:
-	@cd peo; make clean; cd ..; rm -f *.o syslogd 
+	@(cd peo && make clean); rm -f *.o syslogd 
+	@rm -f *.o syslogd 

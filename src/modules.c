@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.56 2000/05/15 19:44:01 alejo Exp $
+/*	$Id: modules.c,v 1.57 2000/05/17 22:20:06 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -146,7 +146,7 @@ modules_init (I, line)
 	    im = im->im_next;
 	}
 
-	im->fd = -1;
+	im->im_fd = -1;
 
 	for(p = line;*p != '\0'; p++)
 	    if (*p == ':')

@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <netdb.h>
 
 void    logerror __P((char *));
 void    die __P((int));
@@ -43,34 +44,35 @@ struct im_udp_ctx {
  */
 
 int
-im_udp_getLog( val, ret)
-	int   val;
+im_udp_getLog(im, ret)
+	struct i_module	*im;
 	struct im_msg	*ret;
 {
 	struct sockaddr_in frominet;
-	int len, i;
-	char line[MAXLINE + 1];
+	struct hostent *hent;
+	int slen;
 
 	if (ret == NULL) {
 		dprintf("im_udp: arg is null\n");
 		return (-1);
 	}
 
-	len = sizeof(frominet);
-	i = recvfrom(finet, line, MAXLINE, 0,
-		(struct sockaddr *)&frominet, &len);
+	ret->im_pid = -1;
+	ret->im_pri = -1;
+	ret->im_flags = 0;
+
+	slen = sizeof(frominet);
+	ret->im_len = recvfrom(finet, ret->im_msg, MAXLINE, 0,
+		(struct sockaddr *)&frominet, &slen);
 	if (SecureMode) {
 		/* silently drop it */
 	} else {
-		if (i > 0) {
-			line[i] = '\0';
-			ret->pid = -1;
-			ret->pri = -1;
-			ret->flags = 0;
-			ret->len = strlen(line);
-			ret->msg = strdup(line);
-			ret->host = NULL;
-		} else if (i < 0 && errno != EINTR)
+		if (ret->im_len > 0) {
+			ret->im_msg[ret->im_len] = '\0';
+			hent = gethostbyaddr((char *) &frominet.sin_addr, frominet.sin_len,
+					frominet.sin_family);
+			strncpy(ret->im_host, hent->h_name, sizeof(ret->im_host));
+		} else if (ret->im_len < 0 && errno != EINTR)
 			logerror("recvfrom inet");
 	}
 
@@ -96,7 +98,7 @@ im_udp_init(I, argv, argc)
 	struct sockaddr_in sin;
 	struct servent *sp;
 
-        I->fd = socket(AF_INET, SOCK_DGRAM, 0);
+        I->im_fd = socket(AF_INET, SOCK_DGRAM, 0);
 
 	sp = getservbyname("syslog", "udp");
 	if (sp == NULL) {
@@ -120,6 +122,5 @@ im_udp_init(I, argv, argc)
 
         I->im_type = IM_UDP;
         I->im_name = "udp";
-        I->context = NULL;  
         return(1);
 }

@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.64 2000/05/17 18:34:07 gera Exp $
+/*	$Id: syslogd.c,v 1.65 2000/05/17 22:20:07 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -235,19 +235,20 @@ main(argc, argv)
 		fd_set readfds;
 		int nfds = 0;
 		struct i_module *im;
+		struct im_msg log;
 
 		FD_ZERO(&readfds);
 		for (im = Inputs; im ; im = im->im_next) {
-			if (im->fd != -1) {
-				FD_SET(im->fd, &readfds);
-				if (im->fd > nfds)
-					nfds = im->fd;
+			if (im->im_fd != -1) {
+				FD_SET(im->im_fd, &readfds);
+				if (im->im_fd > nfds)
+					nfds = im->im_fd;
 			}
 		}
 
 		/*dprintf("readfds = %#x\n", readfds);*/
 		nfds = select(nfds+1, &readfds, (fd_set *)NULL,
-		    (fd_set *)NULL, (struct timeval *)NULL);
+			(fd_set *)NULL, (struct timeval *)NULL);
 		if (nfds == 0)
 			continue;
 		if (nfds < 0) {
@@ -257,34 +258,33 @@ main(argc, argv)
 		}
 		/*dprintf("got a message (%d, %#x)\n", nfds, readfds);*/
 		for (im = Inputs; im ; im = im->im_next) {
-		   if (im->fd != -1 && FD_ISSET(im->fd, &readfds)) {
-		       struct im_msg *log;
-		       int i;
+			if (im->im_fd != -1 && FD_ISSET(im->im_fd, &readfds)) {
+				int i;
 
-		       log = (struct im_msg *) calloc(sizeof(struct im_msg), 1);
+				memset(&log, 0,sizeof(struct im_msg));
 
-		       for (i = 0; i < MAX_N_IMODULES &&
-					(im->im_type != IModules[i].im_type); i++);
-		       if (i == MAX_N_IMODULES) {
-		       		dprintf("Error getting input module %i on IMODULES\n",
-						im->im_type);
-		       		continue;
-		       }
+				for (i = 0; i < MAX_N_IMODULES &&
+						(im->im_type != IModules[i].im_type); i++);
+				if (i == MAX_N_IMODULES) {
+					dprintf("Error getting input module %i on IMODULES\n",
+							im->im_type);
+					continue;
+				}
 
-		       if ((*(IModules[i].im_getLog))(im, log) < 0) {
-		       	dprintf("Syslogd: error calling input module"
-		       		" %s, for fd %d\n", im->im_name,
-		       		im->fd);
-		       }
+				if ((i = (*(IModules[i].im_getLog))(im, &log)) < 0) {
+					dprintf("Syslogd: error calling input module"
+		       				" %s, for fd %d\n", im->im_name, im->im_fd);
+				}
 
-		       /* log it */
-		       printline(log->host, log->msg, im->flags);
-		       if (log->host != NULL) free(log->host);
-		       if (log->msg != NULL) free(log->msg);
-		   }
+				/* log it if normal (1), (2) already logged */
+				if (i == 1)
+					printline(log.im_host, log.im_msg, im->im_flags);
+			}
 		}
 
 	}
+
+	return(1);
 }
 
 void

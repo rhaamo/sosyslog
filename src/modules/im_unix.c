@@ -1,4 +1,4 @@
-/*      $Id: im_unix.c,v 1.12 2000/05/10 23:58:29 alejo Exp $
+/*      $Id: im_unix.c,v 1.13 2000/05/17 22:20:06 alejo Exp $
  *  im_unix -- classic behaviour module for BDS like systems
  *      
  * Author: Alejo Sanchez for Core-SDI SA
@@ -39,33 +39,27 @@ im_unix_getLog(im, ret)
 	struct im_msg  *ret;
 {
 	struct sockaddr_un fromunix;
-	int len;
-	char line[MAXLINE + 1];
+	int slen;
 
-	len = sizeof(fromunix);
-	len = recvfrom(im->fd, line, MAXLINE, 0,
-	    (struct sockaddr *)&fromunix, &len);
-	if (len > 0) {
-		line[len] = '\0';
-		ret->msg = strdup(line);
-		ret->len = strlen(line);
-		ret->host = strdup(LocalHostName);
-		ret->pid = -1;
-		ret->pri = -1;
-		ret->flags = 0;
-	} else if (len < 0 && errno != EINTR) {
+	ret->im_pid = -1;
+	ret->im_pri = -1;
+	ret->im_flags = 0;
+
+	slen = sizeof(fromunix);
+	ret->im_len = recvfrom(im->im_fd, ret->im_msg, MAXLINE, 0,
+			(struct sockaddr *)&fromunix, &slen);
+	if (ret->im_len > 0) {
+		ret->im_msg[ret->im_len] = '\0';
+		strncpy(ret->im_host, LocalHostName, sizeof(ret->im_host));
+	} else if (ret->im_len < 0 && errno != EINTR) {
 		logerror("recvfrom unix");
-		ret->msg = NULL;
-		ret->len = 0;
-		ret->host = NULL;
-		ret->pid = -1;
-		ret->pri = -1;
-		ret->flags = 0;
+		ret->im_msg[0] = '\0';
+		ret->im_len = 0;
+		ret->im_host[0] = '\0';
 		return(-1);
 	}
 
 	return(1);
-
 }
 
 /*
@@ -80,7 +74,6 @@ im_unix_init(I, argv, argc)
 	char **argv;
 	int argc;
 {
-	char line[MAXLINE + 1];
 	struct sockaddr_un sunx;
 
 	if (I == NULL || argv == NULL || argc != 2)
@@ -94,19 +87,18 @@ im_unix_init(I, argv, argc)
 	memset(&sunx, 0, sizeof(sunx));
 	sunx.sun_family = AF_UNIX;
 	(void)strncpy(sunx.sun_path, argv[1], sizeof(sunx.sun_path));
-	I->fd = socket(AF_UNIX, SOCK_DGRAM, 0);
-	if (I->fd < 0 ||
-	    bind(I->fd, (struct sockaddr *)&sunx, SUN_LEN(&sunx)) < 0 ||
+	I->im_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
+	if (I->im_fd < 0 ||
+	    bind(I->im_fd, (struct sockaddr *)&sunx, SUN_LEN(&sunx)) < 0 ||
 	    chmod(argv[1], 0666) < 0) {
-		(void) snprintf(line, sizeof line, "cannot create %s",
+		(void) snprintf(I->im_buf, sizeof(I->im_buf), "cannot create %s",
 		    argv[1]);
-		logerror(line);
+		logerror(I->im_buf);
 		dprintf("cannot create %s (%d)\n", argv[1], errno);
 		return (-1);
 	}
 	I->im_type = IM_UNIX;
 	I->im_name = "unix";
-	I->context = NULL;
 	return(1);
 }
 
@@ -116,7 +108,7 @@ int
 im_unix_close(im)
 	struct i_module *im;
 {
-	return(close(im->fd));
+	return(close(im->im_fd));
 }
 
 
