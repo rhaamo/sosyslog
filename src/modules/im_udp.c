@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.64 2001/09/19 11:50:19 alejo Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.65 2001/09/19 11:55:11 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -109,20 +109,26 @@ im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 	if (c->flags & M_USEMSGHOST) {
 		int     n1, n2;       
 
+		n1 = 0;
+		n2 = 0;
 		/* extract hostname from message */
 #if SIZEOF_MAXHOSTNAMELEN < 89
 #error  Change here buffer reads to match HOSTSIZE
 #endif
-		if (sscanf(ret->im_msg, "<%*d>%*15c %n%90s %n", &n1,
-		    ret->im_host, &n2) != 1 &&
-		    sscanf(ret->im_msg, "%*15c %n%90s %n", &n1,
-		    ret->im_host, &n2) != 1 &&
-		    sscanf(ret->im_msg, "%n%90s %n", &n1,
-		    ret->im_host, &n2) != 1) {
+		if ((sscanf(ret->im_msg, "<%*d>%*3s %*i %*i:%*i:%*i %n%90s "
+		    "%n%*s", &n1, ret->im_host, &n2) != 1 &&
+		    sscanf(ret->im_msg, "%*3s %*i %*i:%*i:%*i %n%90s %n%*s",
+		    &n1, ret->im_host, &n2) != 1 &&
+		    sscanf(ret->im_msg, "%n%90s %n%*s", &n1, ret->im_host,
+		    &n2) != 1) ||
+		    ret->im_msg[n2] == '\0') {
         		dprintf(MSYSLOG_INFORMATIVE, "im_udp_read: skipped"
-			    "invalid message [%s]", ret->im_msg);
+			    " invalid message [%s]\n", ret->im_msg, n1, n2);
 			return (0);
 		}
+
+	       if (ret->im_msg[n2] == '\0')
+			return (0);
 
 		/* remove host from message */
 		while (ret->im_msg[n2] != '\0')
