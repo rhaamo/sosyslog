@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.154 2001/03/30 21:09:59 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.155 2001/04/24 00:37:51 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -383,10 +383,11 @@ omodule_create(char *c, struct filed *f, char *prog)
 		}
 	}
 
-	free(line);
-
 	dprintf(MSYSLOG_INFORMATIVE, "omodule_create: all done for output "
 	    "module %s\n", argv[0]);
+
+	free(line);
+
 	return (1);
 
 omodule_create_bad:
