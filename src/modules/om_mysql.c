@@ -175,7 +175,7 @@ om_mysql_init(argc, argv, f, prog, c)
 	client_flag = 0; createTable = 0;
 
 	/* parse line */
-	optreset = 1; optind = 0;
+	optreset = 1; optind = 1;
 	while ((ch = getopt(argc, argv, "s:u:p:d:t:c")) != -1) {
 		switch (ch) {
 			case 's':
