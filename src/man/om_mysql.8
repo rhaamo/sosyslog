@@ -1,0 +1,91 @@
+.\"	$CoreSDI: om_mysql.8,v 1.6 2000/05/23 21:47:11 alejo Exp $
+.\"
+.\" Copyright (c) 2000
+.\"	Core-SDI SA. All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgment:
+.\"    This product includes software developed by Core-SDI SA and its
+.\"    contributors.
+.\" 4. Neither the name of Core-SDI SA nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.ta 3m 3m
+.Dd May 10, 2000
+.Dt OM_MYSQL 8
+.Os Core-SDI
+.Sh NAME
+.Nm MySQL output module
+.Nd syslogd(8) output module used to log on MySQL servers
+.Sh SYNOPSIS
+.Nm mysql
+.Op Fl s Ar host
+.Op Fl u Ar username
+.Op Fl p Ar password
+.Op Fl d Ar database
+.Op Fl t Ar table
+.Op Fl c
+.Sh DESCRIPTION
+.ad b
+.Nm MySQL output module 
+receives a message as an ascii string and logs it on a MySQL server. For
+proper initialization, the following parameters should be set:
+.Bl -tag -width Ds
+.It Fl s Ar hostname
+Specify the MySQL server hostname.
+.It Fl u Ar username
+Specifies the specifies the username to use on the MySQL server. This user
+must have enough permissions to insert on the specified database and table.
+.It Fl p Ar password
+The plaintext password for this MySQL user. Thus it is recommended NOT to
+leave syslog.conf world readable if this module is used.
+.It Fl d Ar database
+The database name to use on the specified MySQL server.
+.It Fl t Ar table
+The table name to use on the specified MySQL database.
+.It Fl c
+This option tells the module to create the tble in case it doesn't exist.
+.Sh EXAMPLES
+The table should have a format like this:
+.Pp
+CREATE TABLE syslogTB (
+  sdate date,           # date of this log message
+  stime time,           # time of this message
+  shost varchar(128),   # host logging
+  smsg text             # message
+.Pp
+); 
+.Pp
+The field names can be whatever you like. The type of fields shost
+and smsg can be any text format over 128 chars and 1024 chars respectively.
+like this:
+.Sh BUGS
+Since the MySQL module is used to connect with username and password,
+care must be pointed on file permissions and that user permissions
+on the MySQL server.
+.Sh SEE ALSO
+.Xr syslogd 8 ,
+.Xr syslog.conf 5 ,
+.Sh BUGS
+If you found bugs, please report them to syslog-bugs@core-sdi.com
