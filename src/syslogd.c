@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.90 2000/06/06 20:19:58 fgsch Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.91 2000/06/07 22:43:15 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -485,7 +485,7 @@ doLog(f, flags, message)
         int flags;
         char *message;
 {
-	struct	o_module *m;
+	struct	o_module *om;
 	char	repbuf[80], *msg;
 	int	len, ret;
 
@@ -501,18 +501,18 @@ doLog(f, flags, message)
 		len = f->f_prevlen;
 	}
 
-	for (m = f->f_omod; m; m = m->om_next) {
-		if(OModules[m->om_type].om_doLog == NULL) {
+	for (om = f->f_omod; om; om = om->om_next) {
+		if(OModules[om->om_type].om_doLog == NULL) {
 			dprintf("Unsupported module type [%i] "
-				"for message [%s]\n", m->om_type, msg);
+				"for message [%s]\n", om->om_type, msg);
 			continue;
 		};
 
 		/* call this module doLog */
-		ret = (*(OModules[m->om_type].om_doLog))(f,flags,msg,m->ctx);
+		ret = (*(OModules[om->om_type].om_doLog))(f,flags,msg,om->ctx);
 		if( ret < 0) {
 			dprintf("doLog error with module type [%i] "
-				"for message [%s]\n", m->om_type, msg);
+				"for message [%s]\n", om->om_type, msg);
 		} else if (ret == 0)
 			/* stop going on */
 			break;
@@ -624,7 +624,7 @@ init(signo)
 	char *p;
 	char cline[LINE_MAX];
  	char prog[NAME_MAX+1];
-	struct o_module *m;
+	struct o_module *om;
 
 	dprintf("init\n");
 
@@ -637,15 +637,15 @@ init(signo)
 		if (f->f_prevcount)
 			doLog(f, 0, (char *)NULL);
 
-		for (m = f->f_omod; m; m = m->om_next) {
+		for (om = f->f_omod; om; om = om->om_next) {
 			/* flush any pending output */
 			if (f->f_prevcount &&
-			    OModules[m->om_type].om_flush != NULL) {
-				(*OModules[m->om_type].om_flush) (f,m->ctx);
+			    OModules[om->om_type].om_flush != NULL) {
+				(*OModules[om->om_type].om_flush) (f,om->ctx);
 			}
 
-			if (OModules[m->om_type].om_close != NULL) {
-				(*OModules[m->om_type].om_close) (f,m->ctx);
+			if (OModules[om->om_type].om_close != NULL) {
+				(*OModules[om->om_type].om_close) (f,om->ctx);
 			}
 		}
 		next = f->f_next;
@@ -743,6 +743,10 @@ init(signo)
 			case F_USERS:
 				for (i = 0; i < MAXUNAMES && *f->f_un.f_uname[i]; i++)
 					printf("%s, ", f->f_un.f_uname[i]);
+				break;
+			case F_MODULE:
+				for (om = f->f_omod; om; om = om->om_next) 
+					printf("%s, ", OModules[om->om_type].om_name);
 				break;
 			}
 			if (f->f_program)

@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.90 2000/06/07 23:00:44 fgsch Exp $	*/
+/*	$CoreSDI: modules.c,v 1.91 2000/06/08 21:08:00 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -343,6 +343,8 @@ omodule_create(c, f, prog)
 		}
 	}
 	free(line);
+	if (f->f_type == F_UNUSED)
+		f->f_type = F_MODULE;
 	return(1);
 }
 

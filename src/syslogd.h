@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.51 2000/06/06 15:52:11 fgsch Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.52 2000/06/06 20:19:59 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -169,6 +169,7 @@ struct IModule {
 #define F_FORW		4		/* remote machine */
 #define F_USERS		5		/* list of users */
 #define F_WALL		6		/* everyone logged on */
+#define F_MODULE	7		/* module only */
 
 /* values for integrity facilities */
 #define I_NONE		0
