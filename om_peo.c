@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.4 2000/04/24 23:19:30 claudio Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.5 2000/04/25 17:33:00 claudio Exp $";
 #endif /* not lint */
 
 /*
@@ -96,14 +96,14 @@ om_peo_doLog(f, flags, msg, context)
 	struct om_header_ctx *context;
 {
 	struct om_peo_ctx *c;
-	char	*m;
-	int	 len;
-	u_char	 key[41];
-	int	 keylen;
 	int	 fd;
 	HASH_CTX hctx;
+	u_char	 key[41];
+	int	 keylen;
+	int	 len;
+	char	*m;
 
-	dprintf ("peo output module: DoLog\n");
+	dprintf ("peo output module: doLog\n");
 	
 	if (f == NULL || context == NULL)
 		return (-1);
@@ -189,7 +189,7 @@ om_peo_init(argc, argv, f, prog, context)
 	char	*keyfile;
 	struct	om_peo_ctx *c;
 
-	dprintf("peo output module init\ncalled by %s\n", prog);
+	dprintf("peo output module init: called by %s\n", prog);
 	
 	if (argv == NULL || *argv == NULL ||
 		argc == NULL || f == NULL || context == NULL)
@@ -219,6 +219,8 @@ om_peo_init(argc, argv, f, prog, context)
 					return (-1);
 				break;
 			default:
+				if (keyfile != default_keyfile)
+					free(keyfile);
 				return (-1);
 		}
 	}
