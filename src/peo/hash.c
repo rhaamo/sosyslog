@@ -1,4 +1,4 @@
-/*	$CoreSDI: hash.c,v 1.26 2000/07/03 22:23:19 claudio Exp $	*/
+/*	$CoreSDI: hash.c,v 1.27 2000/09/04 23:43:45 alejo Exp $	*/
  
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -92,8 +92,8 @@ typedef union {
  *	On error returns -1
  */
 int
-mac (int method, const char *data1, int data1len,
-     const char *data2, int data2len, char *dest)
+mac (int method, const char *data1, unsigned int data1len,
+     const char *data2, unsinged int data2len, char *dest)
 {
 	HASH_CTX	 ctx;
 	int		 destlen;
@@ -104,18 +104,19 @@ mac (int method, const char *data1, int data1len,
 	/* calculate tmp buffer lenght */
 	if (data1len && data2len) {
 		if (data1len > data2len)
-			tmplen += ((tmplen = data1len/data2len*data2len) < data1len) ? data2len:0;
+			tmplen += ((tmplen = data1len / data2len * data2len) <
+			    data1len) ? data2len:0;
 		else if (data1len < data2len)
-			tmplen += ((tmplen = data2len/data1len*data1len) < data2len) ? data1len:0;
+			tmplen += ((tmplen = data2len / data1len * data1len) <
+			    data2len) ? data1len:0;
 		else tmplen = data1len;
 	}
 	else if ( (tmplen = (data1len) ? data1len : data2len) == 0)
 		tmplen = 1; 
 	
 	/* allocate needed memory and clear tmp buffer */
-	if ( (tmp = (char*) calloc (1, tmplen)) == NULL)
+	if ( (tmp = (char *) calloc(1, tmplen)) == NULL)
 		return (-1);
-	bzero(tmp, tmplen);
 
 	/* tmp = data1 xor data2 */
 	if (data1len && data2len)
@@ -128,25 +129,25 @@ mac (int method, const char *data1, int data1len,
 
 	/* dest = hash(tmp) */
 	switch(method) {
-		case MD5:
-			MD5Init(&ctx.md5);
-			MD5Update(&ctx.md5, tmp, tmplen);
-			MD5Final(dest, &ctx.md5);
-			destlen = 16;
-			break;
-		case RMD160:
-			RMD160Init(&ctx.rmd160);
-			RMD160Update(&ctx.rmd160, tmp, tmplen);
-			RMD160Final(dest, &ctx.rmd160);
-			destlen = 20;
-			break;
-		case SHA1:
-		default:
-			SHA1Init(&ctx.sha1);
-			SHA1Update(&ctx.sha1, tmp, tmplen);
-			SHA1Final(dest, &ctx.sha1);
-			destlen = 20;
-			break;
+	case MD5:
+		MD5Init(&ctx.md5);
+		MD5Update(&ctx.md5, tmp, tmplen);
+		MD5Final(dest, &ctx.md5);
+		destlen = 16;
+		break;
+	case RMD160:
+		RMD160Init(&ctx.rmd160);
+		RMD160Update(&ctx.rmd160, tmp, tmplen);
+		RMD160Final(dest, &ctx.rmd160);
+		destlen = 20;
+		break;
+	case SHA1:
+	default:
+		SHA1Init(&ctx.sha1);
+		SHA1Update(&ctx.sha1, tmp, tmplen);
+		SHA1Final(dest, &ctx.sha1);
+		destlen = 20;
+		break;
 	}
 		
 	free(tmp);
@@ -227,9 +228,10 @@ strallocat (const char *s1, const char *s2)
 	char *dest;
 	int   size;
 
-	if ( (dest = (char*) calloc(1, (size = strlen(s1) + strlen(s2) + 1))) != NULL)
-		snprintf (dest, size, "%s%s", (s1) ? s1 : "", (s2) ? s2 : "");
+	size = strlen(s1) + strlen(s2);
 
+	if ((dest = (char *) calloc(1, size + 1))) != NULL)
+		snprintf(dest, size, "%s%s", (s1) ? s1 : "", (s2) ? s2 : "");
 	return (dest);
 }
 
@@ -262,7 +264,7 @@ strrealpath (const char *path)
 {
 	char *resolved;
 
-	if ( (resolved = (char*)calloc(1, PATH_MAX)) != NULL)
+	if ((resolved = (char *) malloc(1, PATH_MAX)) != NULL)
 		return realpath(path, resolved);
 	return(NULL);
 }
@@ -352,5 +354,4 @@ getrandom (char *buffer, int bytes)
 
 	return (-1);
 }
-
 
