@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.33 2000/09/04 23:43:45 alejo Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.34 2000/09/09 00:42:13 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -109,7 +109,7 @@ im_linux_usage()
 		"   [ -x ]         Do not translate kernel symbols.\n"
 		"Defaults:\n"
 		"   Reads kernel messages from %s; "
-#if 0
+#ifdef SYSCALL_IMPLEMENTED
 		" if this file doesn't exists\n"
 		"   it uses the syscall method.\n"
 #endif
@@ -207,7 +207,7 @@ im_linux_init (struct i_module *I, char **argv, int argc)
 				break;
 
 /* not supported yet, we need to talk about somethings */
-#if 0
+#ifdef SYSCALL_IMPLEMENTED
 			case 's': /* force to use syscall instead
 				   * of _PATH_KLOG
 				   */
@@ -234,7 +234,7 @@ im_linux_init (struct i_module *I, char **argv, int argc)
 			I->im_path = _PATH_KLOG;
 
 /* if /proc not mounted.. sorry: syscall not supported yet */
-#if 0
+#ifdef SYSCALL_IMPLEMENTED
 		else if (errno != ENOENT) {
 			warn("%s: %s: %s\n",
 			     linux_input_module, _PATH_KLOG, strerror(errno));
@@ -242,8 +242,7 @@ im_linux_init (struct i_module *I, char **argv, int argc)
 		} else
 			/* /proc not mounted, use syscall */
 			I->im_fd = 0;
-#endif
-#if 1
+#else
 		else {
 			warn("%s: %s: %s\n",
 			     linux_input_module, _PATH_KLOG, strerror(errno));
@@ -280,7 +279,7 @@ im_linux_getLog (struct i_module *im, struct im_msg *ret) {
 	/* read message from kernel */
 
 /* syscall not supported yet */
-#if 0
+#ifdef SYSCALL_IMPLEMENTED
 	if (im->im_path == NULL || flags & KLOG_USE_SYSCALL)
 		/* this blocks */
 		/* i = klogctl(2, im->im_buf, sizeof(im->im_buf)-1);
