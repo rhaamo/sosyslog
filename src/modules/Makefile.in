@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.21 2000/07/04 20:53:50 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.22 2000/07/04 21:20:47 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -70,8 +70,8 @@ DMYSQL_OBJ=	${DMYSQL_SRC:.c=.o}
 DPGSQL_OBJ=	${DPGSQL_SRC:.c=.o}
 DREGEX_OBJ=	${DREGEX_SRC:.c=.o}
 
-DYNAMIC_COMP=	${CC} ${CFLAGS} ${CPPFLAGS} -fPIC -c
-DYNAMIC_LINK=	${LD} -Bshareable
+DCC=	${CC} ${CFLAGS} ${CPPFLAGS} -fPIC -c
+DLK=	${LD} -Bshareable
 
 all: DYNAMIC_LIBS ${SOBJS}
 
@@ -84,40 +84,40 @@ DYNAMIC_LIBS:	$(DUNIX) $(DUDP) $(DBSD) $(DLINUX) \
 		$(DCLASSIC) $(DPEO) $(DMYSQL) $(DPGSQL) $(DREGEX)
 
 ${DUNIX}:
-	${DYNAMIC_COMP} ${DUNIX_SRC}
-	${DYNAMIC_LINK} -o $@ ${DUNIX_OBJ}
+	${DCC} ${DUNIX_SRC}
+	${DLK} -o $@ ${DUNIX_OBJ}
 
 $(DUDP): 
-	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DUDP_SRC)
-	$(LD) -Bshareable -o $@ $(DUDP_OBJ)
+	${DCC} $(DUDP_SRC)
+	${LDK} -o $@ $(DUDP_OBJ)
 
 $(DBSD):
-	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DBSD_SRC)
-	$(LD) -Bshareable -o $@ $(DBSD_OBJ)
+	${DCC} $(DBSD_SRC)
+	${LDK} -o $@ $(DBSD_OBJ)
 
 $(DLINUX):
-	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DLINUX_SRC)
-	$(LD) -Bshareable -o $@ $(DLINUX_OBJ)
+	${DCC} $(DLINUX_SRC)
+	${LDK} -o $@ $(DLINUX_OBJ)
 
 $(DCLASSIC):
-	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DCLASSIC_SRC)
-	$(LD) -Bshareable -o $@ $(DCLASSIC_OBJ)
+	${DCC} $(DCLASSIC_SRC)
+	${LDK} -o $@ $(DCLASSIC_OBJ)
 
 $(DPEO):
-	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DPEO_SRC) $(DHASH_SRCS:%=../peo/%)
-	$(LD) -Bshareable -o $@ $(DPEO_OBJ) $(DHASH_OBJS)
+	${DCC} $(DPEO_SRC) $(DHASH_SRCS:%=../peo/%)
+	${LDK} -o $@ $(DPEO_OBJ) $(DHASH_OBJS)
 
 $(DMYSQL):
-	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DMYSQL_SRC)
-	$(LD) -Bshareable -o $@ $(DMYSQL_OBJ)
+	${DCC} $(DMYSQL_SRC)
+	${LDK} -o $@ $(DMYSQL_OBJ)
 
 $(DPGSQL):
-	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DPGSQL_SRC)
-	$(LD) -Bshareable -o $@ $(DPGSQL_OBJ)
+	${DCC} $(DPGSQL_SRC)
+	${LDK} -o $@ $(DPGSQL_OBJ)
 
 $(DREGEX):
-	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DREGEX_SRC)
-	$(LD) -Bshareable -o $@ $(DREGEX_OBJ)
+	${DCC} $(DREGEX_SRC)
+	${LDK} -o $@ $(DREGEX_OBJ)
 
 .PHONY:	clean distclean
 clean:
