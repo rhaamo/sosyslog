@@ -1,10 +1,10 @@
-dnl	$CoreSDI: aclocal.m4,v 1.2 2000/07/08 00:52:50 claudio Exp $
+dnl	$CoreSDI: aclocal.m4,v 1.3 2000/07/08 01:08:47 claudio Exp $
 
 dnl
-dnl grep pattern file command
+dnl MSYSLOG_GREP patt file comm
 dnl 	Searches for a pattern on a file and executes command if match
 dnl
-AC_DEFUN(GREP, [
+AC_DEFUN(MSYSLOG_GREP, [
 if test -e "$2"
 then
 	if test "`grep $1 $2`"
@@ -20,7 +20,7 @@ dnl Configure MYSQL includedir and libdir
 dnl if mysql is not installed exits
 dnl
 AC_DEFUN(MSYSLOG_CHECK_MYSQL, [
-	for i in /usr/local/lib /usr/local/lib/mysql /usr/lib /usr/lib/mysql no
+for i in /usr/local/lib /usr/local/lib/mysql /usr/lib /usr/lib/mysql no
 	do
 		if test "$i" = "no"
 		then
@@ -31,10 +31,10 @@ AC_DEFUN(MSYSLOG_CHECK_MYSQL, [
 			break
 		fi
 	done
-	CPPFLAGS="$CPPFLAGS -L$i"
-	AC_CHECK_LIB(mysqlclient, mysql_real_connect,, [
-			echo "Need mysqlclient library to enable mysql module"
-			exit ])
+CPPFLAGS="$CPPFLAGS -L$i"
+AC_CHECK_LIB(mysqlclient, mysql_real_connect,, [
+	     echo "Need mysqlclient library to enable mysql module"
+	     exit ])
 
 for i in /usr/local/include/mysql /usr/local/mysql/include /usr/include/mysql no
 do
@@ -56,15 +56,43 @@ dnl
 dnl Configure PGSQL includedir and libdir
 dnl if pgsql is not installed exits
 dnl
-AC_DEFUN(CONF_PGSQL, [
-printf "\n\n\n>>>>>>> PGSQL Module libraries should be defined <<<<<<\n\n\n"
+AC_DEFUN(MSYSLOG_CHECK_PGSQL, [
+for i in /usr/local/pgsql/lib /usr/lib/pgsql no
+	do
+		if test "$i" = "no"
+		then
+			echo "Need pq library to enable pgsql module"
+			exit
+		elif test "`ls $i | grep libpq`"
+		then
+			break
+		fi
+done
+CPPFLAGS="$CPPFLAGS -L$i"
+AC_CHECK_LIB(pq, PQsetdbLogin,, [
+	     echo "Need pq library to enable pgsql module"
+	     exit ])
+
+for i in /usr/local/pgsql/include /usr/local/include/pgsql /usr/include/pgsql no
+do
+	if test -e "$i/libpq-fe.h"
+	then
+		break
+	fi
+done
+if test "$i" = "no"
+then
+	echo "Need libpq-fe.h header file to enable pgsql output module"
+	exit
+fi
+CPPFLAGS="$CPPFLAGS -I$i"
 ])
 
 
 dnl
-dnl begin modules configuration
+dnl Begin modules configuration
 dnl
-AC_DEFUN(BEGIN_MODULES_CONF, [
+AC_DEFUN(MSYSLOG_BEGIN_MODULES_CONF, [
 STATIC_MODULES="src/static_modules"
 MODULES_DIR="src/modules"
 FIRST_ADD_OUTPUT=1
@@ -73,23 +101,23 @@ SMODULES_HEADER=""
 SMODULES_LOAD=""
 
 SSRCS=""
-unix=""
-udp=""
-bsd=""
-linux=""
-classic=""
-peo=""
-mysql=""
-pgsql=""
-regex=""
+UNIX=""
+UDP=""
+BSD=""
+LINUX=""
+CLASSIC=""
+PEO=""
+MYSQL=""
+PGSQL=""
+REGEX=""
 eval `cat ./modules.conf`
 ])
 
 
 dnl
-dnl end modules configuration
+dnl End modules configuration
 dnl
-AC_DEFUN(END_MODULES_CONF, [
+AC_DEFUN(MSYSLOG_END_MODULES_CONF, [
 AC_SUBST(SMODULES_HEADER)
 AC_SUBST(SMODULES_LOAD)
 AC_SUBST(SSRCS)
@@ -97,10 +125,10 @@ AC_SUBST(SSRCS)
 
 
 dnl
-dnl add_om  module_name
+dnl MSYSLOG_ADD_om module_name  main_src
 dnl	adds a new static output module
 dnl
-AC_DEFUN(add_om, [ 
+AC_DEFUN(MSYSLOG_ADD_om, [ 
 SMODULES_HEADER="$SMODULES_HEADER \
 int om_$1_init (int, char**, struct filed*, char*, struct om_hdr_ctx**, \
 struct sglobals*); \
@@ -127,7 +155,7 @@ SMODULES_LOAD="$SMODULES_LOAD \
 	olast->om_init=om_$1_init; \
 	olast->om_doLog=om_$1_doLog;"
 
-GREP(om_$1_flush, "$MODULES_DIR/$2", [
+MSYSLOG_GREP(om_$1_flush, "$MODULES_DIR/$2", [
 SMODULES_HEADER="$SMODULES_HEADER \
 	int om_$1_flush (struct filed*, struct om_hdr_ctx*, \
 struct sglobals*);" 
@@ -135,7 +163,7 @@ SMODULES_LOAD="$SMODULES_LOAD \
 	olast->om_flush=om_$1_flush;"
 ]) 
 
-GREP(om_$1_close, "$MODULES_DIR/$2", [
+MSYSLOG_GREP(om_$1_close, "$MODULES_DIR/$2", [
 SMODULES_HEADER="$SMODULES_HEADER \
 	int om_$1_close (struct filed*, struct om_hdr_ctx*, struct sglobals*);"
 SMODULES_LOAD="$SMODULES_LOAD \
@@ -144,10 +172,10 @@ SMODULES_LOAD="$SMODULES_LOAD \
 
 
 dnl
-dnl add_im  module_name 
+dnl MSYSLOG_ADD_im  module_name  main_src
 dnl	adds a new static input module
 dnl
-AC_DEFUN(add_im, [
+AC_DEFUN(MSYSLOG_ADD_im, [
 SMODULES_HEADER="$SMODULES_HEADER \
 int im_$1_init (struct i_module*, char**, int, \
 struct sglobals*); \
@@ -174,7 +202,7 @@ SMODULES_LOAD="$SMODULES_LOAD \
 	ilast->im_init=im_$1_init; \
 	ilast->im_getLog=im_$1_getLog;"
 
-GREP(im_$1_close, "$MODULES_DIR/$2", [
+MSYSLOG_GREP(im_$1_close, "$MODULES_DIR/$2", [
 SMODULES_HEADER="$SMODULES_HEADER \
 	int im_$1_close (struct i_module*, struct sglobals*);"
 SMODULES_LOAD="$SMODULES_LOAD \
@@ -183,22 +211,22 @@ SMODULES_LOAD="$SMODULES_LOAD \
 
 
 dnl
-dnl check_module  module_name static|dynamic|whatever srcs_list im|om 
+dnl MSYSLOG_CHECK_MODULE module_name static|dynamic|whatever im|om main_src srcs
 dnl	check and configure a module
 dnl
-AC_DEFUN(CHECK_MODULE, [
+AC_DEFUN(MSYSLOG_CHECK_MODULE, [
 AC_MSG_CHECKING([configuration for $1 module])
 if test "x$2" = "xstatic"
 then
 	SSRCS="$SSRCS $4 $5" 
-	add_$3($1, $4)
+	MSYSLOG_ADD_$3($1, $4)
 	AC_MSG_RESULT([static]);
 elif test "x$2" = "xdynamic"
 then
-	D$1_SRC="$4 $5"
+	D$1_SRCS="$4 $5"
 	D$1="libmsyslog_$3_$1.so.$MSYSLOG_VERSION"
 	AC_SUBST(D$1)
-	AC_SUBST(D$1_SRC)
+	AC_SUBST(D$1_SRCS)
 	AC_MSG_RESULT([dynamic]);
 else
 	AC_MSG_RESULT([not activated])

@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.50 2000/07/08 00:52:50 claudio Exp $
+dnl	$CoreSDI: configure.in,v 1.51 2000/07/08 01:08:47 claudio Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -34,6 +34,8 @@ done
 AC_MSG_RESULT(root-mode pid file will go in $dir)
 AC_DEFINE_UNQUOTED(PID_DIR, "$dir")
 
+AC_PREFIX_PROGRAM(syslogd)
+
 for INSTALL_LIBDIR in "/usr/lib" "/usr/local/lib" "/lib"
 do
 	if test -d $INSTALL_LIBDIR
@@ -42,8 +44,6 @@ do
 	fi
 done
 AC_MSG_RESULT(dynamic modules will be installed on $INSTALL_LIBDIR)
-
-AC_PREFIX_PROGRAM(syslogd)
 
 
 for MANDIR in "/usr/share/man" "/usr/man"
@@ -111,34 +111,34 @@ then
 fi
 
 
-BEGIN_MODULES_CONF()
-CHECK_MODULE(unix, $unix, im, im_unix.c)
-CHECK_MODULE(udp, $udp, im, im_udp.c)
-CHECK_MODULE(bsd, $bsd, im, im_bsd.c)
-CHECK_MODULE(linux, $linux, im, im_linux.c)
-CHECK_MODULE(classic, $classic, om, om_classic.c)
-CHECK_MODULE(peo, $peo, om, om_peo.c)
-if test "x$peo" = "xstatic"
+MSYSLOG_BEGIN_MODULES_CONF()
+MSYSLOG_CHECK_MODULE(unix, $UNIX, im, im_unix.c)
+MSYSLOG_CHECK_MODULE(udp, $UDP, im, im_udp.c)
+MSYSLOG_CHECK_MODULE(bsd, $BSD, im, im_bsd.c)
+MSYSLOG_CHECK_MODULE(linux, $LINUX, im, im_linux.c)
+MSYSLOG_CHECK_MODULE(classic, $CLASSIC, om, om_classic.c)
+MSYSLOG_CHECK_MODULE(peo, $PEO, om, om_peo.c)
+if test "x$PEO" = "xstatic"
 then
 	SHASH_SRCS="$HASH_SRCS"
-elif test "x$peo" = "xdynamic"
+elif test "x$PEO" = "xdynamic"
 then
 	DHASH_SRCS="$HASH_SRCS"
 fi
 
-if test "x$mysql" = "xstatic" -o "x$mysql" = "xdynamic"
+if test "x$MYSQL" = "xstatic" -o "x$MYSQL" = "xdynamic"
 then
 	MSYSLOG_CHECK_MYSQL()
 fi
-CHECK_MODULE(mysql, $mysql, om, om_mysql.c, sql_misc.c)
+MSYSLOG_CHECK_MODULE(mysql, $MYSQL, om, om_mysql.c, sql_misc.c)
 
-if test "x$pgsql" = "xstatic" -o "x$pgsql" = "xdynamic"
+if test "x$PGSQL" = "xstatic" -o "x$PGSQL" = "xdynamic"
 then
-	CONF_PGSQL()
+	MSYSLOG_CHECK_PGSQL()
 fi
-CHECK_MODULE(pgsql, $pgsql, om, om_pgsql.c, sql_misc.c)
-CHECK_MODULE(regex, $regex, om, om_regex.c)
-END_MODULES_CONF()
+MSYSLOG_CHECK_MODULE(pgsql, $PGSQL, om, om_pgsql.c, sql_misc.c)
+MSYSLOG_CHECK_MODULE(regex, $REGEX, om, om_regex.c)
+MSYSLOG_END_MODULES_CONF()
 
 AC_SUBST(HASH_SRCS)
 AC_SUBST(SHASH_SRCS)

@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.27 2000/07/06 21:06:28 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.28 2000/07/08 00:52:52 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -41,87 +41,97 @@ INSTALL_LIBDIR=	@INSTALL_LIBDIR@
 UNAME=		@UNAME@
 
 SSRCS=		@SSRCS@
-SOBJS=		${SSRCS:.c=.o}
-DUNIX=		@Dunix@
-DUDP=		@Dudp@
-DBSD=		@Dbsd@
-DLINUX=		@Dlinux@
-DCLASSIC=	@Dclassic@
-DPEO=		@Dpeo@
-SHASH_SRCS=	@SHASH_SRCS@
-DHASH_SRCS=	@DHASH_SRCS@
-SHASH_OBJS=	${SHASH_SRCS:.c=.o}
-DHASH_OBJS=	${DHASH_SRCS:.c=.o}
-DMYSQL=		@Dmysql@
-DPGSQL=		@Dpgsql@
-DREGEX=		@Dregex@
-DUNIX_SRC=	@Dunix_SRC@
-DUDP_SRC=	@Dudp_SRC@
-DBSD_SRC=	@Dbsd_SRC@
-DLINUX_SRC=	@Dlinux_SRC@
-DCLASSIC_SRC=	@Dclassic_SRC@
-DPEO_SRC=	@Dpeo_SRC@
-DMYSQL_SRC=	@Dmysql_SRC@
-DPGSQL_SRC=	@Dpgsql_SRC@
-DREGEX_SRC=	@Dregex_SRC@
-DUNIX_OBJ=	${DUNIX_SRC:.c=.o}
-DUDP_OBJ=	${DUDP_SRC:.c=.o}
-DBSD_OBJ=	${DBSD_SRC:.c=.o}
-DLINUX_OBJ=	${DLINUX_SRC:.c=.o}
-DCLASSIC_OBJ=	${DCLASSIC_SRC:.c=.o}
-DPEO_OBJ=	${DPEO_SRC:.c=.o}
-DMYSQL_OBJ=	${DMYSQL_SRC:.c=.o}
-DPGSQL_OBJ=	${DPGSQL_SRC:.c=.o}
-DREGEX_OBJ=	${DREGEX_SRC:.c=.o}
+SOBJS=		$(SSRCS:.c=.o)
 
-DCC=	${CC} ${CFLAGS} ${CPPFLAGS} ${DCCFLAGS} -c
-LDK=	${LD} -Bshareable
+DUNIX=		@Dunix@
+DUNIX_SRCS=	@Dunix_SRCS@
+DUNIX_OBJS=	$(DUNIX_SRCS:.c=.o)
+
+DUDP=		@Dudp@
+DUDP_SRCS=	@Dudp_SRCS@
+DUDP_OBJS=	$(DUDP_SRCS:.c=.o)
+
+DBSD=		@Dbsd@
+DBSD_SRCS=	@Dbsd_SRCS@
+DBSD_OBJS=	$(DBSD_SRCS:.c=.o)
+
+DLINUX=		@Dlinux@
+DLINUX_SRCS=	@Dlinux_SRCS@
+DLINUX_OBJS=	$(DLINUX_SRCS:.c=.o)
+
+DCLASSIC=	@Dclassic@
+DCLASSIC_SRCS=	@Dclassic_SRCS@
+DCLASSIC_OBJS=	$(DCLASSIC_SRCS:.c=.o)
+
+DPEO=		@Dpeo@
+DPEO_SRCS=	@Dpeo_SRCS@
+DPEO_OBJS=	$(DPEO_SRCS:.c=.o)
+SHASH_SRCS=	@SHASH_SRCS@
+SHASH_OBJS=	$(SHASH_SRCS:.c=.o)
+DHASH_SRCS=	@DHASH_SRCS@
+DHASH_OBJS=	$(DHASH_SRCS:.c=.o)
+
+DMYSQL=		@Dmysql@
+DMYSQL_SRCS=	@Dmysql_SRCS@
+DMYSQL_OBJS=	$(DMYSQL_SRCS:.c=.o)
+
+DPGSQL=		@Dpgsql@
+DPGSQL_SRCS=	@Dpgsql_SRCS@
+DPGSQL_OBJS=	$(DPGSQL_SRCS:.c=.o)
+
+DREGEX=		@Dregex@
+DREGEX_SRCS=	@Dregex_SRCS@
+DREGEX_OBJS=	$(DREGEX_SRCS:.c=.o)
+
+DCC=	$(CC) $(CFLAGS) $(CPPFLAGS) $(DCCFLAGS) -c
+LDK=	$(LD) -Bshareable
+
 
 all: STATIC DYNAMIC
 
 STATIC DYNAMIC_LIBS: ../config.h
 
 STATIC: $(SOBJS)
-	${CC} ${CFLAGS} ${CPPFLAGS} -c ${SSRCS} ${SHASH_SRCS:%=../peo/%}
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $(SSRCS) $(SHASH_SRCS:%=../peo/%)
 
-DYNAMIC:	${DUNIX} ${DUDP} ${DBSD} ${DLINUX} \
-		${DCLASSIC} ${DPEO} ${DMYSQL} ${DPGSQL} ${DREGEX}
+DYNAMIC:	$(DUNIX) $(DUDP) $(DBSD) $(DLINUX) \
+		$(DCLASSIC) $(DPEO) $(DMYSQL) $(DPGSQL) $(DREGEX)
 
 ${DUNIX}:
-	${DCC} ${DUNIX_SRC}
-	${DLK} -o $@ ${DUNIX_OBJ}
+	$(DCC) $(DUNIX_SRCS)
+	$(DLK) -o $@ $(DUNIX_OBJS)
 
 $(DUDP): 
-	${DCC} ${DUDP_SRC}
-	${LDK} -o $@ $(DUDP_OBJ)
+	$(DCC) $(DUDP_SRCS)
+	$(LDK) -o $@ $(DUDP_OBJS)
 
 $(DBSD):
-	${DCC} ${DBSD_SRC}
-	${LDK} -o $@ $(DBSD_OBJ)
+	$(DCC) $(DBSD_SRCS)
+	$(LDK) -o $@ $(DBSD_OBJS)
 
 $(DLINUX):
-	${DCC} ${DLINUX_SRC}
-	${LDK} -o $@ $(DLINUX_OBJ)
+	$(DCC) $(DLINUX_SRCS)
+	$(LDK) -o $@ $(DLINUX_OBJS)
 
 $(DCLASSIC):
-	${DCC} ${DCLASSIC_SRC}
-	${LDK} -o $@ $(DCLASSIC_OBJ)
+	$(DCC) $(DCLASSIC_SRCS)
+	$(LDK) -o $@ $(DCLASSIC_OBJS)
 
 $(DPEO):
-	${DCC} ${DPEO_SRC} $(DHASH_SRCS:%=../peo/%)
-	${LDK} -o $@ $(DPEO_OBJ) $(DHASH_OBJS)
+	$(DCC) $(DPEO_SRCS) $(DHASH_SRCS:%=../peo/%)
+	$(LDK) -o $@ $(DPEO_OBJ) $(DHASH_OBJS)
 
 $(DMYSQL):
-	${DCC} ${DMYSQL_SRC}
-	${LDK} -o $@ $(DMYSQL_OBJ)
+	$(DCC) $(DMYSQL_SRCS)
+	$(LDK) -o $@ $(DMYSQL_OBJS)
 
 $(DPGSQL):
-	${DCC} ${DPGSQL_SRC}
-	${LDK} -o $@ $(DPGSQL_OBJ)
+	$(DCC) $(DPGSQL_SRCS)
+	$(LDK) -o $@ $(DPGSQL_OBJS)
 
 $(DREGEX):
-	${DCC} ${DREGEX_SRC}
-	${LDK} -o $@ $(DREGEX_OBJ)
+	$(DCC) $(DREGEX_SRCS)
+	$(LDK) -o $@ $(DREGEX_OBJS)
 
 .PHONY:	clean distclean
 
@@ -133,16 +143,16 @@ distclean: clean
 
 install:
 	@echo installing shared libraries...
-	-install -m 111 -o root libmsyslog_*.so.* ${INSTALL_LIBDIR}
+	-install -m 111 -o root libmsyslog_*.so.* $(INSTALL_LIBDIR)
 	@-if test "$(UNAME)" = "Linux"; \
 	then \
-		if test -z "`grep ${INSTALL_LIBDIR} /etc/ld.so.conf`"; \
+		if test -z "`grep $(INSTALL_LIBDIR) /etc/ld.so.conf`"; \
 		then \
-			echo "${INSTALL_LIBDIR}" >> /etc/ld.so.conf; \
+			echo "$(INSTALL_LIBDIR)" >> /etc/ld.so.conf; \
 		fi; \
 		ldconfig; \
 	else \
-		ldconfig ${LDCONFIG_FLAGS} ${INSTALL_LIBDIR}; \
+		ldconfig $(LDCONFIG_FLAGS) $(INSTALL_LIBDIR); \
 	fi
 
 
