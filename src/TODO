@@ -1,4 +1,4 @@
-/*	$CoreSDI: TODO,v 1.27 2000/09/12 23:01:29 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.28 2000/09/13 20:25:45 alejo Exp $	*/
 
 Things to do:
 
@@ -41,3 +41,5 @@ Check for buffer overflows, as we now may get things from the outside world.
 - what to do with SQL down ?
 - threads per output module
 - Debug levels. A better macro. No need of newlines.
+- Make om_classic accept other ports for UDP forwarding.
+- Remove all strdup we have. they are error-prone
