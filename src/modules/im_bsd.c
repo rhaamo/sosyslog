@@ -78,6 +78,7 @@ im_bsd_getLog(im, ret)
 	                }
 	                if (ret->pri &~ (LOG_FACMASK|LOG_PRIMASK))
 	                        ret->pri = DEFSPRI;
+	                ret->msg = strdup(line);
 	        }
 
 	} else if (i < 0 && errno != EINTR) {
