@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.32 2000/08/25 22:37:51 alejo Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.33 2000/09/09 00:42:13 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -132,7 +132,7 @@ im_unix_close( struct i_module *im) {
 }
 
 
-#if 0
+#ifdef EXPERIMENTAL_CREDENTIALS_HANDLING
 /*
  * get user credentials
  */
