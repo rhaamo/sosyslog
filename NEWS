@@ -1,4 +1,4 @@
-/*	$CoreSDI: NEWS,v 1.7 2000/07/11 01:02:13 claudio Exp $	*/
+/*	$CoreSDI: NEWS,v 1.9 2000/12/04 23:25:26 alejo Exp $	*/
 
 1.0 Release Notes:
 
@@ -16,4 +16,25 @@
  * Major autoconf cleanup
  * Multiple SQL module support
  * Many bugfixes
+
+1.03
+ * initial port to AIX
+ * tcp modules
+ * debug levels
+
+1.04
+ * Automatically detect and compile modules
+ * major cleanup of code
+ * support of sysklogd's extensions
+ * lots of bugs squashed
+ * port to Irix
+ * finished port to AIX
+ * improvements on tcp modules
+ * pipe (fifo) support
+ * ansify code
+ * compatibility with other compilers (Irix, Aix)
+ * more information (ie filed and module status)
+ * IPv6 support
+ * better signal handlig with audit[d]
+ * poll() instead of select()
 
