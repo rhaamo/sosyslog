@@ -1822,7 +1822,7 @@ done
 
 if test "x$GCC" = "xyes"
 then
-	CFLAGS="$CFLAGS -Wall -ansi -pedantic"
+	CFLAGS="$CFLAGS -Wall -pedantic"
 fi
 
 MSYSLOG_VERSION="1.04"
