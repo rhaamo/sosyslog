@@ -1,4 +1,4 @@
-/*	$CoreSDI: ip_misc.c,v 1.10 2001/03/27 23:21:07 alejo Exp $	*/
+/*	$CoreSDI: ip_misc.c,v 1.11 2001/04/20 00:16:49 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -183,7 +183,6 @@ resolv_name(const char *host, const char *port, socklen_t *salen)
 #endif
 		sin4->sin_port = portnum;
 		sin4->sin_family = AF_INET;
-		sin4->sin_port = 0; /* this should be specified later */
 		memcpy(&sin4->sin_addr, *hp->h_addr_list,
 		    sizeof(struct in_addr));
 		sa = (struct sockaddr *) sin4;
