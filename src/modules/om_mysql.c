@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.21 2000/05/30 23:43:12 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.22 2000/06/05 22:40:56 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -33,7 +33,6 @@
  * om_mysql -- MySQL database syupport Module
  *
  * Author: Alejo Sanchez for Core-SDI SA
- *         from syslogd.c Eric Allman  and Ralph Campbell
  *
  */
 
