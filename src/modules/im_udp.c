@@ -88,19 +88,13 @@ extern char *funixn[];
 extern int *funix[];
 
 int
-im_udp_init(I, argc, argv, c)
+im_udp_init(I, argv, argc)
 	struct i_module *I;
+	char   **argv;
 	int   argc;
-	char   *argv[];
-	struct im_header_ctx  **c;
 {
-	struct im_udp_ctx *ctx;
 	struct sockaddr_in sin;
 	struct servent *sp;
-
-	*c = (struct im_header_ctx *) calloc(1, sizeof(struct im_udp_ctx));
-	ctx = (struct im_udp_ctx *) *c;
-
 
         I->fd = socket(AF_INET, SOCK_DGRAM, 0);
 

@@ -29,8 +29,10 @@ void    logerror __P((char *));
  */
 
 int
-im_bsd_init(I)
+im_bsd_init(I, argv, argc)
 	struct i_module *I;
+	char	**argv;
+	int	argc;
 {
 	if ((I->fd = open(_PATH_KLOG, O_RDONLY, 0)) < 0) {
 		dprintf("can't open %s (%d)\n", _PATH_KLOG, errno);

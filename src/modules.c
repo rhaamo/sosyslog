@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.45 2000/05/05 18:58:42 alejo Exp $
+/*	$Id: modules.c,v 1.46 2000/05/05 23:35:21 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -59,14 +59,17 @@ int om_classic_flush(struct filed*, struct om_header_ctx *);
 	int om_mysql_flush(struct filed*, struct om_header_ctx *);
 #endif
 
-int im_bsd_init(struct i_module *);
+int im_bsd_init(struct i_module *, char **, int);
 int im_bsd_getLog(struct i_module *, struct im_msg *);
 int im_bsd_close(struct i_module *);
-int im_unix_init(struct i_module *);
+int im_unix_init(struct i_module *, char **, int);
 int im_unix_getLog(struct i_module *, struct im_msg *);
 int im_unix_close(struct i_module *);
 
 void    die __P((int));
+
+int parseParams(char ***, char *);
+
 
 int
 modules_load()
@@ -116,32 +119,29 @@ modules_load()
 
 /* assign module functions to generic pointer */
 int
-modules_init (I, args)
-	struct i_module **I;
-	char	*args;
+modules_init (I, line)
+	struct	 i_module **I;
+	char	*line;
 {
-	char **argv;
 	int argc;
+	char **argv;
 
 	/* create initial node for Inputs list */
-	*I = (struct i_module *) calloc(sizeof(struct i_module), 1);
-	(*I)->fd = -1;
-
 	*I = (struct i_module *) calloc(1, sizeof(struct i_module));
-	if (strncmp(args, "bsd", 3) {
-	    if (im_bsd_init(*I, argv, argc) < 0)
-	        die(0);
+	(*I)->fd = -1;
+	if ((argc = parseParams(&argv, line)) < 0 || argc < 2) {
+	    free(*I);
+	    return(-1);
 	}
 
-	if (strncmp(args, "unix", 4) {
+	if (strncmp(argv[0], "bsd", 3) && (im_bsd_init(*I, argv, argc) < 0))
+	        die(0);
+
+	if (strncmp(line, "unix", 4)) {
 	    if (im_unix_init(*I, argv, argc) < 0)
 	        die(0);
 	}
 
-	if (inputs & IM_UNIX_INIT)
-	    if (im_unix_init(*I) < 0) {
-	        die(0);
-       	    }
 #if 0
 	if (inputs & IM_SYSV)
 		im_sysv_init(I);
@@ -313,20 +313,29 @@ parseParams(ret, c)
 	char ***ret;
 	char *c;
 {
-	char	*line, *p, *last;
-	char	**argv;
-	int	argc, i, j, k;
+	char	*line, *p, *q;
+	int	argc;
 
-	line = strdup(c); p = line; prev = NULL; quotes = 0;
+	line = strdup(c); p = line;
 
-	/* skip initial spaces */
-	while (isspace(*p)) p++;
+	/* initialize arguments before starting */
+	*ret = (char **) calloc(2, sizeof(char *));
+	argc = 0;
 
-	for(i = 0, j = 0, k = 0; *p; *p++) {
-		if (
+	for(q = p; *p != '\0'; p = q) {
+		/* skip initial spaces */
+		while (isspace(*p)) p++;
+		if (*p++ == '\0')
+		    break;
 
-		/* see how long this word is */
-		for(q = p, i = 0; !isspace(*q); i++, q++);
+		/* see how long this word is, alloc, and copy */
+		for(q = p; q && !isspace(*q); q++);
+		*q++ = '\0';
+		*ret[argc] = strdup(p);
+		*ret = (char **) realloc(*ret, sizeof(char *) * (argc + 2));
+		*ret[argc] = NULL;
+	}
 	
+	free(line);
 	return(argc);
 }

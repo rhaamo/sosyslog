@@ -1,4 +1,4 @@
-/*      $Id: im_unix.c,v 1.9 2000/05/03 18:30:12 alejo Exp $
+/*      $Id: im_unix.c,v 1.10 2000/05/05 23:35:21 alejo Exp $
  *  im_unix -- classic behaviour module for BDS like systems
  *      
  * Author: Alejo Sanchez for Core-SDI SA
@@ -75,15 +75,16 @@ im_unix_getLog(im, ret)
 
 
 int
-im_unix_init(I, arg)
+im_unix_init(I, argv, argc)
 	struct i_module *I;
-	char *arg;
+	char **argv;
+	int argc;
 {
 	int i;
 	char line[MAXLINE + 1];
 	struct sockaddr_un sunx;
 
-	if (I == NULL)
+	if (I == NULL || argv == NULL || argc != 2)
 	    return(-1);
 
 #ifndef SUN_LEN
@@ -93,7 +94,7 @@ im_unix_init(I, arg)
 
 	memset(&sunx, 0, sizeof(sunx));
 	sunx.sun_family = AF_UNIX;
-	(void)strncpy(sunx.sun_path, arg, sizeof(sunx.sun_path));
+	(void)strncpy(sunx.sun_path, argv[1], sizeof(sunx.sun_path));
 	I->fd = socket(AF_UNIX, SOCK_DGRAM, 0);
 	if (I->fd < 0 ||
 	    bind(I->fd, (struct sockaddr *)&sunx, SUN_LEN(&sunx)) < 0 ||
