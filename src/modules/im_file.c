@@ -1,4 +1,4 @@
-/*	$Id: im_file.c,v 1.9 2003/02/22 03:40:58 jkohen Exp $	*/
+/*	$Id: im_file.c,v 1.10 2003/04/04 20:06:51 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -359,10 +359,10 @@ return (0);
 
       /* put the hostname into the message */
       /*
-		  strncat(ret->im_msg, c->name,
+		strncat(ret->im_msg, c->name,
 		  sizeof(ret->im_msg) - strlen(ret->im_msg) - 1);
 	  	strncat(ret->im_msg, ":",
-		sizeof(ret->im_msg) - strlen(ret->im_msg) - 1);
+		  sizeof(ret->im_msg) - strlen(ret->im_msg) - 1);
 	  	m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: reformed header: [%s]\n", ret->im_msg);
       */
 
