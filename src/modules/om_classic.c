@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_classic.c,v 1.4 2000/04/18 21:34:34 gera Exp $";
+static char rcsid[] = "$Id: om_classic.c,v 1.5 2000/04/19 00:05:49 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -61,6 +61,7 @@ static char rcsid[] = "$Id: om_classic.c,v 1.4 2000/04/18 21:34:34 gera Exp $";
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/socket.h>
 #include <sys/syslog.h>
 
 #include "syslogd.h"

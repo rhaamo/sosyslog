@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.39 2000/04/18 21:05:43 gera Exp $
+/*	$Id: syslogd.c,v 1.40 2000/04/19 00:05:50 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -116,7 +116,6 @@ int	MarkSeq = 0;		/* mark sequence number */
 int	SecureMode = 1;		/* when true, speak only unix domain socks */
 
 void	cfline __P((char *, struct filed *, char *));
-char   *cvthname __P((struct sockaddr_in *));
 int	decode __P((const char *, CODE *));
 void	die __P((int));
 void	domark __P((int));
@@ -508,39 +507,6 @@ reapchild(signo)
 	while (wait3((int *)&status, WNOHANG, (struct rusage *)NULL) > 0)
 		;
 	errno = save_errno;
-}
-
-/*
- * Return a printable representation of a host address.
- */
-char *
-cvthname(f)
-	struct sockaddr_in *f;
-{
-	struct hostent *hp;
-	sigset_t omask, nmask;
-	char *p;
-
-	dprintf("cvthname(%s)\n", inet_ntoa(f->sin_addr));
-
-	if (f->sin_family != AF_INET) {
-		dprintf("Malformed from address\n");
-		return ("???");
-	}
-	sigemptyset(&nmask);
-	sigaddset(&nmask, SIGHUP);
-	sigprocmask(SIG_BLOCK, &nmask, &omask);
-	hp = gethostbyaddr((char *)&f->sin_addr,
-	    sizeof(struct in_addr), f->sin_family);
-	sigprocmask(SIG_SETMASK, &omask, NULL);
-	if (hp == 0) {
-		dprintf("Host name for your address (%s) unknown\n",
-			inet_ntoa(f->sin_addr));
-		return (inet_ntoa(f->sin_addr));
-	}
-	if ((p = strchr(hp->h_name, '.')) && strcmp(p + 1, LocalDomain) == 0)
-		*p = '\0';
-	return (hp->h_name);
 }
 
 void
