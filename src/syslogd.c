@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.203 2001/07/30 21:03:06 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.204 2001/08/01 05:52:24 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.203 2001/07/30 21:03:06 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.204 2001/08/01 05:52:24 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -266,7 +266,7 @@ main(int argc, char **argv)
 			break;
 		case 'd':	/* debug */
 			if (optarg == NULL) {
-				Debug++;
+				Debug = 20;
 			} else if (isdigit((int) *optarg)) {
 				Debug = atoi(optarg);
 			} else {
