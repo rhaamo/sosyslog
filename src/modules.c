@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.50 2000/05/08 23:09:21 alejo Exp $
+/*	$Id: modules.c,v 1.51 2000/05/09 20:37:13 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -103,13 +103,7 @@ modules_load()
 	IModules[IM_BSD].im_init		= im_bsd_init;
 	IModules[IM_BSD].im_getLog		= im_bsd_getLog;
   	IModules[IM_BSD].im_close		= im_bsd_close;
- #if 0 
-	IModules[IM_SYSV].im_name		= "sysv";
-	IModules[IM_SYSV].im_type		= IM_SYSV;
-	IModules[IM_SYSV].im_init		= im_sysv_init;
-	IModules[IM_SYSV].im_getLog		= im_sysv_getLog;
-  	IModules[IM_SYSV].im_close		= im_sysv_close;
-#endif
+
 	IModules[IM_UNIX].im_name		= "unix";
 	IModules[IM_UNIX].im_type		= IM_UNIX;
 	IModules[IM_UNIX].im_init		= im_unix_init;
@@ -126,26 +120,27 @@ modules_init (I, line)
 	char	*line;
 {
 	int argc;
-	char **argv;
+	char **argv, *p;
 
 	/* create initial node for Inputs list */
 	*I = (struct i_module *) calloc(1, sizeof(struct i_module));
 	(*I)->fd = -1;
+	for(p = line;*p != '\0'; p++)
+	    if (*p == ':')
+	        *p = ' ';
 	if ((argc = parseParams(&argv, line)) < 1) {
 	    free(*I);
 	    return(-1);
 	}
 
-	if (strncmp(argv[0], "bsd", 3) && (im_bsd_init(*I, argv, argc) < 0))
+	if (!strncmp(argv[0], "bsd", 3)) {
+	    if (im_bsd_init(*I, argv, argc) < 0)
 	        die(0);
 
-	if (strncmp(argv[0], "unix", 4) && (im_unix_init(*I, argv, argc) < 0))
+	} else if (!strncmp(argv[0], "unix", 4)) {
+	    if (im_unix_init(*I, argv, argc) < 0)
 	        die(0);
-
-#if 0
-	if (inputs & IM_SYSV)
-		im_sysv_init(I);
-#endif
+	}
 
 	return(1);
 }
