@@ -20,6 +20,8 @@
 #ifndef  _RMD160_H	/* make sure this file is read only once */
 #define  _RMD160_H
 
+#include "../conditional.h"
+
 /********************************************************************/
 
 /* structure definitions */
