@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.43 2000/08/30 20:58:07 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.44 2000/08/30 23:19:25 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -154,6 +154,7 @@ distclean: clean
 
 install:
 	@echo installing shared libraries...
+	@if [ -f libmsyslog_*.so.* ]; then $(INSTALL) -b libmsyslog_*.so.* "$(INSTALL_LIBDIR)" ; fi 
 	@if [ "$(DUNIX)" -a -f "$(DUNIX)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DUNIX) $(INSTALL_LIBDIR)/$(DUNIX:.$(MSYSLOG_VERSION)=); fi
 	@if [ "$(DUDP)" -a -f "$(DUDP)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DUDP) $(INSTALL_LIBDIR)/$(DUDP:.$(MSYSLOG_VERSION)=); fi
 	@if [ "$(DBSD)" -a -f "$(DBSD)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DBSD) $(INSTALL_LIBDIR)/$(DBSD:.$(MSYSLOG_VERSION)=); fi
@@ -165,5 +166,4 @@ install:
 	@if [ "$(DREGEX)" -a -f "$(DREGEX)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DREGEX) $(INSTALL_LIBDIR)/$(DREGEX:.$(MSYSLOG_VERSION)=); fi
 	@if [ ! -d "$(MSYSLOG_BASEDIR)" ]; then mkdir "$(MSYSLOG_BASEDIR)" && chmod 755 "$(MSYSLOG_BASEDIR)" ; fi 
 	@if [ ! -d "$(INSTALL_LIBDIR)" ]; then mkdir "$(INSTALL_LIBDIR)" && chmod 755 "$(INSTALL_LIBDIR)" ; fi 
-	@if [ -f libmsyslog_*.so.* ]; then $(INSTALL) libmsyslog_*.so.* "$(INSTALL_LIBDIR)" ; fi 
 
