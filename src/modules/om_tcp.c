@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_tcp.c,v 1.4 2001/02/19 23:42:01 alejo Exp $	*/
+/*	$CoreSDI: om_tcp.c,v 1.5 2001/02/22 20:10:28 alejo Exp $	*/
 /*
      Copyright (c) 2000, Core SDI S.A., Argentina
      All rights reserved
@@ -47,6 +47,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <signal.h>
 #include <syslog.h>
 
 #if TIME_WITH_SYS_TIME
