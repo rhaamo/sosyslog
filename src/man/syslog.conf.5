@@ -1,4 +1,4 @@
-.\"	$CoreSDI: syslog.conf.5,v 1.7 2000/05/23 21:47:07 fgsch Exp $
+.\"	$CoreSDI: syslog.conf.5,v 1.8 2000/06/14 23:22:18 claudio Exp $
 .\"
 .\" Copyright (c) 1990, 1991, 1993
 .\"	The Regents of the University of California.  All rights reserved.
@@ -201,7 +201,9 @@ An asterisk.
 Selected messages are written to all logged-in users.
 .El
 .Pp
-Because the new syslogd(8) daemon is now modularized, the last
+Because the new
+.Xr syslogd 8
+daemon is now modularized, the last
 four forms are included into a ``classic'' module. The new
 modular form is as follows:
 .Bl -bullet
@@ -335,7 +337,7 @@ the following is wrong:
 *.*    %classic /dev/console %classic /var/log/messages
 .Ed
 .Pp
-the correct sentences are:
+the correct lines are:
 .Pp
 .Bd -literal -offset indent
 *.*    %classic /dev/console
