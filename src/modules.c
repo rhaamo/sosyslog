@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.79 2000/05/30 00:14:56 fgsch Exp $	*/
+/*	$CoreSDI: modules.c,v 1.80 2000/05/30 19:29:38 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -60,6 +60,13 @@ int	om_classic_init __P((int, char **, struct filed *, char *,
 int	om_classic_close(struct filed*, struct om_hdr_ctx *);
 int	om_classic_flush(struct filed*, struct om_hdr_ctx *);
 
+int	om_filter_doLog __P((struct filed *, int , char *,
+	    struct om_hdr_ctx *));
+int	om_filter_init __P((int, char **, struct filed *, char *,
+	    struct om_hdr_ctx **));
+int	om_filter_close __P((struct filed*, struct om_hdr_ctx *));
+int	om_filter_flush __P((struct filed*, struct om_hdr_ctx *));
+
 #ifdef ENABLE_MYSQL
 int	om_mysql_doLog __P((struct filed *, int , char *,
 	    struct om_hdr_ctx *));
@@ -112,6 +119,14 @@ modules_load()
 	OModules[OM_CLASSIC].om_init 		= om_classic_init;
 	OModules[OM_CLASSIC].om_close 		= om_classic_close;
 	OModules[OM_CLASSIC].om_flush 		= om_classic_flush;
+
+	/* filter module */
+	OModules[OM_FILTER].om_name 		= "filter";
+	OModules[OM_FILTER].om_type 		= OM_FILTER;
+	OModules[OM_FILTER].om_doLog	 	= om_filter_doLog;
+	OModules[OM_FILTER].om_init 		= om_filter_init;
+	OModules[OM_FILTER].om_close 		= om_filter_close;
+	OModules[OM_FILTER].om_flush 		= om_filter_flush;
 
 #ifdef ENABLE_MYSQL
 	/* mysql module */

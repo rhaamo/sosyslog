@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.20 2000/05/29 20:35:43 fgsch Exp $	*/
+/*	$CoreSDI: modules.h,v 1.21 2000/05/29 22:04:36 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -35,10 +35,11 @@
 #include <sys/param.h>
 
 /* values for om_type */
-#define OM_CLASSIC      0
-#define OM_MYSQL        1
-#define OM_PEO          2
-#define OM_PGSQL        3
+#define OM_CLASSIC	0
+#define OM_MYSQL	1
+#define OM_PEO		2
+#define OM_FILTER	3
+#define OM_PGSQL	4
 
 #define IM_BSD          0
 #define IM_SYSV         1

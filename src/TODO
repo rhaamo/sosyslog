@@ -77,3 +77,8 @@ function
 
 1- A script to generate a static_modules.h and set an array of structs there for
    each static module.
+
+01-Jun-2000
+
+1- Improve om_filter so it can rewrite messages. maybe resend to input. im_filter?
+
