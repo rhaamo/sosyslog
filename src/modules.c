@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.153 2001/03/23 00:12:28 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.154 2001/03/30 21:09:59 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -97,8 +97,14 @@ prepare_module_libs(const char *modname, void **ret) {
 	dprintf(MSYSLOG_INFORMATIVE, "prepare_module_libs: Going to open %s\n",
 	    buf);
 
-	/* We don't care if it is not open */
-	*ret = dlopen(buf, DLOPEN_FLAGS);
+	/* Try ./ if debugging. We don't care if it is not open */
+	if ( Debug && ((*ret = dlopen(buf, DLOPEN_FLAGS)) == NULL) ) {
+		snprintf(buf, sizeof(buf), "./" MLIBNAME_STR);
+		dprintf(MSYSLOG_INFORMATIVE, "prepare_module_libs: Going"
+		    " to open %s\n", buf);
+		*ret = dlopen(buf, DLOPEN_FLAGS);
+	}
+
 
 	dprintf(MSYSLOG_INFORMATIVE, "prepare_module_libs: lib %s was "
 	    "%sopened\n", buf, *ret == NULL?  "not " : "");

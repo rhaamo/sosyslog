@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.191 2001/04/09 18:02:22 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.192 2001/04/11 21:03:58 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.191 2001/04/09 18:02:22 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.192 2001/04/11 21:03:58 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -246,8 +246,8 @@ main(int argc, char **argv)
 #endif
 
         if ( (main_lib = dlopen(INSTALL_LIBDIR "/" MLIBNAME_STR, DLOPEN_FLAGS))
-	    == NULL && (main_lib = dlopen("./" MLIBNAME_STR, DLOPEN_FLAGS))
-	    == NULL ) {
+	    == NULL && (Debug && (main_lib = dlopen("./" MLIBNAME_STR,
+	    DLOPEN_FLAGS)) == NULL) ) {
                 dprintf(MSYSLOG_CRITICAL, "Error opening main library, [%s] "
                     "file [%s]\n", dlerror(), INSTALL_LIBDIR "/" MLIBNAME_STR);
                 return(-1);
@@ -1100,8 +1100,8 @@ init(int signo)
 
 	/* Load main modules library */
         if ( (main_lib = dlopen(INSTALL_LIBDIR "/" MLIBNAME_STR, DLOPEN_FLAGS))
-	    == NULL && (main_lib = dlopen("./" MLIBNAME_STR, DLOPEN_FLAGS))
-	    == NULL ) {
+	    == NULL && (Debug && (main_lib = dlopen("./" MLIBNAME_STR,
+	    DLOPEN_FLAGS)) == NULL) ) {
                 dprintf(MSYSLOG_CRITICAL, "init: Error opening main library, [%s] "
                     "file [%s]\n", dlerror(), INSTALL_LIBDIR "/" MLIBNAME_STR);
                 exit(-1);
