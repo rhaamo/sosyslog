@@ -1,4 +1,4 @@
-/*	$Id: syslogd.h,v 1.24 2000/04/18 21:05:44 gera Exp $
+/*	$Id: syslogd.h,v 1.25 2000/04/18 22:25:20 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -46,9 +46,10 @@
 #define MAX_N_IMODULES	64		/* maximum types of in  modules */
 
 #include <paths.h>
-#include <utmp.h>
-#include <sys/uio.h>
 #include <sys/time.h>
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <utmp.h>
 #include <sys/socket.h>
 
 #ifdef HAVE_OPENBSD
@@ -62,6 +63,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include "modules.h"
 
 #ifndef _PATH_KLOG
 #define	_PATH_KLOG	"/dev/klog"
@@ -85,70 +87,9 @@
 
 
 /*
- * Keyword for unsing modules instead of classic code
- */
-
-#define MAX_MODULE_NAME_LEN 255
-
-/*
  * maximum number of unix sockets
  */
 #define MAXFUNIX        21
-
-/* standard output module header variables in context */
-struct om_header_ctx {
-	short	flags;
-#define M_FLAG_INITIALIZED 0x1
-#define M_FLAG_ERROR 0x2
-#define M_FLAG_LOCKED 0x4
-#define M_FLAG_ROTATING 0x8
-	int	size;
-};
-
-/* standard input module header variables in context */
-struct im_header_ctx {
-	short	flags;
-#define M_FLAG_INITIALIZED 0x1
-#define M_FLAG_ERROR 0x2
-	int	size;
-};
-
-/*
- * This structure represents main details for the output modules
- */
-
-struct o_module {
-	struct	o_module *om_next;
-	short	om_type;
-	struct  om_header_ctx	*context;
-};
-
-/*
- * This structure represents main details for the input modules
- */
-
-struct i_module {
-	struct	i_module *im_next;
-	short	im_type;
-	int	fd;	/*  for use with select() */
-	struct  im_header_ctx	*context;
-	char	* im_name;
-};
-
-/*
- * This structure represents the return of the input modules
- */
-
-struct im_msg {
-	int	pid;
-	int	pri;
-	int	flags;
-	int	len;
-#define  SYSLOG_IM_PID_CHECKED	0x01
-#define  SYSLOG_IM_HOST_CHECKED	0x02
-	char	*msg;
-	char	*host;
-};
 
 /*
  * This structure represents the files that will have log

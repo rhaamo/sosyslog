@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_mysql.c,v 1.3 2000/04/18 21:02:54 claudio Exp $";
+static char rcsid[] = "$Id: om_mysql.c,v 1.4 2000/04/18 22:25:20 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -139,10 +139,10 @@ om_mysql_doLog(f, flags, msg, context)
 	for(mn = 0; months[mn] && strncmp(months[mn], m, 3); mn++);
 	mn++;
 
-	/* table, YYYY-Mmm-dd, hh:mm:ss, host, programname,  msg  */ 
+	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
 	snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s"
 			" VALUES('%s-%.2d-%s', '%s', '%s', '%s', '%s')",
-			c->table, y, mn, d, h, host, prog, mymsg);
+			c->table, y, mn, d, h, host, mymsg);
 
 	free(dummy);
 	free(y);

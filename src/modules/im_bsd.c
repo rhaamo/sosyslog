@@ -7,9 +7,11 @@
  */
 
 
-#include <modules.h>
-
-
+#include <syslog.h>
+#include "syslogd.h"
+#include <fcntl.h>
+#include <errno.h>
+#include <string.h>
 
 /* standard input module header variables in context */
 struct im_bsd_ctx {
@@ -32,16 +34,17 @@ extern char *funixn[];
 extern int *funix[];
 
 int
-im_bsd_init(argc, argv, c)
+im_bsd_init(I, argc, argv, c)
+	struct i_module *I;
 	int   argc;
 	char   *argv[];
 	struct im_header_ctx  **c;
 {
-	if (((*c)->fd = open(_PATH_KLOG, O_RDONLY, 0)) < 0) {
+	if ((I->fd = open(_PATH_KLOG, O_RDONLY, 0)) < 0) {
 		dprintf("can't open %s (%d)\n", _PATH_KLOG, errno);
 	}
 	
-        return((*c)->fd);
+        return(I->fd);
 }
 
 
@@ -53,11 +56,11 @@ im_bsd_init(argc, argv, c)
 
 int
 im_bsd_getLog(im, ret)
-	struct i_module im;
+	struct i_module *im;
         struct im_msg  *ret;
 {
-	char *p, line[MSG_BSIZE + 1], outLine[MAXLINE + 1];
-        int i;
+	char *p, line[MSG_BSIZE + 1], outLine[MAXLINE + 1], *q, *lp;
+        int i, c;
 
 	(void)strcpy(outLine, _PATH_UNIX);
 	(void)strcat(outLine, ": ");
@@ -91,14 +94,13 @@ im_bsd_getLog(im, ret)
 		    *q++ = c;
 		*q = '\0';
 		ret->msg = strdup(outLine);
-                ret->hostname = strdup(LocalHostName);
-                ret->flags = flags;
+                ret->host = strdup(LocalHostName);
 	} else if (i < 0 && errno != EINTR) {
 		logerror("im_bsd_getLog");   
 		im->fd = -1;
 	}
 
 
-	return(ret->fd == -1 ? -1: 1);
+	return(im->fd == -1 ? -1: 1);
 }
 

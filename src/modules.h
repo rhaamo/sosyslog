@@ -3,6 +3,7 @@
 #ifndef SYSLOG_MODULES_H
 #define SYSLOG_MODULES_H
 
+
 extern int	Debug;			/* debug flag */
 extern char	LocalHostName[];	/* our hostname */
 extern char	*LocalDomain;		/* our local domain name */
@@ -26,19 +27,63 @@ extern char	ctty[];
 
 extern int	repeatinterval[];
 
+
+#define MAX_MODULE_NAME_LEN 255
+
+/* standard output module header variables in context */
+struct om_header_ctx {
+	short	flags;
+#define M_FLAG_INITIALIZED 0x1
+#define M_FLAG_ERROR 0x2
+#define M_FLAG_LOCKED 0x4
+#define M_FLAG_ROTATING 0x8
+	int	size;
+};
+
+/* standard input module header variables in context */
+struct im_header_ctx {
+	short	flags;
+#define M_FLAG_INITIALIZED 0x1
+#define M_FLAG_ERROR 0x2
+	int	size;
+};
+
 /*
- * All module functions
+ * This structure represents main details for the output modules
  */
 
-int om_classic_doLog(struct filed *, int , char *, struct om_header_ctx *);
-int om_classic_init(int, char **, struct filed *, char *, struct om_header_ctx **);
-int om_classic_close(struct filed*, struct om_header_ctx **);
-int om_classic_flush(struct filed*, struct om_header_ctx *);
+struct o_module {
+	struct	o_module *om_next;
+	short	om_type;
+	struct  om_header_ctx	*context;
+};
 
-int om_mysql_doLog(struct filed *, int , char *, struct om_header_ctx *);
-int om_mysql_init(int, char **, struct filed *, char *, struct om_header_ctx **);
-int om_mysql_close(struct filed*, struct om_header_ctx **);
-int om_mysql_flush(struct filed*, struct om_header_ctx *);
+/*
+ * This structure represents main details for the input modules
+ */
+
+struct i_module {
+	struct	i_module *im_next;
+	short	im_type;
+	int	fd;	/*  for use with select() */
+	struct  im_header_ctx	*context;
+	char	* im_name;
+};
+
+/*
+ * This structure represents the return of the input modules
+ */
+
+struct im_msg {
+	int	pid;
+	int	pri;
+	int	flags;
+	int	len;
+#define  SYSLOG_IM_PID_CHECKED	0x01
+#define  SYSLOG_IM_HOST_CHECKED	0x02
+	char	*msg;
+	char	*host;
+};
 
 
 #endif

@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.27 2000/04/18 21:05:43 gera Exp $
+/*	$Id: modules.c,v 1.28 2000/04/18 22:25:19 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -52,6 +52,16 @@ static char copyright[] =
 #include <sys/syslog.h>
 #include "syslogd.h"
 #include "modules.h"
+
+int om_classic_doLog(struct filed *, int , char *, struct om_header_ctx *);
+int om_classic_init(int, char **, struct filed *, char *, struct om_header_ctx **);
+int om_classic_close(struct filed*, struct om_header_ctx **);
+int om_classic_flush(struct filed*, struct om_header_ctx *);
+
+int om_mysql_doLog(struct filed *, int , char *, struct om_header_ctx *);
+int om_mysql_init(int, char **, struct filed *, char *, struct om_header_ctx **);
+int om_mysql_close(struct filed*, struct om_header_ctx **);
+int om_mysql_flush(struct filed*, struct om_header_ctx *);
 
 /* assign module functions to generic pointer */
 int modules_init (I)

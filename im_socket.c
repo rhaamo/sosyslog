@@ -7,7 +7,7 @@
  */
 
 
-#include <modules.h>
+#include "modules.h"
 
 
 
@@ -47,7 +47,8 @@ extern char *funixn[];
 extern int *funix[];
 
 int
-im_bsd_init(argc, argv, c)
+im_bsd_init(I, argc, argv, c)
+	struct i_module *I;
 	int   argc;
 	char   *argv[];
 	struct im_header_ctx  **c;
