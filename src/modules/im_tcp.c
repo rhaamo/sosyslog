@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.20 2001/09/07 07:24:10 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.21 2001/09/19 07:04:53 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -283,7 +283,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 				int	n1, n2;
 
 				/* extract hostname from message */
-#if SIZEOF_MAXHOSTNAMELEN < 90
+#if SIZEOF_MAXHOSTNAMELEN < 89
 #error  Change here buffer reads to match HOSTSIZE
 #endif
 				if (sscanf(p, "<%*d>%*15c %n%90s %n", &n1,

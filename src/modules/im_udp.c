@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.61 2001/05/29 22:35:26 alejo Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.62 2001/06/13 22:32:00 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -63,6 +63,11 @@
   typedef int socklen_t;
 #endif
 
+struct im_udp_ctx {
+	int	flags;
+};
+
+#define M_USEMSGHOST	0x01
 
 /*
  * get messge
@@ -70,10 +75,10 @@
  */
 
 int
-im_udp_read(struct imodule *im, int infd, struct im_msg *ret)
+im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 {
+	struct im_udp_ctx	*c;
 	struct sockaddr_in frominet;
-	struct hostent *hent;
 	int slen;
 
 	if (ret == NULL) {
@@ -86,10 +91,34 @@ im_udp_read(struct imodule *im, int infd, struct im_msg *ret)
 	ret->im_flags = 0;
 
 	slen = sizeof(frominet);
-	ret->im_len = recvfrom(finet, ret->im_msg, ret->im_mlen - 1, 0,
-		(struct sockaddr *)&frominet, (socklen_t *)&slen);
-	if (ret->im_len > 0) {
-		ret->im_msg[ret->im_len] = '\0';
+	if ((ret->im_len = recvfrom(im->im_fd, ret->im_msg, ret->im_mlen - 1, 0,
+	    (struct sockaddr *)&frominet, (socklen_t *)&slen)) < 1) {
+		if (ret->im_len < 0 && errno != EINTR)
+			logerror("recvfrom inet");
+		return (1);
+	}
+
+	ret->im_msg[ret->im_len] = '\0';
+
+	c = (struct im_udp_ctx *) im->im_ctx;
+
+	if (c->flags & M_USEMSGHOST) {
+		int     n1, n2;       
+
+		/* extract hostname from message */
+#if SIZEOF_MAXHOSTNAMELEN < 89
+#error  Change here buffer reads to match HOSTSIZE
+#endif
+		if (sscanf(ret->im_msg, "<%*d>%*15c %n%90s %n", &n1,
+		    ret->im_host, &n2) != 3)	      
+			return (0);
+
+		/* remove host from message */
+		while (ret->im_msg[n2] != '\0')
+			       ret->im_msg[n1++] = ret->im_msg[n2++];
+	} else {
+		struct hostent *hent;
+
 		hent = gethostbyaddr((char *) &frominet.sin_addr,
 		    sizeof(frominet.sin_addr), frominet.sin_family);
 		if (hent) {
@@ -99,10 +128,9 @@ im_udp_read(struct imodule *im, int infd, struct im_msg *ret)
 			strncpy(ret->im_host, inet_ntoa(frominet.sin_addr),
 			    sizeof(ret->im_host));
 		}
-		ret->im_host[sizeof(ret->im_host) - 1] = '\0';
+	}
 
-	} else if (ret->im_len < 0 && errno != EINTR)
-		logerror("recvfrom inet");
+	ret->im_host[sizeof(ret->im_host) - 1] = '\0';
 
 	return (1);
 }
@@ -115,36 +143,64 @@ im_udp_read(struct imodule *im, int infd, struct im_msg *ret)
 int
 im_udp_init(struct i_module *I, char **argv, int argc)
 {
-	struct sockaddr_in sin;
-	struct servent *sp;
+	struct sockaddr_in	sin;
+	struct im_udp_ctx	*c;
+	struct servent		*sp;
+	char			*port;
+	int			ch;
 
-        if ((argc != 1 && argc != 2) || (argc == 2 &&
-	    (argv == NULL || argv[1] == NULL))) {
-        	dprintf(MSYSLOG_SERIOUS, "im_udp: error on params!\n");
-        	return (-1);
-        }
+	if ( (I->im_ctx = calloc(1, sizeof(struct im_udp_ctx))) == NULL)
+		return (-1);
+
+	c = (struct im_udp_ctx *) I->im_ctx;
+
+	port = NULL;
+
+	/* parse command line */
+	optind = 1;
+#ifdef HAVE_OPTRESET
+	optreset = 1;
+#endif
+	while ((ch = getopt(argc, argv, "h:p:a")) != -1) {
+		switch (ch) {
+		case 'h':
+			/* get addr to bind */
+			break;
+		case 'p':
+			/* get remote host port */
+			port = optarg;
+			break;
+		case 'a':
+			c->flags |= M_USEMSGHOST;
+			break;
+		default:
+			dprintf(MSYSLOG_SERIOUS, "om_udp_init: parsing error"
+			    " [%c]\n", ch);
+			goto init_error;
+		}
+	}
 
         I->im_fd = socket(AF_INET, SOCK_DGRAM, 0);
 
-	sp = getservbyname("syslog", "udp");
-	if (sp == NULL) {
-		errno = 0;
-		logerror("syslog/udp: unknown service");
-		return (-1);
-	}
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;
 
-	if (argc == 2  && argv[1]) {
+	if (port != NULL) {
 		sin.sin_port = htons(atoi(argv[1]));
 	} else {
-		LogPort = sp->s_port;
+		if ((sp = getservbyname("syslog", "udp")) == NULL) {
+			errno = 0;
+			logerror("syslog/udp: unknown service");
+			goto init_error;
+		}
 		sin.sin_port = sp->s_port;
 	}
 
+	LogPort = sin.sin_port;
+
 	if (bind(I->im_fd, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
 		logerror("im_udp_init: bind");
-		return (-1);
+		goto init_error;
 	}
 
         I->im_path = NULL;
@@ -159,19 +215,23 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 
         dprintf(MSYSLOG_INFORMATIVE, "im_udp: running\n");
         return (1);
+
+init_error:
+	free(c);
+	I->im_ctx = NULL;
+	return (-1);
 }
 
 int
 im_udp_close(struct i_module *im)
 {
         if (finet == im->im_fd) {
-        	close(im->im_fd);
-        	finet = im->im_fd;
+        	finet = -1;
 		DaemonFlags &= ~SYSLOGD_INET_IN_USE;
 		DaemonFlags &= ~SYSLOGD_INET_READ;
-        } else {
-        	close(im->im_fd);
         }
+
+       	close(im->im_fd);
  
         return (0);
 }

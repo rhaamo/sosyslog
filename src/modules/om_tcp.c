@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_tcp.c,v 1.18 2001/09/07 07:26:26 alejo Exp $	*/
+/*	$CoreSDI: om_tcp.c,v 1.19 2001/09/19 07:04:53 alejo Exp $	*/
 /*
      Copyright (c) 2001, Core SDI S.A., Argentina
      All rights reserved
@@ -118,7 +118,7 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 #ifdef HAVE_OPTRESET
 	optreset = 1;
 #endif
-	while ((ch = getopt(argc, argv, "h:p:m:s:")) != -1) {
+	while ((ch = getopt(argc, argv, "h:p:m:s:a")) != -1) {
 		switch (ch) {
 		case 'h':
 			/* get remote host name/addr */
@@ -138,7 +138,7 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 			c->saved = (char *) malloc(c->savesize);
 			break;
 		case 'a':
-			c->flags &= M_ADDHOST;
+			c->flags |= M_ADDHOST;
 			break;
 		default:
 			dprintf(MSYSLOG_SERIOUS, "om_tcp_init: parsing error"
