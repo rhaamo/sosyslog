@@ -1,4 +1,4 @@
-/*	$CoreSDI: ip_misc.c,v 1.4 2001/03/07 21:35:15 alejo Exp $	*/
+/*	$CoreSDI: ip_misc.c,v 1.5 2001/03/14 21:37:38 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -157,7 +157,9 @@ resolv_name(const char *host, const char *port, socklen_t *salen)
 	struct servent *se;
 	short portnum;
 
-	if ( port && ((se = getservbyname(port, "tcp")) != NULL) )
+	if ( port && (portnum = atoi(port)) != 0)
+		portnum = htons(portnum);
+	else if ((se = getservbyname(port, "tcp")) != NULL)
 		portnum = se->s_port;
 	else
 		portnum = 0;
