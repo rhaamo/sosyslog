@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.50 2001/03/23 00:12:29 alejo Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.51 2001/03/27 20:54:24 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -88,7 +88,6 @@ Symbol	*ksym_current = NULL;
 
 int	 ksym_init();
 void	 ksym_close();
-int	 ksym_snprintf (char*, int, char*);
 Symbol	*ksym_lookup (Symbol*, char*);
 int	 ksym_get_symbol (Symbol*);
 int	 ksym_parseline (char*, Symbol*);
@@ -116,26 +115,6 @@ im_linux_usage()
 #endif
 	    "   Symbols are translated only if %s exists.\n\n",
 	    PATH_KSYM, _PATH_KLOG, _PATH_KLOG, PATH_KSYM);
-}
-
-
-/*
- * getLine:
- * Search for a line on a string buffer
- * returns a pointer to the line or NULL if the buffer is empty
- */
-char*
-getLine (char *buf, int *i)
-{
-	if (*buf == '\0')
-		return (NULL);
-	while (buf[*i] != '\n' && buf[*i] != '\0')
-		(*i)++;
-	if (buf[*i] == '\0')
-		(*i)--;
-	else
-		buf[*i] = '\0';
-	return (buf);
 }
 
 
@@ -258,7 +237,7 @@ im_linux_init (struct i_module *I, char **argv, int argc)
 	if ((flags & KSYM_TRANSLATE) && ksym_init() < 0)
 		return (-1);
 
-        I->im_flags |= IMODULE_FLAG_KERN;
+        I->im_flags |= IMODULE_FLAG_KERN & ADDDATE;
 	optind = current_optind;
 	add_fd_input(I->im_fd , I);
         return (I->im_fd);
@@ -299,44 +278,96 @@ im_linux_read (struct i_module *im, int infd, struct im_msg *ret)
 	}
 
 	if (i) {
+		char	*nextline;
+
 		im->im_buf[i] = '\0';
 
 		/* log each msg line */
-		i = 0;
 		ptr = im->im_buf;
-		while ( (ptr = getLine(ptr, &i)) != NULL) {
-			
-			/* get priority */
-			if (i >= 3 && ptr[0] == '<' &&
-			    ptr[2] == '>' && isdigit(ptr[1])) {
-				ret->im_pri = ptr[1] - '0';
-				ptr += 3;
-				i -= 3;
-			}
-			else
+                do {
+ 
+                        /* multiple lines ? */
+                        if((nextline = strchr(ptr, '\n')) != NULL) {
+                                /* terminate this line and advance */
+                                *nextline++ = '\0';
+                        }
+  
+                        if (*ptr == '\0') {
+                                if (nextline != NULL) {
+                                        ptr = nextline;  
+                                        continue;    
+                                } else           
+                                        return (0);
+                        }
+
+			if (sscanf(ptr, "<%d>", &ret->im_pri) == 1) {
+				ptr = &ptr[3];
+			} else {
 				/* from printk.c: DEFAULT_MESSAGE_LOGLEVEL */
 				ret->im_pri = LOG_WARNING;
+			}
+
 
 			/* parse kernel/module symbols */
-			if (flags & KSYM_TRANSLATE)
-				ret->im_len = ksym_snprintf(ret->im_msg,
-				    ret->im_mlen, ptr);
-			else
-				ret->im_len = snprintf(ret->im_msg,
-				    ret->im_mlen, "kernel: %s", ptr);
+			if (flags & KSYM_TRANSLATE) {
+				char	buf[512], symbuf[20];
+				Symbol	sym;
+				int	n;
 
-			/* log msg */
-			if (ret->im_len < 0)
-			    ret->im_len = ret->im_mlen;
+				n = 0;
+
+				strncpy(ret->im_msg, "kernel: ",
+				    sizeof(ret->im_msg) - 1);
+				ret->im_len = 8;
+
+				while (sscanf(ptr, "%511[^[][<%[0-9a-fA-F]>]%n",
+				    buf, symbuf, &n) == 2) {
+
+					ptr = &ptr[n];
+					n = 0;
+
+					symbuf[sizeof(symbuf) - 1] = '\0';
+					buf[sizeof(buf) - 1] = '\0';
+
+					ret->im_len += snprintf(ret->im_msg
+					    + ret->im_len, sizeof(ret->im_msg)
+					    - 1 - ret->im_len, "%s", buf);
+
+					if (ksym_lookup(&sym, symbuf) == NULL) {
+						ret->im_len += snprintf(ret->im_msg
+						    + ret->im_len, sizeof(ret->im_msg)
+						    - 1 - ret->im_len, "[%s]",
+						    symbuf);
+						continue;
+					}
+
+					ret->im_len += snprintf(ret->im_msg
+					    + ret->im_len, sizeof(ret->im_msg)
+					    - 1 - ret->im_len, "[<%s> %s.%s ]",
+					    sym.addr, sym.mname, sym.name);
+				}
+
+				if (n > 0) {
+					ret->im_len += snprintf(ret->im_msg
+					    + ret->im_len, sizeof(ret->im_msg)
+					    - 1 - ret->im_len, "%s", buf);
+					ret->im_msg[ret->im_len] = '\0';
+				}
+			} else
+				ret->im_len = snprintf(ret->im_msg,
+				    sizeof(ret->im_msg) - 1, "kernel: %s", ptr);
+
 			strncpy(ret->im_host, LocalHostName,
 			    sizeof(ret->im_host));
-			ret->im_host[sizeof(ret->im_host)-1] = '\0';
-			logmsg(ret->im_pri, ret->im_msg,
-			    ret->im_host, ret->im_flags);
+			ret->im_host[sizeof(ret->im_host) - 1] = '\0';
+
+			logmsg(ret->im_pri, ret->im_msg, ret->im_host,
+			    im->im_flags);
 			ptr += i + 1;
 			i = 0;
-		}
+		} while (nextline != NULL);
 	}
+
 	return (0);
 }
 
@@ -418,66 +449,6 @@ ksym_close()
 	}
 	if (ksym_path != PATH_KSYM)
 		free(ksym_path);
-}
-
-
-/*
- * ksym_snprintf
- */
-int
-ksym_snprintf (char *buf, int bufsize, char *raw)
-{
-	int     i;
-	int	printed;
-	char   *p1;
-	char   *p2;
-	Symbol  sym;
-
-	if ( (printed = snprintf(buf, bufsize, "kernel: ")) < 0)
-		return (-1);
-	bufsize -= printed;
-
-	while (bufsize && *raw != '\0') {
-		if ( (p1 = strstr(raw, "[<")) != NULL &&
-		     (p2 = strstr(p1, ">]")) != NULL) {
-			for (i = 2; p1+i < p2 && isxdigit(p1[i]); i++);
-			if (p1+i == p2) {
-				*p2 = '\0';
-				if (ksym_lookup(&sym, p1+2) != NULL) {
-					*p1 = '\0';
-					if ( (printed +=
-					    snprintf(buf+printed, bufsize,
-					    "%s [<%s> %s.%s ]", raw, sym.addr,
-					    sym.mname, sym.name)) < 0)
-						return (-1);
-					bufsize -= printed;
-
-					/* we need to solve some things
- 					 * about buf and msg params on
-					 * im_xxxxx_read.
-					 * so, i think that is better
-					 * not to change raw data ;;;
-					 */
-					*p1 = '[';
-					*p2 = '>';
-					raw = p2+2;
-					continue;
-				}
-				*p2 = '>';
-			} 
-		} 
-		break;
-	}
-
-	if (*raw) {
-		/* kernel message without symbols */
-		if ( (i = snprintf(buf+printed, bufsize, "%s", raw)) < 0)
-			return (-1);
-		else
-			printed += i;
-	}
-
-	return (printed);
 }
 
 
