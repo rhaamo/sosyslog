@@ -154,7 +154,9 @@ om_mysql_doLog(f, flags, msg, context)
  *
  */
 
-extern char *oprtarg;
+extern char *optarg;
+extern int  optind,
+	    optreset;
 
 int
 om_mysql_init(argc, argv, f, prog, c)
@@ -166,7 +168,7 @@ om_mysql_init(argc, argv, f, prog, c)
 {
 	MYSQL *h;
 	struct om_mysql_ctx	*context;
-	char	*host, *user, *passwd, *db, *table, *p;
+	char	*host, *user, *passwd, *db, *table, *p, *query;
 	int	port, client_flag, createTable;
 	int	ch;
 
@@ -197,7 +199,6 @@ om_mysql_init(argc, argv, f, prog, c)
 			case 'u':
 				user = strdup(optarg);
 				break;
-					break;
 			case 'p':
 				passwd = strdup(optarg);
 				break;
@@ -215,7 +216,7 @@ om_mysql_init(argc, argv, f, prog, c)
 		}
 	}
 
-	if ( user == NULL || passwd == NULL || db == NULL || port == 0 ||
+	if (user == NULL || passwd == NULL || db == NULL || port == 0 ||
 			host == NULL || table == NULL)
 		return (-3);
 
@@ -233,7 +234,12 @@ om_mysql_init(argc, argv, f, prog, c)
 	}
 
 	/* save handle and stuff on context */
-	*c = (struct om_header_ctx *) calloc(1, sizeof(struct om_mysql_ctx));
+	if (! (*c = (struct om_header_ctx *)
+		calloc(1, sizeof(struct om_mysql_ctx))))
+		return (-1);
+
+	if (! (query = (char *) calloc(1, MAX_QUERY)))
+		return (-1);
 
 	context = (struct om_mysql_ctx *) *c;
 	context->size = sizeof(struct om_mysql_ctx);
@@ -244,7 +250,7 @@ om_mysql_init(argc, argv, f, prog, c)
 	context->passwd = passwd;
 	context->db = db;
 	context->table = table;
-	context->query = (char *) calloc(1, MAX_QUERY);
+	context->query = query;
 
 	return (0);
 }

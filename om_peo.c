@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.1 2000/04/06 22:29:32 alejo Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.2 2000/04/19 22:00:23 claudio Exp $";
 #endif /* not lint */
 
 /*
@@ -63,6 +63,24 @@ static char rcsid[] = "$Id: om_peo.c,v 1.1 2000/04/06 22:29:32 alejo Exp $";
 #include "syslogd.h"
 #include "modules.h"
 
+
+enum {
+	SHA1 = 0,
+	MD5,
+
+	LAST
+	};
+
+
+struct om_peo_ctx {
+	short	flags;
+	int	size;
+
+	int	hash_method;
+	char	*keyfile;
+	};
+
+
 int
 om_peo_doLog(f, flags, msg, context)
 	struct filed *f;
@@ -76,8 +94,18 @@ om_peo_doLog(f, flags, msg, context)
 /*
  *  INIT -- Initialize om_peo
  *
- *  taken mostly from syslogd's cfline
+ *  Parse options
+ * 
+ *  params:
+ * 
+ *	-k <keyfile>
+ *	-m <hash_method>	sha1 or md5
+ *
  */
+extern char	*optarg;
+extern int	optind,
+		optreset;
+
 int
 om_peo_init(argc, argv, f, prog, context)
 	int argc;
@@ -86,8 +114,55 @@ om_peo_init(argc, argv, f, prog, context)
 	char *prog;
 	void *context;
 {
-	return (-1);
+	int	ch;
+	char	*tmp;
+	int	hash_method;
+	char	*keyfile;
+		
+	dprintf("Peo: entering initialization\n");
+	
+	if (argv == NULL || *argv == NULL || !argc || f == NULL || c == NULL)
+		return (-1);
+
+	/* default values */
+	hash_method = SHA1;
+	keyfile = strdup("/var/ssyslog");
+
+	/* parse line */
+	optreset = 1; optind = 0;
+	while ((ch = getopt(argc, argv, "k:h:")) != -1) {
+		switch(ch) {
+			case 'm':
+				/* set hash method */
+				if ( (hash_method = atoi(optarg)) >= LAST ||
+				      hash_method < 0) hash_method = SHA1;
+				break;
+			case 'k':
+				/* set keyfile */
+				if ( (tmp = strdup(optarg)) != NULL) {
+					if (keyfile) free(keyfile);
+					keyfile = tmp;
+					}
+				break;
+			default:;
+		}
+	}
+					
+	if (!keyfile) return (-1);
+
+	/* save data on context */
+	if (! (*c = (struct om_header_ctx*)
+	      calloc (1, sizeof(struct om_peo_ctx))))
+		return (-1);
+
+	context = (struct om_peo_ctx*) *c;
+	context->size = sizeof(struct om_peo_ctx);
+	context->hashmethod = hashmethod;
+	context->keyfile = keyfile; 
+
+	return (0);
 }
+
 
 int
 om_peo_close(f, context)
