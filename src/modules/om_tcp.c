@@ -112,6 +112,7 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		return (-1);
 	}
 	c = (struct om_tcp_ctx *) *ctx;
+  c->inc = 0;
 
 	/* parse line */
 	optind = 1;
@@ -262,10 +263,11 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 	 	    (c->savelen && (write(c->fd, c->saved, c->savelen)
 		    != c->savelen)) || (write(c->fd, line, l) != l) ) {
 
-			m_dprintf(MSYSLOG_SERIOUS, "still down! next retry "
-			    "in %i seconds\n", c->msec - (c->msec / c->inc));
-
 			c->inc++;
+
+			m_dprintf(MSYSLOG_SERIOUS, "still down! next retry "
+			    "in %i seconds\n", c->msec - (c->msec / c->inc ));
+
 			c->savet = t;
 			if (c->fd)
 				close(c->fd);
