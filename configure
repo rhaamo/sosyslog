@@ -1651,7 +1651,7 @@ echo $ac_n "checking configuration for classic module""... $ac_c" 1>&6
 echo "configure:1652: checking configuration for classic module" >&5
 if test "x$CLASSIC" = "xstatic"
 then
-	SSRCS="$SSRCS om_classic.c " 
+	SSRCS="$SSRCS om_classic.c ttymsg.c " 
 	 
 SMODULES_HEADER="$SMODULES_HEADER \
 int om_classic_init (int, char**, struct filed*, char*, void **); \
@@ -1678,9 +1678,9 @@ SMODULES_LOAD="$SMODULES_LOAD \
 	olast->om_doLog=om_classic_doLog;"
 
 
-if test -f "$MODULES_DIR/om_classic.c"
+if test -f "$MODULES_DIR/om_classic.c ttymsg.c"
 then
-	if test "`grep om_classic_flush $MODULES_DIR/om_classic.c`"
+	if test "`grep om_classic_flush $MODULES_DIR/om_classic.c ttymsg.c`"
 	then
 		
 SMODULES_HEADER="$SMODULES_HEADER \
@@ -1693,9 +1693,9 @@ fi
  
 
 
-if test -f "$MODULES_DIR/om_classic.c"
+if test -f "$MODULES_DIR/om_classic.c ttymsg.c"
 then
-	if test "`grep om_classic_close $MODULES_DIR/om_classic.c`"
+	if test "`grep om_classic_close $MODULES_DIR/om_classic.c ttymsg.c`"
 	then
 		
 SMODULES_HEADER="$SMODULES_HEADER \
@@ -1709,7 +1709,7 @@ fi
 	echo "$ac_t""static" 1>&6;
 elif test "x$CLASSIC" = "xdynamic"
 then
-	Dclassic_SRCS="om_classic.c "
+	Dclassic_SRCS="om_classic.c ttymsg.c "
 	Dclassic="libmsyslog_om_classic.so.$MSYSLOG_VERSION"
 	Dclassic_PLAIN="libmsyslog_om_classic.so"
 	

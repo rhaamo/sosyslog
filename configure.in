@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.73 2000/11/15 18:44:26 alejo Exp $
+dnl	$CoreSDI: configure.in,v 1.74 2000/11/22 00:38:15 alejo Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -92,7 +92,7 @@ MSYSLOG_CHECK_MODULE(unix, $UNIX, im, im_unix.c)
 MSYSLOG_CHECK_MODULE(udp, $UDP, im, im_udp.c)
 MSYSLOG_CHECK_MODULE(bsd, $BSD, im, im_bsd.c)
 MSYSLOG_CHECK_MODULE(linux, $LINUX, im, im_linux.c)
-MSYSLOG_CHECK_MODULE(classic, $CLASSIC, om, om_classic.c)
+MSYSLOG_CHECK_MODULE(classic, $CLASSIC, om, om_classic.c ttymsg.c)
 MSYSLOG_CHECK_MODULE(peo, $PEO, om, om_peo.c)
 
 MSYSLOG_CHECK_MODULE(doors, $DOORS, im, im_doors.c)
