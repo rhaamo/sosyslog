@@ -1,4 +1,4 @@
-/*	$CoreSDI: TODO,v 1.35 2000/09/18 19:35:42 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.36 2000/09/18 22:45:44 fgsch Exp $	*/
 
 Things to do:
 
@@ -6,6 +6,7 @@ Things to do:
 - do not generate coredumps (via resource limits)
 - warn the when ignoring a line
 - tell about -i linux in syslogd(8)
+- fix time and date usage on syslogd.c and modules. it is UGLY.
 - thinker about wall mesages
 - abstract a *net.c fileall networking code ?
 - debug levels
@@ -27,7 +28,7 @@ Check for buffer overflows, as we now may get things from the outside world.
   function
 - Kill filed structure
 - Optimize each input/output module
-- Create goods Makefiles
+- Create good Makefiles
 - Complete and fix man pages
 - Allow not only one module type on each configuration line
 - Add linux extensions on selector field on configuration file
