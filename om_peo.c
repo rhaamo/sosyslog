@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.2 2000/04/19 22:00:23 claudio Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.3 2000/04/19 22:43:13 claudio Exp $";
 #endif /* not lint */
 
 /*
@@ -67,8 +67,7 @@ static char rcsid[] = "$Id: om_peo.c,v 1.2 2000/04/19 22:00:23 claudio Exp $";
 enum {
 	SHA1 = 0,
 	MD5,
-
-	LAST
+	UNKNOWN
 	};
 
 
@@ -102,6 +101,7 @@ om_peo_doLog(f, flags, msg, context)
  *	-m <hash_method>	sha1 or md5
  *
  */
+
 extern char	*optarg;
 extern int	optind,
 		optreset;
@@ -115,49 +115,55 @@ om_peo_init(argc, argv, f, prog, context)
 	void *context;
 {
 	int	ch;
-	char	*tmp;
 	int	hash_method;
 	char	*keyfile;
-		
-	dprintf("Peo: entering initialization\n");
+
+	dprintf("peo output module init\n");
 	
 	if (argv == NULL || *argv == NULL || !argc || f == NULL || c == NULL)
 		return (-1);
 
 	/* default values */
 	hash_method = SHA1;
-	keyfile = strdup("/var/ssyslog");
+	if (! (keyfile = strdup("/var/ssyslog")))
+		return (-1);
 
 	/* parse line */
 	optreset = 1; optind = 0;
-	while ((ch = getopt(argc, argv, "k:h:")) != -1) {
+	while ((ch = getopt(argc, argv, "k:m:")) != -1) {
 		switch(ch) {
 			case 'm':
-				/* set hash method */
-				if ( (hash_method = atoi(optarg)) >= LAST ||
-				      hash_method < 0) hash_method = SHA1;
+				/* set method */
+				if (!strcasecmp(optarg, "sha1"))
+					hash_method = SHA1;
+				else if (!strcasecmp(optarg, "md5"))
+					hash_method = MD5; 
+				else {
+					free (keyfile);
+					return (-1);
+					}
 				break;
 			case 'k':
 				/* set keyfile */
-				if ( (tmp = strdup(optarg)) != NULL) {
-					if (keyfile) free(keyfile);
-					keyfile = tmp;
-					}
+				free (keyfile);
+				if (! (keyfile = strdup(optarg)))
+					return (-1);
 				break;
-			default:;
+			default:
+				return (-1);
 		}
 	}
-					
-	if (!keyfile) return (-1);
 
 	/* save data on context */
 	if (! (*c = (struct om_header_ctx*)
-	      calloc (1, sizeof(struct om_peo_ctx))))
+	      calloc (1, sizeof(struct om_peo_ctx)))) {
+		free (keyfile);
 		return (-1);
+		}
 
 	context = (struct om_peo_ctx*) *c;
 	context->size = sizeof(struct om_peo_ctx);
-	context->hashmethod = hashmethod;
+	context->hash_method = hash_method;
 	context->keyfile = keyfile; 
 
 	return (0);
