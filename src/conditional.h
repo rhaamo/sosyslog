@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.80 2000/10/31 19:42:12 alejo Exp $	*/
+/*	$CoreSDI: conditional.h,v 1.1 2000/11/03 22:18:49 alejo Exp $	*/
 
 /*
  * Needed vars for Solaris machines
@@ -107,6 +107,11 @@ CODE facilitynames[] =
 #ifndef _PATH_UTMP
 # define _PATH_UTMP "/var/adm/utmp"
 # warning Using "/var/adm/utmp" for _PATH_UTMP
+#endif
+
+/* if _PATH_DEVNULL isn't defined, define it here... */
+#ifndef _PATH_DEVNULL
+#define _PATH_DEVNULL "/dev/null"
 #endif
 
    
