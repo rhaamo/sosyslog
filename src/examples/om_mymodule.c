@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mymodule.c,v 1.5 2000/10/31 19:42:13 alejo Exp $	*/
+/*	$CoreSDI: om_mymodule.c,v 1.6 2000/11/01 18:18:03 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -111,6 +111,7 @@ om_mymodule_init (int argc, char **argv, struct filed *f, char *prog,
 	 */
 
 	 optind = 1;
+	 opterr = 0; /* dont let getopt() print to stderr */
 #ifdef HAVE_OPTRESET 
 	optreset = 1;
 #endif

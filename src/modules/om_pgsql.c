@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.28 2000/11/03 20:14:24 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.29 2000/11/24 21:55:25 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -209,6 +209,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 
 	/* parse line */
 	optind = 1;
+	opterr = 0;
 
 #ifdef HAVE_OPTRESET
 	optreset = 1;

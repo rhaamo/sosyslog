@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.22 2000/11/01 18:18:04 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.23 2000/11/24 21:55:26 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -106,6 +106,7 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 	 *
 	 */
 	optind = 1;
+	opterr = 0;
 #ifdef HAVE_OPTRESET
 	optreset = 1;
 #endif

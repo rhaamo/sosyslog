@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.53 2000/11/24 21:55:25 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.54 2000/11/27 21:04:41 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -192,6 +192,7 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 
 	/* parse line */
 	optind = 1;
+	opterr = 0;
 #ifdef HAVE_OPTRESET
 	optreset = 1;
 #endif

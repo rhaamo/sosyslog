@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.55 2000/11/06 18:12:16 alejo Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.56 2000/11/24 21:55:25 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -193,6 +193,7 @@ om_peo_init (int argc, char **argv, struct filed *f, char *prog, void **ctx)
 	optreset = 1;
 #endif /* HAVE_OPTRESET */
 	optind = 1;
+	opterr = 0;
 	while ((ch = getopt(argc, argv, "k:lm:")) != -1) {
 		switch(ch) {
 		case 'k':
