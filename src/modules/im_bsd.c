@@ -22,25 +22,11 @@
 void    logerror __P((char *));
 
 
-/* standard input module header variables in context */
-struct im_bsd_ctx {
-	short	flags;
-#define M_FLAG_INITIALIZED 0x1
-#define M_FLAG_ERROR 0x2
-	int	size;
-	int	fd;
-};
-
-
 
 /*
  * initialize BSD input
  *
  */
-
-extern int nfunix;
-extern char *funixn[];
-extern int *funix[];
 
 int
 im_bsd_init(I)

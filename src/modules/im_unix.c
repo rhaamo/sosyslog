@@ -16,24 +16,14 @@
 #include <sys/un.h>
 #include <netinet/in.h>
 #include <errno.h>
+#include <string.h>
 
 
 char   *cvthname __P((struct sockaddr_in *));
 
 extern int nfunix;
 extern char *funixn[];
-extern int *funix[];
-
-
-/* standard input module header variables in context */
-struct im_unix_ctx {
-	short	flags;
-#define M_FLAG_INITIALIZED 0x1
-#define M_FLAG_ERROR 0x2
-	int	size;
-	int	fd;
-};
-
+extern int funix[];
 
 
 /*
@@ -72,20 +62,14 @@ im_unix_getLog(buf, size, c, r)
  *
  */
 
-extern int nfunix;
-extern char *funixn[];
-extern int *funix[];
 
 int
 im_unix_init(I)
 	struct i_module *I;
 {
-	struct im_unix_ctx *ctx;
 	int i;
 	char line[MAXLINE + 1];
-	struct sockaddr_un frominet;
-
-	ctx = (struct im_unix_ctx *) calloc(1, sizeof(struct im_unix_ctx));
+	struct sockaddr_un sunx;
 
 #ifndef SUN_LEN
 #define SUN_LEN(unp) (strlen((unp)->sun_path) + 2)
@@ -108,86 +92,9 @@ im_unix_init(I)
                                 die(0);
                 }
         }
-        finet = socket(AF_INET, SOCK_DGRAM, 0);
-        if (finet >= 0) {
-                struct servent *sp;
-
-                sp = getservbyname("syslog", "unix");
-                if (sp == NULL) {
-                        errno = 0;
-                        logerror("syslog/unix: unknown service");
-                        die(0);
-                }
-                memset(&sin, 0, sizeof(sin));
-                sin.sin_len = sizeof(sin);
-                sin.sin_family = AF_INET;
-                sin.sin_port = LogPort = sp->s_port;
-                if (bind(finet, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
-                        logerror("bind");
-                        if (!Debug)
-                                die(0);
-                } else {
-                        InetInuse = 1;
-                }
-        }
-
-        if ((fklog = open(_PATH_KLOG, O_RDONLY, 0)) < 0)
-                dprintf("can't open %s (%d)\n", _PATH_KLOG, errno);
-
-
- 
-
-
-	
+	return(1);
 }
 
-
-/*
- * get messge
- *
- */
-
-char *
-im_unix_getLog(c)
-	struct im_header_ctx  *c;
-{
-	struct im_unix_ctx *ctx;
-
-	ctx = (struct im_unix_ctx *) c;
-
-
-
-
-                if (finet != -1 && FD_ISSET(finet, &readfds)) {
-                        len = sizeof(frominet);
-                        i = recvfrom(finet, line, MAXLINE, 0,
-                            (struct sockaddr *)&frominet, &len);
-                        if (SecureMode) {
-                                /* silently drop it */
-                        } else {
-                                if (i > 0) {
-                                        line[i] = '\0';
-                                        printline(cvthname(&frominet), line);
-                                } else if (i < 0 && errno != EINTR)
-                                        logerror("recvfrom inet");
-                        }
-                }
-                for (i = 0; i < nfunix; i++) {
-                        if (funix[i] != -1 && FD_ISSET(funix[i], &readfds)) {
-                                len = sizeof(fromunix);
-                                len = recvfrom(funix[i], line, MAXLINE, 0,
-                                    (struct sockaddr *)&fromunix, &len);
-                                if (len > 0) {
-                                        line[len] = '\0';
-                                        printline(LocalHostName, line);
-                                } else if (len < 0 && errno != EINTR)
-                                        logerror("recvfrom unix");
-                        }
-                }
-
-
-	
-}
 
 
 /*

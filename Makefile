@@ -2,7 +2,7 @@
 
 PROG=	syslogd peochk
 SRCS=	syslogd.c ttymsg.c modules.c om_classic.c om_mysql.c om_peo.c ./peo/hash.c ./peo/rmd160.c ./peo/peochk.c im_bsd.c im_udp.c im_unix.c
-OBJS=	./peo/hash.o ./peo/rmd160.o
+OBJS=	hash.o rmd160.o
 .PATH:	${.CURDIR}/../../usr.bin/wall
 MAN=	syslogd.8 syslog.conf.5
 DEBUG=	-ggdb -Wall

@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.46 2000/04/26 01:59:55 alejo Exp $
+/*	$Id: syslogd.c,v 1.47 2000/04/26 23:34:42 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -162,13 +162,15 @@ main(argc, argv)
 			SecureMode = 0;
 			break;
 		case 'i':		/* BSD-like input (AF_LOCAL socket) */
-			if (!strncmp(optarg, "bsd", 3)) {
+			if (!strstr(optarg, "bsd")) 
 				inputs |= IM_BSD;
+			if (!strstr(optarg, "unix")) 
+				inputs |= IM_UNIX;
 #if 0
-			} else if (!strncmp(optarg, "sysv", 4)) {
+			if (!ststr(optarg, "sysv"))
 				inputs |= IM_SYSV;
 #endif
-			} else
+			else
 				usage();
 			break;
 		case 'a':		/* additional AF_UNIX socket name */
