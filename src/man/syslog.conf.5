@@ -1,4 +1,4 @@
-.\"	$Id: syslog.conf.5,v 1.2 2000/05/19 20:59:07 claudio Exp $
+.\"	$Id: syslog.conf.5,v 1.3 2000/05/19 21:27:53 claudio Exp $
 .\" Copyright (c) 1990, 1991, 1993
 .\"	The Regents of the University of California.  All rights reserved.
 .\"
@@ -334,8 +334,8 @@ For example ``mail.crit,*.err'' will select ``mail'' facility messages at
 the level of ``err'' or higher, not at the level of ``crit'' or higher.
 .Pp
 .It
-It is not recomended to mix configuration lines that uses the old and the
-new modular method.
+Even it works to mix configuration lines that uses the old and the
+new modular method, it is not recommended.
 .Sh SEE ALSO
 .Xr syslog 3 ,
 .Xr syslogd 8 ,
