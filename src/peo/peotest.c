@@ -9,9 +9,9 @@ struct om_header_ctx *c;
 char *argv[] = {
 		"myname",
 		"-m",
-		"rmd160",
+		"sha1",
 		"-k",
-		"pistola"
+		"caca"
 };
 
 if (om_peo_init(5, &argv, &f, argv[0], &c) == -1) {

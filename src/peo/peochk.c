@@ -1,4 +1,4 @@
-/*      $Id: peochk.c,v 1.8 2000/04/27 17:21:49 claudio Exp $
+/*      $Id: peochk.c,v 1.9 2000/04/27 19:31:15 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
@@ -17,11 +17,11 @@
  *	keyfile:	/var/ssyslog/.var.log.messages.key
  *	hash_method:	sha1
  *
- * NOTE:
+ * NOTES:
  *	1) When logfile is specified without the -f switch, the data is
  *	   readed from the standard input 
  *	2) If logfile is specified using both -f switch and without it,
- *	   the -f argument is used and data is not read from the standard input
+ *	   the -f argument is used and data is readed from that file
  *	3) If logfile is specified but not the keyfile, this will be
  *	   /var/ssyslog/xxx where xxx is the logfile with all '/'
  *	   replaced by '.'
@@ -88,12 +88,13 @@ usage()
 	"When no logfile is specified or it is without the -f switch "
 	"the data is read\n"
 	"from the standard input.\n"
- 	"If logfile is specified using both -f switch and without"
+ 	"If logfile is specified using both -f switch and without "
 	"it, the -f argument\n"
-	"is used and data is not read from the standard input.\n"
-	"If the logfile is specified but not the keyfile, the default key "
-	"file is /var/ssyslog/xxx\n"
-	"where xxx is the logfile with all '/' replaced by '.'\n\n"
+	"is used and data is readed from that file.\n"
+	"If the logfile is specified but not the keyfile, the default key"
+	"file is\n"
+	"/var/ssyslog/xxx where xxx is the logfile with all '/' "
+	"replaced by '.'\n\n"
 	"Default values:\n"
 	"\tlogfile    : /var/log/messages\n"
 	"\tkeyfile    : /var/ssyslog/.var.log.messages.key\n"
@@ -107,14 +108,31 @@ usage()
  * readline
  */
 int readline (fd, buf, len)
-	int fd;
-	void *buf;
-	size_t len;
+	int     fd;
+	char   *buf;
+	size_t  len;
 {
-return (-1);
+	int readed;
+	int r;
+
+	readed = 0;
+	while (len) {
+		if ( (r = read(fd, buf, 1)) == -1)
+			return (-1);
+		if (!r)
+			break;
+		readed++;
+		len--;
+		buf++;
+		if (*(buf-1) == '\n') {
+			*(buf-1) = '\0';
+			return readed-1;
+		}
+	}
+	return readed;
 }
 
-
+		
 /*
  * check: read logfile and check it
  */
@@ -130,12 +148,13 @@ check()
 	char msg[MAXLINE];
 	
 	/* open logfile */
-	if (use_stdin)
+	if (use_stdin) {
 		input = STDIN_FILENO;
-	else {
-		if ( (input = open(logfile, O_RDONLY, 0)) == -1)
-			err(1, keyfile);
+		if (fcntl(input, F_SETFL, O_NONBLOCK) == -1)
+			err(1, "standard input");
 	}
+	else if ( (input = open(logfile, O_RDONLY, 0)) == -1)
+		err(1, keyfile);
 
 	/* read initial key */
 	if ( (i = open(key0file, O_RDONLY, 0)) == -1)
@@ -162,10 +181,8 @@ check()
 		errx(1, "%s and/or %s files corrupted", key0file, keyfile);
 
 	/* check it */
-	while( (i = readline(input, msg, MAXLINE)) > 0) {
-		msg[i] = 0;
+	while( (i = readline(input, msg, MAXLINE)) > 0)
 		keylen = hash(method, key, keylen, msg, key);
-	}
 
 	if (i < 0)
 		errx(1, "error reading logs form %s", (use_stdin) ? "standard input" : logfile);
