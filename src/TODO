@@ -1,8 +1,9 @@
-/*	$CoreSDI: TODO,v 1.40 2000/09/27 21:43:47 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.41 2000/09/28 23:52:40 alejo Exp $	*/
 
 Things to do:
 
 - solaris port
+- finish log structure stuff, including some queue handling
 - do not generate coredumps (via resource limits)
 - divide classic in om_file, om_udp, om_console, om_wall, om_user.
 - warn the when ignoring a line
