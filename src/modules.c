@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.158 2001/05/03 22:33:12 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.159 2001/05/03 22:41:45 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -126,6 +126,7 @@ get_symbol(const char *modname, const char *funcname, void *h, void **ret) {
 
 	snprintf(buf, sizeof(buf), SYMBOL_PREFIX "%s_%s", modname, funcname);
 
+	*ret = NULL;
 	/*
 	 * Search for symbol on main library
 	 * and in module libs
