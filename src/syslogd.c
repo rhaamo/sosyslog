@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.129 2000/09/15 23:57:34 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.130 2000/09/16 00:38:13 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.129 2000/09/15 23:57:34 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.130 2000/09/16 00:38:13 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -677,7 +677,7 @@ logmsg(int pri, char *msg, char *from, int flags) {
 			f->f_repeatcount = 0;
 			f->f_prevpri = pri;
 			(void)strncpy(f->f_lasttime, timestamp, 15);
-			f->f_lasttime[16] = '\0';
+			f->f_lasttime[15] = '\0';
 			(void)strncpy(f->f_prevhost, from,
 					sizeof(f->f_prevhost)-1);
 			f->f_prevhost[sizeof(f->f_prevhost)-1] = '\0';
