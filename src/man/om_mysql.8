@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_mysql.8,v 1.6 2000/05/23 21:47:11 alejo Exp $
+.\"	$CoreSDI: om_mysql.8,v 1.1 2000/06/03 01:03:05 alejo Exp $
 .\"
 .\" Copyright (c) 2000
 .\"	Core-SDI SA. All rights reserved.
@@ -31,8 +31,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.ta 3m 3m
-.Dd May 10, 2000
+.Dd Jun 13, 2000
 .Dt OM_MYSQL 8
 .Os Core-SDI
 .Sh NAME
@@ -47,7 +46,6 @@
 .Op Fl t Ar table
 .Op Fl c
 .Sh DESCRIPTION
-.ad b
 .Nm MySQL output module 
 receives a message as an ascii string and logs it on a MySQL server. For
 proper initialization, the following parameters should be set:
@@ -55,11 +53,11 @@ proper initialization, the following parameters should be set:
 .It Fl s Ar hostname
 Specify the MySQL server hostname.
 .It Fl u Ar username
-Specifies the specifies the username to use on the MySQL server. This user
+Specifies the username to use on the MySQL server. This user
 must have enough permissions to insert on the specified database and table.
 .It Fl p Ar password
 The plaintext password for this MySQL user. Thus it is recommended NOT to
-leave syslog.conf world readable if this module is used.
+leave syslog.conf(5) world readable if this module is used.
 .It Fl d Ar database
 The database name to use on the specified MySQL server.
 .It Fl t Ar table
@@ -69,23 +67,31 @@ This option tells the module to create the tble in case it doesn't exist.
 .Sh EXAMPLES
 The table should have a format like this:
 .Pp
-CREATE TABLE syslogTB (
-  sdate date,           # date of this log message
-  stime time,           # time of this message
-  shost varchar(128),   # host logging
-  smsg text             # message
+.Bb -literal
+  CREATE TABLE syslogTB (
+    sdate date,           # date of this log message
+    stime time,           # time of this message
+    shost varchar(128),   # host logging
+    smsg  text            # message
 .Pp
-); 
+  ); 
+.Ed
 .Pp
-The field names can be whatever you like. The type of fields shost
-and smsg can be any text format over 128 chars and 1024 chars respectively.
+The field names can be whatever you like. The type of fields
+.Va shost
+and
+.Va smsg
+can be any text format over 128 chars and 1024 chars respectively.
 like this:
+.Sh SEE ALSO
+.Xr syslogd 8 ,
+.Xr syslog.conf 5 
 .Sh BUGS
+.Bl -bullet
+.It
 Since the MySQL module is used to connect with username and password,
 care must be pointed on file permissions and that user permissions
 on the MySQL server.
-.Sh SEE ALSO
-.Xr syslogd 8 ,
-.Xr syslog.conf 5 ,
-.Sh BUGS
+.It
 If you found bugs, please report them to syslog-bugs@core-sdi.com
+.El

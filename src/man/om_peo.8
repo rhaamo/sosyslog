@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_peo.8,v 1.6 2000/05/23 21:47:11 fgsch Exp $
+.\"	$CoreSDI: om_peo.8,v 1.7 2000/06/03 01:03:05 alejo Exp $
 .\"
 .\" Copyright (c) 2000
 .\"	Core-SDI SA. All rights reserved.
@@ -31,7 +31,6 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.ta 3m 3m
 .Dd May 10, 2000
 .Dt OM_PEO 8
 .Os Core-SDI
@@ -44,81 +43,79 @@
 .Op Fl l
 .Op Fl m Ar hash_method
 .Sh DESCRIPTION
-.ad b
 .Nm peo output module 
-receives a message as an ascii string and calculates its \fBhash\fP key based
-on the last one generated for the previous message; the module removes the
-last key and writes the new one into \fIkeyfile\fP. The options are as
-follows:
+receives a message as an ascii string and calculates its 
+.Em hash
+key based on the last one generated for the previous message; the
+module removes the last key and writes the new one into
+.Ar keyfile.
+The options are as follows:
 .Bl -tag -width Ds
 .It Fl k Ar keyfile
 Specify the key file pathname; the default is
-\fI/var/ssyslog/.var.log.messages.key\fP.
+.Pa /var/ssyslog/.var.log.messages.key
 .It Fl l
 This option enables the line corrupted detection mode;
 the module generates two keys, the first explained above and a second
-key using a \fBmac\fP method based on two consecutive \fBhash\fPes, this
-new key is added into the \fBmac\fP file whose pathname is the same as
-\fIkeyfile\fP with a ".mac" string added at the end (if this file does
-not exists, is created automatically).
+key using a 
+.Em mac
+method based on two consecutive
+.Em hash
+functions, this new key is added into the 
+.Em mac
+file whose pathname is the same as
+.Ar keyfile
+with a ".mac" string added at the end (if this file does not exists,
+is created automatically).
 .It Fl m Ar hash_method
 Specifies the hash method used to generate the key to put into the
-\fIkeyfile\fP, \fIhash_method\fP should be one of \fImd5\fP, \fIsha1\fP,
-or \fIrmd160\fP; the default is \fIsha1\fP.
+.Ar keyfile, hash_method
+should be one of 
+.Cm md5, sha1,
+or
+.Cm rmd160;
+the default is 
+.Cm sha1.
+.El
 .Sh EXAMPLES
-If you want to protect the /var/log/authlog file you should edit the
-/etc/syslog.conf file (see syslog.conf(5)) and add a line with something
-like this:
+If you want to protect the
+.Pa /var/log/authlog
+file you should edit the
+.Pa /etc/syslog.conf
+file (see syslog.conf(5)) and add a line with something like this:
 .Pp
-.in +3m
-.ll -3m
-\fBauth.info   %peo -l -k /var/ssyslog/.var.log.authlog.key %classic /var/log/authlog\fP
-.in -3m
-.ll +3m
+.Dl auth.info   %peo -l -k /var/ssyslog/.var.log.authlog.key %classic /var/log/authlog
 .Pp
 When you want to check the protected file integrity you should use the
 peochk(8) command.
-.Sh BUGS
-Since the peo module is used to determine if a logfile is corrupted, care
-must be taken on the configuration file, the following is not correct:
-.Pp
-.in +3m
-.ll -3m
-*.err	/var/log/messages
-.sp 0i
-*.err	%peo -k /var/ssyslog/.var.log.messages
-.Pp
-.in -3m
-.ll +3m
-the following is wrong either:
-.Pp
-.in +3m
-.ll -3m
-*.err	%classic /var/log/messages
-.sp 0i
-*.err	%peo -k /var/ssyslog/.var.log.messages
-.Pp
-.in -3m
-.ll +3m
-The correct sentence is:
-.Pp
-.in +3m
-.ll -3m
-*.err	%classic /var/log/messages  %peo -k /var/ssyslog/.var.log.messages
-.Pp
-.in -3m
-.ll +3m
-or
-.Pp
-.in +3m
-.ll -3m
-*.err	%peo -k /var/ssyslog/.var.log.messages  %classic /var/log/messages
-.in -3m
-.ll +3m
 .Sh SEE ALSO
 .Li Vcr and Peo Revised documentation - http://www.core-sdi.com/papers/peo.ps
 .Xr peochk 8 ,
 .Xr syslogd 8 ,
 .Xr syslog.conf 5 ,
 .Sh BUGS
+.Bl -bullet
+.It
+Since the peo module is used to determine if a logfile is corrupted, care
+must be taken on the configuration file, the following is not correct:
+.Pp
+.Dl *.err    /var/log/messages
+.Pp
+.Dl *.err    %peo -k /var/ssyslog/.var.log.messages
+.Pp
+the following is wrong either:
+.Pp
+.Dl *.err    %classic /var/log/messages
+.Pp
+.Dl *.err    %peo -k /var/ssyslog/.var.log.messages
+.Pp
+The correct sentence is:
+.Pp
+.Dl *.err    %classic /var/log/messages  %peo -k /var/ssyslog/.var.log.messages
+.Pp
+or
+.Pp
+.Dl *.err    %peo -k /var/ssyslog/.var.log.messages  %classic /var/log/messages
+.It
 If you found bugs, please report them to syslog-bugs@core-sdi.com
+.El

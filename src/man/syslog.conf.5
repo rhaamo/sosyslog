@@ -1,4 +1,4 @@
-.\"	$CoreSDI$
+.\"	$CoreSDI: syslog.conf.5,v 1.7 2000/05/23 21:47:07 fgsch Exp $
 .\"
 .\" Copyright (c) 1990, 1991, 1993
 .\"	The Regents of the University of California.  All rights reserved.
@@ -45,7 +45,7 @@
 configuration file
 .Sh DESCRIPTION
 The
-.Nm syslog.conf
+.Nm
 file is the configuration file for the
 .Xr syslogd 8
 program.
@@ -206,8 +206,11 @@ four forms are included into a ``classic'' module. The new
 modular form is as follows:
 .Bl -bullet
 .It
-%classic \fIxxx\fP.
-Where \fIxxx\fP is one of the last four.
+%classic 
+.Pa xxx,
+where 
+.Pa xxx
+is one of the last four.
 .El
 .Pp
 Blank lines and lines whose first non-blank character is a hash (``#'')
@@ -217,110 +220,96 @@ beginning with (``!'').  This allows
 .Nm
 files to be shared with systems that don't recognise the (``!'') syntax.
 .Sh EXAMPLES
-.Pp
+.Bl -bullet
+.It
 A configuration file that doesn't include modules might appear as follows:
-.Bd -literal
-.in +3m
+.Pp
+.Bd -literal -offset indent
 # Log all kernel messages, authentication messages of
 # level notice or higher and anything of level err or
 # higher to the console.
 # Don't log private authentication messages!
-
+.Pp
 *.err;kern.*;auth.notice;authpriv.none	/dev/console
-
-
+.Pp
 # Log anything (except mail) of level info or higher.
 # Don't log private authentication messages!
-
+.Pp
 *.info;mail.none;authpriv.none		/var/log/messages
-
-
+.Pp
 # The authpriv file has restricted access.
-
+.Pp
 authpriv.*				/var/log/secure
-
-
+.Pp
 # Log all the mail messages in one place.
-
+.Pp
 mail.*					/var/log/maillog
-
-
+.Pp
 # Everybody gets emergency messages, plus log them on another
 # machine.
-
+.Pp
 *.emerg					*
 *.emerg					@arpa.berkeley.edu
-
-
+.Pp
 # Root and Eric get alert and higher messages.
-
+.Pp
 *.alert					root,eric
-
-
+.Pp
 # Save mail and news errors of level err and higher in a
 # special file.
-
+.Pp
 uucp,news.crit				/var/log/spoolerr
-  
-
+.Pp 
 # Save ftpd transactions along with mail and news
-
+.Pp
 !ftpd
 *.*					/var/log/spoolerr
-.in -3m
 .Ed
 .Pp
+.It
 A configuration file using modules might appear as follows:
-.in +3m
-.Bd -literal
+.Bd -literal -offset indent
 # Log all kernel messages, authentication messages of
 # level notice or higher and anything of level err or
 # higher to the console.
 # Don't log private authentication messages!
-
+.Pp
 *.err;kern.*;auth.notice;authpriv.none	%classic /dev/console
-
-
+.Pp
 # Log anything (except mail) of level info or higher.
 # Don't log private authentication messages!
-
-*.info;mail.none;authpriv.none		%classic /var/log/messages
-
-
+.Pp
+*.info;mail.none;authpriv.none	%classic /var/log/messages
+.Pp
 # The authpriv file has restricted access.
-
-authpriv.*				%classic /var/log/secure
-
-
+.Pp
+authpriv.*			%classic /var/log/secure
+.Pp
 # Log all the mail messages in one place.
-
-mail.*					%classic /var/log/maillog
-
-
+.Pp
+mail.*				%classic /var/log/maillog
+.Pp
 # Everybody gets emergency messages, plus log them on another
 # machine.
-
-*.emerg					%classic *
-*.emerg					%classic @arpa.berkeley.edu
-
-
+.Pp
+*.emerg				%classic *
+*.emerg				%classic @arpa.berkeley.edu
+.Pp
 # Root and Eric get alert and higher messages.
-
-*.alert					%classic root,eric
-
-
+.Pp
+*.alert				%classic root,eric
+.Pp
 # Save mail and news errors of level err and higher in a
 # special file.
-
-uucp,news.crit				%classic /var/log/spoolerr
-
-  
+.Pp
+uucp,news.crit			%classic /var/log/spoolerr
+.Pp
 # Save ftpd transactions along with mail and news
-
+.Pp
 !ftpd
-*.*					%classic /var/log/spoolerr
-.in -3m
+*.*				%classic /var/log/spoolerr
 .Ed
+.El
 .Sh FILES
 .Bl -tag -width /etc/syslog.conf -compact
 .It Pa /etc/syslog.conf
@@ -329,28 +318,30 @@ The
 configuration file.
 .El
 .Sh BUGS
+.Bl -bullet
+.It
 The effects of multiple selectors are sometimes not intuitive.
 For example ``mail.crit,*.err'' will select ``mail'' facility messages at
 the level of ``err'' or higher, not at the level of ``crit'' or higher.
-.sp 0i
-.Pp
+.It
 Even it works to mix configuration lines that uses the old and the
 new modular method, avoid this. Future releases may not support mixing
 old and new styles.
-.Pp
+.It
 On each line there should be only one output module of each type so,
 the following is wrong:
 .Pp
-.Bd -literal
-	*.*	%classic /dev/console %classic /var/log/messages
+.Bd -literal -offset indent
+*.*    %classic /dev/console %classic /var/log/messages
 .Ed
 .Pp
 the correct sentences are:
 .Pp
-.Bd -literal
-	*.*	%classic /dev/console
-	*.*	%classic /var/log/messages
+.Bd -literal -offset indent
+*.*    %classic /dev/console
+*.*    %classic /var/log/messages
 .Ed
+.Bl
 .Sh SEE ALSO
 .Xr syslog 3 ,
 .Xr syslogd 8 ,

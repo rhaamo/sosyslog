@@ -1,4 +1,4 @@
-.\"	$CoreSDI$
+.\"	$CoreSDI: syslogd.8,v 1.8 2000/05/23 21:47:08 fgsch Exp $
 .\"
 .\" Copyright (c) 1983, 1986, 1991, 1993
 .\"	The Regents of the University of California.  All rights reserved.
@@ -69,7 +69,8 @@ Select the number of minutes between ``mark'' messages;
 the default is 20 minutes.
 .It Fl u
 Allow the historical ``insecure'' mode, in which syslogd will
-accept input from the UDP port as specified in /etc/services.
+accept input from the UDP port as specified in
+.Pa /etc/services .
 Some software wants this, but you can be subjected to a variety of
 attacks over the network, including attackers remotely filling logs.
 .It Fl p Ar log_socket
@@ -89,11 +90,19 @@ of various chroot filespaces. This option is predecated by
 .Fl i
 option.
 .It Fl i Ar input
-Enables the specified input modules; values for \fIinput\fP are
-\fIbsd\fP, used on BSD like systems to log kernel messages (from
-/dev/klog), and \fIunix\fP, used to log standard messages,
-you should specify the input socket pathname following a ``:''
-character (historically /dev/log).
+Enables the specified input modules; values for
+.Ar input
+are
+.Cm bsd,
+used on BSD like systems to log kernel messages (from
+.Pa /dev/klog
+),
+and 
+.Cm unix,
+used to log standard messages, you should specify the input socket
+pathname following a ``:'' character (historically
+.Pa /dev/log
+).
 .El
 .Pp
 .Nm Syslogd
@@ -116,7 +125,7 @@ The message sent to
 should consist of a single line.
 The message can contain a priority code, which should be a preceding
 decimal number in angle braces, for example,
-.Sq Aq 5.
+.Sq Aq 5 .
 This priority code should map into the priorities defined in the
 include file
 .Aq Pa sys/syslog.h .
@@ -125,13 +134,17 @@ To run modular
 .Nm
 on bsd systems you should:
 .Pp
-.Bd -literal
-	# \fBsyslogd -i bsd -i unix:/dev/log\fP
-.Ed
+.Dl # syslogd -i bsd -i unix:/dev/log
 .Pp
-with the command above two inputs modules are created, \fIbsd\fP,
-that logs kernel messages from /dev/klog, and \fIunix\fP, that opens
-\fI/dev/log\fP socket to log standard messages.
+with the command above two inputs modules are created,
+.Cm bsd,
+that logs kernel messages from
+.Pa /dev/klog,
+and
+.Cm unix,
+that opens
+.Pa /dev/log
+socket to log standard messages.
 .Sh FILES
 .Bl -tag -width /var/run/syslog.pid -compact
 .It Pa /etc/syslog.conf
@@ -154,8 +167,7 @@ The kernel log device.
 .Sh HISTORY
 Modular
 .Nm
-is based on the original syslogd daemon appared in
+is based on the original syslogd daemon appeared in
 .Bx 4.3 .
 .Sh BUGS
 If you found bugs, please report them to syslog-bugs@core-sdi.com
-
