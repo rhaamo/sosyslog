@@ -1,4 +1,4 @@
-/*	$Id: syslogd.h,v 1.29 2000/04/26 01:59:56 alejo Exp $
+/*	$Id: syslogd.h,v 1.30 2000/04/27 17:24:28 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -135,7 +135,7 @@ struct IModules {
 	/* buf, bufsize */ 
 	int	(*im_getLog) (struct i_module *, struct im_msg *);
 	int	(*im_init) (struct i_module *);
-	int	(*im_close) (struct i_module *);
+//	int	(*im_close) (struct i_module *);
 } IModules[MAX_N_IMODULES];
 
 
