@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.138 2000/09/27 22:10:28 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.139 2000/09/29 01:13:36 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.138 2000/09/27 22:10:28 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.139 2000/09/29 01:13:36 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -272,10 +272,22 @@ main(int argc, char **argv) {
 	if (((argc -= optind) != 0) || Inputs.im_fd < 0)
 		usage();
 
-	if (!Debug)
-		(void)daemon(0, 0);
-	else
+	if (!Debug) {
+		struct rlimit r;
+ 
+		/* no core dumping */
+		r.rlim_cur = 0;
+		r.rlim_max = 0;
+		if (setrlimit(RLIMIT_CORE, &r)) {
+			logerror("ERROR setting limits for coredump");
+		}
+ 
+		/* go daemon */
+		daemon(0, 0);
+ 
+	} else {
 		setlinebuf(stdout);
+	}
 
 	if (!(DaemonFlags & SYSLOGD_CONSOLE_ACTIVE)) {
 		/* this should get into Files and be way nicer */
