@@ -1,4 +1,4 @@
-/*	$Id: om_mysql.c,v 1.84 2002/09/17 05:20:28 alejo Exp $	*/
+/*	$Id: om_mysql.c,v 1.85 2003/04/04 19:16:48 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -108,7 +108,8 @@ om_mysql_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 	char			facility[16], priority[16], *p;
 	int			i;
 	RETSIGTYPE		(*sigsave)(int);
-  m->fired++;
+
+	m->fired++;
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "om_mysql_write: entering [%s] [%s]\n",
 	    m->msg, f->f_prevline);
