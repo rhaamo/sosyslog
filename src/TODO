@@ -34,6 +34,10 @@
 
 1- Check configuration parsing, there is at least 1 buffer overflow
 
+17-Apr-2000
+
+1- remove or at least integrate consfile using and creation
+
 FOR FUTURE WORKING
 
 For handling errors logging in a particular module, create a om_onerror
