@@ -1,15 +1,3 @@
-dnl aclocal.m4 generated automatically by aclocal 1.4
-
-dnl Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
-dnl This file is free software; the Free Software Foundation
-dnl gives unlimited permission to copy and/or distribute it,
-dnl with or without modifications, as long as this notice is preserved.
-
-dnl This program is distributed in the hope that it will be useful,
-dnl but WITHOUT ANY WARRANTY, to the extent permitted by law; without
-dnl even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-dnl PARTICULAR PURPOSE.
-
 dnl	$CoreSDI: aclocal.m4,v 1.26 2000/11/09 19:45:55 alejo Exp $
 
 
@@ -319,6 +307,5 @@ if test $ac_cv_type_CODE = yes; then
   AC_DEFINE(HAVE_CODE_TYPEDEF, 1)
 fi
 ])
-
 
 
