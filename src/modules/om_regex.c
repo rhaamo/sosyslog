@@ -131,10 +131,12 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	 *
 	 */
 	p = NULL;
-	argcnt = 1;	/* skip module name */
 
-	while ((ch = getxopt(argc, argv, "v!reverse!inverse m!message: h!host:"
-	    " d!date: t!time:", &argcnt)) != -1) {
+	for (argcnt = 1;   /* skip module name */
+       (ch = getxopt(argc, argv, 
+         "v!reverse!inverse m!message: h!host: d!date: t!time:",
+          &argcnt)) != -1;
+       argcnt++) {
 
 		switch (ch) {
 		case 'v':
@@ -184,12 +186,11 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 			return (-1);
 		}
 
-		if (p)
+		if (p) {
 			statbuf_len += snprintf(statbuf + statbuf_len,
 			    sizeof(statbuf) - statbuf_len, " %s [%s]", p,
 			    argv[argcnt]);
-
-		argcnt++;
+    }
 	}
 
 	*status = strdup(statbuf);
