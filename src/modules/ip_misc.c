@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.10 2001/03/01 00:09:56 alejo Exp $	*/
+/*	$CoreSDI: ip_misc.c,v 1.1 2001/03/06 01:18:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -40,6 +40,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -153,33 +154,37 @@ resolv_name(const char *host, const char *port)
 	if ( (hp = gethostbyname(host)) == NULL ) {
 		dprintf(DPRINTF_SERIOUS)("resolv_name: error resolving "
 		    "host address %s, %s\n", host, port);
-		return (-1);
+		return (NULL);
 	}
 
-	if (hp->h_addr_type == AF_INET) {
+	if (hp->h_addrtype == AF_INET) {
 		struct sockaddr_in *sin4;
 
 		sin4 = (struct sockaddr_in *)
 		    malloc(sizeof(struct sockaddr_in));
+#ifdef HAVE_SOCKADDR_SA_LEN
 		sin4->sin_len = sizeof(struct sockaddr_in);
+#endif
 		sin4->sin_port = portnum;
 		sin4->sin_family = AF_INET;
 		sin4->sin_port = 0; /* this should be specified later */
-		memcpy(sin4->sin_addr, *hp->h_addr_list,
+		memcpy(&sin4->sin_addr, *hp->h_addr_list,
 		    sizeof(struct in_addr));
 		sa = (struct sockaddr *) sin4;
 	}
 #ifdef AF_INET6
-	else if (hp->h_addr_type == AF_INET) {
+	else if (hp->h_addrtype == AF_INET) {
 		struct sockaddr_in6 *sin6;
 
 		sin6 = (struct sockaddr_in6 *)
 		    malloc(sizeof(struct sockaddr_in6));
+# ifdef HAVE_SOCKADDR_SA_LEN
 		sin6->sin6_len = sizeof(struct sockaddr_in6);
+# endif
 		sin6->sin6_port = portnum;
 		sin6->sin6_family = AF_INET6;
 		sin6->sin6_port = 0; /* this should be specified later */
-		memcpy(sin6->sin6_addr, *hp->h_addr_list,
+		memcpy(&sin6->sin6_addr, *hp->h_addr_list,
 		    sizeof(struct in6_addr));
 		sa = (struct sockaddr *) sin6;
 	}
@@ -208,10 +213,30 @@ connect_tcp(const char *host, const char *port) {
 
 	n = TCP_KEEPALIVE;
 
+	if (sa->sa_family != AF_INET
+#ifdef AF_INET6
+	    && sa->sa_family != AF_INET6
+#endif
+	    ) {
+		free(sa);
+		return (-1);
+	}
+
 	if ( (fd = socket(sa->sa_family, SOCK_STREAM, 0)) > -1 )
 
 		if ( (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &n,
-		    sizeof(n)) != 0) || (connect(fd, sa, sa->sa_len) != 0) ) {
+		    sizeof(n)) != 0) || (connect(fd, sa,
+#ifdef HAVE_SOCKADDR_SA_LEN
+		    sa->sa_len
+#else
+# ifndef AF_INET6
+		    sizeof(struct sockaddr_in)
+# else /* ifndef AF_INET6 */
+		    sa->sa_family == AF_INET? sizeof(struct sockaddr_in) : 
+		    sizeof(struct sockaddr_in6)
+# endif /* ifndef AF_INET6 */
+#endif
+		    ) != 0) ) {
 			close(fd); /* couldn't set option or connect */
 			fd = -1;
 		}

@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.91 2001/03/06 01:18:28 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.92 2001/03/06 16:01:28 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(config.h)dnl
@@ -33,7 +33,8 @@ AC_TYPE_SIGNAL
 dnl It should have strftime!
 dnl AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS(gethostname inet_ntop getaddrinfo regcomp poll select socket strdup strerror strstr strtoul )
+AC_CHECK_FUNCS(gethostname inet_ntop getaddrinfo regcomp poll select\
+ socket strdup strerror strstr strtoul )
 
 dnl 
 dnl Here are our checks...
@@ -245,12 +246,12 @@ AC_ARG_WITH(streams,
 		MSRCS="$MSRCS im_doors.c"
 		MANPAGES="$MANPAGES im_doors.8"
 		AC_DEFINE(HAVE_STREAMS_IMODULE)
-		test="yes"
+		temp_res="yes"
 	], [
-		test="no"
+		temp_res="no"
 	] )dnl
 	AC_MSG_CHECKING(for streams module)
-        AC_MSG_RESULT($test)
+        AC_MSG_RESULT($temp_res)
 ])
 
 AC_ARG_WITH(classic,
@@ -263,6 +264,7 @@ AC_ARG_WITH(classic,
 ],[
 	MSRCS="$MSRCS om_classic.c ttymsg.c"
 ])
+
 AC_ARG_WITH(tcp,
 [  --without-tcp
 	Use tcp input and output modules. Activated by default.
@@ -270,11 +272,20 @@ AC_ARG_WITH(tcp,
 	if test $with_tcp = "yes" ; then
 		MSRCS="$MSRCS om_tcp.c im_tcp.c ip_misc.c"
 		MANPAGES="$MANPAGES om_tcp.8 im_tcp.8"
+		temp_res="yes"
+	else
+		temp_res="no"
 	fi
 ],[
 	MSRCS="$MSRCS om_tcp.c im_tcp.c ip_misc.c"
 	MANPAGES="$MANPAGES om_tcp.8 im_tcp.8"
+	temp_res="yes"
 ])
+
+if test "$temp_res" = "yes" ; then
+	AC_EGREP_HEADER(sa_len, [#include <sys/socket.h> ],
+	    AC_DEFINE(HAVE_SOCKADDR_SA_LEN))
+fi
 
 AC_ARG_WITH(mysql,
 [  --without-mysql

@@ -1,4 +1,4 @@
-/*	$CoreSDI: TODO,v 1.69 2001/03/01 00:48:49 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.70 2001/03/01 01:41:04 alejo Exp $	*/
 
 Things to do:
 
@@ -35,9 +35,7 @@ Check for buffer overflows, as we now may get things from the outside world.
 - redo line format while keeping "<" and ">" usage (prevent new syslog proto)
 - Allow not only one module type on each configuration line (what?)
 - Add linux extensions on selector field on configuration file
-- We can't do select when im->path = NULL and im->fd >= 0 but the module
-  should be called. (what?)
-  We need to allow several others log methods like syscalls (ex.: im_linux)
+- We need to allow several others log methods like syscalls (ex.: im_linux)
 - Reconfiguing input modules on the fly (syslog -i "unix /dev/klog" when
   syslog is already running)
 - Keep alive [remote] saying how many messages have been sent from the previous
