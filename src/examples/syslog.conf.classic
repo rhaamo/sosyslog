@@ -8,7 +8,7 @@
 *.emerg		%classic *
 
 #This lines are equivalent we recommend the latter for msyslog
-#This sends a WALL message. A message to all logged users
+#This sends syslog output to a logging host through UDP transport
 *.notice		@loghost.domain.com
 *.notice		%classic @loghost.domain.com
 
