@@ -1,4 +1,4 @@
-/*	$CoreSDI: hash.c,v 1.32 2000/11/01 18:18:04 alejo Exp $	*/
+/*	$CoreSDI: hash.c,v 1.33 2000/11/03 20:52:38 alejo Exp $	*/
  
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -48,6 +48,9 @@
 #include <string.h>
 #include <unistd.h>
 
+/* here are needed stuf not in some OSs */
+#include "../conditional.h"
+
 #ifdef HAVE_OPENBSD
 	#include <md5.h>
 	#include <rmd160.h>
@@ -61,7 +64,6 @@
 #endif
 
 #include "hash.h"
-#include "../conditional.h"
 
 
 char *default_keyfile = "/var/ssyslog/.var.log.messages.key";
