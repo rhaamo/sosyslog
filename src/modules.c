@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.124 2000/08/30 23:19:44 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.89.2.6.2.4 2000/09/14 19:51:21 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -67,8 +67,6 @@ int     modules_load(void);
 int     imodule_init(struct i_module *, char *);
 int     omodule_create(char *, struct filed *, char *);
 void    logerror(char *);
-void    logmsg(int, char *, char *, int);
-void    die(int);
 
 int	parseParams(char ***, char *);
 struct imodule *getImodule(char *);
@@ -80,6 +78,8 @@ struct omodule *omodules;
 struct imodule *imodules;
 
 extern char *libdir;
+extern int Debug;
+char err_buf[MAXLINE];
 
 /* assign module functions to generic pointer */
 int
@@ -114,21 +114,28 @@ imodule_init (struct i_module *I, char *line) {
 	        *p = ' ';
 
 	if ((argc = parseParams(&argv, line)) < 1) {
-	    dprintf("Error initializing module %s [%s]\n", argv[0], line);
-	    die(0);
+	    snprintf(err_buf, sizeof(err_buf), "Error initializing module "
+			"%s [%s]\n", argv[0], line);
+	    logerror(err_buf);
+	    return(-1);
 	}
 
 	/* is it already initialized ? searching... */
 	if ((im->im_func = getImodule(argv[0])) == NULL)
 		if ((im->im_func = addImodule(argv[0])) == NULL) {
-	   		dprintf("Error loading dynamic input module %s [%s]\n", argv[0], line);
-			die(0);
+			snprintf(err_buf, sizeof(err_buf), "Error loading "
+					"dynamic input module %s [%s]\n",
+					argv[0], line);
+			logerror(err_buf);
+			return(-1);
 		}
 
 	/* got it, now try to initialize it */
 	if ((*(im->im_func->im_init))(im, argv, argc) < 0) {
-	   	dprintf("Error initializing input module %s [%s]\n", argv[0], line);
-		die(0);
+		snprintf(err_buf, sizeof(err_buf), "Error initializing "
+				"input module %s [%s]\n", argv[0], line);
+		logerror(err_buf);
+		return(-1);
 	}
 
 	return(1);
@@ -171,9 +178,11 @@ omodule_create(char *c, struct filed *f, char *prog) {
 				/* find for matching module */
 				if ((om->om_func = getOmodule(argv[0])) == NULL) {
 					if ((om->om_func = addOmodule(argv[0])) == NULL) {
-				   		dprintf("Error loading dynamic output module "
+						snprintf(err_buf, sizeof(err_buf), "Error "
+								"loading dynamic output module "
 								"%s [%s]\n", argv[0], line);
-						die(0);
+						logerror(err_buf);
+						return(-1);
 					}
 				}
 
@@ -185,15 +194,19 @@ omodule_create(char *c, struct filed *f, char *prog) {
 					(*p=='"' || *p=='\'')? quotes = *p++ : 0;
 						
 					argv[argc++] = p;
-
 					if (quotes) {
 						while (*p != '\0' && *p != quotes) p++;
+						if (*p == '\0') {
+							/* *p == '\0' quote not ending, fix */
+							quotes = 0;
+							break;
+						} else {
+							/* *p == quotes closing */
+							quotes = 0;
+						}
 					} else {
 						while ( *p != '\0' && !isspace((int)*p)) p++;
 					}
-
-					if (*p == '\0')
-						break;
 					*p++ = 0;
 					while (*p != '\0' && isspace((int)*p)) p++;
 				}
@@ -213,9 +226,11 @@ omodule_create(char *c, struct filed *f, char *prog) {
 				/* find for matching module */
 				if ((om->om_func = getOmodule(argv[0])) == NULL) {
 					if ((om->om_func = addOmodule(argv[0])) == NULL) {
-				   		dprintf("Error loading dynamic output module "
+						snprintf(err_buf, sizeof(err_buf), "Error "
+								"loading dynamic output module "
 								"%s [%s]\n", argv[0], line);
-						die(0);
+						logerror(err_buf);
+						return(-1);
 					}
 				}
 
@@ -223,9 +238,11 @@ omodule_create(char *c, struct filed *f, char *prog) {
 		}
 		if ((*(om->om_func->om_init))(argc, argv, f,
 				prog, (void *) &(om->ctx)) < 0) {
-			dprintf("Error initializing dynamic output module "
-								"%s [%s]\n", argv[0], line);
-			die(0);
+			snprintf(err_buf, sizeof(err_buf), "Error initializing "
+					"dynamic output module %s [%s]\n",
+					argv[0], line);
+			logerror(err_buf);
+			return(-1);
 		}
 	}
 	free(line);
@@ -316,10 +333,10 @@ addImodule(char *name) {
 		}
 	}
 
-	snprintf(buf, LIB_PATH_MAX, "%slibmsyslog_im_%s.so",
-			libdir ? libdir: INSTALL_LIBDIR, name);
+	snprintf(buf, LIB_PATH_MAX, "%s/libmsyslog_im_%s.so",
+			libdir ? libdir : INSTALL_LIBDIR, name);
 
-	if ((im->h = dlopen(buf, RTLD_LAZY)) == NULL) {
+	if ((im->h = dlopen(buf, DLOPEN_FLAGS)) == NULL) {
 	   	dprintf("Error [%s] on file [%s]\n", dlerror(), buf);
 	   	return(NULL);
 	}
@@ -391,7 +408,7 @@ addOmodule(char *name) {
 			for(j = 0; (r = mlibs[i].libs[j]) && j < MLIB_MAX; j++) {
 				dprintf("addImodule: going to open library %s "
 						"for module %s\n", name, r);
-				if (dlopen(r, RTLD_LAZY) == NULL) {
+				if (dlopen(r, DLOPEN_FLAGS) == NULL) {
 					dprintf("Error [%s] on file [%s]\n",
 							dlerror(), r);
 					return(NULL);
@@ -409,9 +426,10 @@ addOmodule(char *name) {
 		om = om->om_next;
 	}
 
-	snprintf(buf, LIB_PATH_MAX, "libmsyslog_om_%s.so", name);
+	snprintf(buf, LIB_PATH_MAX, "%s/libmsyslog_om_%s.so",
+			libdir ? libdir : INSTALL_LIBDIR, name);
 
-	if ((om->h = dlopen(buf, RTLD_LAZY)) == NULL) {
+	if ((om->h = dlopen(buf, DLOPEN_FLAGS)) == NULL) {
 	   	dprintf("Error [%s] on file [%s]\n", dlerror(), buf);
 	   	return(NULL);
 	}
