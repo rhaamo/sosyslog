@@ -1,4 +1,4 @@
-.\"	$Id: syslogd.8,v 1.6 2000/05/23 03:38:39 claudio Exp $
+.\"	$Id: syslogd.8,v 1.7 2000/05/23 19:33:31 claudio Exp $
 .\" Copyright (c) 1983, 1986, 1991, 1993
 .\"	The Regents of the University of California.  All rights reserved.
 .\"
@@ -82,7 +82,6 @@ option.
 Specify a location where
 .Nm syslogd
 should place an additional log socket.
-Up to about 20 additional logging sockets can be specified.
 The primary use for this is to place additional log sockets in
 .Pa /dev/log
 of various chroot filespaces. This option is predecated by
@@ -92,8 +91,8 @@ option.
 Enables the specified input modules; values for \fIinput\fP are
 \fIbsd\fP, used on BSD like systems to log kernel messages (from
 /dev/klog), and \fIunix\fP, used to log standard messages,
-you should specify the input pathname following a ``:'' character
-(historically /dev/log).
+you should specify the input socket pathname following a ``:''
+character (historically /dev/log).
 .El
 .Pp
 .Nm Syslogd
@@ -156,4 +155,6 @@ Modular
 .Nm
 is based on the original syslogd daemon appared in
 .Bx 4.3 .
+.Sh BUGS
+If you found bugs, please report them to syslog-bugs@core-sdi.com
 

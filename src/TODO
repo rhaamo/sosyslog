@@ -55,10 +55,13 @@ function
 
 1- Modules initialization should be dinamic
 2- Kill filed structure
-3- Allow not only one module type on each configuration line
-4- Optimize each input/output module
-5- Create a good Makefile
-6- Complete and fix man pages
-7- Udp input module from an arbitrary port
+3- Optimize each input/output module
+4- Create goods Makefiles
+5- Complete and fix man pages
+6- Udp input module from an arbitrary port
+7- Linux input module to eliminate klogd on that system
+8- Allow not only one module type on each configuration line
+9- Add linux extensions on selector field on configuration file
+
 
 

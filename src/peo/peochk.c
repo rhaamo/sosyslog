@@ -1,4 +1,4 @@
-/*      $Id: peochk.c,v 1.30 2000/05/13 01:41:50 claudio Exp $
+/*      $Id: peochk.c,v 1.31 2000/05/23 19:33:32 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
@@ -91,30 +91,11 @@ usage()
 	fprintf (stderr,
 		"Usage:\n"
 		"Check mode:\n"
-		"    peochk [-f logfile] [-i key0file] [-k keyfile]"
-		"[-m hash_method] [-q] [logfile]\n\n"
+		"    peochk [-h] [-l] [-f logfile] [-i key0file] [-k keyfile]\n"
+		"           [-m hash_method] [-q] [logfile]\n\n"
 		"Initial key generator mode:\n"
-		"    peochk -g [-k keyfile] [-m hash_method] [logfile]\n\n"
-		"hash_method options:\n"
-		"\tmd5, rmd160, sha1\n\n"
-		"When no logfile is specified or it is without the -f switch "
-		"the data is read\n"
-		"from the standard input.\n"
- 		"If logfile is specified using both -f switch and without "
-		"it, the -f argument\n"
-		"is used and data is readed from that file.\n"
-		"If the logfile is specified but not the keyfile, the default key"
-		"file is\n"
-		"/var/ssyslog/xxx.key where xxx is the logfile with all '/' "
-		"replaced by '.'\n\n"
-		"Default values:\n"
-		"\tlogfile    : /var/log/messages\n"
-		"\tkeyfile    : /var/ssyslog/.var.log.messages.key\n"
-		"\tkey0file   : keyfile+\"0\"\n"
-		"\thash_method: sha1\n\n"
-		"If -l switch is specified, the mac'ed log file is "
-		"keyfile+\".mac\"\n"
-		"The q option means quiet mode.\n");
+		"    peochk -g [-h] [-k keyfile] [-m hash_method] [logfile]"
+		"\n\n");
 	exit(-1);
 }
 

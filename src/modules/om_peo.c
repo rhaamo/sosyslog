@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.26 2000/05/22 22:40:54 alejo Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.27 2000/05/23 19:33:31 claudio Exp $";
 #endif /* not lint */
 
 /*
@@ -158,7 +158,7 @@ om_peo_doLog(f, flags, msg, ctx)
  *	-k <keyfile>		(default: /var/ssyslog/.var.log.messages)
  *	-l			line number corruption detect mode
  *				(generates a strcat(keyfile, ".mac") file)
- *	-m <hash_method>	sha1 or md5 (default: sha1)
+ *	-m <hash_method>	md5, rmd160, or sha1 (default: sha1)
  *
  */
 
