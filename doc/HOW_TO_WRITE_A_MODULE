@@ -15,6 +15,6 @@ Names used should be alphanumeric using '_' as separation.
 Libraries
 ---------
 
-You must specify all needed libraries in "src/modules.c" mlibs[].
+Your module should handle it's libraries with dlopen() and dlsym().
 
 For more information join our developer list (see INSTALL).
