@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.5 2000/06/26 23:36:01 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.6 2000/06/30 19:46:16 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -39,23 +39,23 @@ INSTALL_DIR=	@INSTALL_DIR@
 PROG=		peochk
 SRCS=		peochk.c
 SRCS+=		@HASH_SRCS@
-OBJS=		$(SRCS:.c=.o)
+OBJS=		${SRCS:.c=.o}
 
-all: $(PROG) $(OBJS)
+all: ${PROG} ${OBJS}
 
 .c.o:
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+	${CC} ${CFLAGS} ${CPPFLAGS} -c $< -o $@
 
-$(PROG): $(OBJS)
-	$(CC) -o $@ $(OBJS) $(LDFLAGS)
+${PROG}: ${OBJS}
+	${CC} -o $@ ${OBJS} ${LDFLAGS}
 
 .PHONY: clean distclean
 clean:
-	-rm -f $(OBJS) core *.core $(PROG)
+	-rm -f ${OBJS} core *.core ${PROG}
 
 distclean: clean
 	-rm -f Makefile
 
 install:
-	-chmod 111 $(PROG) && cp -f $(PROG) $(INSTALL_DIR)
+	-chmod 111 ${PROG} && cp -f ${PROG} ${INSTALL_DIR}
 

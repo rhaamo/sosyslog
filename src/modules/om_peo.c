@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.42 2000/06/16 00:26:59 alejo Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.43 2000/06/22 21:03:12 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -284,10 +284,3 @@ om_peo_close(f, ctx)
 	return (0);
 }
 
-int
-om_peo_flush(f, ctx)
-	struct filed *f;
-	struct om_hdr_ctx *ctx;
-{
-	return(1);
-}

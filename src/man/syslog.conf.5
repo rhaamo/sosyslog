@@ -1,4 +1,4 @@
-.\"	$CoreSDI: syslog.conf.5,v 1.8 2000/06/14 23:22:18 claudio Exp $
+.\"	$CoreSDI: syslog.conf.5,v 1.9 2000/07/03 21:05:57 claudio Exp $
 .\"
 .\" Copyright (c) 1990, 1991, 1993
 .\"	The Regents of the University of California.  All rights reserved.
@@ -319,31 +319,6 @@ The
 .Xr syslogd 8
 configuration file.
 .El
-.Sh BUGS
-.Bl -bullet
-.It
-The effects of multiple selectors are sometimes not intuitive.
-For example ``mail.crit,*.err'' will select ``mail'' facility messages at
-the level of ``err'' or higher, not at the level of ``crit'' or higher.
-.It
-Even it works to mix configuration lines that uses the old and the
-new modular method, avoid this. Future releases may not support mixing
-old and new styles.
-.It
-On each line there should be only one output module of each type so,
-the following is wrong:
-.Pp
-.Bd -literal -offset indent
-*.*    %classic /dev/console %classic /var/log/messages
-.Ed
-.Pp
-the correct lines are:
-.Pp
-.Bd -literal -offset indent
-*.*    %classic /dev/console
-*.*    %classic /var/log/messages
-.Ed
-.Bl
 .Sh SEE ALSO
 .Xr syslog 3 ,
 .Xr syslogd 8 ,
@@ -356,3 +331,23 @@ file appeared in
 .Bx 4.3 ,
 along with
 .Xr syslogd 8 .
+.Sh BUGS
+.Bl -bullet
+.It
+The effects of multiple selectors are sometimes not intuitive.
+For example ``mail.crit,*.err'' will select ``mail'' facility messages at
+the level of ``err'' or higher, not at the level of ``crit'' or higher.
+.It
+Even it works to mix configuration lines that uses the old and the
+new modular method, avoid this. Future releases may not support mixing
+old and new styles.
+.It
+On each line there should be only one classic module so,
+the following is wrong:
+.Pp
+.Dl *.*    %classic /dev/console %classic /var/log/messages
+.Pp
+the correct lines are:
+.Pp
+.Dl *.*    %classic /dev/console
+.Dl *.*    %classic /var/log/messages
