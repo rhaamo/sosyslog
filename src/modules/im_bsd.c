@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.57 2000/07/04 18:56:37 alejo Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.58 2000/07/04 20:18:00 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -70,6 +70,8 @@ im_bsd_init(struct i_module *I, char **argv, int argc,
 	
 	I->im_path = _PATH_KLOG;
 	I->im_flags |= IMODULE_FLAG_KERN;
+	gettimeofday(&I->im_nextcall, NULL);
+	I->im_nextcall.tv_sec += 5;
 	return(I->im_fd);
 }
 
@@ -81,8 +83,7 @@ im_bsd_init(struct i_module *I, char **argv, int argc,
  */
 
 int
-im_bsd_getLog(struct i_module *im, struct im_msg *ret, struct sglobals *sglobals)
-{
+im_bsd_getLog(struct i_module *im, struct im_msg *ret, struct sglobals *sglobals) {
 	char *p, *q, *lp;
 	int i, c;
 
@@ -139,4 +140,13 @@ im_bsd_close (struct i_module *im, struct sglobals *sglobals) {
 }
 
 
+
+int
+im_bsd_timer(struct i_module *im, struct im_msg *ret, struct sglobals *sglobals) {
+	dprintf("im_bsd_timer: called! \n");
+	gettimeofday(&(im->im_nextcall), NULL);
+	im->im_nextcall.tv_sec += 3;
+	im->im_nextcall.tv_usec += 3;
+	return(1);
+}
 

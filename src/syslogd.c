@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.108 2000/07/13 21:18:40 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.109 2000/07/14 01:04:32 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -130,12 +130,11 @@ extern	struct  imodule *imodules;
 struct	i_module Inputs;
 
 int
-main(int argc, char **argv)
-{
+main(int argc, char **argv) {
 	int ch;
 	FILE *fp;
 	char *p;
-	struct timeval timeout, tnow;
+	struct timeval timeout, tnow, nextcall;
 
 	memset(&Inputs, 0, sizeof(Inputs));
 
@@ -273,6 +272,14 @@ main(int argc, char **argv)
 			}
 		}
 
+		gettimeofday(&tnow, NULL);
+		timeout.tv_sec = nextcall.tv_sec - tnow.tv_sec;
+		timeout.tv_usec = nextcall.tv_usec - tnow.tv_usec;
+		if (timeout.tv_sec < 1 && timeout.tv_usec < SYSLOG_TIMEOUT_MINUSEC) {
+			timeout.tv_sec = SYSLOG_TIMEOUT_SEC;
+			timeout.tv_usec = SYSLOG_TIMEOUT_USEC;
+		}
+
 		/* dprintf("readfds = %#x\n", readfds); */
 		nfds = select(nfds+1, &readfds, (fd_set *)NULL,
 			(fd_set *)NULL, &timeout);
@@ -283,12 +290,20 @@ main(int argc, char **argv)
 			continue;
 		}
 
+		dprintf("\t** syslogd: sali del select %i\n", nfds);
+		dprintf("\t** %d sec \n", timeout.tv_sec);
+		gettimeofday(&nextcall.tv_sec, NULL);
+		nextcall.tv_sec += SYSLOG_TIMEOUT_SEC;
+		nextcall.tv_usec += SYSLOG_TIMEOUT_USEC;
+
 		/* dprintf("got a message (%d, %#x)\n", nfds, readfds); */
 		for (im = &Inputs; im ; im = im->im_next) {
 
 			/* get current time each pass */
 			gettimeofday(&tnow, NULL);
 
+			dprintf("\t** going to try %s \t  %p \n", im->im_name,
+					im->im_func->im_timer);
 			if (im->im_func->im_timer &&
 					im->im_nextcall.tv_sec < tnow.tv_sec &&
 					im->im_nextcall.tv_usec < tnow.tv_usec) {
@@ -296,6 +311,12 @@ main(int argc, char **argv)
 				/* call this input module timer */
 				if ((*im->im_func->im_timer)(im, &log, sglobals) < 0) {
 					dprintf("Error calling timer for [%s]\n", im->im_name);
+				}
+				if (nextcall.tv_sec > im->im_nextcall.tv_sec ||
+						(nextcall.tv_sec == im->im_nextcall.tv_sec &&
+						nextcall.tv_usec > im->im_nextcall.tv_usec)) {
+					nextcall.tv_sec = im->im_nextcall.tv_sec;
+					nextcall.tv_usec = im->im_nextcall.tv_usec;
 				}
 			}
 
@@ -316,7 +337,6 @@ main(int argc, char **argv)
 				}
 			}
 		}
-
 	}
 
 	return(1);
