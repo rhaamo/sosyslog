@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.111 2002/03/01 04:05:20 alejo Exp $	*/
+/*	$Id: syslogd.h,v 1.111 2002/09/17 05:20:26 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994

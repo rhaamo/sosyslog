@@ -1,5 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.50 2002/03/04 21:38:25 alejo Exp $	*/
-
+/*	$Id: modules.h,v 1.50 2002/09/17 05:20:26 alejo Exp $	*/
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
  * All rights reserved

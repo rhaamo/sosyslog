@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.60 2002/03/01 08:43:37 alejo Exp $	*/
+/*	$Id: im_linux.c,v 1.57 2002/09/17 05:20:27 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina

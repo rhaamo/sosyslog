@@ -1,4 +1,4 @@
-/*	$CoreSDI: sql_misc.c,v 1.11 2001/10/18 20:32:36 alejo Exp $	*/
+/*	$Id: sql_misc.c,v 1.13 2002/09/17 05:20:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina

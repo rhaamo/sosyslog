@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.35 2002/03/01 07:31:02 alejo Exp $	*/
+/*	$Id: im_tcp.c,v 1.42 2002/09/17 05:20:27 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina

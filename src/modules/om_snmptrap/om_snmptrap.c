@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_snmptrap.c,v 1.6 2002/02/20 18:31:50 claudio Exp $	 */
+/*	$Id: om_snmptrap.c,v 1.2 2002/09/17 05:20:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 2002, Core SDI S.A., Argentina

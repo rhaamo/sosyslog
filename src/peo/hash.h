@@ -1,4 +1,4 @@
-/*	$CoreSDI: hash.h,v 1.18 2001/04/05 20:56:26 alejo Exp $
+/*	$Id: hash.h,v 1.20 2002/09/17 05:20:29 alejo Exp $	*/
  */
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina

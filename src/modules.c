@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.167 2002/02/08 18:25:06 claudio Exp $	*/
+/*	$Id: modules.c,v 1.170 2002/09/17 05:20:26 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina

@@ -1,4 +1,4 @@
-/*	$CoreSDI: ip_misc.c,v 1.26 2001/12/05 20:47:56 alejo Exp $	*/
+/*	$Id: ip_misc.c,v 1.25 2002/09/17 05:20:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina

@@ -1,4 +1,4 @@
-/*	$CoreSDI: options.c,v 1.4 2002/03/01 08:30:34 alejo Exp $	*/
+/*	$Id: options.c,v 1.2 2002/09/17 05:20:26 alejo Exp $	*/
 /*
    Copyright (c) 2001
   	Core-SDI S.A., all rights reserved.

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.83 2001/11/21 05:15:25 alejo Exp $	*/
+/*	$Id: im_bsd.c,v 1.86 2002/09/17 05:20:27 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina

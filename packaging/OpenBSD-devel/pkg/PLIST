@@ -1,4 +1,4 @@
-@comment $CoreSDI: PLIST,v 1.1 2002/02/06 19:42:53 claudio Exp $
+@comment $Id: PLIST,v 1.2 2002/09/17 05:20:26 alejo Exp $
 include/msyslog/config.h
 include/msyslog/modules.h
 include/msyslog/syslogd.h

@@ -1,5 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.77 2002/03/01 07:31:03 alejo Exp $	*/
-
+/*	$Id: om_peo.c,v 1.77 2002/09/17 05:20:28 alejo Exp $	*/
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
  * All rights reserved

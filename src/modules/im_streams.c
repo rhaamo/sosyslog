@@ -1,4 +1,4 @@
-/*      $CoreSDI: im_streams.c,v 1.17 2001/11/21 05:15:25 alejo Exp $   */
+/*      $Id: im_streams.c,v 1.21 2002/09/17 05:20:27 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina

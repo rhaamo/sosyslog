@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile,v 1.14 2002/03/21 19:02:28 claudio Exp $
+# $Id: Makefile,v 1.2 2002/09/17 05:20:28 alejo Exp $
 #
 # Copyright (c) 2001, Core SDI S.A., Argentina
 # All rights reserved

@@ -1,4 +1,4 @@
- /*	$CoreSDI: im_udp.c,v 1.75 2002/03/01 07:31:02 alejo Exp $	*/
+ /*	$Id: im_udp.c,v 1.75 2002/09/17 05:20:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
