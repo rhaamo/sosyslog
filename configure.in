@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.125 2001/04/11 21:03:35 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.126 2001/04/18 21:37:03 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -132,6 +132,7 @@ AC_ARG_WITH(maximum-optimization,
 	Activate maximum possible compile and link optimization
 ],[ maxopt="yes"; ],[ maxopt="no"; ])
 
+MAIN_CPPFLAGS="";
 UNAME=`uname`
 if test "$UNAME" = "OpenBSD" ; then
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
@@ -140,6 +141,7 @@ if test "$UNAME" = "OpenBSD" ; then
 	DCCFLAGS="-fPIC"
 elif test "$UNAME" = "Linux" ; then
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY | RTLD_GLOBAL)dnl
+	MAIN_CPPFLAGS="-Xlinker -E";
 	SHARED_PARAMS="-Bshareable"
 	DCCFLAGS=""
 elif test "$UNAME" = "SunOS" ; then
@@ -361,23 +363,30 @@ AC_ARG_WITH(peo,
 	PEO=yes
 ])
 
-HASH_SRCS=""
+HASH_SRCS="";
 if test $PEO = "yes" ; then
 
 	MSRCS="$MSRCS om_peo.c"
 	MANPAGES="$MANPAGES om_peo.8 peochk.8"
 
-	HASH_SRCS="hash.c"
+	HASH_SRCS="hash.c";
+	HASH_SRCS_MODULES="../peo/hash.c";
+	HASH_OBJS_MODULES="hash.o";
 	AC_CHECK_FUNC(MD5Init, AC_DEFINE(HAVE_MD5),
-	        HASH_SRCS="$HASH_SRCS md5c.c")
+	        HASH_SRCS="$HASH_SRCS md5c.c";
+	        HASH_SRCS_MODULES="$HASH_SRCS_MODULES ../peo/md5c.c";
+		HASH_OBJS_MODULES="$HASH_OBJS_MODULES md5c.o";
+	)
 	AC_CHECK_FUNC(SHA1Init, AC_DEFINE(HAVE_SHA1),
-	        HASH_SRCS="$HASH_SRCS sha1.c")
+	        HASH_SRCS="$HASH_SRCS sha1.c";
+	        HASH_SRCS_MODULES="$HASH_SRCS_MODULES ../peo/sha1.c";
+		HASH_OBJS_MODULES="$HASH_OBJS_MODULES sha1.o";
+	)
 	AC_CHECK_FUNC(RMD160Init, AC_DEFINE(HAVE_RMD160),
-	        HASH_SRCS="$HASH_SRCS rmd160.c")
-	changequote(<<, >>)dnl
-	HASH_SRCS_MODULES=`echo $HASH_SRCS | sed 's/[0-9a-zA-Z.]*/..\/peo\/&/g'`
-	HASH_OBJS_MODULES=`echo $HASH_SRCS | sed 's/\.c/.o/g'`
-	changequote([, ])dnl
+	        HASH_SRCS="$HASH_SRCS rmd160.c";
+	        HASH_SRCS_MODULES="$HASH_SRCS_MODULES ../peo/rmd160.c";
+		HASH_OBJS_MODULES="$HASH_OBJS_MODULES rmd160.o";
+	)
 	if test -r /dev/srandom ; then
 		AC_DEFINE(HAVE_SRANDOM)
 	fi
@@ -417,6 +426,7 @@ AC_SUBST(HASH_SRCS)dnl
 AC_SUBST(HASH_SRCS_MODULES)dnl
 AC_SUBST(HASH_OBJS_MODULES)dnl
 AC_SUBST(HAVE_SOCKLEN_T)dnl
+AC_SUBST(MAIN_CPPFLAGS)dnl
 
 dnl AC_SUBST(SYMBOL_PREFIX)dnl
 

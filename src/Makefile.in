@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.49 2001/04/05 18:46:37 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.50 2001/04/05 19:09:25 alejo Exp $
 #
 # Copyright (c) 2001, Core SDI S.A., Argentina
 # All rights reserved
@@ -31,6 +31,7 @@
 CC=		@CC@
 CFLAGS=		@CFLAGS@
 CPPFLAGS=	@CPPFLAGS@ -I.
+MAIN_CPPFLAGS=	@MAIN_CPPFLAGS@
 LIBS=		@LIBS@
 SYSLOGD_LIBS=	@SYSLOGD_LIBS@
 
@@ -53,7 +54,7 @@ $(OBJS): $(SRCS)
 
 $(PROG): $(OBJS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LIBS) \
-            $(SYSLOGD_LIBS) $(OBJS) -o $@
+            $(SYSLOGD_LIBS) $(MAIN_CPPFLAGS) $(OBJS) -o $@
 
 .PHONY:	clean distclean
 
