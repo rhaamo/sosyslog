@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.29 2000/07/04 18:56:38 alejo Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.30 2000/07/06 19:01:00 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -309,7 +309,7 @@ im_linux_getLog (struct i_module *im, struct im_msg *ret,
 			
 			/* get priority */
 			if (i >= 3 && ptr[0] == '<' &&
-			    ptr[2] == '>' && isdigit(ptr[1])) {
+			    ptr[2] == '>' && isdigit((int)ptr[1])) {
 				ret->im_pri = ptr[1] - '0';
 				ptr += 3;
 				i -= 3;
@@ -441,7 +441,7 @@ ksym_snprintf (char *buf, int bufsize, char *raw)
 	while (bufsize && *raw != '\0') {
 		if ( (p1 = strstr(raw, "[<")) != NULL &&
 		     (p2 = strstr(p1, ">]")) != NULL) {
-			for (i = 2; p1+i < p2 && isxdigit(p1[i]); i++);
+			for (i = 2; p1+i < p2 && isxdigit((int)p1[i]); i++);
 			if (p1+i == p2) {
 				*p2 = '\0';
 				if (ksym_lookup(&sym, p1+2) != NULL) {

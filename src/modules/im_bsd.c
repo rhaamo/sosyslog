@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.58 2000/07/04 20:18:00 alejo Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.59 2000/07/18 01:02:50 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -100,7 +100,7 @@ im_bsd_getLog(struct i_module *im, struct im_msg *ret, struct sglobals *sglobals
 			ret->im_pri = DEFSPRI;
 			if (*p == '<') {
 				ret->im_pri = 0;
-				while (isdigit(*++p))
+				while (isdigit((int)*++p))
 					ret->im_pri = 10 * ret->im_pri +
 					    (*p - '0');
 				if (*p == '>')

@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.112 2000/07/04 21:13:27 claudio Exp $	*/
+/*	$CoreSDI: modules.c,v 1.113 2000/07/05 17:42:59 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -148,9 +148,9 @@ omodule_create(char *c, struct filed *f, char *prog) {
 			case '%':
 				/* get this module name */
 				argc=0;
-				while (isspace(*(++p)));
+				while (isspace((int)*(++p)));
 				argv[argc++] = p;
-				while (!isspace(*p)) p++;
+				while (!isspace((int)*p)) p++;
 
 				*p++=0;
 
@@ -164,7 +164,7 @@ omodule_create(char *c, struct filed *f, char *prog) {
 				}
 
 				/* build argv and argc, modifies input p */
-				while (isspace(*p)) p++;
+				while (isspace((int)*p)) p++;
 				while (*p && *p!='%' && *p !='\n' && *p!='\r'
 						&& argc<sizeof(argv)/sizeof(argv[0])) { 
 				
@@ -172,11 +172,11 @@ omodule_create(char *c, struct filed *f, char *prog) {
 						
 					argv[argc++] = p;
 					if (quotes) while (*p != quotes) p++;
-						else while ( *p != '\0' && !isspace(*p)) p++;
+						else while ( *p != '\0' && !isspace((int)*p)) p++;
 					if (*p == '\0')
 						break;
 					*p++ = 0;
-					while (*p != '\0' && isspace(*p)) p++;
+					while (*p != '\0' && isspace((int)*p)) p++;
 				}
 
 
@@ -236,7 +236,7 @@ parseParams(char ***ret, char *c)
 
 	for(q = p; *p != '\0'; p = q) {
 		/* skip initial spaces */
-		while (isspace(*p)) p++;
+		while (isspace((int)*p)) p++;
 		if (*p == '\0')
 		    break;
 
@@ -249,7 +249,7 @@ parseParams(char ***ret, char *c)
 
 		} else {
 		    /* see how long this word is, alloc, and copy */
-		    for(q = p; *q != '\0' && !isspace(*q); q++);
+		    for(q = p; *q != '\0' && !isspace((int)*q); q++);
 		    if (*q != '\0') {
 		        *q++ = '\0';
 		    }

@@ -1,4 +1,4 @@
-/*	$CoreSDI: config.h.in,v 1.10 2000/06/26 18:38:33 claudio Exp $	*/
+/*	$CoreSDI: config.h.in,v 1.11 2000/06/30 22:59:57 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -38,4 +38,6 @@
 #undef HAVE_OPENBSD
 
 #undef HAVE_LINUX
+
+#undef HAVE_CODE_TYPEDEF
 

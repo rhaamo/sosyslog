@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.110 2000/07/18 01:02:48 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.113 2000/07/21 21:26:49 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -84,10 +84,68 @@ static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $"
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/sysctl.h>
 
 #define SYSLOG_NAMES
 #include <syslog.h>
 #include "syslogd.h"
+#include "config.h"
+
+#ifdef PATH_MAX
+#define PID_PATH_MAX PATH_MAX
+#else
+#include <limits.h>
+#ifdef _POSIX_PATH_MAX
+#define PID_PATH_MAX _POSIX_PATH_MAX
+#warning Using _POSIX_PATH_MAX as maximum pidfile name length
+#else
+#error No max path defined
+#endif /* +POSIX_PATH_MAX */
+#endif /* PATH_MAX */
+
+#ifndef _PATH_CONSOLE
+#define _PATH_CONSOLE "/dev/console"
+#warning Using _PATH_CONSOLE as "/dev/console"
+#endif /* _PATH_CONSOLE */
+  
+#ifndef NAME_MAX
+#define NAME_MAX 255
+#warning Using NAME_MAX as 255
+#endif /* NAME_MAX */
+  
+#ifndef INTERNAL_NOPRI
+#define INTERNAL_NOPRI 0x10
+#warning Using INTERNAL_NOPRI as 0x10
+#endif /* INTERNAL_NOPRI */
+
+#ifndef HAVE_CODE_TYPEDEF
+typedef struct _code {
+        char    *c_name;
+        int     c_val;
+} CODE;
+#endif
+ 
+#if 0
+#ifndef HAVE_PRIORITYNAMES
+CODE prioritynames[] = {
+        { "alert",      LOG_ALERT },
+        { "crit",       LOG_CRIT },
+        { "debug",      LOG_DEBUG },
+        { "emerg",      LOG_EMERG },
+        { "err",        LOG_ERR },
+        { "error",      LOG_ERR },              /* DEPRECATED */
+        { "info",       LOG_INFO },
+        { "none",       INTERNAL_NOPRI },       /* INTERNAL */
+        { "notice",     LOG_NOTICE },
+        { "panic",      LOG_EMERG },            /* DEPRECATED */
+        { "warn",       LOG_WARNING },          /* DEPRECATED */
+        { "warning",    LOG_WARNING },
+        { NULL,         -1 },
+};
+#warning defined prioritynames
+#endif /* prioritynames */
+#endif
+
 
 struct sglobals *sglobals;
 
@@ -352,8 +410,7 @@ main(int argc, char **argv) {
 }
 
 void
-usage(void)
-{
+usage(void) {
 
 	(void)fprintf(stderr,
 	    "usage: syslogd [-d] [-u] [-f conffile] [-m markinterval]"
@@ -366,8 +423,7 @@ usage(void)
  * on the appropriate log files.
  */
 void
-printline(char *hname, char *msg, int flags)
-{
+printline(char *hname, char *msg, int flags) {
 	int c, pri;
 	char *p, *q, line[MAXLINE + 1];
 
@@ -376,7 +432,7 @@ printline(char *hname, char *msg, int flags)
 	p = msg;
 	if (*p == '<') {
 		pri = 0;
-		while (isdigit(*++p))
+		while (isdigit((int)*++p))
 			pri = 10 * pri + (*p - '0');
 		if (*p == '>')
 			++p;
@@ -392,18 +448,21 @@ printline(char *hname, char *msg, int flags)
 
 	q = line;
 
-	while ((c = *p++ & 0177) != '\0' && q < &line[sizeof(line) - 1])
-		if (iscntrl(c))
-			if (c == '\n')
+	while ((c = *p++ & 0177) != '\0' && q < &line[sizeof(line) - 1]) {
+		if (iscntrl((int)c)) {
+			if (c == '\n') {
 				*q++ = ' ';
-			else if (c == '\t')
+			} else if (c == '\t') {
 				*q++ = '\t';
-			else {
+			} else {
 				*q++ = '^';
 				*q++ = c ^ 0100;
 			}
-		else
+		} else {
 			*q++ = c;
+		}
+	}
+
 	*q = '\0';
 
 	logmsg(pri, line, hname, 0);
@@ -416,8 +475,7 @@ time_t	now;
  * the priority.
  */
 void
-logmsg(int pri, char *msg, char *from, int flags)
-{
+logmsg(int pri, char *msg, char *from, int flags) {
 	struct filed *f;
 	int fac, msglen, prilev, i;
 	sigset_t mask, omask;
@@ -458,7 +516,7 @@ logmsg(int pri, char *msg, char *from, int flags)
 
 	/* extract program name */
 	for(i = 0; i < NAME_MAX; i++) {
-		if (!isalnum(msg[i]))
+		if (!isalnum((int)msg[i]))
 			break;
 		prog[i] = msg[i];
 	}
@@ -578,19 +636,17 @@ doLog(struct filed *f, int flags, char *message) {
 
 
 void
-reapchild(int signo)
-{
-	union wait status;
+reapchild(int signo) {
+	int status;
 	int save_errno = errno;
 
-	while (wait3((int *)&status, WNOHANG, (struct rusage *)NULL) > 0)
+	while (waitpid(-1, &status, WNOHANG) > 0)
 		;
 	errno = save_errno;
 }
 
 void
-domark(int signo)
-{
+domark(int signo) {
 	struct filed *f;
 
 	now = time((time_t *)NULL);
@@ -616,8 +672,7 @@ domark(int signo)
  * Print syslogd errors some place.
  */
 void
-logerror(char *type)
-{
+logerror(char *type) {
 	char buf[100];
 
 	if (errno)
@@ -631,8 +686,7 @@ logerror(char *type)
 }
 
 void
-die(int signo)
-{
+die(int signo) {
 	struct filed *f;
 	int was_initialized = Initialized;
 	char buf[100];
@@ -671,8 +725,7 @@ die(int signo)
  *  INIT -- Initialize syslogd from configuration table
  */
 void
-init(int signo)
-{
+init(int signo) {
 	int i;
 	FILE *cf;
 	struct filed *f, *next, **nextp;
@@ -733,7 +786,7 @@ init(int signo)
 		 * spaces and newline character. #!prog  and !prog are treated
 		 * specially: the following lines apply only to that program.
 		 */
-		for (p = cline; isspace(*p); ++p)
+		for (p = cline; isspace((int)*p); ++p)
 			continue;
 		if (*p == '\0')
 			continue;
@@ -744,14 +797,14 @@ init(int signo)
 		}
 		if (*p == '!') {
 			p++;
-			while (isspace(*p))
+			while (isspace((int)*p))
 				p++;
 			if (!*p) {
 				strncpy(prog, "*", 2);
 				continue;
 			}
 			for (i = 0; i < NAME_MAX; i++) {
-				if (!isalnum(p[i]))
+				if (!isalnum((int)p[i]))
 					break;
 				prog[i] = p[i];
 			}
@@ -760,7 +813,7 @@ init(int signo)
 		}
 		p = cline + strlen(cline);
 		while (p > cline)
-			if (!isspace(*--p)) {
+			if (!isspace((int)*--p)) {
 				p++;
 				break;
 			}
@@ -818,8 +871,7 @@ init(int signo)
  * Crack a configuration file line
  */
 void
-cfline(char *line, struct filed *f, char *prog)
-{
+cfline(char *line, struct filed *f, char *prog) {
 	int i, pri;
 	char *bp, *p, *q;
 	char buf[MAXLINE], ebuf[100];
@@ -912,16 +964,15 @@ cfline(char *line, struct filed *f, char *prog)
  *  Decode a symbolic name to a numeric value
  */
 int
-decode(const char *name, CODE *codetab)
-{
+decode(const char *name, CODE *codetab) {
 	CODE *c;
 	char *p, buf[40];
 
-	if (isdigit(*name))
+	if (isdigit((int)*name))
 		return (atoi(name));
 
 	for (p = buf; *name && p < &buf[sizeof(buf) - 1]; p++, name++) {
-		if (isupper(*name))
+		if (isupper((int)*name))
 			*p = tolower(*name);
 		else
 			*p = *name;

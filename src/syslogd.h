@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.69 2000/07/21 21:15:48 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.70 2000/07/21 21:26:49 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -72,6 +72,32 @@
 #endif
 
 #define	_PATH_LOGCONF	"/etc/syslog.conf"
+
+#ifndef LOG_FACMASK
+#define LOG_FACMASK	 0x03f8  /* mask to extract facility part */
+#warning defined 'LOG_FACMASK	 0x03f8  mask to extract facility part '
+#endif /* LOG_FACMASK */
+
+#ifndef LOG_FAC
+#define LOG_FAC(p)	(((p) & LOG_FACMASK) >> 3)
+#warning defined 'LOG_FAC(p)	(((p) & LOG_FACMASK) >> 3)'
+#endif /* LOG_FAC */
+
+#ifndef LOG_MAKEPRI
+#define	LOG_MAKEPRI(fac, pri)   (((fac) << 3) | (pri))
+#warning defined 'LOG_MAKEPRI(fac, pri)   (((fac) << 3) | (pri))'
+#endif /* LOG_MAKEPRI */
+
+#ifndef LOG_PRIMASK
+#define LOG_PRIMASK	0x07    /* mask to extract priority part (internal) */
+#warning defined LOG_PRIMASK	0x07    mask to extract priority part (internal) 
+#endif /* LOG_PRIMASK */
+
+#ifndef LOG_PRI
+#define LOG_PRI(p)	((p) & LOG_PRIMASK)
+#warning defined 'LOG_PRI(p)	((p) & LOG_PRIMASK)'
+#endif /* LOG_PRI */
+
 
 #define	dprintf		if (sglobals->Debug) printf
 

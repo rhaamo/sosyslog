@@ -1,4 +1,4 @@
-dnl	$CoreSDI: aclocal.m4,v 1.7 2000/07/14 21:39:00 alejo Exp $
+dnl	$CoreSDI: aclocal.m4,v 1.8 2000/07/21 21:15:46 alejo Exp $
 
 dnl
 dnl MSYSLOG_GREP patt file comm
@@ -261,6 +261,27 @@ then
 	AC_MSG_RESULT([dynamic]);
 else
 	AC_MSG_RESULT([not activated])
+fi
+])
+
+
+dnl ### Checking for typedefs on some header file
+
+
+dnl AC_CHECK_CODE_TYPE()
+AC_DEFUN(AC_CHECK_TYPE_HDR,
+[AC_REQUIRE([AC_HEADER_STDC])dnl
+AC_MSG_CHECKING(for CODE)
+AC_CACHE_VAL(ac_cv_type_CODE,
+[AC_EGREP_CPP(dnl
+changequote(<<,>>)dnl
+<<(^|[^a-zA-Z_0-9])$1[^a-zA-Z_0-9]>>dnl
+changequote([,]), [#define SYSLOG_NAMES
+#include <sys/syslog.h>
+], ac_cv_type_CODE=yes, ac_cv_type_CODE=no)])dnl
+AC_MSG_RESULT($ac_cv_type_CODE)
+if test $ac_cv_type_CODE = yes; then
+  AC_DEFINE(HAVE_CODE_TYPEDEF, 1)
 fi
 ])
 

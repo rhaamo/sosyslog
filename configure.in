@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.53 2000/07/10 21:41:37 claudio Exp $
+dnl	$CoreSDI: configure.in,v 1.54 2000/07/10 23:58:38 claudio Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -95,6 +95,8 @@ fi
 MSYSLOG_CHECK_MODULE(pgsql, $PGSQL, om, om_pgsql.c, sql_misc.c)
 MSYSLOG_CHECK_MODULE(regex, $REGEX, om, om_regex.c)
 MSYSLOG_END_MODULES_CONF()
+
+AC_CHECK_TYPE_HDR()
 
 AC_SUBST(HASH_SRCS)
 AC_SUBST(SHASH_SRCS)
