@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.132 2000/09/18 19:30:51 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.133 2000/09/20 19:56:23 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.132 2000/09/18 19:30:51 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.133 2000/09/20 19:56:23 fgsch Exp $";
 #endif /* not lint */
 
 /*
@@ -357,8 +357,9 @@ main(int argc, char **argv) {
 					return(0);
 				}
 
-				snprintf(buf, sizeof(buf), "Lock on %s is being "
-						"held by sys=%u pid=%d", pidfile,
+				snprintf(buf, sizeof(buf), "ERROR: another syslog"
+						" daemon is running, with lock on %s being"
+						"held by it sys=%u pid=%d", pidfile,
 #ifdef HAS_FLOCK_SYSID
 						fl.l_sysid,
 #else
@@ -735,6 +736,7 @@ doLog(struct filed *f, int flags, char *message) {
 			/* stop going on */
 			break;
 	}
+	f->f_prevcount = 0;
 }
 
 
