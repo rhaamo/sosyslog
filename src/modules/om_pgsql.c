@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.17 2000/08/22 19:43:38 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.18 2000/08/25 22:37:51 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -55,7 +55,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-#include "config.h"
+#include "../config.h"
 #include "modules.h"
 #include "syslogd.h"
 #include "sql_misc.h"

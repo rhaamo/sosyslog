@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.46 2000/07/04 16:44:08 alejo Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.47 2000/08/25 22:37:51 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -36,7 +36,7 @@
  *
  */
 
-#include "config.h"
+#include "../config.h"
 
 #include <sys/time.h>
 #include <sys/types.h>

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.13.2.7 2000/09/04 21:22:34 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.17 2000/09/04 21:23:10 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -36,7 +36,7 @@
  *
  */
 
-#include "config.h"
+#include "../config.h"
 
 #include <sys/time.h>
 #include <sys/param.h>

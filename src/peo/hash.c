@@ -1,4 +1,4 @@
-/*	$CoreSDI: hash.c,v 1.25 2000/06/26 18:38:35 claudio Exp $	*/
+/*	$CoreSDI: hash.c,v 1.26 2000/07/03 22:23:19 claudio Exp $	*/
  
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -36,7 +36,7 @@
  *
  */
 
-#include "config.h"
+#include "../config.h"
 
 #include <sys/types.h>
 #include <ctype.h>

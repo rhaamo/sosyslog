@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.41 2000/07/13 21:18:42 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.42 2000/08/25 22:37:51 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@
  *
  */
 
-#include "config.h"
+#include "../config.h"
 
 #include <sys/time.h>
 #include <sys/param.h>

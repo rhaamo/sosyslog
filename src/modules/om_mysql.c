@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.36 2000/08/22 18:38:57 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.37 2000/08/25 22:37:51 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -48,7 +48,7 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <mysql.h>
-#include "config.h"
+#include "../config.h"
 #include "modules.h"
 #include "syslogd.h"
 #include "sql_misc.h"
