@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.198 2001/05/03 20:42:22 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.199 2001/05/03 21:12:57 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.198 2001/05/03 20:42:22 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.199 2001/05/03 21:12:57 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -567,7 +567,7 @@ main(int argc, char **argv)
 			dprintf(MSYSLOG_INFORMATIVE, "main: poll returned "
 			    "-1\n");
 			if (errno != EINTR)
-				logerror("select");
+				logerror("poll");
 			continue;
 		}
 
