@@ -18,9 +18,6 @@ AC_TRY_LINK([#include <unistd.h>],
 	[AC_DEFINE(HAVE_OPTRESET) AC_MSG_RESULT(yes)],
 	AC_MSG_RESULT(no))
 
-#AC_CHECK_FUNC(getaddrinfo, AC_DEFINE(HAVE_INET6),
-#	EXTRAOBJ="$EXTRAOBJ getaddrinfo.o")
-
 AC_CHECK_FUNC(MD5Init, AC_DEFINE(HAVE_MD5),
 	EXTRAOBJ="$EXTRAOBJ peo/md5c.o")
 
