@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_mymodule.c,v 1.8 2000/06/05 23:14:26 fgsch Exp $	*/
+/*	$CoreSDI: im_mymodule.c,v 1.1 2000/06/07 21:25:17 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -57,9 +57,7 @@ struct im_mymodule_ctx {
  */
 
 int
-im_mymodule_getLog(im, ret)
-	struct i_module	*im;
-	struct im_msg	*ret;
+im_mymodule_getLog (struct i_module *im, struct im_msg *ret)
 {
 	return(1);
 }
@@ -70,17 +68,17 @@ im_mymodule_getLog(im, ret)
  */
 
 int
-im_mymodule_init(I, argv, argc)
-	struct i_module *I;
-	char   **argv;
-	int   argc;
+im_mymodule_init (struct i_module *I, char **argv, int argc)
 {
         return(1);
 }
 
+
+/*
+ * the following function is not mandatory, you can omit it
+ */
 int
-im_mymodule_close(im) 
-        struct i_module *im;
+im_mymodule_close (struct i_module *im) 
 {
         return(1);
 }

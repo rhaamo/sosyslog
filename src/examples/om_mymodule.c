@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mymodule.c,v 1.8 2000/06/06 00:14:06 alejo Exp $	*/
+/*	$CoreSDI: om_mymodule.c,v 1.1 2000/06/07 21:25:17 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -53,11 +53,14 @@
 extern time_t now;
 
 int
-om_mymodule_doLog(f, flags, msg, context)
-	struct filed *f;    /* current filed struct */
-	int flags;          /* flags for this message */
-	char *msg;          /* the message string */
-	struct om_hdr_ctx *context; /* our context */
+om_mymodule_doLog (struct filed *f, int flags, char *msg,
+                   struct om_hdr_ctx *context)
+/*
+ * struct filed *f;    		Current filed struct
+ * int flags;          		Flags for this message
+ * char *msg;          		The message string
+ * struct om_hdr_ctx *context; 	Our context
+ */
 {
 
 	/* always check, just in case ;) */
@@ -86,12 +89,15 @@ om_mymodule_doLog(f, flags, msg, context)
  *
  */
 int
-om_mymodule_init(argc, argv, f, prog, context)
-	int argc;		/* argumemt count */
-	char **argv;		/* argumemt array, like main() */
-	struct filed *f;	/* our filed structure */
-	char *prog;		/* program name doing this log */
-	struct om_hdr_ctx **context; /* our context */
+om_mymodule_init (int argc, char **argv, struct filed *f,
+	          char *prog, struct om_hdr_ctx **context)
+/*
+ * int argc;			Argumemt count
+ * char **argv;			Argumemt array, like main()
+ * struct filed *f;		Our filed structure
+ * char *prog;			Program name doing this log
+ * struct om_hdr_ctx **context; Our context
+ */
 {
 	char *myArg;
 
@@ -134,10 +140,12 @@ om_mymodule_init(argc, argv, f, prog, context)
 	return(1);
 }
 
+
+/*
+ * xx_close and xx_flush functions are not mandatory, you can omit them
+ */
 int
-om_mymodule_close(f, ctx)
-	struct filed *f;
-	struct om_hdr_ctx *ctx;
+om_mymodule_close (struct filed *f, struct om_hdr_ctx *ctx)
 {
 	/* flush any buffered data and close this output */
 
@@ -149,9 +157,7 @@ om_mymodule_close(f, ctx)
 }
 
 int
-om_mymodule_flush(f, context)
-	struct filed *f;
-	struct om_hdr_ctx *context;
+om_mymodule_flush (struct filed *f, struct om_hdr_ctx *context)
 {
 	/* flush any pending output */
 
@@ -160,5 +166,4 @@ om_mymodule_flush(f, context)
 			-1  BAD
 	 */
 	return(1);
-
 }
