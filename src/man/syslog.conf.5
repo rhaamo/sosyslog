@@ -1,4 +1,4 @@
-.\"	$Id: syslog.conf.5,v 1.5 2000/05/23 02:41:19 claudio Exp $
+.\"	$Id: syslog.conf.5,v 1.6 2000/05/23 02:47:10 claudio Exp $
 .\" Copyright (c) 1990, 1991, 1993
 .\"	The Regents of the University of California.  All rights reserved.
 .\"
@@ -331,6 +331,7 @@ configuration file.
 The effects of multiple selectors are sometimes not intuitive.
 For example ``mail.crit,*.err'' will select ``mail'' facility messages at
 the level of ``err'' or higher, not at the level of ``crit'' or higher.
+.sp 0i
 .Pp
 Even it works to mix configuration lines that uses the old and the
 new modular method, avoid this. Future releases may not support mixing
@@ -343,21 +344,7 @@ the following is wrong:
 	*.*	%classic /dev/console %classic /var/log/messages
 .Ed
 .Pp
-The correct sentence is:
-.Pp
-.Bd -literal
-	*.*	%classic /dev/console
-	*.*	%classic /var/log/messages
-.Ed
-.Pp
-Also old config syntax shouldn't mix with new style 
-the following is wrong:
-.Pp
-.Bd -literal
-	*.*	%classic /dev/console %classic /var/log/messages
-.Ed
-.Pp
-The correct sentence is:
+the correct sentences are:
 .Pp
 .Bd -literal
 	*.*	%classic /dev/console
