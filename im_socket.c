@@ -32,7 +32,7 @@ im_bsd_getLog(buf, size, c, r)
 	char   *buf;
 	int   size;
 	struct im_header_ctx  *c;
-	struct im_ret     *r;
+	struct im_msg     *r;
 {
 	struct 
 }

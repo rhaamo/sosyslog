@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.27 2000/04/15 00:24:44 alejo Exp $
+/*	$Id: syslogd.c,v 1.28 2000/04/15 00:26:10 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -248,7 +248,7 @@ main(argc, argv)
 		/*dprintf("got a message (%d, %#x)\n", nfds, readfds);*/
 		for (im = Inputs; im ; im = im->im_next) {
 		   if (im->fd != -1 && FD_ISSET(im->fd, &readfds)) {
-		       struct im_ret log;
+		       struct im_msg log;
 
 		       memset(log, 0, sizeof(log));
 

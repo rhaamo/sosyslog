@@ -54,7 +54,7 @@ im_bsd_init(argc, argv, c)
 int
 im_bsd_getLog(im, ret)
 	struct i_module im;
-        struct im_ret  *ret;
+        struct im_msg  *ret;
 {
 	char *p, line[MSG_BSIZE + 1];
         int i;
