@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.21 2000/04/13 21:55:37 alejo Exp $
+/*	$Id: modules.c,v 1.22 2000/04/17 15:00:00 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -186,7 +186,7 @@ char *getomodulename(type)
 int getomoduleid(mname)
 	char *mname;
 {
-	int i;
+	register int i;
 
 	for(i = 0; i < MAX_N_OMODULES && OModules[i].om_name != NULL
 			&& !strcmp(OModules[i].om_name, mname); i++);
