@@ -59,6 +59,10 @@
 
 #define MAX_QUERY	8192
 
+char	*Months[] = { "Jan", "Feb", "Mar", "Apr", "May",
+			"Jun", "Jul", "Aug", "Sep", "Oct",
+			"Nov", "Dec"};
+
 struct om_mysql_ctx {
 	short	flags;
 	int	size;
@@ -83,9 +87,6 @@ om_mysql_doLog(f, flags, msg, context)
 	struct om_mysql_ctx *c;
 	char	*dummy, *y, *m, *d, *h, *host, mymsg[1024];
 	int	mn;
-	char	*months[] = { "Jan", "Feb", "Mar", "Apr", "May",
-				"Jun", "Jul", "Aug", "Sep", "Oct",
-				"Nov", "Dec"};
 
 	dprintf("MySQL doLog: entering [%s] [%s]\n", msg, f->f_prevline);
 	if (f == NULL)
@@ -124,7 +125,7 @@ om_mysql_doLog(f, flags, msg, context)
 	*(y + 4) = '\0';
 	if (*d == ' ')
 		*d = '0';
-	for(mn = 0; months[mn] && strncmp(months[mn], m, 3); mn++);
+	for(mn = 0; Months[mn] && strncmp(Months[mn], m, 3); mn++);
 	mn++;
 
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
