@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.158 2001/01/02 21:42:57 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.159 2001/01/03 22:57:09 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.158 2001/01/02 21:42:57 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.159 2001/01/03 22:57:09 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -379,7 +379,7 @@ main(int argc, char **argv) {
 				break;
 			}
 
-			if (errno != 0) {
+			if (status == -1) {
 				snprintf(buf, sizeof(buf), "Cannot lock %s fd "
 				    "%d in %d tries %s", pidfile, lfd,
 				    tries + 1, strerror(errno));
