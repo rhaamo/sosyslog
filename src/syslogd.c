@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.185 2001/03/23 17:54:31 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.186 2001/03/30 21:12:36 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.185 2001/03/23 17:54:31 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.186 2001/03/30 21:12:36 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -794,19 +794,10 @@ logmsg(int pri, char *msg, char *from, int flags)
 	for (f = Files; f; f = f->f_next) {
 		/* skip messages that are incorrect priority */
 		/* XXX */
-		if (f->f_pmask[fac] == TABLE_NOPRI) {
-printf("********* lo esquivo!!! 1 \n");
+		if (f->f_pmask[fac] == TABLE_NOPRI ||
+		    (f->f_pmask[fac] & (1<<prilev)) == 0 ||
+		    f->f_pmask[fac] == INTERNAL_NOPRI )
 			continue;
-		}
-		if ((f->f_pmask[fac] & (1<<prilev)) == 0) {
-printf("********* lo esquivo!!! 2 %d %d\n", f->f_pmask[fac], (1<<prilev));
-			continue;
-		}
-		if (f->f_pmask[fac] == INTERNAL_NOPRI) {
-printf("********* lo esquivo!!! 3 \n");
-			continue;
-		}
-printf("********* paso!!! \n");
 
 		if (f->f_program)
 			if (strcmp(prog, f->f_program) != 0)
