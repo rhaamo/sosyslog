@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.97 2001/03/10 00:35:20 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.98 2001/03/14 21:50:55 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -37,7 +37,7 @@ dnl It should have strftime!
 dnl AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS(gethostname inet_ntop getaddrinfo regcomp poll select\
- socket strdup strerror strstr strtoul )
+ socket strdup strerror strstr strtoul )dnl
 
 dnl 
 dnl Here are our checks...
@@ -46,9 +46,6 @@ dnl
 MSYSLOG_VERSION="1.04"
 AC_DEFINE_UNQUOTED(MSYSLOG_VERSION_STR, "$MSYSLOG_VERSION")dnl
 echo msyslog version... $MSYSLOG_VERSION
-
-MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
-AC_DEFINE_UNQUOTED(MLIBNAME_STR, "$MLIBNAME")dnl
 
 MANPAGES="syslog.conf.5 syslogd.8"
 
@@ -106,31 +103,46 @@ dnl	AC_REQUIRE([AC_PROG_NM])dnl
 
 UNAME=`uname`
 if test "$UNAME" = "OpenBSD" ; then
-        AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
-        AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "_")dnl
-        SHARED_PARAMS="-Bshareable"
+	MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
+	CREATE_SHARED='$(LD) $(SHARED_PARAMS) -o $(MLIBNAME) $(MOBJS) $(HASH_OBJS)'
+	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
+	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "_")dnl
+	SHARED_PARAMS="-Bshareable"
 	DCCFLAGS="-fPIC"
 elif test "$UNAME" = "Linux" ; then
-        AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY | RTLD_GLOBAL)dnl
-        SHARED_PARAMS="-Bshareable"
+	MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
+	CREATE_SHARED='$(LD) $(SHARED_PARAMS) -o $(MLIBNAME) $(MOBJS) $(HASH_OBJS)'
+	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY | RTLD_GLOBAL)dnl
+	SHARED_PARAMS="-Bshareable"
 	DCCFLAGS=""
 elif test "$UNAME" = "SunOS" ; then
-        AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
-        SHARED_PARAMS="-G"
+	MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
+	CREATE_SHARED='$(LD) $(SHARED_PARAMS) -o $(MLIBNAME) $(MOBJS) $(HASH_OBJS)'
+	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
+	SHARED_PARAMS="-G"
 	DCCFLAGS="-fPIC"
 elif test "$UNAME" = "Irix" ; then
-        AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
-        SHARED_PARAMS="-G"
+	MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
+	CREATE_SHARED='$(LD) $(SHARED_PARAMS) -o $(MLIBNAME) $(MOBJS) $(HASH_OBJS)'
+	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
+	SHARED_PARAMS="-G"
 	DCCFLAGS="-fPIC"
 elif test "$UNAME" = "AIX" ; then
-        AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
-        SHARED_PARAMS="-G"
-	DCCFLAGS=""
+	MLIBNAME="libmsyslog.a" ;
+	CREATE_SHARED='ar qv $(MLIBNAME) $(MOBJS) $(HASH_OBJS)'
+	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
+	DCCFLAGS="-shared"
+	SHARED_PARAMS=""
 else
-	AC_MSG_WARN('cannot determine system type falling to defaults')dnl
-        AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
-        SHARED_PARAMS="-Bshareable"
+	MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
+	CREATE_SHARED='$(LD) $(SHARED_PARAMS) -o $(MLIBNAME) $(MOBJS) $(HASH_OBJS)'
+	AC_MSG_WARN(cannot determine system type falling to defaults)dnl
+	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
+	SHARED_PARAMS="-Bshareable"
 fi
+
+AC_DEFINE_UNQUOTED(MLIBNAME_STR, "$MLIBNAME")dnl
+
 
 dnl
 dnl Here we check module support
@@ -353,6 +365,7 @@ AC_SUBST(DCCFLAGS)dnl
 AC_SUBST(MSRCS)dnl
 AC_SUBST(MLIBS)dnl
 AC_SUBST(MLIBNAME)dnl
+AC_SUBST(CREATE_SHARED)dnl
 AC_SUBST(MANPAGES)dnl
 AC_SUBST(HASH_SRCS)dnl
 AC_SUBST(HAVE_SOCKLEN_T)dnl
