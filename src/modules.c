@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.87 2000/06/06 00:05:10 fgsch Exp $	*/
+/*	$CoreSDI: modules.c,v 1.88 2000/06/06 18:19:58 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -38,6 +38,7 @@
 
 #include "config.h"
 
+#include <sys/param.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>

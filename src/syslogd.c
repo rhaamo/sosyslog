@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.88 2000/06/06 17:47:19 claudio Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.89 2000/06/06 20:12:04 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -603,7 +603,7 @@ die(signo)
 	}
 
 	for (im = &Inputs; im; im = im->im_next)
-		if (IModules[im->im_type].im_close(im))
+		if (IModules[im->im_type].im_close)
 			(*IModules[im->im_type].im_close)(im);
 		else if (im->im_fd)
 			close(im->im_fd);

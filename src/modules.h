@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.25 2000/06/06 15:52:10 fgsch Exp $	*/
+/*	$CoreSDI: modules.h,v 1.26 2000/06/06 16:02:12 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -32,8 +32,6 @@
 #ifndef SYSLOG_MODULES_H
 #define SYSLOG_MODULES_H
 
-#include <sys/param.h>
-
 /* values for om_type */
 #define OM_CLASSIC	0
 #define OM_MYSQL	1
@@ -48,14 +46,6 @@
 #define IM_UDP          4
 #define IM_TCP          5
 #define IM_LINUX	6
-
-extern int	Debug;			/* debug flag */
-extern char	LocalHostName[];	/* our hostname */
-extern int	InetInuse;		/* non-zero if INET sockets are
-					   being used */
-extern char	*TypeNames[];		/* names for f_types */
-
-extern char	ctty[];
 
 /* this MUST be the same value as syslogd.h */
 #define MAXLINE 1024

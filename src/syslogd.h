@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.50 2000/05/29 21:10:56 fgsch Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.51 2000/06/06 15:52:11 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -71,6 +71,15 @@
 
 extern int	finet;		/* Internet datagram socket */
 extern int	LogPort;	/* port number for INET connections */
+
+extern int	Debug;			/* debug flag */
+extern char	LocalHostName[];	/* our hostname */
+extern int	InetInuse;		/* non-zero if INET sockets are
+					   being used */
+extern char	*TypeNames[];		/* names for f_types */
+
+extern char	ctty[];
+
 
 /*
  * Flags to logmsg().

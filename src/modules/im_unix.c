@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.25 2000/06/05 22:59:24 fgsch Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.26 2000/06/05 23:22:06 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -39,6 +39,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/param.h>
 #include <sys/uio.h>
 #include <sys/un.h>
 #include <sys/stat.h>
