@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.68 2000/05/26 16:53:37 fgsch Exp $	*/
+/*	$CoreSDI: modules.c,v 1.69 2000/05/26 18:41:41 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -79,6 +79,9 @@ int	im_unix_close __P((struct i_module *));
 int	im_udp_init __P((struct i_module *, char **, int));
 int	im_udp_getLog __P((struct i_module *, struct im_msg *));
 int	im_udp_close __P((struct i_module *));
+int	im_linux_init __P(struct i_module *, char **, int));
+int	im_linux_getLog __P((struct i_module *, struct im_msg *));
+int	im_linux_close __P((struct i_module *));
 
 void    die __P((int));
 
@@ -120,24 +123,34 @@ modules_load()
 	OModules[OM_PEO].om_close		= om_peo_close;
 	OModules[OM_PEO].om_flush		= om_peo_flush;
 
+	/* bsd kernel input module */
 	IModules[IM_BSD].im_name		= "bsd";
 	IModules[IM_BSD].im_type		= IM_BSD;
 	IModules[IM_BSD].im_init		= im_bsd_init;
 	IModules[IM_BSD].im_getLog		= im_bsd_getLog;
   	IModules[IM_BSD].im_close		= im_bsd_close;
 
+	/* unix standard input module */
 	IModules[IM_UNIX].im_name		= "unix";
 	IModules[IM_UNIX].im_type		= IM_UNIX;
 	IModules[IM_UNIX].im_init		= im_unix_init;
 	IModules[IM_UNIX].im_getLog		= im_unix_getLog;
   	IModules[IM_UNIX].im_close		= im_unix_close;
 
+	/* unix standard udp input module */
 	IModules[IM_UDP].im_name		= "udp";
 	IModules[IM_UDP].im_type		= IM_UDP;
 	IModules[IM_UDP].im_init		= im_udp_init;
 	IModules[IM_UDP].im_getLog		= im_udp_getLog;
   	IModules[IM_UDP].im_close		= im_udp_close;
 
+	/* linux kernel input module */
+	IModules[IM_LINUX].im_name		= "linux";
+	IModules[IM_LINUX].im_type		= IM_LINUX;
+	IModules[IM_LINUX].im_init		= im_linux_init;
+	IModules[IM_LINUX].im_getLog		= im_linux_getLog;
+	IModules[IM_LINUX].im_close		= im_linux_close;
+	
 	return(1);
 }
 
