@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.36.2.4.2.3.4.19 2000/10/30 23:14:21 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.46 2000/10/31 19:42:14 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -77,14 +77,6 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 	int i, j;
 	void (*sigsave)(int);
 
-	if (ctx == NULL) {
-		dprintf("om_mysql_dolog: error, no context\n");
-		return (-1);
-	}
-
-	if (f == NULL)
-		return (-1);
-
 	dprintf("om_mysql_dolog: entering [%s] [%s]\n", msg, f->f_prevline);
 
 	c = (struct om_mysql_ctx *) ctx;
@@ -109,7 +101,14 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 	/* restore previous SIGPIPE handler */
 	signal(SIGPIPE, sigsave);
 
+	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
+	i = snprintf(query, sizeof(query), "INSERT INTO %s"
+	    " VALUES('%.4d-%.2d-%.2d', '%.2d:%.2d:%.2d', '%s', '", c->table,
+	    f->f_tm.tm_year + 1900, f->f_tm.tm_mon + 1, f->f_tm.tm_mday,
+	    f->f_tm.tm_hour, f->f_tm.tm_min, f->f_tm.tm_sec, f->f_prevhost);
+
 	if (c->lost) {
+		int pos;
 
 		/*
 		 * Report lost messages, but 2 of them are lost of
@@ -123,35 +122,22 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 		/* count reset */
 		c->lost = 0;
 
-		/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
-		i = snprintf(query, sizeof(query), "INSERT INTO %s"
-		    " VALUES('%.4d-%.2d-%.2d', '%.2d:%.2d:%.2d', '%s', '", c->table,
-		    f->f_tm.tm_year + 1900, f->f_tm.tm_mon + 1, f->f_tm.tm_mday,
-		    f->f_tm.tm_hour, f->f_tm.tm_min, f->f_tm.tm_sec, f->f_prevhost);
-
 		/* put message escaping special SQL characters */
-		i += to_sql(query + i, err_buf, sizeof(query) - i);
+		pos += to_sql(query + pos, err_buf, sizeof(query) - pos);
 
 		/* finish it with "')" */
-		query[i++] =  '\'';
-		query[i++] =  ')';
-		if (i < sizeof(query))
-			query[i]   =  '\0';
-
-		/* just in case */
-		query[sizeof(query) - 1] = '\0';
+		query[pos++] =  '\'';
+		query[pos++] =  ')';
+		if (pos < sizeof(query))
+			query[pos]   =  '\0';
+		else
+			query[sizeof(query) - 1] = '\0';
 
 		dprintf("om_mysql_doLog: query [%s]\n", query);
 
 		if (mysql_query(&c->h, query) < 0)
 			return (-1);
 	}
-
-	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
-	i = snprintf(query, sizeof(query), "INSERT INTO %s"
-	    " VALUES('%.4d-%.2d-%.2d', '%.2d:%.2d:%.2d', '%s', '", c->table,
-	    f->f_tm.tm_year + 1900, f->f_tm.tm_mon + 1, f->f_tm.tm_mday,
-	    f->f_tm.tm_hour, f->f_tm.tm_min, f->f_tm.tm_sec, f->f_prevhost);
 
 	/* put message escaping special SQL characters */
 	i += to_sql(query + i, msg, sizeof(query) - i);
@@ -161,9 +147,8 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 	query[i++] =  ')';
 	if (i < sizeof(query))
 		query[i]   =  '\0';
-
-	/* just in case */
-	query[sizeof(query) - 1] = '\0';
+	else
+		query[sizeof(query) - 1] = '\0';
 
 	dprintf("om_mysql_doLog: query [%s]\n", query);
 

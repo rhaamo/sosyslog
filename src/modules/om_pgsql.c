@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.17.2.4.2.2.4.13 2000/10/20 22:46:35 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.24 2000/10/31 19:42:15 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -70,15 +70,9 @@
 #define MAX_QUERY     8192
 
 struct om_pgsql_ctx {
-	short   flags;
-	int     size;
 	PGconn  *h;
-	char    *host;
-	char    *port;
-	char    *user;
-	char    *passwd;
-	char    *db;
 	char    *table;
+	int	lost;
 };
 
 int
@@ -87,15 +81,7 @@ om_pgsql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 	PGresult *r;
 	struct	om_pgsql_ctx *c;
 	int	err, i;
-	char    query[MAX_QUERY];
-
-	if (ctx == NULL) {
-		dprintf("om_pgsql_doLog: error, no context\n");
-		return(-1);
-	}
-
-	if (f == NULL)
-		return(-1);
+	char    query[MAX_QUERY], err_buf[512];
 
 	dprintf("om_pgsql_dolog: entering [%s] [%s]\n", msg, f->f_prevline);
 
@@ -106,39 +92,89 @@ om_pgsql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 		return (-1);
 	}
 
+	if (PQstatus(c->h) == CONNECTION_BAD) {
+
+		/* try to reconnect */
+		PQreset(c->h);
+
+		/* connection can't be established */
+		if (PQstatus(c->h) == CONNECTION_BAD) {
+
+			c->lost++;
+			if (c->lost == 1) {
+				logerror("om_pgsql_dolog: Lost connection!");
+			}
+		}
+		return(1);
+
+	}
+
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
-	i = snprintf(query, MAX_QUERY, "INSERT INTO %s"
+	i = snprintf(query, sizeof(query), "INSERT INTO %s"
 	    " VALUES('%.4d-%.2d-%.2d', '%.2d:%.2d:%.2d', '%s', '", c->table,
 	    f->f_tm.tm_year + 1900, f->f_tm.tm_mon + 1, f->f_tm.tm_mday,
 	    f->f_tm.tm_hour, f->f_tm.tm_min, f->f_tm.tm_sec, f->f_prevhost);
 
+	if (c->lost) {
+		int pos = i;
+
+		/*
+		 * Report lost messages, but 2 of them are lost of
+		 * connection and this one (wich we are going
+		 * to log anyway)
+		 */
+		snprintf(err_buf, sizeof(err_buf), "om_pgsql_dolog: %i "
+		    "messages were lost due to lack of connection",
+		    c->lost - 2);
+
+		/* count reset */
+		c->lost = 0;
+
+		/* put message escaping special SQL characters */
+		pos += to_sql(query + pos, err_buf, sizeof(query) - pos);
+
+		/* finish it with "')" */
+		query[pos++] =  '\'';
+		query[pos++] =  ')';
+		if (pos < sizeof(query))
+			query[pos]   =  '\0';
+		else
+			query[sizeof(query) - 1] = '\0';
+
+		dprintf("om_pgsql_doLog: query [%s]\n", query);
+
+		r = PQexec(c->h, query);
+		if (PQresultStatus(r) != PGRES_COMMAND_OK) {
+			dprintf("%s\n", PQresultErrorMessage(r));
+			return (-1);
+		}
+		PQclear(r);
+	}
 
 	/* put message escaping special SQL characters */
-	i += to_sql(query + i, msg, MAX_QUERY - i);
+	i += to_sql(query + i, msg, sizeof(query) - i);
 
 	/* finish it with "')" */
 	query[i++] =  '\'';
 	query[i++] =  ')';
 	if (i < sizeof(query))
 		query[i]   =  '\0';
-
-	/* just in case */
-	query[sizeof(query) - 1] = '\0';
+	else
+		query[sizeof(query) - 1] = '\0';
 
 	dprintf("om_pgsql_doLog: query [%s]\n", query);
 
-	err=1;
-	r=PQexec(c->h, query);
-	if (PQresultStatus(r) != PGRES_COMMAND_OK)
-	{
-		fprintf(stderr,"%s\n",PQresultErrorMessage(r));
-		err=-1;
+	err = 1;
+	r = PQexec(c->h, query);
+	if (PQresultStatus(r) != PGRES_COMMAND_OK) {
+		dprintf("%s\n", PQresultErrorMessage(r));
+		err = -1;
 	}
+
 	PQclear(r);
 
 	return (err);
 }
-
 
 /*
  *  INIT -- Initialize om_pgsql
@@ -234,16 +270,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 
 
 	ctx = (struct om_pgsql_ctx *) *c;
-	ctx->size = sizeof(struct om_pgsql_ctx);
 	ctx->h = h;
-	ctx->host = strdup(host);
-	if (port)
-		ctx->port = strdup(port);
-	else
-		ctx->port = NULL;
-	ctx->user = strdup(user);
-	ctx->passwd = strdup(passwd);
-	ctx->db = strdup(db);
 	ctx->table = strdup(table);
 
 	return (1);
@@ -259,16 +286,6 @@ om_pgsql_close(struct filed *f, void *ctx) {
 		PQfinish(((struct om_pgsql_ctx *)ctx)->h);
 	}
 
-	if (c->host)
-		free(c->host);
-	if (c->port)
-		free(c->port);
-	if (c->user)
-		free(c->user);
-	if (c->passwd)
-		free(c->passwd);
-	if (c->db)
-		free(c->db);
 	if (c->table)
 		free(c->table);
 
