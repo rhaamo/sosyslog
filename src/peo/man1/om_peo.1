@@ -52,10 +52,12 @@ follows:
 Specify the key file pathname; the default is
 \fI/var/ssyslog/.var.log.messages.key\fP.
 .It Fl l
-Using this option the module generates two keys, the first explained above
-and a second key using a \fBmac\fP method based on two serial \fBhash\fPes,
-this new key is added into the \fBmac\fP file whose pathname is the same as
-\fIkeyfile\fP with a ".mac" string added at the end.
+This option enables the line corrupted detection mode;
+the module generates two keys, the first explained above and a second
+key using a \fBmac\fP method based on two serial \fBhash\fPes, this
+new key is added into the \fBmac\fP file whose pathname is the same as
+\fIkeyfile\fP with a ".mac" string added at the end, this file should
+had been created by peochk(1) command.
 .It Fl m Ar hash_method
 Specifies the hash method used to generate the key to put into the
 \fIkeyfile\fP, \fIhash_method\fP should be one of \fImd5\fP, \fIsha1\fP,
