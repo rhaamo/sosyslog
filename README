@@ -1,0 +1,7 @@
+
+Main differences with previous syslog
+-------------------------------------
+
+Module classic handles logging to files, m_program does logging using a
+certain program, and m_remote does logging on remote hosts.
+

@@ -1,0 +1,31 @@
+				TODO
+				====
+
+15-Mar-2000
+
+- check pager  stuff formats
+- check M$ MAPI
+- thinker about wall mesages
+- abstract a *net.c fileall networking code ?
+- debug levels
+- redo line format while keeping "<" and ">" usage (prevent new syslog proto)
+- minimize global variables
+- CHECK LIBC !!! and GLIBC !!
+- program execution module
+
+
+20-Mar-2000
+
+1- finish modularization and classic module
+2- change initialization, write modules m_init()
+3- create 'program' module
+
+
+
+FOR FUTURE WORKING
+
+For handling errors logging in a particular module, create a m_onerror
+function to do proper reinit or whatever (and after that the module should
+get in the exactly same state as before the error).
+
+Check for buffer overflows, as we now may get things from the outside world.
