@@ -556,6 +556,10 @@ main(int argc, char **argv)
 	init(0);
 	place_signal(SIGHUP, init);
 
+  /* 
+   * Each input module will have an associated file descriptor.
+   * Wait for for an event on any of those file descriptors.
+   */
 	for (;;) {
 		int count, i, done;
 
@@ -575,11 +579,12 @@ main(int argc, char **argv)
 			m_dprintf(MSYSLOG_INFORMATIVE, "main: poll returned 0\n");
 			continue;
 		case -1:
-			m_dprintf(MSYSLOG_INFORMATIVE, "main: poll returned "
-			    "-1\n");
-			if (errno != EINTR)
-				logerror("poll");
+			m_dprintf(MSYSLOG_INFORMATIVE, "main: poll returned -1\n");
+			if (errno != EINTR) logerror("poll");
 			continue;
+    /* When file descriptors have events */
+    default:
+      break;
 		}
 
 		for (i = 0, done = 0; done < count; i++) {
@@ -587,7 +592,7 @@ main(int argc, char **argv)
 			int	fd;
 			int	val = -1;
 
-		  if (fd_inputs[i].revents & POLLIN) {
+		  if (! fd_inputs[i].revents & POLLIN) {
     continue;
       }
 
