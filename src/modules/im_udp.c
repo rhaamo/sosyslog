@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.60 2001/03/27 23:21:07 alejo Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.61 2001/05/29 22:35:26 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -134,10 +134,13 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 	}
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;
-	if (argc == 2  && argv[1])
+
+	if (argc == 2  && argv[1]) {
 		sin.sin_port = htons(atoi(argv[1]));
-	else
-		sin.sin_port = LogPort = sp->s_port;
+	} else {
+		LogPort = sp->s_port;
+		sin.sin_port = sp->s_port;
+	}
 
 	if (bind(I->im_fd, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
 		logerror("im_udp_init: bind");
