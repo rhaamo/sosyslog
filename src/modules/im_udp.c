@@ -1,13 +1,13 @@
-/*	$CoreSDI: im_udp.c,v 1.65 2001/09/19 11:55:11 alejo Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.66 2001/09/19 16:02:55 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
  * All rights reserved
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright
@@ -31,10 +31,10 @@
 
 /*
  * im_udp -- input from INET using UDP
- *      
+ *
  * Author: Alejo Sanchez for Core SDI S.A.
- *         from syslogd.c by Eric Allman and Ralph Campbell
- *    
+ *	from syslogd.c by Eric Allman and Ralph Campbell
+ *
  */
 
 #include "config.h"
@@ -58,7 +58,7 @@
 #include "../modules.h"
 #include "../syslogd.h"
 
-/* recvfrom() and others like socklen_t, Irix doesn't provide it */   
+/* recvfrom() and others like socklen_t, Irix doesn't provide it */
 #ifndef HAVE_SOCKLEN_T
   typedef int socklen_t;
 #endif
@@ -107,33 +107,35 @@ im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 	c = (struct im_udp_ctx *) im->im_ctx;
 
 	if (c->flags & M_USEMSGHOST) {
-		int     n1, n2;       
+		char	host[90];
+		int	n1, n2;
 
 		n1 = 0;
 		n2 = 0;
 		/* extract hostname from message */
-#if SIZEOF_MAXHOSTNAMELEN < 89
-#error  Change here buffer reads to match HOSTSIZE
-#endif
-		if ((sscanf(ret->im_msg, "<%*d>%*3s %*i %*i:%*i:%*i %n%90s "
-		    "%n%*s", &n1, ret->im_host, &n2) != 1 &&
-		    sscanf(ret->im_msg, "%*3s %*i %*i:%*i:%*i %n%90s %n%*s",
-		    &n1, ret->im_host, &n2) != 1 &&
-		    sscanf(ret->im_msg, "%n%90s %n%*s", &n1, ret->im_host,
+		if ((sscanf(ret->im_msg, "<%*d>%*3s %*i %*i:%*i:%*i %n%89s "
+		    "%n%*s", &n1, host, &n2) != 1 &&
+		    sscanf(ret->im_msg, "%*3s %*i %*i:%*i:%*i %n%89s %n%*s",
+		    &n1, host, &n2) != 1 &&
+		    sscanf(ret->im_msg, "%n%89s %n%*s", &n1, host,
 		    &n2) != 1) ||
 		    ret->im_msg[n2] == '\0') {
-        		dprintf(MSYSLOG_INFORMATIVE, "im_udp_read: skipped"
-			    " invalid message [%s]\n", ret->im_msg, n1, n2);
+			dprintf(MSYSLOG_INFORMATIVE, "im_udp_read: skipped"
+			    " invalid message [%s]\n", ret->im_msg);
 			return (0);
 		}
 
-	       if (ret->im_msg[n2] == '\0')
+		if (ret->im_msg[n2] == '\0')
 			return (0);
 
 		/* remove host from message */
 		while (ret->im_msg[n2] != '\0')
-		       ret->im_msg[n1++] = ret->im_msg[n2++];
-	       ret->im_msg[n1] = '\0';
+			ret->im_msg[n1++] = ret->im_msg[n2++];
+		ret->im_msg[n1] = '\0';
+
+		strncat(ret->im_host, host, sizeof(ret->im_host));
+		ret->im_host[sizeof(ret->im_host) - 1] = '\0';
+
 	} else {
 		struct hostent *hent;
 
@@ -201,7 +203,7 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 		}
 	}
 
-        I->im_fd = socket(AF_INET, SOCK_DGRAM, 0);
+	I->im_fd = socket(AF_INET, SOCK_DGRAM, 0);
 
 	if ((sa = resolv_name(host, port, "udp", &salen)) == NULL) {
 		dprintf(MSYSLOG_SERIOUS, "om_udp_init: error resolving host"
@@ -217,31 +219,31 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 		return (-1);
 	}
 
-        I->im_path = NULL;
-        if (finet < 0) {
+	I->im_path = NULL;
+	if (finet < 0) {
 		/* finet not in use */
-        	finet = I->im_fd;
+		finet = I->im_fd;
 		DaemonFlags |= SYSLOGD_INET_IN_USE;
 		DaemonFlags |= SYSLOGD_INET_READ;
-        }
+	}
 
 	add_fd_input(I->im_fd , I);
 
-        dprintf(MSYSLOG_INFORMATIVE, "im_udp: running\n");
-        return (1);
+	dprintf(MSYSLOG_INFORMATIVE, "im_udp: running\n");
+	return (1);
 }
 
 int
 im_udp_close(struct i_module *im)
 {
-        if (finet == im->im_fd) {
-        	finet = -1;
+	if (finet == im->im_fd) {
+		finet = -1;
 		DaemonFlags &= ~SYSLOGD_INET_IN_USE;
 		DaemonFlags &= ~SYSLOGD_INET_READ;
-        }
+	}
 
-       	close(im->im_fd);
- 
-        return (0);
+	close(im->im_fd);
+
+	return (0);
 }
 
