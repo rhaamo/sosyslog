@@ -1,4 +1,4 @@
-/*	$CoreSDI: README,v 1.12 2000/11/09 19:44:21 alejo Exp $	*/
+/*	$CoreSDI: README,v 1.13 2001/05/01 02:26:36 alejo Exp $	*/
 
 Installation
 ------------
@@ -31,6 +31,19 @@ Known Bugs
 
 - If a module blocks on I/O the hole daemon blocks, and messages can get lost
   on extremely busy hosts.
+
+
+Thanks
+------
+
+We'd like to thank for helping and supporting
+
+Florin Andrei <florin@sgi.com>
+Arthur Korn <arthur@korn.ch>
+Ari Edelkind <edelkind@phri.nyu.edu>
+
+"You guys rock!"
+ - Alejo
 
 
 Main differences with previous BSD syslog
