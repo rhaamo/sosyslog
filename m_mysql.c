@@ -151,13 +151,12 @@ m_mysql_init(argc, argv, f, prog, c)
 	char *prog;
 	struct m_header **c;
 {
-	char *p, *q;
 	MYSQL *h;
 	char	*host, *user, *passwd, *db, *ux_sock;
 	char	*table;
 	int	port, client_flag, createTable;
 	struct m_mysql_ctx	*context;
-	int	i;
+	int	ch, i;
 
 	if (argv == NULL || *argv == NULL || argc < 2 || f == NULL ||
 			prog == NULL || c == NULL)
@@ -169,63 +168,35 @@ m_mysql_init(argc, argv, f, prog, c)
 	client_flag = 0; createTable = 0;
 
 	/* parse line */
-	for ( p = *argv; p != NULL && *p != '\0';) {
-		while (isspace(*p)) p++;
-		if (*p != '-' || *p == '\0')
-			return(-2);
+	while ((ch = getopt(argc, argv, "s:u:p:b:t:c")) != -1)
 
-		switch (*p) {
-			case 's':
-				/* get database host name */
-				for (i = 0; *++p != '\0' && *p != ':'; i++);
-				host = (char *) calloc(1, i + 1);
-				for (q = host; i--; *q++ = *p++);
-				*q = '\0';
-
-				/* get port */
-				for (i = 0; *++p != '\0' && *p != ' '; i++);
-				if ( i = 0) {
-					port = MYSQL_PORT;
-				} else {
-					char	*dummy;
-
-					dummy = (char *) calloc(1, i + 1);
-					for (q = dummy; i--; *q++ = *p++)
-					*q = '\0';
-					port = atoi(dummy);
-					free (dummy);
-				}
-
+	switch (*p) {
+		case 's':
+			/* get database host name and port */
+			if ((c = strstr(optarg, ":") == NULL)
+				port = MYSQL_PORT;
+			else
+				port = atoi(++c);
+			host = strdup(optarg);
+			break;
+		case 'u':
+			user = strdup(optarg);
+			break;
 				break;
-			case 'u':
-				for (i = 0; *++p != '\0' && *p != ':'; i++);
-				user = (char *) calloc(1, i + 1);
-				for (q = user; i--; *q++ = *p++);
-				*q = '\0';
-				break;
-			case 'p':
-				for (i = 0; *++p != '\0' && *p != ':'; i++);
-				passwd = (char *) calloc(1, i + 1);
-				for (q = passwd; i--; *q++ = *p++);
-				*q = '\0';
-				break;
-			case 'b':
-				for (i = 0; *++p != '\0' && *p != ':'; i++);
-				db = (char *) calloc(1, i + 1);
-				for (q = db; i--; *q++ = *p++);
-				*q = '\0';
-				break;
-			case 't':
-				for (i = 0; *++p != '\0' && *p != ':'; i++);
-				table = (char *) calloc(1, i + 1);
-				for (q = table; i--; *q++ = *p++);
-				*q = '\0';
-				break;
-			case 'c':
-				createTable++;
-				break;
-			default:
-				break;
+		case 'p':
+			passwd = strdup(optarg);
+			break;
+		case 'b':
+			db = strdup(optarg);
+			break;
+		case 't':
+			table = strdup(optarg);
+			break;
+		case 'c':
+			createTable++;
+			break;
+		default:
+			return(-1);
 		}
 	}
 
