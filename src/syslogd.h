@@ -1,4 +1,4 @@
-/*	$Id: syslogd.h,v 1.37 2000/05/08 22:28:38 alejo Exp $
+/*	$Id: syslogd.h,v 1.38 2000/05/11 17:13:34 claudio Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -158,25 +158,6 @@ struct IModule {
 #define F_FORW		4		/* remote machine */
 #define F_USERS		5		/* list of users */
 #define F_WALL		6		/* everyone logged on */
-
-/* values for om_type */
-#define	OM_CLASSIC	0
-#define	OM_MYSQL	1
-#define	OM_PEO		2
-
-#define IM_BSD		0
-#define IM_SYSV		1
-#define IM_UNIX		2
-#define IM_PIPE		3
-#define IM_UDP		4
-#define IM_TCP		5
-
-#define IM_BSD_INIT	 1
-#define IM_SYSV_INIT	 2
-#define IM_UNIX_INIT	 4
-#define IM_PIPE_INIT	 8
-#define IM_UDP_INIT	16
-#define IM_TCP_INIT	32
 
 /* values for integrity facilities */
 #define I_NONE		0

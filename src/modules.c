@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.53 2000/05/10 23:58:29 alejo Exp $
+/*	$Id: modules.c,v 1.54 2000/05/11 17:13:33 claudio Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -46,6 +46,11 @@
 #include <syslog.h>
 #include "syslogd.h"
 #include "modules.h"
+
+int om_peo_doLog(struct filed *, int, char *, struct om_header_ctx *);
+int om_peo_init(int, char **, struct filed *, char *, struct om_header_ctx **);
+int om_peo_close(struct filed *, struct om_header_ctx **);
+int om_peo_flush(struct filed *, struct om_headerctx *);
 
 int om_classic_doLog(struct filed *, int , char *, struct om_header_ctx *);
 int om_classic_init(int, char **, struct filed *, char *, struct om_header_ctx **);
@@ -98,6 +103,14 @@ modules_load()
 	OModules[OM_MYSQL].om_flush 		= om_mysql_flush;
 #endif
   
+	/* peo module */
+	OModule[OM_PEO].om_name			= "peo";
+	OModule[OM_PEO].om_type			= OM_PEO;
+	OModule[OM_PEO].om_doLog		= om_peo_doLog;
+	OModule[OM_PEO].om_init			= om_peo_init;
+	OModule[OM_PEO].om_close		= om_peo_close;
+	OModule[OM_PEO].om_flush		= om_peo_flush;
+
 	IModules[IM_BSD].im_name		= "bsd";
 	IModules[IM_BSD].im_type		= IM_BSD;
 	IModules[IM_BSD].im_init		= im_bsd_init;

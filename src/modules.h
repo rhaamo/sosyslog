@@ -3,6 +3,17 @@
 #ifndef SYSLOG_MODULES_H
 #define SYSLOG_MODULES_H
 
+/* values for om_type */
+#define OM_CLASSIC      0
+#define OM_MYSQL        1
+#define OM_PEO          2
+
+#define IM_BSD          0
+#define IM_SYSV         1
+#define IM_UNIX         2
+#define IM_PIPE         3
+#define IM_UDP          4
+#define IM_TCP          5
 
 extern int	Debug;			/* debug flag */
 extern char	LocalHostName[];	/* our hostname */
