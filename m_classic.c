@@ -199,8 +199,9 @@ m_classic_printlog(f, flags, msg, context)
  *  taken mostly from syslogd's cfline
  */
 int
-m_classic_init(line, f, prog, context)
-	char *line;
+m_classic_init(argc, argv, f, prog, context)
+	int argc;
+	char **argv;
 	struct filed *f;
 	char *prog;
 	struct m_header **context;
@@ -212,7 +213,7 @@ m_classic_init(line, f, prog, context)
 
 	dprintf("m_classic init\n");
 
-	p = line;
+	p = *argv;
 
 	switch (*p)
 	{

@@ -87,8 +87,9 @@ int modules_close(f)
 }
 
 /* create all necesary modules for a specific filed */
-int modules_create(p, f, prog)
-	char *p;
+int modules_create(argc, argv, f, prog)
+	int argc;
+	char **argv;
 	struct filed *f;
 	char *prog;
 {
@@ -97,10 +98,11 @@ int modules_create(p, f, prog)
 	struct o_module		*m;
 	struct Modules	*mf;
 	int	i;
+	char	*p;
 
 	memset(name, 0, MAX_MODULE_NAME_LEN + 1);
 
-	if (p == NULL)
+	if (argv == NULL || argc == 0)
 		return (-1);
 
 	/* create context and initialize module for logging */
@@ -113,6 +115,7 @@ int modules_create(p, f, prog)
 		m = m->m_next;
 	}
 
+	p = *argv;
 	switch (*p)
 	{
 	case '%':
@@ -136,7 +139,7 @@ int modules_create(p, f, prog)
 
 		/* advance to module params */
 		while(isspace(*p)) p++;
-		(*mf->m_init)(p, f, prog, (void *) &(m->context));
+		(*mf->m_init)(argc, argv, f, prog, (void *) &(m->context));
 
 		break;
 	case '@':
@@ -145,7 +148,7 @@ int modules_create(p, f, prog)
 	default:
 		/* classic style */
 		/* prog is already on this filed */
-		m_classic_init(p, f, NULL, NULL);
+		m_classic_init(argc, argv, f, NULL, NULL);
 		
 		break;
 	}

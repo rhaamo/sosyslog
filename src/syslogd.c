@@ -924,6 +924,8 @@ cfline(line, f, prog)
 	int i, pri;
 	char *bp, *p, *q;
 	char buf[MAXLINE], ebuf[100];
+	int argc;
+	char **argv;
 
 	dprintf("cfline(\"%s\", f, \"%s\")\n", line, prog);
 
@@ -1008,7 +1010,7 @@ cfline(line, f, prog)
 	while (*p == '\t')
 		p++;
 
-	if (modules_create(p, f, NULL, NULL) == -1) {
+	if (modules_create(argc, argv, f, NULL) == -1) {
 		dprintf("Error initializing modules!\n");
 	}
 }

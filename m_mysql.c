@@ -90,7 +90,6 @@ m_mysql_printlog(f, flags, msg, context)
 	struct m_header *context;
 {
 	struct m_mysql_ctx *c;
-	char	badchars[] = SQL_BADCHARS;
 	char	*p, *q;
 	char	*msgbuf;
 
@@ -101,26 +100,26 @@ m_mysql_printlog(f, flags, msg, context)
 	/* get args names */
 
 	/* find if some funny thing is going on here for bangin' SQL */
-	for (p = msg, q = msgbuf; p; p++, r++) {
+	for (p = msg, q = msgbuf; p; p++, q++) {
 		if (iscntrl(*p) || *p == '\'' || *p == ';')
 			*q = 'X';
 		else
 			*q = *p;
 	}
-	*++r = '\0';
+	*++q = '\0';
 
 	/* get args names */
 
 	if (snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s VALUES('%s', '%s',
 			'%s', '%s', '%s', '%s",
-			c->table, date, time, host, progname, pid, msg) = MAX_QUERY - 2 ) {
+			c->table, date, time, host, progname, pid, msg) == MAX_QUERY - 2 ) {
 		/* force termination if msg filled the buffer */
-		(c->query + MAX_QUERY - 2) = '\'';
-		(c->query + MAX_QUERY - 1) = ')';
-		(c->query + MAX_QUERY)     = '\0';
+		c->query[MAX_QUERY - 2] = '\'';
+		c->query[MAX_QUERY - 1] = ')';
+		c->query[MAX_QUERY]     = '\0';
 	}
 
-	return (mysql_query(c->h, buf));
+	return (mysql_query(c->h, c->query));
 
 }
 
@@ -141,8 +140,9 @@ m_mysql_printlog(f, flags, msg, context)
  */
 
 int
-m_mysql_init(line, f, prog, c)
-	char *line;
+m_mysql_init(argc, argv, f, prog, c)
+	int	argc;
+	char	**argv;
 	struct filed *f;
 	char *prog;
 	struct m_header **c;
@@ -155,16 +155,17 @@ m_mysql_init(line, f, prog, c)
 	struct m_mysql_ctx	*context;
 	int	i;
 
-	if (line == NULL || f == NULL || prog == NULL || c == NULL)
+	if (argv == NULL || *argv == NULL || argc == 0 || f == NULL ||
+			prog == NULL || c == NULL)
 		return (-1);
 
-	p = line;
+	p = *argv;
 	host = NULL; user = NULL; passwd = NULL;
 	db = NULL; ux_sock = NULL; port = 0;
 	client_flag = 0; createTable = 0;
 
 	/* parse line */
-	for ( p = line; p != NULL && *p != '\0';) {
+	for ( p = *argv; p != NULL && *p != '\0';) {
 		while (isspace(*p)) p++;
 		if (*p != '-' || *p == '\0')
 			return(-2);
@@ -252,7 +253,7 @@ m_mysql_init(line, f, prog, c)
 	context->passwd = passwd;
 	context->db = db;
 	context->table = table;
-	context->query = (char *) calloc(MAX_QUERY);
+	context->query = (char *) calloc(1, MAX_QUERY);
 
 	return (0);
 }

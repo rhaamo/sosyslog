@@ -132,13 +132,13 @@ struct	Modules {
 	char	*m_name;
 	short	m_type;
 	int	(*m_printlog) (struct filed *, int, char *, void *);
-	int	(*m_init) (char *, struct filed *, char *, struct m_header **);
+	int	(*m_init) (int, char **, struct filed *, char *, struct m_header **);
 	int	(*m_close) (struct filed *, struct m_header **);
 	int	(*m_flush) (struct filed *, void *);
 } Modules[MAX_N_MODULES];
 
-char	*getmodulename(int);
-int	getmoduleid(char*);
+int modules_init();
+int modules_create(int, char **, struct filed *, char *);
 
 #define	MAXREPEAT ((sizeof(repeatinterval) / sizeof(repeatinterval[0])) - 1)
 #define	REPEATTIME(f)	((f)->f_time + repeatinterval[(f)->f_repeatcount])

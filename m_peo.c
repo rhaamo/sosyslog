@@ -80,8 +80,9 @@ m_peo_printlog(f, flags, msg, context)
  *  taken mostly from syslogd's cfline
  */
 int
-m_peo_init(line, f, prog, context)
-	char *line;
+m_peo_init(argc, argv, f, prog, context)
+	int argc;
+	char **argv;
 	struct filed *f;
 	char *prog;
 	void *context;
