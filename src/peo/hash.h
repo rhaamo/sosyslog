@@ -1,5 +1,6 @@
-/*      $Id: hash.h,v 1.10 2000/05/06 00:58:22 claudio Exp $
- *
+/*	$CoreSDI$	*/
+
+/*
  * hash -- some things used by both peo output module and peochk
  *
  * Author: Claudio Castiglia for Core-SDI SA

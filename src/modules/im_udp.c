@@ -1,11 +1,12 @@
-/*	$Id: im_udp.c,v 1.20 2000/05/23 03:50:25 alejo Exp $
+/*	$CoreSDI$	*/
+
+/*
  *  im_udp -- classic behaviour module for BDS like systems
  *      
  * Author: Alejo Sanchez for Core-SDI SA
  *         form syslogd.c by Eric Allman and Ralph Campbell
  *    
  */
-
 
 #include <syslog.h>
 #include "modules.h"

@@ -1,4 +1,5 @@
-#	$Id: Makefile.linux,v 1.4 2000/05/12 22:28:02 claudio Exp $
+#	$CoreSDI$
+
 IMODULES = im_bsd.o im_udp.o im_unix.o
 OMODULES = om_classic.o peo/om_peo.o
 OBJS = syslogd.o modules.o ttymsg.o iolib.o peo/hash.o peo/md5c.o peo/rmd160.o peo/sha1.o $(IMODULES) $(OMODULES)

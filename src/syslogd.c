@@ -1,4 +1,6 @@
-/*	$Id: syslogd.c,v 1.72 2000/05/23 19:33:30 claudio Exp $
+/*	$CoreSDI$	*/
+
+/*
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *

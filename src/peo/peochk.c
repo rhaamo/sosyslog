@@ -1,5 +1,6 @@
-/*      $Id: peochk.c,v 1.31 2000/05/23 19:33:32 claudio Exp $
- *
+/*	$CoreSDI$	*/
+
+/*
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
  * Author: Claudio Castiglia for Core-SDI SA

@@ -1,5 +1,5 @@
-/*  $Id: iolib.c,v 1.5 2000/04/28 20:39:36 alejo Exp $
- */
+/*	$CoreSDI$	*/
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <string.h>

@@ -1,4 +1,6 @@
-/*	$Id: modules.c,v 1.61 2000/05/23 03:10:17 alejo Exp $
+/*	$CoreSDI$	*/
+
+/*
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *

@@ -1,5 +1,5 @@
-#       $Id: Makeman,v 1.1 2000/05/22 22:51:42 claudio Exp $
+#       $CoreSDI$
 
 MAN= man8/syslogd.8 man5/syslog.conf.5 peo/man8/om_peo.8 peo/man8/peochk.8
-.include <bsd.man.mk>
 
+.include <bsd.man.mk>

@@ -1,7 +1,7 @@
-#	$OpenBSD: Makefile,v 1.3 1997/09/21 11:44:29 deraadt Exp $
+#	$CoreSDI$
 
 CC	=	gcc
-CFLAGS	=	-Wall -ggdb
+CFLAGS	=	-Wall
 LDADD	=	-lc
 COMPILE	=	$(CC) $(CFLAGS) -c $(.ALLSRC)
 LINK	=	$(CC) $(CFLAGS) $(LDADD) -o $(.TARGET) $(.ALLSRC)
@@ -28,5 +28,3 @@ rmd160.o:	rmd160.c
 
 clean:
 	rm -f *.o peochk
-
-

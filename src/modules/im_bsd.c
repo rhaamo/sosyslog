@@ -1,3 +1,5 @@
+/*	$CoreSDI$	*/
+
 /*
  *  im_bsd -- classic behaviour module for BDS like systems
  *      
@@ -5,7 +7,6 @@
  *         form syslogd.c by Eric Allman and Ralph Campbell
  *    
  */
-
 
 #include <syslog.h>
 #include "syslogd.h"

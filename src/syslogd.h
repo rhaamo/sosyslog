@@ -1,4 +1,6 @@
-/*	$Id: syslogd.h,v 1.41 2000/05/23 01:44:35 alejo Exp $
+/*	$CoreSDI$	*/
+
+/*
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *

@@ -1,4 +1,4 @@
-/* agregar licencia y acknowledge */ 
+/*	$CoreSDI$	*/
 
 #ifndef SYSLOG_MODULES_H
 #define SYSLOG_MODULES_H

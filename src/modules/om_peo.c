@@ -1,3 +1,5 @@
+/*	$CoreSDI$	*/
+
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
@@ -39,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.27 2000/05/23 19:33:31 claudio Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.28 2000/05/23 21:47:10 fgsch Exp $";
 #endif /* not lint */
 
 /*

@@ -1,11 +1,12 @@
-/*      $Id: im_unix.c,v 1.14 2000/05/22 22:40:50 alejo Exp $
+/*	$CoreSDI$	*/
+
+/*
  *  im_unix -- classic behaviour module for BDS like systems
  *      
  * Author: Alejo Sanchez for Core-SDI SA
  *         form syslogd.c by Eric Allman and Ralph Campbell
  *    
  */
-
 
 #include <sys/types.h>
 #include <sys/socket.h>

@@ -1,4 +1,6 @@
-/*	$Id: om_classic.c,v 1.21 2000/05/23 03:10:18 alejo Exp $
+/*	$CoreSDI$	*/
+
+/*
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
