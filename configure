@@ -1920,7 +1920,7 @@ then
 	CFLAGS="$CFLAGS -Wall -pedantic"
 fi
 
-MSYSLOG_VERSION="1.06"
+MSYSLOG_VERSION="1.08"
 cat >> confdefs.h <<EOF
 #define MSYSLOG_VERSION_STR "$MSYSLOG_VERSION"
 EOF
