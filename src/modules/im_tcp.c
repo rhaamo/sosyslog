@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.52 2000/12/14 00:16:44 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.1 2001/02/08 18:01:53 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -199,18 +199,6 @@ im_tcp_read(struct i_module *im, int index, struct im_msg *ret)
 
 }
 
-struct tcp_conn {
-	int		 fd;
-	int		 index;
-	struct tcp_conn *next;
-	struct sockaddr *cliaddr;
-	socklen_t	 addrlen;
-};
-
-struct im_tcp_ctx {
-	socklen_t	addrlen;
-	struct tcp_conn	conns;
-};
 int
 im_tcp_close(struct i_module *im)
 {
