@@ -28,10 +28,11 @@ struct im_bsd_ctx {
  */
 
 int
-im_bsd_getmsg(buf, size, c)
+im_bsd_getmsg(buf, size, c, r)
 	char   *buf;
 	int   size;
-	struct im_header  *c;
+	struct im_header_ctx  *c;
+	struct im_ret     *r;
 {
 	struct 
 }
@@ -41,8 +42,8 @@ struct IModules {
 	short	im_type;
 	int	fd;      			/*  for use with select() */
 	int	(*im_getmsg) (char *, int); 	/* buf, bufsize */ 
-	int	(*im_init) (int, char **, struct im_header **);
-	int	(*im_close) (struct im_header *);
+	int	(*im_init) (int, char **, struct im_header_ctx **);
+	int	(*im_close) (struct im_header_ctx *);
 } IModules[MAX_N_IMODULES];
 
 /*
@@ -58,11 +59,11 @@ int
 im_bsd_init(argc, argv, c)
 	int   argc;
 	char   *argv[];
-	struct im_header  **c;
+	struct im_header_ctx  **c;
 {
 	struct im_bsd_ctx *ctx;
 
-	*c = (struct im_header *) calloc(1, sizeof(struct im_bsd_ctx));
+	*c = (struct im_header_ctx *) calloc(1, sizeof(struct im_bsd_ctx));
 	ctx = (struct im_bsd_ctx *) *c;
 
 
@@ -123,7 +124,7 @@ im_bsd_init(argc, argv, c)
 
 char *
 im_bsd_getmsg(c)
-	struct im_header  *c;
+	struct im_header_ctx  *c;
 {
 	struct im_bsd_ctx *ctx;
 

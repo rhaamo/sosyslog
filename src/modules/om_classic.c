@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_classic.c,v 1.2 2000/04/07 22:57:57 alejo Exp $";
+static char rcsid[] = "$Id: om_classic.c,v 1.3 2000/04/13 18:27:38 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -74,7 +74,7 @@ om_classic_doLog(f, flags, msg, context)
 	struct filed *f;
 	int flags;
 	char *msg;
-	struct om_header *context;
+	struct om_header_ctx *context;
 {
 	struct iovec iov[6];
 	struct iovec *v;
@@ -209,7 +209,7 @@ om_classic_init(argc, argv, f, prog, context)
 	char **argv;
 	struct filed *f;
 	char *prog;
-	struct om_header **context;
+	struct om_header_ctx **context;
 {
 	struct hostent *hp;
 	int i, pri;
@@ -287,7 +287,7 @@ om_classic_init(argc, argv, f, prog, context)
 int
 om_classic_close(f, context)
 	struct filed *f;
-	struct om_header **context;
+	struct om_header_ctx **context;
 {
 	int ret;
 
@@ -308,7 +308,7 @@ om_classic_close(f, context)
 int
 om_classic_flush(f, context)
 	struct filed *f;
-	struct om_header *context;
+	struct om_header_ctx *context;
 {
 	/* flush any pending output */
 	if (f->f_prevcount)

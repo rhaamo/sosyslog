@@ -87,7 +87,7 @@
 #define MAXFUNIX        21
 
 /* standard output module header variables in context */
-struct om_header {
+struct om_header_ctx {
 	short	flags;
 #define M_FLAG_INITIALIZED 0x1
 #define M_FLAG_ERROR 0x2
@@ -97,7 +97,7 @@ struct om_header {
 };
 
 /* standard input module header variables in context */
-struct im_header {
+struct im_header_ctx {
 	short	flags;
 #define M_FLAG_INITIALIZED 0x1
 #define M_FLAG_ERROR 0x2
@@ -112,7 +112,7 @@ struct im_header {
 struct o_module {
 	struct	o_module *om_next;
 	short	om_type;
-	struct  om_header	*context;
+	struct  om_header_ctx	*context;
 };
 
 /*
@@ -148,18 +148,18 @@ struct filed {
 struct	OModules {
 	char	*om_name;
 	short	om_type;
-	int	(*om_doLog) (struct filed *, int, char *, struct om_header *);
-	int	(*om_init) (int, char **, struct filed *, char *, struct om_header **);
-	int	(*om_close) (struct filed *, struct om_header **);
-	int	(*om_flush) (struct filed *, struct om_header *);
+	int	(*om_doLog) (struct filed *, int, char *, struct om_header_ctx *);
+	int	(*om_init) (int, char **, struct filed *, char *, struct om_header_ctx **);
+	int	(*om_close) (struct filed *, struct om_header_ctx **);
+	int	(*om_flush) (struct filed *, struct om_header_ctx *);
 } OModules[MAX_N_OMODULES];
 
 struct IModules {
 	char	*im_name;
 	short	im_type;
-	int	(*im_getmsg) (char *, int, struct im_header); 	/* buf, bufsize */ 
-	int	(*im_init) (int, char **, struct im_header **);
-	int	(*im_close) (struct im_header *);
+	int	(*im_getmsg) (char *, int, struct im_header_ctx); 	/* buf, bufsize */ 
+	int	(*im_init) (int, char **, struct im_header_ctx **);
+	int	(*im_close) (struct im_header_ctx *);
 } IModules[MAX_N_IMODULES];
 
 

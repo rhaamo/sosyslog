@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_mysql.c,v 1.1 2000/04/06 22:29:31 alejo Exp $";
+static char rcsid[] = "$Id: om_mysql.c,v 1.2 2000/04/13 18:27:39 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -89,7 +89,7 @@ om_mysql_doLog(f, flags, msg, context)
 	struct filed *f;
 	int flags;
 	char *msg;
-	struct om_header *context;
+	struct om_header_ctx *context;
 {
 	struct om_mysql_ctx *c;
 	char	*dummy, *y, *m, *d, *h, *host, mymsg[1024];
@@ -174,7 +174,7 @@ om_mysql_init(argc, argv, f, prog, c)
 	char	**argv;
 	struct filed *f;
 	char *prog;
-	struct om_header **c;
+	struct om_header_ctx **c;
 {
 	MYSQL *h;
 	struct om_mysql_ctx	*context;
@@ -244,7 +244,7 @@ om_mysql_init(argc, argv, f, prog, c)
 	}
 
 	/* save handle and stuff on context */
-	*c = (struct om_header *) calloc(1, sizeof(struct om_mysql_ctx));
+	*c = (struct om_header_ctx *) calloc(1, sizeof(struct om_mysql_ctx));
 
 	context = (struct om_mysql_ctx *) *c;
 	context->size = sizeof(struct om_mysql_ctx);
@@ -276,7 +276,7 @@ om_mysql_destroy_ctx(context)
 int
 om_mysql_close(f, context)
 	struct filed *f;
-	struct om_header **context;
+	struct om_header_ctx **context;
 {
 	struct om_mysql_ctx *c;
 
@@ -292,7 +292,7 @@ om_mysql_close(f, context)
 int
 om_mysql_flush(f, context)
 	struct filed *f;
-	struct om_header *context;
+	struct om_header_ctx *context;
 {
 	/* this module doesn't need to "flush" data */
 	return (0);
