@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.139 2001/07/30 21:03:06 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.140 2001/07/30 21:15:05 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -33,14 +33,21 @@ AC_HEADER_TIME
 AC_STRUCT_TM
 
 dnl Checks for library functions.
+AC_CHECK_LIB(dl, dlopen, SYSLOGD_LIBS="$SYSLOGD_LIBS -ldl")dnl
+AC_CHECK_LIB(socket, connect, SYSLOGD_LIBS="$SYSLOGD_LIBS -lsocket")dnl
+AC_CHECK_LIB(nsl, gethostbyname, SYSLOGD_LIBS="$SYSLOGD_LIBS -lnsl")dnl
+AC_DEFINE(SYSLOGD_LIBS, $SYSLOGD_LIBS)dnl
 AC_PROG_GCC_TRADITIONAL
 AC_FUNC_MEMCMP
 AC_TYPE_SIGNAL
 dnl It should have strftime!
 dnl AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS(gethostname inet_ntop inet_ntohs getaddrinfo regcomp poll select\
+LIBS_SAVE="$LIBS"
+LIBS="$LIBS $SYSLOGD_LIBS"
+AC_CHECK_FUNCS(gethostname inet_ntop getaddrinfo regcomp poll select\
  socket strdup strerror strstr strtoul )dnl
+LIBS="$LIBS_SAVE"
 
 dnl Check endianness
 AC_C_BIGENDIAN
@@ -68,14 +75,6 @@ then
 	prefix=$ac_default_prefix
 fi
 AC_DEFINE_UNQUOTED(INSTALL_LIBDIR, "$prefix/lib/alat")
-
-dnl
-dnl Check needed libs for daemon
-dnl
-AC_CHECK_LIB(dl, dlopen, SYSLOGD_LIBS="$SYSLOGD_LIBS -ldl")dnl
-AC_CHECK_LIB(socket, connect, SYSLOGD_LIBS="$SYSLOGD_LIBS -lsocket")dnl
-AC_CHECK_LIB(nsl, gethostbyname, SYSLOGD_LIBS="$SYSLOGD_LIBS -lnsl")dnl
-AC_DEFINE(SYSLOGD_LIBS, $SYSLOGD_LIBS)dnl
 
 AC_MSG_CHECKING(wheter optreset is needed)
 AC_TRY_LINK([#include <unistd.h>],
