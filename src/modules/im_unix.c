@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.16 2000/05/26 16:53:36 fgsch Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.17 2000/05/26 18:31:39 fgsch Exp $	*/
 
 /*
  *  im_unix -- classic behaviour module for BDS like systems
@@ -98,7 +98,7 @@ im_unix_init(I, argv, argc)
 		return (-1);
 	}
 	I->im_type = IM_UNIX;
-	I->im_name = "unix";
+	I->im_name = strdup("unix");
 	I->im_path = strdup(argv[1]);
 	return(1);
 }
@@ -111,9 +111,15 @@ im_unix_close(im)
 {
 	int ret;
 
-	ret = unlink(im->im_name);
-	free(im->im_path);
-	free(im->im_name);
+
+	if (im->im_path) {
+		ret = unlink(im->im_path);
+		free(im->im_path);
+	}
+
+	if (im->im_name)
+		free(im->im_name);
+
 	return(ret);
 }
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.24 2000/05/26 16:53:36 fgsch Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.25 2000/05/26 18:31:39 fgsch Exp $	*/
 
 /*
  *  im_udp -- classic behaviour module for BDS like systems
@@ -118,7 +118,7 @@ im_udp_init(I, argv, argc)
 	}
 
         I->im_type = IM_UDP;
-        I->im_name = "udp";
+        I->im_name = strdup("udp");
         I->im_path = "";
         I->im_fd   = finet;
         return(1);
@@ -128,12 +128,13 @@ int
 im_udp_close(im) 
         struct i_module *im;
 {
-        int ret;   
+        if (im->im_path)
+		free(im->im_path);
 
-        ret = close(im->im_fd);
-        free(im->im_path);
-        free(im->im_name);
-        return(ret);
+        if (im->im_name)
+		free(im->im_name);
+
+        return(close(im->im_fd));
 }
 
 
