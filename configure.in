@@ -1,7 +1,7 @@
 dnl $CoreSDI: configure.in,v 1.143 2001/09/19 15:58:44 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(src/syslogd.c)dnl
-AC_CONFIG_HEADER(src/config.h)dnl
+AC_INIT(src/syslogd.c)
+AC_CONFIG_HEADER(src/config.h)
 
 dnl Checks for programs.
 AC_PROG_CC
@@ -23,7 +23,7 @@ AC_HEADER_SYS_WAIT
 
 AC_CHECK_HEADERS(fcntl.h limits.h paths.h strings.h inttypes.h sys/ioctl.h \
     sys/types.h sys/time.h machine/endian.h syslog.h unistd.h sysctl.h \
-    err.h sys/context.h )dnl
+    err.h sys/context.h )
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -33,10 +33,10 @@ AC_HEADER_TIME
 AC_STRUCT_TM
 
 dnl Checks for library functions.
-AC_CHECK_LIB(dl, dlopen, SYSLOGD_LIBS="$SYSLOGD_LIBS -ldl")dnl
-AC_CHECK_LIB(socket, connect, SYSLOGD_LIBS="$SYSLOGD_LIBS -lsocket")dnl
-AC_CHECK_LIB(nsl, gethostbyname, SYSLOGD_LIBS="$SYSLOGD_LIBS -lnsl")dnl
-AC_DEFINE(SYSLOGD_LIBS, $SYSLOGD_LIBS)dnl
+AC_CHECK_LIB(dl, dlopen, SYSLOGD_LIBS="$SYSLOGD_LIBS -ldl")
+AC_CHECK_LIB(socket, connect, SYSLOGD_LIBS="$SYSLOGD_LIBS -lsocket")
+AC_CHECK_LIB(nsl, gethostbyname, SYSLOGD_LIBS="$SYSLOGD_LIBS -lnsl")
+AC_DEFINE(SYSLOGD_LIBS, $SYSLOGD_LIBS)
 AC_PROG_GCC_TRADITIONAL
 AC_FUNC_MEMCMP
 AC_TYPE_SIGNAL
@@ -46,7 +46,7 @@ AC_FUNC_VPRINTF
 LIBS_SAVE="$LIBS"
 LIBS="$LIBS $SYSLOGD_LIBS"
 AC_CHECK_FUNCS(gethostname inet_ntop getaddrinfo regcomp poll select\
- socket strdup strerror strstr strtoul )dnl
+ socket strdup strerror strstr strtoul )
 LIBS="$LIBS_SAVE"
 
 dnl Check endianness
@@ -62,11 +62,11 @@ then
 fi
 
 MSYSLOG_VERSION="1.08"
-AC_DEFINE_UNQUOTED(MSYSLOG_VERSION_STR, "$MSYSLOG_VERSION")dnl
+AC_DEFINE_UNQUOTED(MSYSLOG_VERSION_STR, "$MSYSLOG_VERSION")
 echo msyslog version... $MSYSLOG_VERSION
 
 MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
-AC_DEFINE_UNQUOTED(MLIBNAME_STR, "$MLIBNAME")dnl
+AC_DEFINE_UNQUOTED(MLIBNAME_STR, "$MLIBNAME")
 
 MANPAGES="syslog.conf.5 syslogd.8"
 
@@ -91,7 +91,7 @@ do
 	fi
 done
 AC_MSG_RESULT(root-mode pid file will go in $dir)
-AC_DEFINE_UNQUOTED(PID_DIR, "$dir")dnl
+AC_DEFINE_UNQUOTED(PID_DIR, "$dir")
 
 dnl search mandir for non bsd systems
 for MANDIR in "/usr/share/man" "/usr/man"
@@ -103,7 +103,7 @@ done
 
 dnl AC_MSG_CHECKING(for MAXHOSTNAMELEN)
 
-AC_CHECK_SIZEOF_DEFINE(MAXHOSTNAMELEN, 254)dnl
+AC_CHECK_SIZEOF_DEFINE(MAXHOSTNAMELEN, 254)
 
 dnl Check underscore requirement for dlsym()
 
@@ -121,7 +121,7 @@ AC_EGREP_HEADER(stack_t, [signal.h],[
 	AC_MSG_RESULT(yes)
 ], [
 	AC_MSG_RESULT(no)
-])dnl
+])
 
 
 AC_MSG_CHECKING(for daemon name)
@@ -137,9 +137,9 @@ AC_ARG_WITH(daemon-name,
 	else
 		MSYSLOG_DAEMON_NAME="$withval";
 	fi
-])dnl
+])
 
-AC_MSG_RESULT("$MSYLOG_DAEMON_NAME")
+AC_MSG_RESULT("$MSYSLOG_DAEMON_NAME")
 
 AC_ARG_WITH(maximum-optimization,
 [  --without-maximum-optimization
@@ -149,27 +149,27 @@ AC_ARG_WITH(maximum-optimization,
 MAIN_CPPFLAGS="";
 UNAME=`uname`
 if test "$UNAME" = "OpenBSD" ; then
-	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
-	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "_")dnl
+	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)
+	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "_")
 	SHARED_PARAMS="-Bshareable"
 	DCCFLAGS="-fPIC"
 elif test "$UNAME" = "Linux" ; then
-	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY | RTLD_GLOBAL)dnl
-	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")dnl
+	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY | RTLD_GLOBAL)
+	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")
 	MAIN_CPPFLAGS="-Xlinker -E";
 	SHARED_PARAMS="-Bshareable"
 	DCCFLAGS=""
 	AC_DEFINE(_GNU_SOURCE, 1)
 elif test "$UNAME" = "SunOS" ; then
-	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
-	AC_DEFINE(_REENTRANT)dnl
-	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")dnl
+	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)
+	AC_DEFINE(_REENTRANT)
+	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")
 	SHARED_PARAMS="-G"
 	DCCFLAGS="-fPIC"
 elif test "$UNAME" = "IRIX" -o "$UNAME" = "IRIX64" ; then
-	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
-	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")dnl
-	AC_DEFINE(INET6)dnl
+	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)
+	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")
+	AC_DEFINE(INET6)
 	CFLAGS="-D_BSD_SIGNALS"
 	if test "x$GCC" == "xyes"
 	then
@@ -182,9 +182,9 @@ elif test "$UNAME" = "IRIX" -o "$UNAME" = "IRIX64" ; then
 	fi
 	SHARED_PARAMS="-shared -soname $MLIBNAME -all"
 elif test "$UNAME" = "AIX" ; then
-	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY | RTLD_GLOBAL)dnl
-	AC_DEFINE(NEEDS_DLOPEN_NULL)dnl
-	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")dnl
+	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY | RTLD_GLOBAL)
+	AC_DEFINE(NEEDS_DLOPEN_NULL)
+	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")
 	DCCFLAGS="-shared"
 	SHARED_PARAMS="-lc -bI:libmsyslog.imp -bexpall -bnoentry -brtl"
 	cat > src/modules/libmsyslog.imp <<-EOF
@@ -202,9 +202,9 @@ elif test "$UNAME" = "AIX" ; then
 
 	SYSLOGD_LIBS="$SYSLOGD_LIBS -Wl,-bexpall"
 else
-	AC_MSG_WARN(cannot determine system type falling to defaults)dnl
-	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")dnl
-	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
+	AC_MSG_WARN(cannot determine system type falling to defaults)
+	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")
+	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)
 	SHARED_PARAMS="-Bshareable"
 fi
 
@@ -215,9 +215,9 @@ else
 	AC_DEFINE(PID_FILE, "syslog.pid")
 fi
 
-dnl
+
 dnl Here we check module support
-dnl
+
 
 temp_res="no";
 AC_ARG_WITH(bsd,
@@ -230,11 +230,11 @@ AC_ARG_WITH(bsd,
 	    -o "$UNAME"  = "TrustedBSD" ; then
 		temp_res="yes";
 	fi
-])dnl
+])
 if test "X$temp_res" = "Xyes" ; then
 		MSRCS="$MSRCS im_bsd.c";
 		MANPAGES="$MANPAGES im_bsd.8";
-		AC_DEFINE(HAVE_BSD_IMODULE)dnl
+		AC_DEFINE(HAVE_BSD_IMODULE)
 fi
 
 AC_ARG_WITH(linux,
@@ -251,8 +251,8 @@ AC_ARG_WITH(linux,
 		MSRCS="$MSRCS im_linux.c"
 		MANPAGES="$MANPAGES im_linux.8"
 		AC_DEFINE(HAVE_LINUX_IMODULE)
-	])dnl
-])dnl
+	])
+])
 
 temp_res="no";
 AC_ARG_WITH(udp,
@@ -261,8 +261,8 @@ AC_ARG_WITH(udp,
 ],[ temp_res="$with_udp"; ],[
 	AC_CHECK_HEADER(sys/socket.h, [
 		temp_res="yes";
-	])dnl
-])dnl
+	])
+])
 if test "X$temp_res" = "Xyes" ; then
 	MSRCS="$MSRCS im_udp.c om_udp.c"
 	MANPAGES="$MANPAGES im_udp.8 om_udp.8";
@@ -274,8 +274,8 @@ AC_ARG_WITH(unix,
 [  --without-unix
 	Use unix socket domain input module. Activated by default.
 ],[ temp_res="$with_unix"; ],[
-	AC_CHECK_HEADER(sys/un.h, [ temp_res="yes"; ])dnl
-])dnl
+	AC_CHECK_HEADER(sys/un.h, [ temp_res="yes"; ])
+])
 if test "X$temp_res" = "Xyes" ; then
 		MSRCS="$MSRCS im_unix.c"
 		AC_DEFINE(HAVE_UNIX_IMODULE)
@@ -294,8 +294,8 @@ AC_ARG_WITH(streams,
 		temp_res="yes"
 	fi
 ],[
- 	AC_CHECK_HEADER(sys/strlog.h, strlog_h="yes", strlog_h="no")dnl
- 	AC_CHECK_HEADER(door.h, door_h="yes", door_h="no")dnl
+ 	AC_CHECK_HEADER(sys/strlog.h, strlog_h="yes", strlog_h="no")
+ 	AC_CHECK_HEADER(door.h, door_h="yes", door_h="no")
 	if test "$strlog_h" = "yes" -a "$door_h" = "yes" ; then
 		temp_res="yes"
 	fi
@@ -426,10 +426,10 @@ AC_ARG_WITH(queue,
 		MSRCS="$MSRCS om_directory.c om_queue.c"
 		MANPAGES="$MANPAGES om_directory.8"
 	fi
-dnl ],[
+]
+dnl ,[
 dnl 	MSRCS="$MSRCS om_directory.c om_queue.c"
 dnl 	MANPAGES="$MANPAGES om_directory.8"
-dnl ]
 )
 
 AC_ARG_WITH(regex,
@@ -444,32 +444,41 @@ AC_ARG_WITH(regex,
 	AC_CHECK_HEADER(regex.h, [
 		MSRCS="$MSRCS om_regex.c om_refract.c"
 		MANPAGES="$MANPAGES om_regex.8 om_refract.8"
-	])dnl
+	])
 ])
 
 AC_CACHE_SAVE
 
-AC_HAVE_TYPES(socklen_t uint32_t uint64_t u_int32_t u_int64_t \
-	__uint32_t __uint64_t CODE)dnl
+AC_CHECK_TYPES(socklen_t)
+AC_CHECK_TYPES(uint32_t)
+AC_CHECK_TYPES(uint64_t)
+AC_CHECK_TYPES(u_int32_t)
+AC_CHECK_TYPES(u_int64_t)
+AC_CHECK_TYPES(__uint32_t)
+AC_CHECK_TYPES(__uint64_t)
+
+AC_CHECK_TYPES(CODE,,,[#include <stdio.h>
+#define SYSLOG_NAMES
+#include <syslog.h>])
 
 dnl check CODE structure typedef
-dnl AC_CHECK_CODE_TYPE()dnl 
+dnl AC_CHECK_CODE_TYPE()
 
-AC_SUBST(SYSLOGD_LIBS)dnl
-AC_SUBST(SHARED_PARAMS)dnl
-AC_SUBST(DCCFLAGS)dnl
-AC_SUBST(MSRCS)dnl
-AC_SUBST(MLIBS)dnl
-AC_SUBST(MLIBNAME)dnl
-AC_SUBST(MANPAGES)dnl
-AC_SUBST(HASH_SRCS)dnl
-AC_SUBST(HASH_SRCS_MODULES)dnl
-AC_SUBST(HASH_OBJS_MODULES)dnl
-AC_SUBST(HAVE_SOCKLEN_T)dnl
-AC_SUBST(MAIN_CPPFLAGS)dnl
-AC_SUBST(MSYSLOG_DAEMON_NAME)dnl
+AC_SUBST(SYSLOGD_LIBS)
+AC_SUBST(SHARED_PARAMS)
+AC_SUBST(DCCFLAGS)
+AC_SUBST(MSRCS)
+AC_SUBST(MLIBS)
+AC_SUBST(MLIBNAME)
+AC_SUBST(MANPAGES)
+AC_SUBST(HASH_SRCS)
+AC_SUBST(HASH_SRCS_MODULES)
+AC_SUBST(HASH_OBJS_MODULES)
+AC_SUBST(HAVE_SOCKLEN_T)
+AC_SUBST(MAIN_CPPFLAGS)
+AC_SUBST(MSYSLOG_DAEMON_NAME)
 
-dnl AC_SUBST(SYMBOL_PREFIX)dnl
+dnl AC_SUBST(SYMBOL_PREFIX)
 
 AC_OUTPUT([Makefile
 	    src/Makefile
@@ -477,4 +486,4 @@ AC_OUTPUT([Makefile
 	    src/peo/Makefile
 	    src/man/Makefile
 	    src/man/BSDmakefile
-	    src/man/GNUmakefile])dnl
+	    src/man/GNUmakefile])
