@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.97 2000/06/16 22:22:06 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.98 2000/06/20 17:48:55 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -141,6 +141,8 @@ main(int argc, char **argv)
 	memset(&Inputs, 0, sizeof(Inputs));
 	Inputs.im_fd = -1;
 
+	imodules = NULL;
+	omodules = NULL;
 	/* assign functions and init input */
 	if ((ch = imodules_load()) < 0) {
 		dprintf("Error loading input modules [%d]\n", ch);
@@ -204,8 +206,9 @@ main(int argc, char **argv)
 
 	consfile.f_type = F_CONSOLE;
         /* this should get into Files and be way nicer */
-        consfile.f_omod = (struct o_module *) calloc(1, sizeof(struct o_module));
-        consfile.f_omod->om_type = OM_CLASSIC;
+	if (omodule_create("%classic /dev/console", &consfile, NULL) == -1) {
+		dprintf("Error initializing classic output module!\n");
+	}
 
 	(void)strncpy(consfile.f_un.f_fname, ctty,
 			sizeof(consfile.f_un.f_fname) - 1);
@@ -496,16 +499,16 @@ doLog(struct filed *f, int flags, char *message)
 
 	for (om = f->f_omod; om; om = om->om_next) {
 		if(om->om_func->om_doLog == NULL) {
-			dprintf("Unsupported module type [%i] "
-				"for message [%s]\n", om->om_type, msg);
+			dprintf("doLog: error, no doLog function in output "
+				"module [%s], message [%s]\n", om->om_func->om_name, msg);
 			continue;
 		};
 
 		/* call this module doLog */
 		ret = (*(om->om_func->om_doLog))(f,flags,msg,om->ctx);
-		if( ret < 0) {
-			dprintf("doLog error with module type [%i] "
-				"for message [%s]\n", om->om_type, msg);
+		if (ret < 0) {
+			dprintf("doLog: error with module module [%s] "
+				"for message [%s]\n", om->om_func->om_name, msg);
 		} else if (ret == 0)
 			/* stop going on */
 			break;

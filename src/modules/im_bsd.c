@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.52 2000/06/07 23:57:23 fgsch Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.53 2000/06/16 00:26:57 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -58,6 +58,7 @@
  * initialize BSD input
  *
  */
+
 
 int
 im_bsd_init(I, argv, argc)

@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.98 2000/06/16 23:00:02 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.99 2000/06/20 18:17:06 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -55,8 +55,8 @@ struct omodule *getOmodule(char *);
 struct imodule *addImodule(char *);
 struct omodule *addOmodule(char *);
 
-struct omodule *omodules = NULL;
-struct imodule *imodules = NULL;
+struct omodule *omodules;
+struct imodule *imodules;
 
 
 /* assign module functions to generic pointer */
@@ -68,7 +68,6 @@ modules_init (I, line)
 	int argc;
 	char **argv, *p;
 	struct i_module *im;
-	struct imodule *imod;
 
 	/* create initial node for Inputs list */
 	if (I == NULL) {
@@ -113,7 +112,7 @@ int
 omodule_create(char *c, struct filed *f, char *prog)
 {
 	char	*line, *p, quotes, *argv[20];
-	int	argc, i;
+	int	argc;
 	struct o_module	*om, *prev;
 
 	line = strdup(c); quotes = 0;
@@ -123,7 +122,7 @@ omodule_create(char *c, struct filed *f, char *prog)
 	while (*p) {
 		if (f->f_omod == NULL) {
 			f->f_omod = (struct o_module *) calloc(1,
-			    sizeof(*f->f_omod));
+			    	sizeof(*f->f_omod));
 			om = f->f_omod;
 			prev = NULL;
 		} else {
@@ -179,7 +178,6 @@ omodule_create(char *c, struct filed *f, char *prog)
 				argv[argc++]="classic";
 				argv[argc++]=p;
 				p+=strlen(p);
-				om->om_type = OM_CLASSIC;
 				/* find for matching module */
 				if ((om->om_func = getOmodule(argv[0])) == NULL) {
 					if ((om->om_func = addOmodule(argv[0])) != NULL) {
@@ -260,8 +258,7 @@ addImodule(name)
 	char *name;
 {
 	struct imodule *im;
-	char path[128], *c;
-	int len;
+	char buf[128];
 
 	if (name == NULL)
 		return(NULL);
@@ -270,24 +267,33 @@ addImodule(name)
 		imodules = (struct imodule *) calloc(1, sizeof(*im));
 		im = imodules;
 	} else {
-		for(im = imodules; im->im_next; im = im->im_next)
+		for(im = imodules; im->im_next; im = im->im_next);
 		im->im_next = (struct imodule *) calloc(1, sizeof(*im));
 		im = im->im_next;
 	}
 
-	snprintf(path, 127, "lib%s.so.%s", name, VERSION);
+	snprintf(buf, 127, "lib%s.so.%s", name, VERSION);
 
-	if ((im->h = dlopen(path, RTLD_LAZY)) == NULL) {
+	if ((im->h = dlopen(buf, RTLD_LAZY)) == NULL) {
 	   	dprintf("Error [%s]\n", dlerror());
 	   	return(NULL);
 	}
 
-	if ((im->im_init = dlsym(im->h, "im_init")) == NULL ||
-			(im->im_getLog = dlsym(im->h, "im_getLog")) == NULL ||
-			(im->im_close = dlsym(im->h, "im_close")) == NULL ) {
-	   	dprintf("Error [%s]\n", dlerror());
+	snprintf(buf, 127, "_im_%s_init", name);
+	if ((im->im_init = dlsym(im->h, buf)) == NULL) {
+	   	dprintf("addImodule: error linking %s function \n", buf);
 	   	return(NULL);
 	}
+
+	snprintf(buf, 127, "_im_%s_getLog", name);
+	if ((im->im_getLog = dlsym(im->h, buf)) == NULL) {
+	   	dprintf("addImodule: error linking %s function \n", buf);
+	   	return(NULL);
+	}
+
+	/* this one could be null */
+	snprintf(buf, 127, "_im_%s_close", name);
+	im->im_close = dlsym(im->h, "im_close");
 
 	im->im_name = strdup(name);
 
@@ -316,8 +322,7 @@ addOmodule(name)
 	char *name;
 {
 	struct omodule *om;
-	char path[256];
-	int len;
+	char buf[256];
 
 	if (name == NULL)
 		return(NULL);
@@ -326,24 +331,34 @@ addOmodule(name)
 		omodules = (struct omodule *) calloc(1, sizeof(*om));
 		om = omodules;
 	} else {
-		for(om = omodules; om->om_next; om = om->om_next)
+		for(om = omodules; om->om_next; om = om->om_next);
 		om->om_next = (struct omodule *) calloc(1, sizeof(*om));
 		om = om->om_next;
 	}
 
-	snprintf(path, 127, "lib%s.so.%s", name, VERSION);
+	snprintf(buf, 127, "lib%s.so.%s", name, VERSION);
 
-	if ((om->h = dlopen(path, RTLD_LAZY)) == NULL) {
+	if ((om->h = dlopen(buf, RTLD_LAZY)) == NULL) {
 	   	dprintf("Error [%s]\n", dlerror());
 	   	return(NULL);
 	}
 
-	if ((om->om_init = dlsym(om->h, "om_init")) == NULL ||
-			(om->om_doLog = dlsym(om->h, "om_getLog")) == NULL ||
-			(om->om_close = dlsym(om->h, "om_close")) == NULL ) {
-	   	dprintf("Error [%s]\n", dlerror());
+	snprintf(buf, 127, "_om_%s_init", name);
+	if ((om->om_init = dlsym(om->h, buf)) == NULL) {
+	   	dprintf("addOmodule: error linking %s function \n", buf);
 	   	return(NULL);
 	}
+	snprintf(buf, 127, "_om_%s_doLog", name);
+	if ((om->om_doLog = dlsym(om->h, buf)) == NULL) {
+	   	dprintf("addOmodule: error linking %s function \n", buf);
+	   	return(NULL);
+	}
+
+	/* this ones could be null */
+	snprintf(buf, 127, "_om_%s_close", name);
+	om->om_close = dlsym(om->h, "om_close");
+	snprintf(buf, 127, "_om_%s_flush", name);
+	om->om_close = dlsym(om->h, "om_close");
 
 	om->om_name = strdup(name);
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.27 2000/06/06 20:19:58 fgsch Exp $	*/
+/*	$CoreSDI: modules.h,v 1.28 2000/06/16 00:26:55 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -32,20 +32,6 @@
 #ifndef SYSLOG_MODULES_H
 #define SYSLOG_MODULES_H
 
-/* values for om_type */
-#define OM_CLASSIC	0
-#define OM_MYSQL	1
-#define OM_PEO		2
-#define OM_FILTER	3
-#define OM_PGSQL	4
-
-#define IM_BSD          0
-#define IM_SYSV         1
-#define IM_UNIX         2
-#define IM_PIPE         3
-#define IM_UDP          4
-#define IM_TCP          5
-#define IM_LINUX	6
 
 /* this MUST be the same value as syslogd.h */
 #define MAXLINE 1024
@@ -70,7 +56,6 @@ struct om_hdr_ctx {
 struct o_module {
 	struct	o_module *om_next;
 	struct	omodule *om_func; /* where are this puppy's functions? */
-	short	om_type;
 	struct  om_hdr_ctx	*ctx;
 };
 
