@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.63 2000/10/31 19:42:11 alejo Exp $
+dnl	$CoreSDI: configure.in,v 1.64 2000/11/03 23:25:44 alejo Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -75,10 +75,15 @@ MSYSLOG_CHECK_MODULE(unix, $UNIX, im, im_unix.c)
 MSYSLOG_CHECK_MODULE(udp, $UDP, im, im_udp.c)
 MSYSLOG_CHECK_MODULE(bsd, $BSD, im, im_bsd.c)
 MSYSLOG_CHECK_MODULE(linux, $LINUX, im, im_linux.c)
-MSYSLOG_CHECK_MODULE(doors, $DOORS, im, im_doors.c)
-MSYSLOG_CHECK_MODULE(streams, $STREAMS, im, im_streams.c)
 MSYSLOG_CHECK_MODULE(classic, $CLASSIC, om, om_classic.c)
 MSYSLOG_CHECK_MODULE(peo, $PEO, om, om_peo.c)
+
+MSYSLOG_CHECK_MODULE(doors, $DOORS, im, im_doors.c)
+MSYSLOG_CHECK_MODULE(streams, $STREAMS, im, im_streams.c)
+if test "x$DOORS" = "xstatic" -o "x$STREAMS" = "xstatic"
+then
+	LIBS="$LIBS -lpthread"
+fi
 
 if test "x$PEO" = "xstatic"
 then

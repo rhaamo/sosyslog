@@ -1526,154 +1526,8 @@ else
 fi
 
 
-echo $ac_n "checking configuration for doors module""... $ac_c" 1>&6
-echo "configure:1531: checking configuration for doors module" >&5
-if test "x$DOORS" = "xstatic"
-then
-	SSRCS="$SSRCS im_doors.c " 
-	
-SMODULES_HEADER="$SMODULES_HEADER \
-int im_doors_init (struct i_module*, char**, int); \
-int im_doors_getLog (struct i_module*, struct im_msg*);"
-
-SMODULES_LOAD="$SMODULES_LOAD \
-if ( (im = (struct imodule*)calloc(1, sizeof(struct imodule))) == NULL) \
-	return (-1);"
-
-if test "$FIRST_ADD_INPUT"
-then
-        SMODULES_LOAD="$SMODULES_LOAD \
-	ilast = imodules = im;"
-        FIRST_ADD_INPUT=""
-else
-	SMODULES_LOAD="$SMODULES_LOAD \
-        ilast->im_next = im; \
-	ilast = im;"
-fi
-
-SMODULES_LOAD="$SMODULES_LOAD \
-	ilast->im_name=\"doors\"; \
-	ilast->im_init=im_doors_init; \
-	ilast->im_getLog=im_doors_getLog;"
-
-
-if test -f "$MODULES_DIR/im_doors.c"
-then
-	if test "`grep im_doors_close $MODULES_DIR/im_doors.c`"
-	then
-		
-SMODULES_HEADER="$SMODULES_HEADER \
-	int im_doors_close (struct i_module*);"
-SMODULES_LOAD="$SMODULES_LOAD \
-	ilast->im_close=im_doors_close;" 
-	fi
-fi
-
-
-
-if test -f "$MODULES_DIR/im_doors.c"
-then
-	if test "`grep im_doors_timer $MODULES_DIR/im_doors.c`"
-	then
-		
-SMODULES_HEADER="$SMODULES_HEADER \
-	int im_doors_timer (struct i_module*, struct im_msg*);"
-SMODULES_LOAD="$SMODULES_LOAD \
-	ilast->im_timer=im_doors_timer;" 
-	fi
-fi
-
-
-	echo "$ac_t""static" 1>&6;
-elif test "x$DOORS" = "xdynamic"
-then
-	Ddoors_SRCS="im_doors.c "
-	Ddoors="libmsyslog_im_doors.so.$MSYSLOG_VERSION"
-	Ddoors_PLAIN="libmsyslog_im_doors.so"
-	
-	
-	
-	echo "$ac_t""dynamic" 1>&6;
-else
-	echo "$ac_t""not activated" 1>&6
-fi
-
-
-echo $ac_n "checking configuration for streams module""... $ac_c" 1>&6
-echo "configure:1604: checking configuration for streams module" >&5
-if test "x$STREAMS" = "xstatic"
-then
-	SSRCS="$SSRCS im_streams.c " 
-	
-SMODULES_HEADER="$SMODULES_HEADER \
-int im_streams_init (struct i_module*, char**, int); \
-int im_streams_getLog (struct i_module*, struct im_msg*);"
-
-SMODULES_LOAD="$SMODULES_LOAD \
-if ( (im = (struct imodule*)calloc(1, sizeof(struct imodule))) == NULL) \
-	return (-1);"
-
-if test "$FIRST_ADD_INPUT"
-then
-        SMODULES_LOAD="$SMODULES_LOAD \
-	ilast = imodules = im;"
-        FIRST_ADD_INPUT=""
-else
-	SMODULES_LOAD="$SMODULES_LOAD \
-        ilast->im_next = im; \
-	ilast = im;"
-fi
-
-SMODULES_LOAD="$SMODULES_LOAD \
-	ilast->im_name=\"streams\"; \
-	ilast->im_init=im_streams_init; \
-	ilast->im_getLog=im_streams_getLog;"
-
-
-if test -f "$MODULES_DIR/im_streams.c"
-then
-	if test "`grep im_streams_close $MODULES_DIR/im_streams.c`"
-	then
-		
-SMODULES_HEADER="$SMODULES_HEADER \
-	int im_streams_close (struct i_module*);"
-SMODULES_LOAD="$SMODULES_LOAD \
-	ilast->im_close=im_streams_close;" 
-	fi
-fi
-
-
-
-if test -f "$MODULES_DIR/im_streams.c"
-then
-	if test "`grep im_streams_timer $MODULES_DIR/im_streams.c`"
-	then
-		
-SMODULES_HEADER="$SMODULES_HEADER \
-	int im_streams_timer (struct i_module*, struct im_msg*);"
-SMODULES_LOAD="$SMODULES_LOAD \
-	ilast->im_timer=im_streams_timer;" 
-	fi
-fi
-
-
-	echo "$ac_t""static" 1>&6;
-elif test "x$STREAMS" = "xdynamic"
-then
-	Dstreams_SRCS="im_streams.c "
-	Dstreams="libmsyslog_im_streams.so.$MSYSLOG_VERSION"
-	Dstreams_PLAIN="libmsyslog_im_streams.so"
-	
-	
-	
-	echo "$ac_t""dynamic" 1>&6;
-else
-	echo "$ac_t""not activated" 1>&6
-fi
-
-
 echo $ac_n "checking configuration for classic module""... $ac_c" 1>&6
-echo "configure:1677: checking configuration for classic module" >&5
+echo "configure:1531: checking configuration for classic module" >&5
 if test "x$CLASSIC" = "xstatic"
 then
 	SSRCS="$SSRCS om_classic.c " 
@@ -1747,7 +1601,7 @@ fi
 
 
 echo $ac_n "checking configuration for peo module""... $ac_c" 1>&6
-echo "configure:1751: checking configuration for peo module" >&5
+echo "configure:1605: checking configuration for peo module" >&5
 if test "x$PEO" = "xstatic"
 then
 	SSRCS="$SSRCS om_peo.c " 
@@ -1820,6 +1674,157 @@ else
 fi
 
 
+
+echo $ac_n "checking configuration for doors module""... $ac_c" 1>&6
+echo "configure:1680: checking configuration for doors module" >&5
+if test "x$DOORS" = "xstatic"
+then
+	SSRCS="$SSRCS im_doors.c " 
+	
+SMODULES_HEADER="$SMODULES_HEADER \
+int im_doors_init (struct i_module*, char**, int); \
+int im_doors_getLog (struct i_module*, struct im_msg*);"
+
+SMODULES_LOAD="$SMODULES_LOAD \
+if ( (im = (struct imodule*)calloc(1, sizeof(struct imodule))) == NULL) \
+	return (-1);"
+
+if test "$FIRST_ADD_INPUT"
+then
+        SMODULES_LOAD="$SMODULES_LOAD \
+	ilast = imodules = im;"
+        FIRST_ADD_INPUT=""
+else
+	SMODULES_LOAD="$SMODULES_LOAD \
+        ilast->im_next = im; \
+	ilast = im;"
+fi
+
+SMODULES_LOAD="$SMODULES_LOAD \
+	ilast->im_name=\"doors\"; \
+	ilast->im_init=im_doors_init; \
+	ilast->im_getLog=im_doors_getLog;"
+
+
+if test -f "$MODULES_DIR/im_doors.c"
+then
+	if test "`grep im_doors_close $MODULES_DIR/im_doors.c`"
+	then
+		
+SMODULES_HEADER="$SMODULES_HEADER \
+	int im_doors_close (struct i_module*);"
+SMODULES_LOAD="$SMODULES_LOAD \
+	ilast->im_close=im_doors_close;" 
+	fi
+fi
+
+
+
+if test -f "$MODULES_DIR/im_doors.c"
+then
+	if test "`grep im_doors_timer $MODULES_DIR/im_doors.c`"
+	then
+		
+SMODULES_HEADER="$SMODULES_HEADER \
+	int im_doors_timer (struct i_module*, struct im_msg*);"
+SMODULES_LOAD="$SMODULES_LOAD \
+	ilast->im_timer=im_doors_timer;" 
+	fi
+fi
+
+
+	echo "$ac_t""static" 1>&6;
+elif test "x$DOORS" = "xdynamic"
+then
+	Ddoors_SRCS="im_doors.c "
+	Ddoors="libmsyslog_im_doors.so.$MSYSLOG_VERSION"
+	Ddoors_PLAIN="libmsyslog_im_doors.so"
+	
+	
+	
+	echo "$ac_t""dynamic" 1>&6;
+else
+	echo "$ac_t""not activated" 1>&6
+fi
+
+
+echo $ac_n "checking configuration for streams module""... $ac_c" 1>&6
+echo "configure:1753: checking configuration for streams module" >&5
+if test "x$STREAMS" = "xstatic"
+then
+	SSRCS="$SSRCS im_streams.c " 
+	
+SMODULES_HEADER="$SMODULES_HEADER \
+int im_streams_init (struct i_module*, char**, int); \
+int im_streams_getLog (struct i_module*, struct im_msg*);"
+
+SMODULES_LOAD="$SMODULES_LOAD \
+if ( (im = (struct imodule*)calloc(1, sizeof(struct imodule))) == NULL) \
+	return (-1);"
+
+if test "$FIRST_ADD_INPUT"
+then
+        SMODULES_LOAD="$SMODULES_LOAD \
+	ilast = imodules = im;"
+        FIRST_ADD_INPUT=""
+else
+	SMODULES_LOAD="$SMODULES_LOAD \
+        ilast->im_next = im; \
+	ilast = im;"
+fi
+
+SMODULES_LOAD="$SMODULES_LOAD \
+	ilast->im_name=\"streams\"; \
+	ilast->im_init=im_streams_init; \
+	ilast->im_getLog=im_streams_getLog;"
+
+
+if test -f "$MODULES_DIR/im_streams.c"
+then
+	if test "`grep im_streams_close $MODULES_DIR/im_streams.c`"
+	then
+		
+SMODULES_HEADER="$SMODULES_HEADER \
+	int im_streams_close (struct i_module*);"
+SMODULES_LOAD="$SMODULES_LOAD \
+	ilast->im_close=im_streams_close;" 
+	fi
+fi
+
+
+
+if test -f "$MODULES_DIR/im_streams.c"
+then
+	if test "`grep im_streams_timer $MODULES_DIR/im_streams.c`"
+	then
+		
+SMODULES_HEADER="$SMODULES_HEADER \
+	int im_streams_timer (struct i_module*, struct im_msg*);"
+SMODULES_LOAD="$SMODULES_LOAD \
+	ilast->im_timer=im_streams_timer;" 
+	fi
+fi
+
+
+	echo "$ac_t""static" 1>&6;
+elif test "x$STREAMS" = "xdynamic"
+then
+	Dstreams_SRCS="im_streams.c "
+	Dstreams="libmsyslog_im_streams.so.$MSYSLOG_VERSION"
+	Dstreams_PLAIN="libmsyslog_im_streams.so"
+	
+	
+	
+	echo "$ac_t""dynamic" 1>&6;
+else
+	echo "$ac_t""not activated" 1>&6
+fi
+
+if test "x$DOORS" = "xstatic" -o "x$STREAMS" = "xstatic"
+then
+	LIBS="$LIBS -lpthread"
+fi
+
 if test "x$PEO" = "xstatic"
 then
 	SHASH_SRCS="$HASH_SRCS"
@@ -1856,7 +1861,7 @@ fi
 CPPFLAGS_save="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS $MYSQL_CPPFLAGS"
 echo $ac_n "checking for mysql_real_connect in -lmysqlclient""... $ac_c" 1>&6
-echo "configure:1860: checking for mysql_real_connect in -lmysqlclient" >&5
+echo "configure:1865: checking for mysql_real_connect in -lmysqlclient" >&5
 ac_lib_var=`echo mysqlclient'_'mysql_real_connect | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1864,7 +1869,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lmysqlclient  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1868 "configure"
+#line 1873 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -1875,7 +1880,7 @@ int main() {
 mysql_real_connect()
 ; return 0; }
 EOF
-if { (eval echo configure:1879: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:1884: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1934,7 +1939,7 @@ CPPFLAGS="$CPPFLAGS_save"
 fi
 
 echo $ac_n "checking configuration for mysql module""... $ac_c" 1>&6
-echo "configure:1938: checking configuration for mysql module" >&5
+echo "configure:1943: checking configuration for mysql module" >&5
 if test "x$MYSQL" = "xstatic"
 then
 	SSRCS="$SSRCS om_mysql.c " 
@@ -2041,7 +2046,7 @@ fi
 CPPFLAGS_save="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS $PGSQL_CPPFLAGS"
 echo $ac_n "checking for PQsetdbLogin in -lpq""... $ac_c" 1>&6
-echo "configure:2045: checking for PQsetdbLogin in -lpq" >&5
+echo "configure:2050: checking for PQsetdbLogin in -lpq" >&5
 ac_lib_var=`echo pq'_'PQsetdbLogin | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2049,7 +2054,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lpq  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2053 "configure"
+#line 2058 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -2060,7 +2065,7 @@ int main() {
 PQsetdbLogin()
 ; return 0; }
 EOF
-if { (eval echo configure:2064: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2069: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2125,7 +2130,7 @@ fi
 
 
 echo $ac_n "checking configuration for pgsql module""... $ac_c" 1>&6
-echo "configure:2129: checking configuration for pgsql module" >&5
+echo "configure:2134: checking configuration for pgsql module" >&5
 if test "x$PGSQL" = "xstatic"
 then
 	SSRCS="$SSRCS om_pgsql.c " 
@@ -2206,7 +2211,7 @@ fi
 
 
 echo $ac_n "checking configuration for regex module""... $ac_c" 1>&6
-echo "configure:2210: checking configuration for regex module" >&5
+echo "configure:2215: checking configuration for regex module" >&5
 if test "x$REGEX" = "xstatic"
 then
 	SSRCS="$SSRCS om_regex.c " 
@@ -2285,12 +2290,12 @@ fi
 
 
 echo $ac_n "checking for ANSI C header files""... $ac_c" 1>&6
-echo "configure:2289: checking for ANSI C header files" >&5
+echo "configure:2294: checking for ANSI C header files" >&5
 if eval "test \"`echo '$''{'ac_cv_header_stdc'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2294 "configure"
+#line 2299 "configure"
 #include "confdefs.h"
 #include <stdlib.h>
 #include <stdarg.h>
@@ -2298,7 +2303,7 @@ else
 #include <float.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2302: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2307: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2315,7 +2320,7 @@ rm -f conftest*
 if test $ac_cv_header_stdc = yes; then
   # SunOS 4.x string.h does not declare mem*, contrary to ANSI.
 cat > conftest.$ac_ext <<EOF
-#line 2319 "configure"
+#line 2324 "configure"
 #include "confdefs.h"
 #include <string.h>
 EOF
@@ -2333,7 +2338,7 @@ fi
 if test $ac_cv_header_stdc = yes; then
   # ISC 2.0.2 stdlib.h does not declare free, contrary to ANSI.
 cat > conftest.$ac_ext <<EOF
-#line 2337 "configure"
+#line 2342 "configure"
 #include "confdefs.h"
 #include <stdlib.h>
 EOF
@@ -2354,7 +2359,7 @@ if test "$cross_compiling" = yes; then
   :
 else
   cat > conftest.$ac_ext <<EOF
-#line 2358 "configure"
+#line 2363 "configure"
 #include "confdefs.h"
 #include <ctype.h>
 #define ISLOWER(c) ('a' <= (c) && (c) <= 'z')
@@ -2365,7 +2370,7 @@ if (XOR (islower (i), ISLOWER (i)) || toupper (i) != TOUPPER (i)) exit(2);
 exit (0); }
 
 EOF
-if { (eval echo configure:2369: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:2374: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   :
 else
@@ -2389,12 +2394,12 @@ EOF
 fi
 
 echo $ac_n "checking for CODE""... $ac_c" 1>&6
-echo "configure:2393: checking for CODE" >&5
+echo "configure:2398: checking for CODE" >&5
 if eval "test \"`echo '$''{'ac_cv_type_CODE'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2398 "configure"
+#line 2403 "configure"
 #include "confdefs.h"
 #define SYSLOG_NAMES
 #include <sys/syslog.h>
@@ -2627,18 +2632,18 @@ s%@Dbsd_SRCS@%$Dbsd_SRCS%g
 s%@Dlinux@%$Dlinux%g
 s%@Dlinux_PLAIN@%$Dlinux_PLAIN%g
 s%@Dlinux_SRCS@%$Dlinux_SRCS%g
-s%@Ddoors@%$Ddoors%g
-s%@Ddoors_PLAIN@%$Ddoors_PLAIN%g
-s%@Ddoors_SRCS@%$Ddoors_SRCS%g
-s%@Dstreams@%$Dstreams%g
-s%@Dstreams_PLAIN@%$Dstreams_PLAIN%g
-s%@Dstreams_SRCS@%$Dstreams_SRCS%g
 s%@Dclassic@%$Dclassic%g
 s%@Dclassic_PLAIN@%$Dclassic_PLAIN%g
 s%@Dclassic_SRCS@%$Dclassic_SRCS%g
 s%@Dpeo@%$Dpeo%g
 s%@Dpeo_PLAIN@%$Dpeo_PLAIN%g
 s%@Dpeo_SRCS@%$Dpeo_SRCS%g
+s%@Ddoors@%$Ddoors%g
+s%@Ddoors_PLAIN@%$Ddoors_PLAIN%g
+s%@Ddoors_SRCS@%$Ddoors_SRCS%g
+s%@Dstreams@%$Dstreams%g
+s%@Dstreams_PLAIN@%$Dstreams_PLAIN%g
+s%@Dstreams_SRCS@%$Dstreams_SRCS%g
 s%@Dmysql@%$Dmysql%g
 s%@Dmysql_PLAIN@%$Dmysql_PLAIN%g
 s%@Dmysql_SRCS@%$Dmysql_SRCS%g

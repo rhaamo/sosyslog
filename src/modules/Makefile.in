@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.50 2000/11/03 19:35:03 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.51 2000/11/03 23:25:48 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -141,6 +141,14 @@ $(DBSD):
 $(DLINUX):
 	$(DCC) $(DLINUX_SRCS)
 	$(LDK) -o $@ $(DLINUX_OBJS)
+
+$(DDOORS):
+	$(DCC) -lpthreads $(DDOORS_SRCS)
+	$(LDK) -o $@ $(DDOORS_OBJS)
+
+$(DSTREAMS):
+	$(DCC) -lpthreads $(DSTREAMS_SRCS)
+	$(LDK) -o $@ $(DSTREAMS_OBJS)
 
 $(DCLASSIC):
 	$(DCC) $(DCLASSIC_SRCS)
