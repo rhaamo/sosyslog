@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.25 2001/09/19 16:03:32 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.26 2001/09/19 17:54:51 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -271,7 +271,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 
 	if (n < 0 && errno != EINTR) {
 		dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: conetion from %s"
-		    " closed with error\n", con->name, strerror(errno));
+		    " closed with error [%s]\n", con->name, strerror(errno));
 		logerror("im_tcp_read");
 		con->fd = -1;
 		remove_fd_input(con->fd);
@@ -305,18 +305,16 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 			}
 
 			if (c->flags & M_USEMSGHOST) {
+				char	host[90];
 				int	n1, n2;
 
 				/* extract hostname from message */
-#if SIZEOF_MAXHOSTNAMELEN < 89
-#error  Change here buffer reads to match HOSTSIZE
-#endif
-				if ((sscanf(p, "<%*d>%*3s %*i %*i:%*i:%*i %n%90s"
-				    " %n", &n1, ret->im_host, &n2) != 1 &&
-				    sscanf(p, "%*3s %*i %*i:%*i:%*i %n%90s %n",
-				    &n1, ret->im_host, &n2) != 1 &&
-				    sscanf(p, "%n%90s %n", &n1,
-				    ret->im_host, &n2) != 1)
+				if ((sscanf(p, "<%*d>%*3s %*i %*i:%*i:%*i %n%89s"
+				    " %n", &n1, host, &n2) != 1 &&
+				    sscanf(p, "%*3s %*i %*i:%*i:%*i %n%89s %n",
+				    &n1, host, &n2) != 1 &&
+				    sscanf(p, "%n%89s %n", &n1,
+				    host, &n2) != 1)
 				    || im->im_buf[n2] == '\0') {
 					dprintf(MSYSLOG_INFORMATIVE,
 					    "im_tcp_read: ignoring invalid "
@@ -332,6 +330,10 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 				while (im->im_buf[n2] != '\0')
 					im->im_buf[n1++] = im->im_buf[n2++];
 				im->im_buf[n1] = '\0';
+
+				strncpy(ret->im_host, host,
+				    sizeof(ret->im_host) - 1);
+				ret->im_host[sizeof(ret->im_host) - 1] = '\0';
 
 			} else {
 
