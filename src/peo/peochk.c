@@ -1,4 +1,4 @@
-/*	$CoreSDI: peochk.c,v 1.35 2000/06/02 23:05:25 fgsch Exp $	*/
+/*	$CoreSDI: peochk.c,v 1.36 2000/06/22 00:51:40 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -410,7 +410,7 @@ main (argc, argv)
 	argc -= optind;
 	argv += optind;
 	if (argc && (actionf & ST_IN))
-		if ( (logfile = strdup(argv[argc-1])) == NULL) {
+		if ( (logfile = strrealpath(argv[argc-1])) == NULL) {
 			release();
 			err(-1, argv[argc-1]);
 		}
