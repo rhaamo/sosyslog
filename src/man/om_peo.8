@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_peo.8,v 1.10 2000/07/03 21:05:56 claudio Exp $
+.\"	$CoreSDI: om_peo.8,v 1.7.2.1.2.1 2000/09/11 23:08:36 alejo Exp $
 .\"
 .\" Copyright (c) 2000
 .\"	Core-SDI SA. All rights reserved.
@@ -84,7 +84,7 @@ file (see
 .Xr syslog.conf 5
 ) and add a line with something like this:
 .Pp
-.Dl auth.info   %peo -l -k /var/ssyslog/.var.log.authlog.key %classic /var/log/authlog
+.Dl auth.info	%peo -l -k /var/ssyslog/.var.log.authlog.key %classic /var/log/authlog
 .Pp
 When you want to check the protected file integrity you should use the
 .Xr peochk 8
@@ -100,23 +100,23 @@ command.
 Since the peo module is used to determine if a logfile is corrupted, care
 must be taken on the configuration file, the following is not correct:
 .Pp
-.Dl *.err    /var/log/messages
+.Dl *.err	/var/log/messages
 .Pp
-.Dl *.err    %peo -k /var/ssyslog/.var.log.messages
+.Dl *.err	%peo -k /var/ssyslog/.var.log.messages
 .Pp
 the following is wrong either:
 .Pp
-.Dl *.err    %classic /var/log/messages
+.Dl *.err	%classic /var/log/messages
 .Pp
-.Dl *.err    %peo -k /var/ssyslog/.var.log.messages
+.Dl *.err	%peo -k /var/ssyslog/.var.log.messages
 .Pp
 The correct line is:
 .Pp
-.Dl *.err    %classic /var/log/messages  %peo -k /var/ssyslog/.var.log.messages
+.Dl *.err	%classic /var/log/messages  %peo -k /var/ssyslog/.var.log.messages
 .Pp
 or
 .Pp
-.Dl *.err    %peo -k /var/ssyslog/.var.log.messages  %classic /var/log/messages
+.Dl *.err	%peo -k /var/ssyslog/.var.log.messages  %classic /var/log/messages
 .It
 If you found bugs, please report them to syslog-bugs@core-sdi.com
 .El

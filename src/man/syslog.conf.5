@@ -1,4 +1,4 @@
-.\"	$CoreSDI: syslog.conf.5,v 1.10 2000/07/03 21:39:52 claudio Exp $
+.\"	$CoreSDI: syslog.conf.5,v 1.7.2.1.2.1 2000/09/11 23:07:15 alejo Exp $
 .\"
 .\" Copyright (c) 1990, 1991, 1993
 .\"	The Regents of the University of California.  All rights reserved.
@@ -341,9 +341,9 @@ old and new styles.
 On each line there should be only one classic module so,
 the following is wrong:
 .Pp
-.Dl *.*    %classic /dev/console %classic /var/log/messages
+.Dl *.*	%classic /dev/console %classic /var/log/messages
 .Pp
 the correct lines are:
 .Pp
-.Dl *.*    %classic /dev/console
-.Dl *.*    %classic /var/log/messages
+.Dl *.*	%classic /dev/console
+.Dl *.*	%classic /var/log/messages
