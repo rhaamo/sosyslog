@@ -11,7 +11,7 @@
 *.emerg %regex -m '.*' -s '$0: MORPH RULE' %classic /var/log/morph
 
 # MORPH A DATE IN THE MESSAGE
-*.emerg %regex -m '(^|.*[^0-9])([0-9]+)/([0-9]+)/([0-9]+)(.*)$' -s '$1$4/$2/$3$5' %classic /var/log/morph
+*.emerg %regex -m '^(.*[^0-9]){0,1}([0-9]+)/([0-9]+)/([0-9]+)(.*)$' -s '$1$4/$2/$3$5' %classic /var/log/morph
 
 # PASS ONLY logs with host from 8pm to 9am  (20:00:00 to 09:00:00)
 # and also matching 'root'

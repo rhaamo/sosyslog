@@ -513,17 +513,19 @@ int om_regex_close(struct filed *f, void *ctx) {
 
   c = ctx;
 
-  if (c->msg_non_subst) {
-    char *string;
-    for(string = *c->msg_non_subst ; string != NULL ; ++string)
-      free(string);
+  if (c->msg_no_subst) {
+    int ix;
+    char *string = c->msg_non_subst;
+    for(ix = c->msg_no_subst ; ix >= 0 ; --ix)
+      free(string++);
     free(c->msg_non_subst);
   }
   if (c->msg_subexp_no) free(c->msg_subexp_no);
 
   if (c->host_non_subst) {
+    int ix;
     char *string;
-    for(string = *c->host_non_subst ; string != NULL ; ++string)
+    for(ix = c->host_no_subst ; ix >= 0 ; --ix)
       free(string);
     free(c->host_non_subst);
   }
