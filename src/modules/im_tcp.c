@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.17 2001/06/13 22:32:54 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.18 2001/06/14 01:24:09 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -80,7 +80,7 @@
 struct tcp_conn {
 	struct tcp_conn *next;
 	int		 fd;
-	char		 name[MAXHOSTNAMELEN + 1];
+	char		 name[SIZEOF_MAXHOSTNAMELEN + 1];
 	char		 port[20];
 };
 
