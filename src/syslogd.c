@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.183 2001/03/14 23:25:48 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.184 2001/03/23 00:12:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.183 2001/03/14 23:25:48 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.184 2001/03/23 00:12:28 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -231,6 +231,13 @@ main(int argc, char **argv)
 	/* init module list */
 	imodules = NULL;
 	omodules = NULL;
+
+        setlinebuf(stdout);
+
+#ifdef	NEEDS_DLOPEN_NULL
+        if ( dlopen(NULL, RTLD_LAZY | RTLD_GLOBAL) == NULL)
+                printf("syslogd: error exporting%s\n", dlerror());
+#endif
 
         if ((main_lib = dlopen(INSTALL_LIBDIR "/" MLIBNAME_STR,
 	    DLOPEN_FLAGS)) == NULL) {
