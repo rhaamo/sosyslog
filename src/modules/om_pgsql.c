@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.14 2000/06/09 20:39:43 gera Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.15 2000/07/04 16:44:08 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -46,6 +46,7 @@
 #include <sys/types.h>
 #include <sys/syslog.h>
 #include <sys/time.h>
+#include <sys/param.h>
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
