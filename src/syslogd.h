@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.81 2000/11/03 21:36:35 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.82 2000/11/09 20:02:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -43,8 +43,6 @@
 #define TIMERINTVL	30		/* interval for checking flush, mark */
 #define MAX_N_OMODULES	20		/* maximum types of out modules */
 #define MAX_N_IMODULES	10		/* maximum types of in  modules */
-
-#define VERSION		1.01
 
 #ifdef HAVE_PATHS_H
 #include <paths.h>

@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.36 2000/11/10 01:44:22 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.37 2000/11/14 01:29:01 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -35,19 +35,18 @@ LDDFLAGS=	@LDDFLAGS@
 CPPFLAGS=	@CPPFLAGS@
 CPPFLAGS +=	-I.
 LIBS=		@LIBS@
+SYSLOGD_LIBS=	@SYSLOGD_LIBS@
 
 INSTALL=	@INSTALL@
-INSTALL_DIR=    @prefix@/lib/alat
+INSTALL_DIR=    @prefix@/sbin
 
 PROG=		syslogd
-SRCS=		modules.c syslogd.c ttymsg.c static_modules.c
+SRCS=		modules.c syslogd.c static_modules.c
 OBJS=		$(SRCS:.c=.o)
 SSRCS=		@SSRCS@
 SOBJS=		$(SSRCS:.c=.o)
 SHASH_SRCS=	@SHASH_SRCS@
 SHASH_OBJS=	$(SHASH_SRCS:.c=.o)
-
-INSTALL_LIBDIR = @prefix@/lib/alat
 
 all: $(PROG)
 
@@ -57,11 +56,12 @@ all: $(PROG)
 modules.o: config.h
 
 $(OBJS): $(SRCS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDDFLAGS) $(LDFLAGS) $(LIBS) -c $(SRCS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $(SRCS)
 
 $(PROG): $(OBJS) $(SOBJS:%=modules/%) $(SHASH_OBJS:%=modules/%)
-	$(CC) -DINSTALL_LIBDIR $(CFLAGS) $(CPPFLAGS) $(LDDFLAGS) $(LDFLAGS) $(LIBS) \
-      	      $(OBJS) $(SOBJS:%=modules/%) $(SHASH_OBJS:%=modules/%) -o $@
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDDFLAGS) $(LDFLAGS) $(LIBS) \
+            $(SYSLOGD_LIBS) $(OBJS) $(SOBJS:%=modules/%) \
+            $(SHASH_OBJS:%=modules/%) -o $@
 
 $(SOBJS:%=modules/%) $(SHASH_OBJS:%=modules/%):
 	@cd modules && make && cd ..
@@ -75,8 +75,8 @@ distclean: clean
 	-rm -f Makefile config.h static_modules.c static_modules.h
 
 install-prog:
-	-if [ -f "$(INSTALL_DIR)/$(PROG)" ]; then \
-		mv "$(INSTALL_DIR)/$(PROG)" "$(INSTALL_DIR)/$(PROG).old"; \
+	@if [ -f "$(INSTALL_DIR)/$(PROG)" ]; then \
+		mv -f "$(INSTALL_DIR)/$(PROG)" "$(INSTALL_DIR)/$(PROG).old"; \
 	fi
 	$(INSTALL) -s $(PROG) $(INSTALL_DIR) ;
 

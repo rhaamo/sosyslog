@@ -1,14 +1,14 @@
-dnl	$CoreSDI: configure.in,v 1.71 2000/11/14 01:47:46 alejo Exp $
+dnl	$CoreSDI: configure.in,v 1.72 2000/11/14 01:57:34 alejo Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
 
-MSYSLOG_VERSION=`grep '#define VERSION' src/syslogd.h | cut -f 3`
+MSYSLOG_VERSION=1.01
+AC_DEFINE_UNQUOTED(MSYSLOG_VERSION_STR, "$MSYSLOG_VERSION")dnl
 echo msyslog version... $MSYSLOG_VERSION
 
 AC_PROG_CC
 AC_PROG_INSTALL
-dnl AC_PREFIX_DEFAULT(/usr/local)
 
 CFLAGS="-O2"
 LDFLAGS=
@@ -16,14 +16,21 @@ LDDFLAGS=
 DCCFLAGS="-fPIC"
 LDCONFIG_FLAGS="-m"
 UNAME=`uname`
+SYSLOGD_LIBS=""
+
+if test "x$prefix" = "xNONE"
+then
+	prefix=$ac_default_prefix
+fi
+
+AC_DEFINE_UNQUOTED(INSTALL_LIBDIR, "$prefix/lib/alat")
 
 dnl
 dnl Check needed libs (Mostly for Solaris)
 dnl
-AC_CHECK_LIB(dl, dlopen)
-AC_CHECK_LIB(socket, connect)
-AC_CHECK_LIB(nsl, gethostbyname)
-dnl AC_CHECK_LIB(resolv, gethostbyaddr)
+AC_CHECK_LIB(dl, dlopen, SYSLOGD_LIBS="$SYSLOGD_LIBS -ldl")dnl
+AC_CHECK_LIB(socket, connect, SYSLOGD_LIBS="$SYSLOGD_LIBS -lsocket")dnl
+AC_CHECK_LIB(nsl, gethostbyname, SYSLOGD_LIBS="$SYSLOGD_LIBS -lnsl")dnl
 
 AC_CHECK_HEADERS(paths.h)
 AC_MSG_CHECKING(wheter optreset is needed)
@@ -65,7 +72,7 @@ if test "$UNAME" = "OpenBSD"
 then
 	echo Configuring for OpenBSD system
 	AC_DEFINE(HAVE_OPENBSD)
-	SHARED_PARAMS="-B shareable"
+	SHARED_PARAMS="-Bshareable"
 elif test "$UNAME" = "Linux"
 then
 	echo Configuring for Linux system
@@ -73,7 +80,7 @@ then
 	DCCFLAGS=
 	LDDFLAGS="-Xlinker -E"
 	AC_DEFINE(HAVE_LINUX)
-	SHARED_PARAMS="-B shareable"
+	SHARED_PARAMS="-Bshareable"
 elif test "$UNAME" = "SunOS"
 then
 	AC_DEFINE(HAVE_SOLARIS)
@@ -192,12 +199,13 @@ AC_SUBST(LDDFLAGS)
 AC_SUBST(UNAME)
 AC_SUBST(MANDIR)
 AC_SUBST(MYSQL_CPPFLAGS)
+AC_SUBST(SYSLOGD_LIBS)
 AC_SUBST(MYSQL_LIBS)
 AC_SUBST(PGSQL_CPPFLAGS)
 AC_SUBST(PGSQL_LIBS)
-AC_SUBST(MSYSLOG_VERSION)
 AC_SUBST(MANPAGES)
 AC_SUBST(SHARED_PARAMS)
+AC_SUBST(INSTALL_LIBDIR)
 
 AC_OUTPUT([Makefile
 	   src/Makefile src/static_modules.h src/static_modules.c

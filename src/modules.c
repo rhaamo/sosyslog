@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.132 2000/11/03 19:54:53 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.133 2000/11/09 19:57:56 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -423,7 +423,7 @@ addImodule(char *name)
 		}
 	}
 
-	snprintf(buf, sizeof(buf), "%s/libmsyslog_im_%s.so",
+	snprintf(buf, sizeof(buf), "%s/libmsyslog_im_%s.so." MSYSLOG_VERSION_STR,
 			libdir ? libdir : INSTALL_LIBDIR, name);
 
 	if ((im->h = dlopen(buf, DLOPEN_FLAGS)) == NULL) {

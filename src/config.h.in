@@ -1,4 +1,4 @@
-/*	$CoreSDI: config.h.in,v 1.16 2000/10/31 19:42:12 alejo Exp $	*/
+/*	$CoreSDI: config.h.in,v 1.17 2000/11/14 01:29:01 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -43,4 +43,6 @@
 
 #undef MSYSLOG_BASEDIR
 
-#define INSTALL_LIBDIR "@prefix@/lib/alat"
+#undef INSTALL_LIBDIR
+
+#undef MSYSLOG_VERSION_STR

@@ -1,4 +1,4 @@
-# $CoreSDI: GNUmakefile.in,v 1.9 2000/10/31 19:42:13 alejo Exp $
+# $CoreSDI: GNUmakefile.in,v 1.10 2000/11/03 19:10:33 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -46,5 +46,6 @@ clean:
 distclean cleandir:
 	-rm -f GNUmakefile
 	-rm -f BSDmakefile
+	-rm -f Makefile
 
 
