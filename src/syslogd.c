@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.70 2000/05/23 03:35:56 alejo Exp $
+/*	$Id: syslogd.c,v 1.71 2000/05/23 18:50:45 claudio Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -142,7 +142,7 @@ main(argc, argv)
 	memset(&Inputs, 0, sizeof(Inputs));
 	Inputs.im_fd = -1;
 
-	while ((ch = getopt(argc, argv, "dubSf:m:p:a:i:")) != -1)
+	while ((ch = getopt(argc, argv, "dubSf:m:p:a:i:?h")) != -1)
 		switch (ch) {
 		case 'd':		/* debug */
 			Debug++;
@@ -181,6 +181,7 @@ main(argc, argv)
 			}
 			break;
 		case '?':
+		case 'h':
 		default:
 			usage();
 		}
