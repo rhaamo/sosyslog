@@ -1,4 +1,4 @@
-$Id: INSTALL,v 1.11 2000/10/31 19:42:11 alejo Exp $
+$Id: INSTALL,v 1.12 2000/11/04 00:08:26 alejo Exp $
 ==============================================================================
                          Modular Syslog package
                              INSTALL file
@@ -54,6 +54,8 @@ following example:
 	BSD=static
 	LINUX=
 	UDP=static
+	DOORS=static
+	STREAMS=static
 	CLASSIC=static
 	PEO=static
 	REGEX=static
@@ -67,6 +69,8 @@ msyslog daemon running; if you don't want a module, just leave it
 without asignment.
 
 NOTE FOR LINUX USERS: set the input module LINUX to log kernel messages!
+NOTE FOR SOLARIS USERS: set the input module STREAMS instead of
+the BSD input module. You may need DOORS input module too.
 
   Then, you must run the script "configure" to prepare the compilation
 headers and Makefiles for your system. You can also specify the include

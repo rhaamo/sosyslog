@@ -1,4 +1,4 @@
-/*	$CoreSDI: README,v 1.5.4.3.4.1 2000/10/30 22:09:50 alejo Exp $	*/
+/*	$CoreSDI: README,v 1.10 2000/10/31 19:42:11 alejo Exp $	*/
 
 Installation
 ------------
@@ -115,4 +115,17 @@ Unix Input Module
 
 Reads messages from a unix domain socket. Use it simply as this on command
 line -i 'unix /dev/log' or -i unix:/dev/log.
+
+Streams Input Module
+--------------------
+
+This module handles stream devices (Solaris, and other SYSV like). Invoke
+on command line like this -i streams or -i streams:/dev/log (or equivalent).
+Note: this module may require Doors input module to work.
+
+Doors Input Module
+------------------
+
+May be needed on for other input modules. Invoke it like this on command
+line -i doors or -i doors:/etc/.syslog_door (or equivalent).
 
