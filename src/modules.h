@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.36 2000/11/06 23:11:28 alejo Exp $	*/
+/*	$CoreSDI: modules.h,v 1.37 2000/12/04 23:25:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -77,7 +77,7 @@ struct im_msg {
 	char	*im_msg;
 	size_t	im_mlen; /* size of im_msg buffer */
 	size_t	im_len; /* size of contents of im_msg buffer */
-	char	im_host[MAXHOSTNAMELEN + 1];
+	char	im_host[SIZEOF_MAXHOSTNAMELEN + 1];
 };
 
 #endif

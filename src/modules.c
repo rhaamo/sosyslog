@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.139 2000/12/05 23:39:25 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.140 2000/12/14 00:16:43 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -107,7 +107,9 @@ modules_start() {
 			dprintf(DPRINTF_INFORMATIVE)("Error [%s] on file [%s],"
 			    " this may be due to a kludge for old config "
 			    "files\n", dlerror(), mlibs[i].libname);
+#if BREAK_ON_MODULE_DEPENENCIES
 			return(-1);
+#endif
 		}
 	}
 
@@ -254,15 +256,15 @@ get_symbol(const char *modname, const char *funcname, void *h, void **ret) {
 
 /* assign module functions to generic pointer */
 int
-imodule_init(struct i_module *I, char *line)
+imodule_create(struct i_module *I, char *line)
 {
-	int argc, ret;
+	int argc, ret, i;
 	char *p, **argv = NULL;
 	struct i_module *im, *im_prev;
 
 	/* create initial node for Inputs list */
 	if (I == NULL) {
-	    dprintf(DPRINTF_SERIOUS)("imodule_init: Error from caller\n");
+	    dprintf(DPRINTF_SERIOUS)("imodule_create: Error from caller\n");
 	    return (-1);
 	}
 
@@ -290,8 +292,19 @@ imodule_init(struct i_module *I, char *line)
 		snprintf(err_buf, sizeof(err_buf), "Error initializing module "
 		    "%s [%s]\n", argv[0], line);
 		ret = -1;
-		goto imodule_init_bad;
+		goto imodule_create_bad;
 	}
+
+	/* check if module required libs are loaded */
+	for (i = 0; mlibs[i].mname; i++)
+		if(!strncmp("im_", mlibs[i].mname, 3) &&
+		    !strcmp(argv[0] + 3, mlibs[i].mname + 3) && !mlibs[i].h) {
+			dprintf(DPRINTF_SERIOUS)("imodule_create: library"
+			    " needed for module %s %s not loaded!\n",
+			    I->im_name, mlibs[i].mname);
+			ret = -1;
+			goto imodule_create_bad;
+		}
 
 	/* is it already initialized ? searching... */
 	if ((im->im_func = getImodule(argv[0])) == NULL)
@@ -300,7 +313,7 @@ imodule_init(struct i_module *I, char *line)
 			    "dynamic input module %s [%s]\n",
 			    argv[0], line);
 			ret = -1;
-			goto imodule_init_bad;
+			goto imodule_create_bad;
 		}
 
 	/* got it, now try to initialize it */
@@ -308,12 +321,12 @@ imodule_init(struct i_module *I, char *line)
 		snprintf(err_buf, sizeof(err_buf), "Error initializing "
 		    "input module %s [%s]\n", argv[0], line);
 		ret = -1;
-		goto imodule_init_bad;
+		goto imodule_create_bad;
 	}
 
 	ret = 1;
 
-imodule_init_bad:
+imodule_create_bad:
 
 	if (ret == -1) {
 
@@ -349,7 +362,7 @@ int
 omodule_create(char *c, struct filed *f, char *prog)
 {
 	char	*line, *p, quotes, *argv[20];
-	int	argc;
+	int	argc, i;
 	struct o_module	*om, *om_prev;
 
 	line = strdup(c); quotes = 0;
@@ -459,6 +472,16 @@ omodule_create(char *c, struct filed *f, char *prog)
 
 				break;
 		}
+
+		/* check if module required libs are loaded */
+		for (i = 0; mlibs[i].mname; i++)
+			if(!strncmp("om_", mlibs[i].mname, 3) &&
+			    !strcmp(argv[0] + 3, mlibs[i].mname + 3) && !mlibs[i].h) {
+				dprintf(DPRINTF_SERIOUS)("omodule_create: library"
+				    " needed for module %s%s %s not loaded!\n",
+				    "om_", argv[0], mlibs[i].mname);
+				goto omodule_create_bad;
+			}
 
 		if (!om->om_func->om_init ||
 		    (*(om->om_func->om_init))(argc, argv, f, prog, (void *)

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.85 2000/12/04 23:25:28 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.86 2000/12/14 00:16:44 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -54,7 +54,7 @@
 
 #ifndef _PATH_KLOG
 #define	_PATH_KLOG	"/dev/klog"
-#warning using 	_PATH_KLOG	"/dev/klog"
+/* #warning using 	_PATH_KLOG	"/dev/klog" */
 #endif
 
 #define	_PATH_LOGCONF	"/etc/syslog.conf"
@@ -114,14 +114,14 @@ struct filed {
 	union {
 		char    f_uname[MAXUNAMES][UT_NAMESIZE+1];
 		struct {
-			char    f_hname[MAXHOSTNAMELEN];
+			char    f_hname[SIZEOF_MAXHOSTNAMELEN];
 			struct sockaddr_in      f_addr;
 		} f_forw;	       /* forwarding address */
 		char    f_fname[MAXPATHLEN];
 	} f_un;
 	struct	tm f_tm;	/* date of message */
 	char    f_prevline[MAXSVLINE];	  /* last message logged */
-	char    f_prevhost[MAXHOSTNAMELEN];     /* host from which recd. */
+	char    f_prevhost[SIZEOF_MAXHOSTNAMELEN];     /* host from which recd. */
 	int     f_prevpri;		      /* pri of f_prevline */
 	int     f_prevlen;		      /* length of f_prevline */
 	int     f_prevcount;		    /* repetition cnt of prevline */
@@ -129,7 +129,7 @@ struct filed {
 	struct	o_module *f_omod;			/* module details */
 };
 
-extern char	LocalHostName[MAXHOSTNAMELEN];  /* our hostname */
+extern char	LocalHostName[SIZEOF_MAXHOSTNAMELEN];  /* our hostname */
 extern int	finet;			/* Internet datagram socket */
 extern int	LogPort;		/* port number for INET connections */
 extern int	Debug;			/* debug flag */
@@ -199,7 +199,7 @@ struct imodule {
  * some systems lack those, so we define them here
  */
 
-#ifndef HAVE_STRUCT_CODE
+#ifndef HAVE_CODE
 # ifdef SYSLOG_NAMES
 
 # ifndef LOG_MAKEPRI

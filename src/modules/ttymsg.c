@@ -64,7 +64,7 @@
 
 #ifndef _PATH_DEV
 #define _PATH_DEV "/dev/"
-#warning Using "/dev/" for _PATH_DEV
+/* #warning Using "/dev/" for _PATH_DEV */
 #endif
 
 /*

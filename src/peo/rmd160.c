@@ -24,6 +24,7 @@
 
 /* changed */
 /* #include <rmd160.h> */
+#include "../../config.h"
 #include "rmd160.h"
 
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.155 2000/12/14 00:16:43 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.156 2000/12/14 00:20:58 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.155 2000/12/14 00:16:43 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.156 2000/12/14 00:20:58 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -115,7 +115,7 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.155 2000/12/14 00:16:43 alejo Exp
 #else
 #ifdef _POSIX_PATH_MAX
 #define PID_PATH_MAX _POSIX_PATH_MAX
-#warning Using _POSIX_PATH_MAX as maximum pidfile name length
+/* #warning Using _POSIX_PATH_MAX as maximum pidfile name length */
 #else
 #error No max path defined
 #endif /* +POSIX_PATH_MAX */
@@ -123,7 +123,7 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.155 2000/12/14 00:16:43 alejo Exp
 
 #ifndef _PATH_CONSOLE
 #define _PATH_CONSOLE "/dev/console"
-#warning Using "/dev/console" for _PATH_CONSOLE
+/* #warning Using "/dev/console" for _PATH_CONSOLE */
 #endif /* _PATH_CONSOLE */
 
 /* if _PATH_DEVNULL isn't defined, define it here... */
@@ -134,10 +134,10 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.155 2000/12/14 00:16:43 alejo Exp
 #ifndef NAME_MAX
 #ifdef MAXNAMLEN
 #define NAME_MAX MAXNAMLEN
-#warning using MAXNAMLEN for NAME_MAX
+/* #warning using MAXNAMLEN for NAME_MAX */
 #else
 #define NAME_MAX 255
-#warning using 255 for NAME_MAX
+/* #warning using 255 for NAME_MAX */
 #endif /* MAXNAMLEN */
 #endif /* NAME_MAX */
 
@@ -164,7 +164,7 @@ FILE *pidf;
 char    *TypeNames[] = { "UNUSED", "FILE", "TTY", "CONSOLE",
 	"FORW", "USERS", "WALL", "MODULE", NULL};
 char    *ctty;
-char    LocalHostName[MAXHOSTNAMELEN];  /* our hostname */
+char    LocalHostName[SIZEOF_MAXHOSTNAMELEN];  /* our hostname */
 char    *LocalDomain = NULL;	/* our domain */
 int     finet = -1;		/* Internet datagram socket */
 int     LogPort = -1;		/* port number for INET connections */
@@ -181,7 +181,7 @@ void    init(int);
 void    printline(char *, char *, size_t, int);
 void    reapchild(int);
 void    usage(void);
-int     imodule_init(struct i_module *, char *);
+int     imodule_create(struct i_module *, char *);
 int     omodule_create(char *, struct filed *, char *);
 int	omodules_destroy(struct omodule *);
 int	imodules_destroy(struct imodule *);
@@ -257,13 +257,13 @@ main(int argc, char **argv) {
 				MarkInterval = atoi(optarg) * 60;
 				break;
 			case 'u':	/* allow udp input port */
-				if (imodule_init(&Inputs, "udp") < 0) {
+				if (imodule_create(&Inputs, "udp") < 0) {
 					fprintf(stderr, "syslogd: WARNING "
 					    "error on udp input module\n");
 				}
 				break;
 			case 'i':	/* inputs */
-				if (imodule_init(&Inputs, optarg) < 0) {
+				if (imodule_create(&Inputs, optarg) < 0) {
 					fprintf(stderr, "syslogd: WARNING "
 					    "error on input module, "
 					    "ignoring %s\n", optarg);
@@ -272,7 +272,7 @@ main(int argc, char **argv) {
 			case 'p':	/* path */
 			case 'a':	/* additional im_unix socket */
 				snprintf(buf, 512, "unix %s", optarg); 
-				if (imodule_init(&Inputs, buf) < 0) {
+				if (imodule_create(&Inputs, buf) < 0) {
 					fprintf(stderr, "syslogd: WARNING"
 					    " out of descriptors,"
 					    " ignoring %s\n", optarg);
@@ -1015,7 +1015,7 @@ init(int signo)
 
 	Initialized = 1;
 
-	if (Debug <= DPRINTF_SERIOUS) {
+	if (Debug >= DPRINTF_SERIOUS) {
 		for (f = Files; f; f = f->f_next) {
 			for (i = 0; i <= LOG_NFACILITIES; i++)
 				if (f->f_pmask[i] == INTERNAL_NOPRI)

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.58 2000/12/04 23:25:29 alejo Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.59 2000/12/14 00:16:45 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -74,7 +74,7 @@ extern char *default_keyfile;
 #define	SHA1	0
 #endif
 
-#define MAXBUF	MAXSVLINE+MAXHOSTNAMELEN+20
+#define MAXBUF	MAXSVLINE+SIZEOF_MAXHOSTNAMELEN+20
 
 struct om_peo_ctx {
 	short	flags;

@@ -1,13 +1,16 @@
-#ifndef HAVE_UINT32_T
-# ifdef HAVE_U_INT32_T
+#ifndef PEO_TYPEEFS_H
+#define PEO_TYPEEFS_H 1
+
+#ifndef HAVE_U_INT32_T
+# ifdef HAVE_UINT32_T
    typedef uint32_t u_int32_t;
 # else
 #  error Could not determine unsigned int 32 typedef
 # endif
 #endif
 
-#ifndef HAVE_UINT64_T
-# ifdef HAVE_U_INT64_T
+#ifndef HAVE_U_INT64_T
+# ifdef HAVE_UINT64_T
    typedef uint64_t u_int64_t;
 # elif defined(HAVE___UINT64_T)
    typedef __uint64_t uint64_t;
@@ -27,3 +30,4 @@
 # endif
 #endif /* __STDC__ */
 
+#endif /* ifdef PEO_TYPEEFS_H */

@@ -88,19 +88,21 @@ do
 	fi
 done
 
-AC_MSG_CHECKING(for MAXHOSTNAMELEN)
+dnl AC_MSG_CHECKING(for MAXHOSTNAMELEN)
 
-AC_EGREP_CPP(yes,
-	[#include <sys/param.h>
-	 #ifdef MAXHOSTNAMELEN
-	   yes
-	 #endif], [
-	AC_MSG_RESULT(yes)
-	] , [
-	AC_MSG_RESULT(no, using 254)
-	AC_DEFINE(MAXHOSTNAMELEN, 254)
-])dnl
+dnl AC_EGREP_CPP(yes,
+dnl 	[#include <sys/param.h>
+dnl 	 #include <netdb.h>
+dnl 	 #ifdef MAXHOSTNAMELEN
+dnl 	   yes
+dnl 	 #endif], [
+dnl 	AC_MSG_RESULT(yes)
+dnl 	] , [
+dnl 	AC_MSG_RESULT(no, using 254)
+dnl 	AC_DEFINE(MAXHOSTNAMELEN, 254)
+dnl ])dnl
 
+AC_CHECK_SIZEOF_DEFINE(MAXHOSTNAMELEN, 254)dnl
 
 dnl Check underscore requirement for dlsym()
 
@@ -237,7 +239,7 @@ AC_ARG_WITH(doors,
 		MANPAGES="$MANPAGES im_doors.8"
 	fi
 ],[
-	AC_CHECK_HEADER(doors.h, [
+	AC_CHECK_HEADER(door.h, [
 		MSRCS="$MSRCS im_doors.c"
 		MANPAGES="$MANPAGES im_doors.8"
 	])dnl
@@ -251,11 +253,13 @@ AC_ARG_WITH(streams,
 		MSRCS="$MSRCS im_streams.c"
 		MLIBS="$MLIBS -lpthread"
 		MANPAGES="$MANPAGES im_streams.8"
+		SYSLOGD_LIBS="$SYSLOGD_LIBS -lthread -ldoor"
 	fi
 ],[
 	AC_CHECK_HEADER(stropts.h, [
 		MSRCS="$MSRCS im_streams.c"
 		MANPAGES="$MANPAGES im_streams.8"
+		SYSLOGD_LIBS="$SYSLOGD_LIBS -lthread -ldoor"
 	])dnl
 ])
 
@@ -348,15 +352,10 @@ AC_ARG_WITH(regex,
 	])dnl
 ])
 
-AC_HAVE_TYPES(socklen_t uint32_t uint64_t u_int32_t u_int64_t)dnl
+AC_HAVE_TYPES(socklen_t uint32_t uint64_t u_int32_t u_int64_t CODE)dnl
 
-AC_MSG_CHECKING(for struct CODE)
-AC_EGREP_CPP(CODE,
-[CODE *p;
-],[ AC_DEFINE(HAVE_STRUCT_CODE)
-	AC_MSG_RESULT(yes)
-], AC_MSG_RESULT(no))
-
+dnl check CODE structure typedef
+dnl AC_CHECK_CODE_TYPE()dnl 
 
 AC_SUBST(SYSLOGD_LIBS)dnl
 AC_SUBST(SHARED_PARAMS)dnl

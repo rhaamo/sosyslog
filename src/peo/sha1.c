@@ -21,6 +21,7 @@
 
 /* changed */
 /*#include <sha1.h> */
+#include "../../config.h"
 #include "sha1.h"
 
 
