@@ -1,4 +1,4 @@
-$Id: INSTALL,v 1.1 2000/07/11 00:08:43 alejo Exp $
+$Id: INSTALL,v 1.2 2000/07/11 00:11:40 alejo Exp $
 ==============================================================================
                          Modular Syslog package
                              INSTALL file
@@ -106,9 +106,18 @@ to log kernel messages.
 
 3.a PEO
 
+  See manpage details for proper setup instructions.
+
 3.b MySQL
 
+  If your libmysqlclient library isn't in your linker path, you must
+add the corresponding directory on the shell variable LD_PATH.
+
+  See manpage details for proper setup instructions.
+
 3.c PostgreSQL
+
+  See manpage details for proper setup instructions.
 
 
 4. HOW TO CONTACT US AND RELATED MAILING LISTS
