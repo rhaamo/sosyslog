@@ -50,10 +50,9 @@ static char rcsid[] = "$OpenBSD: ttymsg.c,v 1.3 1996/10/25 06:06:30 downsj Exp $
 #include <fcntl.h>
 #ifdef HAVE_PATHS_H
 #include <paths.h>
-#endif /* HAVE_PATHS_H */
+#endif
 #include <signal.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -65,11 +64,7 @@ static char rcsid[] = "$OpenBSD: ttymsg.c,v 1.3 1996/10/25 06:06:30 downsj Exp $
  * ignored (exclusive-use, lack of permission, etc.).
  */
 char *
-ttymsg(iov, iovcnt, line, tmout)
-	struct iovec *iov;
-	int iovcnt;
-	char *line;
-	int tmout;
+ttymsg(struct iovec *iov, int iovcnt, char *line, int tmout)
 {
 	static char device[MAXNAMLEN] = _PATH_DEV;
 	static char errbuf[1024];
