@@ -1,0 +1,10 @@
+IMODULES = im_bsd.o im_udp.o im_unix.o
+OMODULES = om_classic.o
+OBJS = syslogd.o modules.o ttymsg.o $(IMODULES) $(OMODULES)
+
+all: syslogd
+
+syslogd: $(OBJS)
+
+clean:
+	rm -f *.o syslogd
