@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.206 2001/09/19 10:52:06 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.207 2001/09/19 17:39:57 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.206 2001/09/19 10:52:06 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.207 2001/09/19 17:39:57 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -1517,6 +1517,9 @@ void
 remove_fd_input(int fd)
 {
 	int i;
+
+	dprintf(MSYSLOG_INFORMATIVE, "remove_fd_input: remove fd %d\n",
+	    fd);
 
 	for (i = 0; i < fd_in_count && fd_inputs[i].fd != fd; i++);
 
