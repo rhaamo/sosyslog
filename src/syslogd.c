@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.188 2001/04/04 16:55:15 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.189 2001/04/05 20:56:25 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.188 2001/04/04 16:55:15 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.189 2001/04/05 20:56:25 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -155,7 +155,7 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.188 2001/04/04 16:55:15 alejo Exp
 #endif /* NAME_MAX */
 
 #ifndef socklen_t
-# define socklen_t unsigned int
+# define socklen_t int
 #endif
 
 /*
