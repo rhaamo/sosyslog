@@ -1,8 +1,9 @@
-/*	$CoreSDI: TODO,v 1.61 2000/12/19 21:46:37 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.62 2001/01/02 19:10:59 alejo Exp $	*/
 
 Things to do:
 
 - Check "" errors on solaris
+- Change strcpy and strncpy to strlcpy (same w/ strlcat)
 - define STYLE for names (ie. underscore or caps, indentation)
 - Check linux kernel 2.4 potential header problems
 - module configuration file so eliminate most command line options
