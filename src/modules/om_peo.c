@@ -1,4 +1,4 @@
-/*	$CoreSDI$	*/
+/*	$CoreSDI: om_peo.c,v 1.28 2000/05/23 21:47:10 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.28 2000/05/23 21:47:10 fgsch Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.29 2000/05/26 21:24:29 fgsch Exp $";
 #endif /* not lint */
 
 /*
@@ -165,8 +165,10 @@ om_peo_doLog(f, flags, msg, ctx)
  */
 
 extern char	*optarg;
-extern int	 optind,
-		 optreset;
+extern int	 optind;
+#ifndef HAVE_LINUX
+extern int	optreset;
+#endif /* HAVE_LINUX */
 char		*keyfile;
 char		*macfile;
 
