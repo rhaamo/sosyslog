@@ -1,4 +1,4 @@
-/*	$CoreSDI$	*/
+/*	$CoreSDI: om_pgsql.c,v 1.4 2000/05/29 22:53:47 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -30,26 +30,24 @@
  */
 
 /*
- *  om_pgsql -- PostgreSQL database support Module
+ * om_pgsql -- PostgreSQL database support Module
  *
  * Author: Oliver Teuber (ot@penguin-power.de)
  *         Based on om_mysql from Alejo Sanchez
  *
  */
 
+#include <sys/types.h>
+#include <sys/syslog.h>
 #include <sys/time.h>
-
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/syslog.h>
-#include <sys/types.h>
 #include <time.h>
-
+#include <unistd.h>
 #include "syslogd.h"
 #include "modules.h"
 
@@ -57,9 +55,8 @@
 
 #define MAX_QUERY     8192
 
-char  *Months[] = { "Jan", "Feb", "Mar", "Apr", "May",
-					"Jun", "Jul", "Aug", "Sep", "Oct",
-					"Nov", "Dec"};
+char  *Months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
+		    "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 struct om_pgsql_ctx {
 	short   flags;
@@ -71,8 +68,7 @@ struct om_pgsql_ctx {
 	char    *passwd;
 	char    *db;
 	char    *table;
-	char    *query;         /* speed hack: this is a buffer for
-querys */
+	char    *query;         /* speed hack: this is a buffer for querys */
 };
 
 static char *
@@ -82,7 +78,7 @@ to_sql(s)
 	char *p, *b;
 	int ns, ss;
 
-	if(!s) return 
+	if(!s)
 		return strdup("NULL");
 	
 	if(s[0]=='-' && s[1]=='0')
@@ -119,7 +115,7 @@ om_pgsql_doLog(f, flags, msg, ctx)
 	struct filed *f;
 	int flags;
 	char *msg;
-	struct om_header_ctx *ctx;
+	struct om_hdr_ctx *ctx;
 {
 	PGresult *r;
 	struct om_pgsql_ctx *c;
