@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.136 2000/09/27 20:29:57 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.137 2000/09/27 20:36:53 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.136 2000/09/27 20:29:57 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.137 2000/09/27 20:36:53 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -274,21 +274,24 @@ main(int argc, char **argv) {
 	else
 		setlinebuf(stdout);
 
-	consfile.f_type = F_CONSOLE;
-        /* this should get into Files and be way nicer */
-	if (omodule_create(ctty, &consfile, NULL) == -1) {
-		dprintf("Error initializing console output!\n");
+	if (!(DaemonFlags & SYSLOGD_CONSOLE_ACTIVE)) {
+		consfile.f_type = F_CONSOLE;
+		/* this should get into Files and be way nicer */
+		if (omodule_create(ctty, &consfile, NULL) == -1) {
+			dprintf("Error initializing console output!\n");
+		} else
+			DaemonFlags |= SYSLOGD_CONSOLE_ACTIVE;
 	}
 
-	(void)strncpy(consfile.f_un.f_fname, ctty,
-			sizeof(consfile.f_un.f_fname) - 1);
-	consfile.f_un.f_fname[sizeof(consfile.f_un.f_fname) - 1] = '\0';
+	/* get our hostname */
 	(void)gethostname(LocalHostName, sizeof(LocalHostName));
 	if ((p = strchr(LocalHostName, '.')) != NULL) {
 		*p++ = '\0';
 		LocalDomain = p;
 	} else
 		LocalDomain = "";
+
+	/* define signal actions */
 	(void)signal(SIGTERM, die);
 	(void)signal(SIGINT, Debug ? die : SIG_IGN);
 	(void)signal(SIGQUIT, Debug ? die : SIG_IGN);
@@ -623,17 +626,25 @@ logmsg(int pri, char *msg, char *from, int flags) {
 
 	/* log the message to the particular outputs */
 	if (!Initialized) {
-		f = &consfile;
-		f->f_file = open(ctty, O_WRONLY, 0);
 
-		if (f->f_file >= 0) {
-			doLog(f, flags, msg);
-			(void)close(f->f_file);
-			f->f_file = -1;
+		if (!(DaemonFlags & SYSLOGD_CONSOLE_ACTIVE)) {
+			consfile.f_type = F_CONSOLE;
+			if (omodule_create(ctty, &consfile, NULL) == -1) {
+				dprintf("Error initializing console output!\n");
+
+			} else
+				DaemonFlags |= SYSLOGD_CONSOLE_ACTIVE;
 		}
+
+		if (DaemonFlags & SYSLOGD_CONSOLE_ACTIVE) {
+			doLog(&consfile, flags, msg);
+		}
+
 		(void)sigprocmask(SIG_SETMASK, &omask, NULL);
+
 		return;
 	}
+
 	for (f = Files; f; f = f->f_next) {
 		/* skip messages that are incorrect priority */
 		if (f->f_pmask[fac] < prilev ||
