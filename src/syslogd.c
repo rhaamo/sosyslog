@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.41 2000/04/19 17:13:47 alejo Exp $
+/*	$Id: syslogd.c,v 1.42 2000/04/19 22:04:30 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -252,10 +252,10 @@ main(argc, argv)
 		/*dprintf("got a message (%d, %#x)\n", nfds, readfds);*/
 		for (im = Inputs; im ; im = im->im_next) {
 		   if (im->fd != -1 && FD_ISSET(im->fd, &readfds)) {
-		       struct im_msg log;
+		       struct im_msg *log;
 		       int i;
 
-		       memset(&log, 0, sizeof(log));
+		       log = (struct im_msg *) calloc(sizeof(struct im_msg), 1);
 
 		       for (i = 0; i < MAX_N_IMODULES &&
 					(im->im_type != IModules[i].im_type); i++);
@@ -265,14 +265,17 @@ main(argc, argv)
 		       		continue;
 		       }
 
-		       if ((*(IModules[i].im_getLog))(im->fd, &log) == -1) {
+		       if ((*(IModules[i].im_getLog))(im->fd, log) == -1) {
 		       	dprintf("Syslogd: error calling input module"
 		       		" %s, for fd %d\n", im->im_name,
 		       		im->fd);
 		       }
 
 		       /* log it */
-		       printline(log.host, log.msg);
+		       printline(log->host, log->msg);
+		       if (log->host != NULL) free(log->host);
+		       if (log->msg != NULL) free(log->msg);
+		       free(log->msg);
 		   }
 		}
 
