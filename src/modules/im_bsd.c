@@ -11,7 +11,16 @@
 #include "syslogd.h"
 #include <fcntl.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <ctype.h>
+#include <errno.h>
 #include <string.h>
+
+void    logerror __P((char *));
+
 
 /* standard input module header variables in context */
 struct im_bsd_ctx {

@@ -11,14 +11,21 @@
 #include "modules.h"
 #include "syslogd.h"
 
+#include <stdio.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/uio.h>
 #include <netinet/in.h>
 #include <errno.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <signal.h>
 
 
 char   *cvthname __P((struct sockaddr_in *));
+void    logerror __P((char *));
 
 
 /* standard input module header variables in context */
@@ -38,15 +45,18 @@ struct im_udp_ctx {
  */
 
 int
-im_udp_getLog(buf, size, c, r)
-	char   *buf;
-	int   size;
-	struct im_header_ctx  *c;
-	struct im_msg	*r;
+im_udp_getLog( i, ret)
+	int   i;
+	struct im_msg	*ret;
 {
 	struct sockaddr_in frominet;
 	int len, i;
 	char line[MAXLINE + 1];
+
+	if (ret == NULL) {
+		dprintf("im_udp: arg is null\n");
+		return (-1);
+	}
 
 	len = sizeof(frominet);
 	i = recvfrom(finet, line, MAXLINE, 0,
@@ -60,6 +70,12 @@ im_udp_getLog(buf, size, c, r)
 		} else if (i < 0 && errno != EINTR)
 			logerror("recvfrom inet");
 	}
+
+	ret->pid = -1;
+	ret->pri = -1;
+	ret->pid = -1;
+	ret->pid = -1;
+	return(-1);
 
 }
 
@@ -81,7 +97,6 @@ im_udp_init(I, argc, argv, c)
 {
 	struct im_udp_ctx *ctx;
 	int i;
-	char line[MAXLINE + 1];
 	struct sockaddr_in sin;
 	struct servent *sp;
 

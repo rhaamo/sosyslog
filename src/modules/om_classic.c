@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_classic.c,v 1.7 2000/04/19 19:04:18 gera Exp $";
+static char rcsid[] = "$Id: om_classic.c,v 1.8 2000/04/19 19:06:19 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -71,6 +71,7 @@ void	wallmsg __P((struct filed *, struct iovec *));
 char   *ttymsg __P((struct iovec *, int, char *, int));
 
 extern time_t now;
+void    logerror __P((char *));
 
 int
 om_classic_doLog(f, flags, msg, context)
@@ -128,73 +129,73 @@ om_classic_doLog(f, flags, msg, context)
 	f->f_time = now;
 
 	switch (f->f_type) {
-	case F_UNUSED:
-		dprintf("\n");
-		break;
-
-	case F_FORW:
-		dprintf(" %s\n", f->f_un.f_forw.f_hname);
-		l = snprintf(line, sizeof(line) - 1, "<%d>%.15s %s", f->f_prevpri,
-		    iov[0].iov_base, iov[4].iov_base);
-		if (l > MAXLINE)
-			l = MAXLINE;
-		if (sendto(finet, line, l, 0,
-		    (struct sockaddr *)&f->f_un.f_forw.f_addr,
-		    sizeof(f->f_un.f_forw.f_addr)) != l) {
-			f->f_type = F_UNUSED;
-			logerror("sendto");
-		}
-		break;
-
-	case F_CONSOLE:
-		if (flags & IGN_CONS) {
-			dprintf(" (ignored)\n");
+		case F_UNUSED:
+			dprintf("\n");
 			break;
-		}
-		/* FALLTHROUGH */
+	
+		case F_FORW:
+			dprintf(" %s\n", f->f_un.f_forw.f_hname);
+			l = snprintf(line, sizeof(line) - 1, "<%d>%.15s %s", f->f_prevpri,
+			    (char *) iov[0].iov_base, (char *) iov[4].iov_base);
+			if (l > MAXLINE)
+				l = MAXLINE;
+			if (sendto(finet, line, l, 0,
+			    (struct sockaddr *)&f->f_un.f_forw.f_addr,
+			    sizeof(f->f_un.f_forw.f_addr)) != l) {
+				f->f_type = F_UNUSED;
+				logerror("sendto");
+			}
+			break;
 
-	case F_TTY:
-	case F_FILE:
-		dprintf(" %s\n", f->f_un.f_fname);
-		if (f->f_type != F_FILE) {
+		case F_CONSOLE:
+			if (flags & IGN_CONS) {
+				dprintf(" (ignored)\n");
+				break;
+			}
+			/* FALLTHROUGH */
+
+		case F_TTY:
+		case F_FILE:
+			dprintf(" %s\n", f->f_un.f_fname);
+			if (f->f_type != F_FILE) {
+				v->iov_base = "\r\n";
+				v->iov_len = 2;
+			} else {
+				v->iov_base = "\n";
+				v->iov_len = 1;
+			}
+			again:
+			if (writev(f->f_file, iov, 6) < 0) {
+				int e = errno;
+				(void)close(f->f_file);
+				/*
+				 * Check for errors on TTY's due to loss of tty
+				 */
+				if ((e == EIO || e == EBADF) && f->f_type != F_FILE) {
+					f->f_file = open(f->f_un.f_fname,
+					    O_WRONLY|O_APPEND, 0);
+					if (f->f_file < 0) {
+						f->f_type = F_UNUSED;
+						logerror(f->f_un.f_fname);
+					} else
+						goto again;
+				} else {
+					f->f_type = F_UNUSED;
+					f->f_file = -1;
+					errno = e;
+					logerror(f->f_un.f_fname);
+				}
+			} else if (flags & SYNC_FILE)
+				(void)fsync(f->f_file);
+			break;
+
+		case F_USERS:
+		case F_WALL:
+			dprintf("\n");
 			v->iov_base = "\r\n";
 			v->iov_len = 2;
-		} else {
-			v->iov_base = "\n";
-			v->iov_len = 1;
-		}
-	again:
-		if (writev(f->f_file, iov, 6) < 0) {
-			int e = errno;
-			(void)close(f->f_file);
-			/*
-			 * Check for errors on TTY's due to loss of tty
-			 */
-			if ((e == EIO || e == EBADF) && f->f_type != F_FILE) {
-				f->f_file = open(f->f_un.f_fname,
-				    O_WRONLY|O_APPEND, 0);
-				if (f->f_file < 0) {
-					f->f_type = F_UNUSED;
-					logerror(f->f_un.f_fname);
-				} else
-					goto again;
-			} else {
-				f->f_type = F_UNUSED;
-				f->f_file = -1;
-				errno = e;
-				logerror(f->f_un.f_fname);
-			}
-		} else if (flags & SYNC_FILE)
-			(void)fsync(f->f_file);
-		break;
-
-	case F_USERS:
-	case F_WALL:
-		dprintf("\n");
-		v->iov_base = "\r\n";
-		v->iov_len = 2;
-		wallmsg(f, iov);
-		break;
+			wallmsg(f, iov);
+			break;
 	}
 	f->f_prevcount = 0;
 	return(0);
@@ -215,9 +216,8 @@ om_classic_init(argc, argv, f, prog, context)
 	struct om_header_ctx **context;
 {
 	struct hostent *hp;
-	int i, pri;
-	char *bp, *p, *q;
-	char buf[MAXLINE], ebuf[100];
+	int i;
+	char *p, *q;
 
 	dprintf("om_classic init\n");
 
@@ -297,15 +297,16 @@ om_classic_close(f, context)
 {
 	int ret;
 
+	ret = -1;
 	switch (f->f_type) {
-	case F_FILE:
-	case F_TTY:
-	case F_CONSOLE:
-		ret = close(f->f_file);
-		break;
-	case F_FORW:
-		ret = 0;
-		break;
+		case F_FILE:
+		case F_TTY:
+		case F_CONSOLE:
+			ret = close(f->f_file);
+			break;
+		case F_FORW:
+			ret = 0;
+			break;
 	}
 
 	return (ret);
@@ -319,6 +320,8 @@ om_classic_flush(f, context)
 	/* flush any pending output */
 	if (f->f_prevcount)
 		om_classic_doLog(f, 0, (char *)NULL, NULL);
+
+	return(1);
 
 }
 

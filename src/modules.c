@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.29 2000/04/19 19:04:17 gera Exp $
+/*	$Id: modules.c,v 1.30 2000/04/19 19:06:19 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -90,8 +90,8 @@ int modules_init (I)
 	OModules[M_MYSQL].om_close 		= om_mysql_close;
 	OModules[M_MYSQL].om_flush 		= om_mysql_flush;
 #endif
-
   
+	return(1);
 }
 
 
@@ -100,6 +100,7 @@ int modules_close(f)
 	struct filed *f;
 {
 	/* close all modules */
+	return(-1);
 }
 
 /* create all necesary modules for a specific filed */
@@ -133,7 +134,7 @@ int omodule_create(c, f, prog)
 			case '%':
 				/* get this module name */
 				argc=0;
-				while (isspace(*++p));
+				while (isspace(*(++p)));
 				argv[argc++] = p;
 				while (!isspace(*p)) p++;
 

@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_mysql.c,v 1.4 2000/04/18 22:25:20 alejo Exp $";
+static char rcsid[] = "$Id: om_mysql.c,v 1.5 2000/04/19 19:06:20 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -93,7 +93,6 @@ om_mysql_doLog(f, flags, msg, context)
 {
 	struct om_mysql_ctx *c;
 	char	*dummy, *y, *m, *d, *h, *host, mymsg[1024];
-        time_t now;
 	int	mn;
 	char	*months[] = { "Jan", "Feb", "Mar", "Apr", "May",
 				"Jun", "Jul", "Aug", "Sep", "Oct",
@@ -141,7 +140,7 @@ om_mysql_doLog(f, flags, msg, context)
 
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
 	snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s"
-			" VALUES('%s-%.2d-%s', '%s', '%s', '%s', '%s')",
+			" VALUES('%s-%.2d-%s', '%s', '%s', '%s')",
 			c->table, y, mn, d, h, host, mymsg);
 
 	free(dummy);
@@ -180,7 +179,7 @@ om_mysql_init(argc, argv, f, prog, c)
 	struct om_mysql_ctx	*context;
 	char	*host, *user, *passwd, *db, *table, *p;
 	int	port, client_flag, createTable;
-	int	ch, i;
+	int	ch;
 
 	dprintf("MySQL: entering initialization\n");
 
@@ -189,7 +188,7 @@ om_mysql_init(argc, argv, f, prog, c)
 		return (-1);
 
 	h = (MYSQL *) calloc(1, sizeof(MYSQL));
-	user = NULL; passwd = NULL; db = NULL; port = 0;
+	user = NULL; passwd = NULL; db = NULL; port = 0; host = NULL; table = NULL;
 	client_flag = 0; createTable = 0;
 
 	/* parse line */
@@ -222,12 +221,13 @@ om_mysql_init(argc, argv, f, prog, c)
 			case 'c':
 				createTable++;
 				break;
-			default:
+			default;
 				return(-1);
 		}
 	}
 
-	if ( user == NULL || passwd == NULL || db == NULL || port == 0)
+	if ( user == NULL || passwd == NULL || db == NULL || port == 0 ||
+			host == NULL || table == NULL)
 		return (-3);
 
 	/* connect to the database */
