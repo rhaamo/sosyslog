@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.41.2.5.4.8 2000/10/20 22:46:35 alejo Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.52 2000/10/31 19:42:14 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -106,7 +106,7 @@ om_peo_doLog (struct filed *f, int flags, char *msg, void *ctx)
 		close(fd);
 		dprintf ("reading form: %s: %s\n", c->keyfile,
 		    strerror(errno));
-		return(-1);
+		return (-1);
 	}
 
 	/* open macfile and write mac'ed msg */
@@ -135,7 +135,7 @@ om_peo_doLog (struct filed *f, int flags, char *msg, void *ctx)
 	}
 	write(fd, newkey, newkeylen);
 	close(fd);
-	return(1);
+	return (1);
 }
 
 

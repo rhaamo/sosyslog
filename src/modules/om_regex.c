@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.13.2.10.4.8 2000/10/20 22:46:36 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.21 2000/10/31 19:42:15 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -85,7 +85,7 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 
 	if (argc < 2 || argv == NULL || argv[1] == NULL) {
 		dprintf("om_regex: error on initialization\n");
-		return(-1);
+		return (-1);
 	}
 
 	if ((*ctx = (void *) calloc(1, sizeof(struct om_regex_ctx))) == NULL)
@@ -176,7 +176,7 @@ om_regex_doLog(struct filed *f, int flags, char *msg, void *ctx)
 
 	if (msg == NULL || !strcmp(msg, "")) {
 		logerror("om_regex_doLog: no message!");
-		return(-1);
+		return (-1);
 	}
 
 	/* return:

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.31.2.4.4.5 2000/10/12 01:48:32 fgsch Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.36 2000/10/31 19:42:14 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -127,14 +127,14 @@ char*
 getLine (char *buf, int *i)
 {
 	if (*buf == '\0')
-		return(NULL);
+		return (NULL);
 	while (buf[*i] != '\n' && buf[*i] != '\0')
 		(*i)++;
 	if (buf[*i] == '\0')
 		(*i)--;
 	else
 		buf[*i] = '\0';
-	return(buf);
+	return (buf);
 }
 
 
@@ -150,15 +150,15 @@ im_linux_set_console_loglevel (char *strlv)
 	if ( (loglevel = strtoul(strlv, &err, 10)) < 0 ||
 	      loglevel > 7 || *err != '\0') {
 		warnx("%s: invalid loglevel <%s>", linux_input_module, optarg);
-		return(-1);
+		return (-1);
 	}
 	warnx("%s: setting console loglevel to <%lu>", linux_input_module,
 	      loglevel);
 	if (klogctl(8, NULL, loglevel) < 0) {
 		warn("%s", linux_input_module);
-		return(-1);
+		return (-1);
 	}
-	return(0);
+	return (0);
 }
 
 
@@ -185,18 +185,18 @@ im_linux_init (struct i_module *I, char **argv, int argc)
 			switch(ch) {
 			case 'c': /* specify console loglevel */
 				if (im_linux_set_console_loglevel(optarg) < 0)
-					return(-1);
+					return (-1);
 				break;
 
 			case 'C': /* specify console loglevel and force exit */
 				im_linux_set_console_loglevel(optarg);
-				return(-1);
+				return (-1);
 
 			case 'k': /* specify symbol file */
 				if (strcmp(ksym_path, optarg))
 				    if ( (ksym_path = strdup(optarg)) == NULL) {
 					warn("%s", linux_input_module);
-					return(-1);
+					return (-1);
 				    }
 				break;
 
@@ -223,7 +223,7 @@ im_linux_init (struct i_module *I, char **argv, int argc)
 			case '?':
 			default:
 				im_linux_usage();
-				return(-1);
+				return (-1);
 			}
 	}
 
@@ -238,7 +238,7 @@ im_linux_init (struct i_module *I, char **argv, int argc)
 		else if (errno != ENOENT) {
 			warn("%s: %s: %s\n",
 			     linux_input_module, _PATH_KLOG, strerror(errno));
-			return(-1);
+			return (-1);
 		} else
 			/* /proc not mounted, use syscall */
 			I->im_fd = 0;
@@ -247,7 +247,7 @@ im_linux_init (struct i_module *I, char **argv, int argc)
 		else {
 			warn("%s: %s: %s\n",
 			     linux_input_module, _PATH_KLOG, strerror(errno));
-			return(-1);
+			return (-1);
 		}
 #endif
 
@@ -255,12 +255,12 @@ im_linux_init (struct i_module *I, char **argv, int argc)
 
 	/* open/read symbol table file */
 	if ((flags & KSYM_TRANSLATE) && ksym_init() < 0)
-		return(-1);
+		return (-1);
 
         I->im_name = "linux";
         I->im_flags |= IMODULE_FLAG_KERN;
 	optind = current_optind;
-        return(I->im_fd);
+        return (I->im_fd);
 }
 
 
@@ -294,7 +294,7 @@ im_linux_getLog (struct i_module *im, struct im_msg *ret)
 
 	if (i < 0 && errno != EINTR) {
 		logerror("im_linux_getLog");
-		return(-1);
+		return (-1);
 	}
 
 	if (i) {
@@ -336,7 +336,7 @@ im_linux_getLog (struct i_module *im, struct im_msg *ret)
 			i = 0;
 		}
 	}
-	return(0);
+	return (0);
 }
 
 
@@ -348,9 +348,9 @@ im_linux_close (struct i_module *im)
 {
 	ksym_close();
 	if (im->im_path != NULL) 
-		return(close(im->im_fd));
+		return (close(im->im_fd));
 
-	return(0);
+	return (0);
 }
 
 
@@ -368,7 +368,7 @@ ksym_init()
 	ksym_close();
 	if ( (ksym_fd = fopen(ksym_path, "r")) == NULL) {
 		warn("%s: ksym_init: %s", linux_input_module, ksym_path);
-		return(-1);
+		return (-1);
 	}
 	if (flags & KSYM_READ_TABLE) {
 		last = NULL;
@@ -376,7 +376,7 @@ ksym_init()
 			if ( (next = (Symbol*) malloc(1, sizeof(Symbol))) == NULL) {
 				warn("%s: ksym_init", linux_input_module);
 				ksym_close();
-				return(-1);
+				return (-1);
 			}
 			next->next = NULL;
 			if (last)
@@ -387,14 +387,14 @@ ksym_init()
 				warnx("%s: ksym_init: incorrect symbol file: %s"
 				      , linux_input_module, ksym_path);
 				ksym_close(); /* this also frees *next */
-				return(-1);
+				return (-1);
 			}
 			last = next;
 		}
 		fclose(ksym_fd);
 		ksym_fd = NULL;
 	}
-	return(0);
+	return (0);
 }
 
 
@@ -433,7 +433,7 @@ ksym_snprintf (char *buf, int bufsize, char *raw)
 	Symbol  sym;
 
 	if ( (printed = snprintf(buf, bufsize, "kernel: ")) < 0)
-		return(-1);
+		return (-1);
 	bufsize -= printed;
 
 	while (bufsize && *raw != '\0') {
@@ -448,7 +448,7 @@ ksym_snprintf (char *buf, int bufsize, char *raw)
 					    snprintf(buf+printed, bufsize,
 					    "%s [<%s> %s.%s ]", raw, sym.addr,
 					    sym.mname, sym.name)) < 0)
-						return(-1);
+						return (-1);
 					bufsize -= printed;
 
 					/* we need to solve some things
@@ -471,12 +471,12 @@ ksym_snprintf (char *buf, int bufsize, char *raw)
 	if (*raw) {
 		/* kernel message without symbols */
 		if ( (i = snprintf(buf+printed, bufsize, "%s", raw)) < 0)
-			return(-1);
+			return (-1);
 		else
 			printed += i;
 	}
 
-	return(printed);
+	return (printed);
 }
 
 
@@ -498,9 +498,9 @@ ksym_lookup (Symbol *sym, char *addr)
 	/* search for symbol */
 	while (!ksym_get_symbol(sym))
 		if (!strcasecmp(sym->addr, addr))
-			return(sym);
+			return (sym);
 
-	return(NULL);
+	return (NULL);
 }
 
 
@@ -517,11 +517,11 @@ ksym_get_symbol (Symbol *sym)
 		if (ksym_current != NULL) {
 			*sym = *ksym_current;
 			ksym_current = ksym_current->next;
-			return(0);
+			return (0);
 		}
 	} else if (fgets(msg, sizeof(msg), ksym_fd) != NULL)
-			return(ksym_parseline(msg, sym));
-	return(-1);
+			return (ksym_parseline(msg, sym));
+	return (-1);
 }
 
 
@@ -535,27 +535,27 @@ int
 ksym_parseline (char *p, Symbol *sym)
 {
 	if (sym == NULL || p == NULL || p[0] == '\0')
-		return(-1);
+		return (-1);
 
 	sym->addr[0] = sym->name[0] = sym->mname[0] = '\0';
 
 	/* copy address */
 	QUIT_BLANK(p);
 	if (*p == '\0' || *p == '\n')
-		return(-1);
+		return (-1);
  	p = ksym_copyword(sym->addr, p, MAX_ADDR_LEN);
 
 	/* copy name */
 	QUIT_BLANK(p);
 	if (*p == '\0' || *p == '\n')
-		return(-1);
+		return (-1);
 	p = ksym_copyword(sym->name, p, MAX_NAME_LEN);
 
 	/* copy module name (if any) */
 	QUIT_BLANK(p);
 	ksym_copyword(sym->mname, p, MAX_MNAME_LEN);
 
-	return(0);
+	return (0);
 }
 
 
@@ -576,6 +576,6 @@ ksym_copyword (char *dst, char *src, int max)
 			dst[i++] = *src++;
 		dst[i] = '\0';
 	}
-	return(src);
+	return (src);
 }
 

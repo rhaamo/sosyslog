@@ -1,4 +1,4 @@
-/*	$CoreSDI: hash.c,v 1.23.2.3.2.1.4.1 2000/10/12 02:13:34 fgsch Exp $	*/
+/*	$CoreSDI: hash.c,v 1.31 2000/10/31 19:42:15 alejo Exp $	*/
  
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -261,7 +261,7 @@ strrealpath (const char *path)
 
 	if ( (resolved = (char*)calloc(1, PATH_MAX)) != NULL)
 		return realpath(path, resolved);
-	return(NULL);
+	return (NULL);
 }
 
 

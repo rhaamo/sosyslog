@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_mymodule.c,v 1.1.2.1 2000/08/25 00:07:48 alejo Exp $	*/
+/*	$CoreSDI: im_mymodule.c,v 1.3 2000/10/31 19:42:13 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -59,7 +59,7 @@ struct im_mymodule_ctx {
 int
 im_mymodule_getLog (struct i_module *im, struct im_msg *ret)
 {
-	return(1);
+	return (1);
 }
 
 /*
@@ -70,7 +70,7 @@ im_mymodule_getLog (struct i_module *im, struct im_msg *ret)
 int
 im_mymodule_init (struct i_module *I, char **argv, int argc)
 {
-        return(1);
+        return (1);
 }
 
 
@@ -80,5 +80,5 @@ im_mymodule_init (struct i_module *I, char **argv, int argc)
 int
 im_mymodule_close (struct i_module *im) 
 {
-        return(1);
+        return (1);
 }

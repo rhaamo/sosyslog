@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.31.2.8.2.4.4.9 2000/10/23 23:54:33 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.53 2000/10/31 19:42:14 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -79,7 +79,7 @@ om_classic_doLog(struct filed *f, int flags, char *msg, void *context)
 
 	if (msg == NULL || !strcmp(msg, "")) {
 		logerror("om_classic_doLog: no message!");
-		return(-1);
+		return (-1);
 	}
 
 	/* prepare buffers for writing */
@@ -193,7 +193,7 @@ om_classic_doLog(struct filed *f, int flags, char *msg, void *context)
 		break;
 	}
 	f->f_prevcount = 0;
-	return(1);
+	return (1);
 }
 
 
@@ -226,7 +226,7 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog,
 			if (sp == NULL) {
 				errno = 0;
 				logerror("syslog/udp: unknown service");
-   				return(-1);
+   				return (-1);
 			}
 			memset(&sin, 0, sizeof(sin));
 			sin.sin_family = AF_INET;
@@ -235,7 +235,7 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog,
 			if (bind(finet, (struct sockaddr *)&sin,
 					sizeof(sin)) < 0) {
 				logerror("bind");
-				return(-1);
+				return (-1);
 			} else {
 				DaemonFlags |= SYSLOGD_INET_IN_USE;
 			}
@@ -297,7 +297,7 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog,
 		break;
 	}
 
-	return(1);
+	return (1);
 }
 
 int
@@ -308,13 +308,13 @@ om_classic_close(struct filed *f, void *ctx)
 	case F_FILE:
 	case F_TTY:
 	case F_CONSOLE:
-		return(close(f->f_file));
+		return (close(f->f_file));
 	case F_FORW:
 		if ((finet > -1) && (DaemonFlags & SYSLOGD_INET_IN_USE)
 		    && !(DaemonFlags & SYSLOGD_INET_READ))
-			return(close(finet));
+			return (close(finet));
 	default:
-		return(0);
+		return (0);
 	}
 }
 
@@ -325,7 +325,7 @@ om_classic_flush(struct filed *f, void *context)
 	if (f->f_prevcount)
 		om_classic_doLog(f, 0, (char *)NULL, NULL);
 
-	return(1);
+	return (1);
 
 }
 

@@ -1244,7 +1244,7 @@ int im_unix_getLog (struct i_module*, struct im_msg*);"
 
 SMODULES_LOAD="$SMODULES_LOAD \
 if ( (im = (struct imodule*)calloc(1, sizeof(struct imodule))) == NULL) \
-	return(-1);"
+	return (-1);"
 
 if test "$FIRST_ADD_INPUT"
 then
@@ -1317,7 +1317,7 @@ int im_udp_getLog (struct i_module*, struct im_msg*);"
 
 SMODULES_LOAD="$SMODULES_LOAD \
 if ( (im = (struct imodule*)calloc(1, sizeof(struct imodule))) == NULL) \
-	return(-1);"
+	return (-1);"
 
 if test "$FIRST_ADD_INPUT"
 then
@@ -1390,7 +1390,7 @@ int im_bsd_getLog (struct i_module*, struct im_msg*);"
 
 SMODULES_LOAD="$SMODULES_LOAD \
 if ( (im = (struct imodule*)calloc(1, sizeof(struct imodule))) == NULL) \
-	return(-1);"
+	return (-1);"
 
 if test "$FIRST_ADD_INPUT"
 then
@@ -1463,7 +1463,7 @@ int im_linux_getLog (struct i_module*, struct im_msg*);"
 
 SMODULES_LOAD="$SMODULES_LOAD \
 if ( (im = (struct imodule*)calloc(1, sizeof(struct imodule))) == NULL) \
-	return(-1);"
+	return (-1);"
 
 if test "$FIRST_ADD_INPUT"
 then
@@ -1536,7 +1536,7 @@ int om_classic_doLog (struct filed*, int, char*, void *);"
 
 SMODULES_LOAD="$SMODULES_LOAD \
 if ( (om = (struct omodule*)calloc(1, sizeof(struct omodule))) == NULL) \
-	return(-1);"
+	return (-1);"
 
 if test "$FIRST_ADD_OUTPUT"
 then
@@ -1610,7 +1610,7 @@ int om_peo_doLog (struct filed*, int, char*, void *);"
 
 SMODULES_LOAD="$SMODULES_LOAD \
 if ( (om = (struct omodule*)calloc(1, sizeof(struct omodule))) == NULL) \
-	return(-1);"
+	return (-1);"
 
 if test "$FIRST_ADD_OUTPUT"
 then
@@ -1797,7 +1797,7 @@ int om_mysql_doLog (struct filed*, int, char*, void *);"
 
 SMODULES_LOAD="$SMODULES_LOAD \
 if ( (om = (struct omodule*)calloc(1, sizeof(struct omodule))) == NULL) \
-	return(-1);"
+	return (-1);"
 
 if test "$FIRST_ADD_OUTPUT"
 then
@@ -1988,7 +1988,7 @@ int om_pgsql_doLog (struct filed*, int, char*, void *);"
 
 SMODULES_LOAD="$SMODULES_LOAD \
 if ( (om = (struct omodule*)calloc(1, sizeof(struct omodule))) == NULL) \
-	return(-1);"
+	return (-1);"
 
 if test "$FIRST_ADD_OUTPUT"
 then
@@ -2069,7 +2069,7 @@ int om_regex_doLog (struct filed*, int, char*, void *);"
 
 SMODULES_LOAD="$SMODULES_LOAD \
 if ( (om = (struct omodule*)calloc(1, sizeof(struct omodule))) == NULL) \
-	return(-1);"
+	return (-1);"
 
 if test "$FIRST_ADD_OUTPUT"
 then

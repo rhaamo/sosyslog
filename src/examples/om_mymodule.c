@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mymodule.c,v 1.1.2.2.4.1 2000/10/09 22:47:31 alejo Exp $	*/
+/*	$CoreSDI: om_mymodule.c,v 1.5 2000/10/31 19:42:13 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -65,7 +65,7 @@ om_mymodule_doLog (struct filed *f, int flags, char *msg,
 	/* always check, just in case ;) */
 	if (msg == NULL || !strcmp(msg, "")) {
 		logerror("om_mymodule_doLog: no message!");
-		return(-1);
+		return (-1);
 	}
 
 	/*  here you must do your loggin
@@ -79,7 +79,7 @@ om_mymodule_doLog (struct filed *f, int flags, char *msg,
 			-1  error logging (but let other modules process it)
 	 */
 
-	return(1);
+	return (1);
 }
 
 
@@ -121,7 +121,7 @@ om_mymodule_init (int argc, char **argv, struct filed *f, char *prog,
 				break;
 			default :
 				dprintf("om_mymodule: error on arguments\n");
-				return(-1);
+				return (-1);
 		}
 	}
 
@@ -135,7 +135,7 @@ om_mymodule_init (int argc, char **argv, struct filed *f, char *prog,
 			-1  something went wrong
 	*/
 
-	return(1);
+	return (1);
 }
 
 
@@ -161,5 +161,5 @@ om_mymodule_flush (struct filed *f, void *context) {
 			 1  OK
 			-1  BAD
 	 */
-	return(1);
+	return (1);
 }

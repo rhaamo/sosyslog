@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.46 2000/10/31 19:42:14 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.47 2000/10/31 21:31:32 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -95,7 +95,7 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 			dprintf("om_mysql_dolog: Lost connection!");
 			logerror("om_mysql_dolog: Lost connection!");
 		}
-		return(1);
+		return (1);
 	}
 
 	/* restore previous SIGPIPE handler */
@@ -215,7 +215,7 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 			table = optarg;
 			break;
 		default:
-			return(-1);
+			return (-1);
 		}
 	}
 
@@ -225,7 +225,7 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 
 	/* alloc context */
 	if ((*c = (void *) calloc(1, sizeof(struct om_mysql_ctx))) == NULL)
-		return(-1);
+		return (-1);
 	ctx = (struct om_mysql_ctx *) *c;
 
 	ctx->table = strdup(table);
@@ -241,7 +241,7 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 		snprintf(err_buf, sizeof(err_buf), "om_mysql_init: Error "
 		    "initializing handle");
 		logerror(err_buf);
-		return(-1);
+		return (-1);
 	}
 
 	if (!mysql_real_connect(&ctx->h, host, user, passwd, db, port,
@@ -251,7 +251,7 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 		    "connecting to db server [%s:%i] user [%s] db [%s]",
 		    host, port, user, db);
 		logerror(err_buf);
-		return(1);
+		return (1);
 	}
 
 	return (1);

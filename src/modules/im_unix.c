@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.27.2.4.4.1 2000/10/12 02:00:08 fgsch Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.35 2000/10/31 19:42:14 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -80,10 +80,10 @@ im_unix_getLog(struct i_module *im, struct im_msg  *ret)
 		ret->im_msg[0] = '\0';
 		ret->im_len = 0;
 		ret->im_host[0] = '\0';
-		return(-1);
+		return (-1);
 	}
 
-	return(1);
+	return (1);
 }
 
 /*
@@ -99,7 +99,7 @@ im_unix_init(struct i_module *I, char **argv, int argc)
 	dprintf ("\nim_unix_init...\n");
 
 	if (I == NULL || argv == NULL || argc != 2)
-		return(-1);
+		return (-1);
 
 #ifndef SUN_LEN
 #define SUN_LEN(unp) (strlen((unp)->sun_path) + 2)
@@ -120,7 +120,7 @@ im_unix_init(struct i_module *I, char **argv, int argc)
 		return (-1);
 	}
 	I->im_path = argv[1];
-	return(1);
+	return (1);
 }
 
 int
@@ -131,7 +131,7 @@ im_unix_close( struct i_module *im)
 	if (im->im_path)
 		unlink(im->im_path);
 
-	return(0);
+	return (0);
 }
 
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.37.2.5.2.6.4.3 2000/10/12 00:39:46 fgsch Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.46 2000/10/31 19:42:14 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -93,7 +93,7 @@ im_udp_getLog(struct imodule *im, struct im_msg *ret)
 	} else if (ret->im_len < 0 && errno != EINTR)
 		logerror("recvfrom inet");
 
-	return(1);
+	return (1);
 }
 
 /*
@@ -110,7 +110,7 @@ im_udp_init(struct i_module *I, char **argv, int argc)
         if ((argc != 1 && argc != 2) || (argc == 2 &&
 	    (argv == NULL || argv[1] == NULL))) {
         	dprintf("im_udp: error on params!\n");
-        	return(-1);
+        	return (-1);
         }
 
         I->im_fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -119,7 +119,7 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 	if (sp == NULL) {
 		errno = 0;
 		logerror("syslog/udp: unknown service");
-		return(-1);
+		return (-1);
 	}
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;
@@ -130,7 +130,7 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 
 	if (bind(I->im_fd, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
 		logerror("im_udp_init: bind");
-		return(-1);
+		return (-1);
 	}
 
         I->im_path = NULL;
@@ -142,7 +142,7 @@ im_udp_init(struct i_module *I, char **argv, int argc)
         }
 
         dprintf("im_udp: running\n");
-        return(1);
+        return (1);
 }
 
 int
@@ -157,6 +157,6 @@ im_udp_close(struct i_module *im)
         	close(im->im_fd);
         }
  
-        return(0);
+        return (0);
 }
 

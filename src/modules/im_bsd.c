@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.51.2.6.4.1 2000/10/12 01:04:32 fgsch Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.66 2000/10/31 19:42:14 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -70,7 +70,7 @@ im_bsd_init(struct i_module *I, char **argv, int argc)
 	
 	I->im_path = _PATH_KLOG;
 	I->im_flags |= IMODULE_FLAG_KERN;
-	return(I->im_fd);
+	return (I->im_fd);
 }
 
 
@@ -127,7 +127,7 @@ im_bsd_getLog(struct i_module *im, struct im_msg *ret)
 	}
 
 	/* if ok return (2) wich means already logged */
-	return(im->im_fd == -1 ? -1: 2);
+	return (im->im_fd == -1 ? -1: 2);
 }
 
 int
@@ -136,5 +136,5 @@ im_bsd_close (struct i_module *im)
 	if (im->im_fd >= 0)
 		close(im->im_fd);
 
-	return(0);
+	return (0);
 }

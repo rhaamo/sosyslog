@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.90.2.9.2.4.4.11 2000/10/23 23:54:33 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.141 2000/10/31 19:42:12 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.90.2.9.2.4.4.11 2000/10/23 23:54:33 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.141 2000/10/31 19:42:12 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -321,7 +321,7 @@ main(int argc, char **argv) {
 							"%s lockholder status=%d type=%d",
 							pidfile, status, fl.l_type);
 					logerror(buf);
-					return(0);
+					return (0);
 				}
 
 				snprintf(buf, sizeof(buf), "Lock on %s is being "

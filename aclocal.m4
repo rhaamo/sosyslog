@@ -1,4 +1,4 @@
-dnl	$CoreSDI: aclocal.m4,v 1.11.2.5.2.2.4.1 2000/10/09 22:47:30 alejo Exp $
+dnl	$CoreSDI: aclocal.m4,v 1.20 2000/10/31 19:42:11 alejo Exp $
 
 
 dnl
@@ -184,7 +184,7 @@ int om_$1_doLog (struct filed*, int, char*, void *);"
 
 SMODULES_LOAD="$SMODULES_LOAD \
 if ( (om = (struct omodule*)calloc(1, sizeof(struct omodule))) == NULL) \
-	return(-1);"
+	return (-1);"
 
 if test "$FIRST_ADD_OUTPUT"
 then
@@ -228,7 +228,7 @@ int im_$1_getLog (struct i_module*, struct im_msg*);"
 
 SMODULES_LOAD="$SMODULES_LOAD \
 if ( (im = (struct imodule*)calloc(1, sizeof(struct imodule))) == NULL) \
-	return(-1);"
+	return (-1);"
 
 if test "$FIRST_ADD_INPUT"
 then

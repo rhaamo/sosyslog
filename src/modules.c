@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.89.2.6.2.4.4.6 2000/10/23 23:54:33 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.129 2000/10/31 19:42:12 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -104,7 +104,7 @@ imodule_init(struct i_module *I, char *line)
 	/* create initial node for Inputs list */
 	if (I == NULL) {
 	    dprintf("imodule_init: Error from caller\n");
-	    return(-1);
+	    return (-1);
 	}
 
 	/* go to last item on list */
@@ -116,7 +116,7 @@ imodule_init(struct i_module *I, char *line)
 		if((im_prev->im_next = (struct i_module *) calloc(1,
 		        sizeof(struct i_module))) == NULL) {
 		    dprintf("No memory available for calloc\n");
-		    return(-1);
+		    return (-1);
 		}
 		im = im_prev->im_next;
 		im->im_fd = -1;
@@ -180,7 +180,7 @@ imodule_init_bad:
 		free(argv);
 	}
 
-	return(ret);
+	return (ret);
 
 }
 
@@ -293,7 +293,7 @@ omodule_create(char *c, struct filed *f, char *prog)
 	if (f->f_type == F_UNUSED)
 		f->f_type = F_MODULE;
 
-	return(1);
+	return (1);
 
 omodule_create_bad:
 
@@ -311,7 +311,7 @@ omodule_create_bad:
 	if (om)
 		free(om);
 
-	return(-1);
+	return (-1);
 
 }
 
@@ -364,7 +364,7 @@ parseParams(char ***ret, char *c)
 	}
 	
 	free(line);
-	return(argc);
+	return (argc);
 }
 
 struct imodule *
@@ -375,7 +375,7 @@ addImodule(char *name)
 	int i, j;
 
 	if (name == NULL)
-		return(NULL);
+		return (NULL);
 
 	if (imodules == NULL) {
 		imodules = (struct imodule *) calloc(1, sizeof(*im));
@@ -443,7 +443,7 @@ addImodule(char *name)
 #endif
 	im->im_name = strdup(name);
 
-	return(im);
+	return (im);
 
 addImod_bad:
 	if (imodules == im) {
@@ -466,7 +466,7 @@ addOmodule(char *name)
 	int i, j;
 
 	if (name == NULL)
-		return(NULL);
+		return (NULL);
 
 	if (omodules == NULL) {
 		omodules = (struct omodule *) calloc(1, sizeof(*om));
@@ -536,7 +536,7 @@ addOmodule(char *name)
 #endif
 	om->om_name = strdup(name);
 
-	return(om);
+	return (om);
 
 addOmod_bad:
 	if (omodules == om) {
@@ -548,23 +548,23 @@ addOmod_bad:
 			o->om_next = NULL;
 	}
 	free(om);
-	return(NULL);
+	return (NULL);
 }
 
 int
 omoduleDestroy(struct omodule *om)
 {
 	if (om == NULL || om->h == NULL || om->om_next)
-		return(-1);
+		return (-1);
 
 	if (dlclose(om->h) < 0) {
 	   	dprintf("Error [%s]\n", dlerror());
-		return(-1);
+		return (-1);
 	}
 
 	free(om->om_name);
 
-	return(1);
+	return (1);
 }
 
 struct imodule *
@@ -574,13 +574,13 @@ getImodule(char *name)
 	int len;
 
 	if (imodules == NULL || name == NULL)
-		return(NULL);
+		return (NULL);
 
 	for(im = imodules, len = strlen(name); im; im = im->im_next)
 		if (im->im_name && !strncmp(im->im_name, name, len))
 			break;
 
-	return(im);
+	return (im);
 }
 
 struct omodule *
@@ -589,13 +589,13 @@ getOmodule(char *name) {
 	int len;
 
 	if (omodules == NULL || name == NULL)
-		return(NULL);
+		return (NULL);
 
 	for(om = omodules, len = strlen(name); om; om = om->om_next)
 		if (om->om_name && !strncmp(om->om_name, name, len))
 			break;
 
-	return(om);
+	return (om);
 }
 
 
@@ -634,7 +634,7 @@ imodules_destroy(struct imodule *i)
 
 	if (last) {
 		last->im_next = NULL;
-		return(1); /* there are some static modules on */
+		return (1); /* there are some static modules on */
 	}
 
 	return (0);
@@ -674,7 +674,7 @@ omodules_destroy(struct omodule *o)
 
 	if (last) {
 		last->om_next = NULL;
-		return(1); /* there are some static modules on */
+		return (1); /* there are some static modules on */
 	}
 
 	return (0);

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.24 2000/10/31 19:42:15 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.25 2000/10/31 21:31:32 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -105,7 +105,7 @@ om_pgsql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 				logerror("om_pgsql_dolog: Lost connection!");
 			}
 		}
-		return(1);
+		return (1);
 
 	}
 
@@ -240,7 +240,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 			table = optarg;
 			break;
 		default:
-			return(-1);
+			return (-1);
 		}
 	}
 
@@ -261,7 +261,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 		    " [%s:%s] user [%s] db [%s]\n",
 		    host?host:"(unix socket)", port?port:"(none)", user, db);
 		PQfinish(h); 
-		return(-5);
+		return (-5);
 	}
 
 	/* save handle and stuff on context */
