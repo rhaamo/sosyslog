@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_filter.c,v 1.1 2000/06/02 01:04:13 alejo Exp $	*/
+/*	$CoreSDI: om_filter.c,v 1.2 2000/06/05 15:42:20 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -98,7 +98,6 @@ om_filter_init(argc, argv, f, prog, c)
 	struct om_hdr_ctx **c; /* our context */
 {
 	struct om_filter_ctx *ctx;
-	char *expression;
 
 	/* for debugging purposes */
 	dprintf("om_filter init\n");
