@@ -1,4 +1,4 @@
-dnl	$CoreSDI: aclocal.m4,v 1.23 2000/11/03 19:24:28 alejo Exp $
+dnl	$CoreSDI: aclocal.m4,v 1.24 2000/11/03 19:30:38 alejo Exp $
 
 
 dnl
@@ -154,6 +154,8 @@ UNIX=""
 UDP=""
 BSD=""
 LINUX=""
+DOORS=""
+STREAMS=""
 CLASSIC=""
 PEO=""
 MYSQL=""

@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.49 2000/10/31 19:42:14 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.50 2000/11/03 19:35:03 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -68,6 +68,16 @@ DLINUX=		@Dlinux@
 DLINUX_PLAIN=	@Dlinux_PLAIN@
 DLINUX_SRCS=	@Dlinux_SRCS@
 DLINUX_OBJS=	$(DLINUX_SRCS:.c=.o)
+
+DDOORS=		@Ddoors@
+DDOORS_PLAIN=	@Ddoors_PLAIN@
+DDOORS_SRCS=	@Ddoors_SRCS@
+DDOORS_OBJS=	$(DDOORS_SRCS:.c=.o)
+
+DSTREAMS=	@Ddoors@
+DSTREAMS_PLAIN=	@Ddoors_PLAIN@
+DSTREAMS_SRCS=	@Ddoors_SRCS@
+DSTREAMS_OBJS=	$(DSTREAMS_SRCS:.c=.o)
 
 DCLASSIC=	@Dclassic@
 DCLASSIC_PLAIN=	@Dclassic_PLAIN@
