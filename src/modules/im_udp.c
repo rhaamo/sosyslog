@@ -21,10 +21,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <signal.h>
 
-
-char   *cvthname __P((struct sockaddr_in *));
 void    logerror __P((char *));
 void    die __P((int));
 
@@ -129,38 +126,3 @@ im_udp_init(I, argc, argv, c)
 
         return(1);
 }
-
-
-/*
- * Return a printable representation of a host address.
- */
-char *
-cvthname(f)
-	struct sockaddr_in *f;
-{
-	struct hostent *hp;
-	sigset_t omask, nmask;
-	char *p;
-
-	dprintf("cvthname(%s)\n", inet_ntoa(f->sin_addr));
-
-	if (f->sin_family != AF_INET) {
-		dprintf("Malformed from address\n");
-		return ("???");
-	}
-	sigemptyset(&nmask);
-	sigaddset(&nmask, SIGHUP);
-	sigprocmask(SIG_BLOCK, &nmask, &omask);
-	hp = gethostbyaddr((char *)&f->sin_addr,
-	    sizeof(struct in_addr), f->sin_family);
-	sigprocmask(SIG_SETMASK, &omask, NULL);
-	if (hp == 0) {
-		dprintf("Host name for your address (%s) unknown\n",
-			inet_ntoa(f->sin_addr));
-		return (inet_ntoa(f->sin_addr));
-	}
-	if ((p = strchr(hp->h_name, '.')) && strcmp(p + 1, LocalDomain) == 0)
-		*p = '\0';
-	return (hp->h_name);
-}
-
