@@ -1,4 +1,4 @@
-# $CoreSDI: Id$
+# $CoreSDI: GNUmakefile,v 1.1 2000/07/06 01:18:36 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -29,11 +29,16 @@
 #
 
 MAN=	im_linux.8 om_peo.8 om_mysql.8 peochk.8 syslogd.8 syslog.conf.5
+MANDIR=	/usr/man
 
-install: maninstall
+all:
 
-clean:	cleandir
+install maninstall: ${MAN}
 
-.include <bsd.own.mk>
-.include <bsd.man.mk>
+${MAN}:
+	-gzip -cf $@ > ${MANDIR}/man${subst .,,${suffix $@}}/${@:=.gz}
+
+distclean cleandir clean:
+	-rm -f GNUmakefile
+
 
