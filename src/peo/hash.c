@@ -1,4 +1,4 @@
-/*      $Id: hash.c,v 1.13 2000/05/08 21:11:32 claudio Exp $
+/*      $Id: hash.c,v 1.14 2000/05/09 19:18:39 claudio Exp $
  *
  * hash -- few things used by both peo output module and peochk 
  *
@@ -31,7 +31,7 @@
 #include "hash.h"
 
 
-char *default_keyfile = "/var/ssyslog/.var.log.messages";
+char *default_keyfile = "/var/ssyslog/.var.log.messages.key";
 
 char *hmstr[] = { /* enum order */
 	"md5",
