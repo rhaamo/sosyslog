@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.56 2000/12/04 23:25:29 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.57 2000/12/14 00:16:45 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -203,12 +203,11 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 	char	*p, err_buf[256];
 	int	ch;
 
-	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: Entering\n");
-
 	if (argv == NULL || *argv == NULL || argc < 2 || f == NULL ||
 	    c == NULL || *c != NULL)
 		return (-1);
 
+	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: alloc context\n");
 	/* alloc context */
 	if ((*c = (void *) calloc(1, sizeof(struct om_mysql_ctx))) == NULL)
 		return (-1);
@@ -260,6 +259,11 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 		logerror(err_buf);
 		goto om_mysql_init_bad;
 	}
+
+	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: calling mysql_real_connect\n");
+
+	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: params %p %s %s %s %s %i \n",
+	    ctx->h, ctx->host, ctx->user, ctx->passwd, ctx->db, ctx->port);
 
 	if (!mysql_real_connect(ctx->h, ctx->host, ctx->user, ctx->passwd,
 	    ctx->db, ctx->port, NULL, 0)) {

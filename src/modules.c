@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.140 2000/12/14 00:16:43 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.141 2000/12/19 21:25:05 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -110,7 +110,10 @@ modules_start() {
 #if BREAK_ON_MODULE_DEPENENCIES
 			return(-1);
 #endif
-		}
+		} else
+			dprintf(DPRINTF_INFORMATIVE)("modules_start: loaded "
+			    "library %s for %s module\n", mlibs[i].libname,
+			    mlibs[i].mname);
 	}
 
 	snprintf(buf, sizeof(buf), "%s/" MLIBNAME_STR,

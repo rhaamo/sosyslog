@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.156 2000/12/14 00:20:58 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.157 2000/12/19 21:25:06 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.156 2000/12/14 00:20:58 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.157 2000/12/19 21:25:06 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -336,6 +336,7 @@ main(int argc, char **argv) {
 	(void)signal(SIGQUIT, Debug ? die : SIG_IGN);
 	(void)signal(SIGCHLD, reapchild);
 	(void)signal(SIGALRM, domark);
+	(void)signal(SIGPIPE, SIG_IGN);
 	(void)alarm(TIMERINTVL);
 
 	snprintf(pidfile, PID_PATH_MAX, "%s/syslog.pid", PID_DIR);
