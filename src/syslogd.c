@@ -1,4 +1,4 @@
-/*  $Id: syslogd.c,v 1.233 2002/09/17 05:20:26 alejo Exp $	*/
+/*  $Id: syslogd.c,v 1.234 2003/01/07 21:56:05 phreed Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c  8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: syslogd.c,v 1.233 2002/09/17 05:20:26 alejo Exp $";
+static char rcsid[] = "$Id: syslogd.c,v 1.234 2003/01/07 21:56:05 phreed Exp $";
 #endif /* not lint */
 
 /*
@@ -1682,21 +1682,26 @@ return (-1);
   switch (type) {
 
   case 'p': /* pollable */
-    if (poll_fd && poll_fd_cnt % 50 != 0) break;
 
-     if ( (poll_fd = (struct pollfd *) realloc(poll_fd,
-             (size_t) (poll_fd_cnt + 50) * sizeof(struct pollfd)))
-         == NULL) {
-       m_dprintf(MSYSLOG_CRITICAL, "realloc inputs: poll fd");
-exit(-1);
-     }
+    if (poll_fd_cnt % 50 == 0) {
 
-     if ( (poll_fd_modules = (struct i_module **) realloc(poll_fd_modules,
-            (size_t) (poll_fd_cnt + 50) * sizeof(struct i_module *)))
-        == NULL) {
-      m_dprintf(MSYSLOG_CRITICAL, "realloc inputs: input modules");
+      if (  ( poll_fd = (struct pollfd *)realloc(
+       poll_fd,
+       (size_t)(poll_fd_cnt + 50) * sizeof(struct pollfd)
+      ) )  ==  NULL  ) {
+        m_dprintf(MSYSLOG_CRITICAL, "realloc inputs: poll fd");
 exit(-1);
-     }
+      }
+
+      if (  ( poll_fd_modules = (struct i_module **)realloc(
+       poll_fd_modules,
+       (size_t)(poll_fd_cnt + 50) * sizeof(struct i_module *)
+      ) )  ==  NULL  ) {
+        m_dprintf(MSYSLOG_CRITICAL, "realloc inputs: input modules");
+exit(-1);
+      }
+
+    }
 
     poll_fd[poll_fd_cnt].fd = fd;
     poll_fd[poll_fd_cnt].events = POLLIN;
@@ -1706,21 +1711,25 @@ exit(-1);
     break;
 
   case 'u': /* unpollable */
-    if (unpoll_fd && unpoll_fd_cnt % 50 != 0) break;
 
-     if ( (unpoll_fd = (int *) realloc(unpoll_fd,
-             (size_t) (unpoll_fd_cnt + 50) * sizeof(int)))
-         == NULL) {
+    if (unpoll_fd_cnt % 50 == 0) {
+
+      if (  ( unpoll_fd = (int *)realloc(
+       unpoll_fd,
+       (size_t)(unpoll_fd_cnt + 50) * sizeof(int)
+      ) )  ==  NULL  ) {
        m_dprintf(MSYSLOG_CRITICAL, "realloc inputs: unpoll fd");
 exit(-1);
-     }
+      }
 
-     if ( (unpoll_fd_modules = (struct i_module **) realloc(unpoll_fd_modules,
-            (size_t) (unpoll_fd_cnt + 50) * sizeof(struct i_module *)))
-        == NULL) {
-      m_dprintf(MSYSLOG_CRITICAL, "realloc inputs: input modules");
+      if (  ( unpoll_fd_modules = (struct i_module **)realloc(
+       unpoll_fd_modules,
+       (size_t)(unpoll_fd_cnt + 50) * sizeof(struct i_module *)
+      ) )  ==  NULL  ) {
+       m_dprintf(MSYSLOG_CRITICAL, "realloc inputs: input modules");
 exit(-1);
-     }
+      }
+    }
 
     unpoll_fd[unpoll_fd_cnt] = fd;
     unpoll_fd_modules[unpoll_fd_cnt] = im;

@@ -141,7 +141,7 @@ return(-1);
     break;
   
       case 'c':
-        ctx->fire_count = strtol(argv[argcnt], &endptr, 0);
+        ctx->fired_count = strtol(argv[argcnt], &endptr, 0);
         if (endptr == NULL || endptr == argv[argcnt]) { 
           snprintf(statbuf, sizeof(statbuf), "om_refract_init: "
            "bad argument to -c option [%s], should be numeric firing count", argv[argcnt]);

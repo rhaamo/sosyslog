@@ -1,4 +1,4 @@
-/*	$Id: ip_misc.c,v 1.26 2002/09/25 22:50:16 alejo Exp $	*/
+/*	$Id: ip_misc.c,v 1.27 2003/01/07 21:56:07 phreed Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -235,6 +235,7 @@ resolv_name(char *host, char *port, char *proto, socklen_t *salen)
 
 	sa = (struct sockaddr *) malloc(res->ai_addrlen);
 	memcpy(sa, res->ai_addr, res->ai_addrlen);
+
 	*salen = res->ai_addrlen;
 	freeaddrinfo(res);
 
@@ -439,21 +440,30 @@ accept_tcp(int fd, socklen_t addrlen, char *host, int hlen, char *port,
 int
 sock_udp(char *host, char *port, void **addr, int *addrlen)
 {
-	struct sockaddr	*sa;
-	socklen_t	 salen;
+  struct sockaddr *sa;
+  socklen_t salen;
+  int socket_fd;
 
-	if ((sa = resolv_name(host, port, "udp", &salen)) == NULL)
-		return (-1);
+  if (  ( sa = resolv_name(host, port, "udp", &salen) ) == NULL  )
+return -1;
 
-	/* pass struct sockaddr if requested */
-	if (addrlen != NULL)
-		*addrlen = salen;
-	if (addr != NULL)
-		*addr = sa;
-	else
-		free(sa);
+  /* USE sa->sa_family BEFORE sa IS FREED */
+  if (  ( socket_fd = socket(sa->sa_family, SOCK_DGRAM, 0) )  ==  -1  ) {
+    m_dprintf(MSYSLOG_SERIOUS, "could not create udp socket: %s\n", sys_errlist[errno]);
+return -1;
+  }
+  if ( bind(socket_fd, sa, salen ) != 0 ) {
+    m_dprintf(MSYSLOG_SERIOUS, "bind failed for udp socket: %s\n", sys_errlist[errno]);
+return -1;
+  }
 
-	return (socket(sa->sa_family, SOCK_DGRAM, 0));
+  /* pass struct sockaddr if requested */
+  if (addrlen != NULL) *addrlen = salen;
+
+  if (addr != NULL) *addr = sa;
+  else              free(sa);               /* sa FREED HERE */
+
+return socket_fd;
 }
 
 /*
