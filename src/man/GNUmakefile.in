@@ -1,4 +1,4 @@
-# $CoreSDI: GNUmakefile.in,v 1.4.2.5 2000/09/06 22:33:40 alejo Exp $
+# $CoreSDI: GNUmakefile.in,v 1.9 2000/10/31 19:42:13 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -41,7 +41,9 @@ install maninstall: $(OMAN)
 $(OMAN):
 	-gzip -cf $(@:%.gz=%) > $(MANDIR)/man$(subst .,,$(suffix $(@:%.gz=%)))/$@
 
-distclean cleandir clean:
+clean:
+
+distclean cleandir:
 	-rm -f GNUmakefile
 	-rm -f BSDmakefile
 
