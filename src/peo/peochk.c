@@ -1,4 +1,4 @@
-/*	$CoreSDI: peochk.c,v 1.34 2000/05/29 20:45:27 fgsch Exp $	*/
+/*	$CoreSDI: peochk.c,v 1.35 2000/06/02 23:05:25 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -61,9 +61,10 @@
  *
  */
 
-#include <sys/types.h>
+#include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/syslog.h>
+#include <sys/types.h>
 #include <sys/uio.h>
 
 #include <err.h>
@@ -355,7 +356,7 @@ main (argc, argv)
 				/* log file (intrusion detection mode) */
 				if (logfile != default_logfile)
 					free(logfile);
-				if ( (logfile = strdup(optarg)) == NULL) {
+				if ( (logfile = strrealpath(optarg)) == NULL) {
 					release();
 					err(-1, optarg);
 				}

@@ -1,4 +1,4 @@
-/*	$CoreSDI: hash.h,v 1.11 2000/05/23 21:47:10 fgsch Exp $	*/
+/*	$CoreSDI: hash.h,v 1.12 2000/05/29 20:37:12 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -56,6 +56,7 @@ extern char		*strdot (char*);
 extern char		*strallocat (const char*, const char*);
 extern char		*strmac (const char*);
 extern char		*strkey0 (const char*);
+extern char		*strrealpath (const char*);
 extern unsigned char	*asc2bin (unsigned char*, const unsigned char*);
 extern unsigned char	*bin2asc (unsigned char*, const unsigned char*, int);
 extern int		 getrandom (char*, int);

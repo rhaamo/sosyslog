@@ -1,4 +1,4 @@
-/*	$CoreSDI: hash.c,v 1.22 2000/05/29 20:37:12 fgsch Exp $	*/
+/*	$CoreSDI: hash.c,v 1.23 2000/06/02 23:05:25 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -42,6 +42,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -249,20 +250,37 @@ strallocat (s1, s2)
 /*
  * strmac
  */
-char *strmac (s)
+char*
+strmac (s)
 	const char *s;
 {
-return strallocat(s, ".mac");
+	return strallocat(s, ".mac");
 }
 
 
 /*
  * strkey0
  */
-char *strkey0 (s)
+char*
+strkey0 (s)
 	const char *s;
 {
-return strallocat(s, "0");
+	return strallocat(s, "0");
+}
+
+
+/*
+ * stresolvepath
+ */
+char*
+strrealpath (path)
+	const char *path;
+{
+	char *resolved;
+
+	if ( (resolved = (char*)calloc(1, PATH_MAX)) != NULL)
+		return realpath(path, resolved);
+	return(NULL);
 }
 
 
