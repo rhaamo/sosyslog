@@ -1,4 +1,4 @@
-/*	$CoreSDI: TODO,v 1.79 2001/04/24 11:14:45 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.80 2001/04/24 11:59:55 alejo Exp $	*/
 
 Things to do:
 
@@ -12,6 +12,7 @@ Things to do:
 - More docs on source code
 - unify documentation
 - use more cache on autoconf
+- %subst module
 - Make source compile on non gcc systems.
 - Makefiles should let compile a single module as a .so
 
