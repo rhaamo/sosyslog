@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.116 2000/08/05 01:10:25 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.117 2000/08/07 23:20:48 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -368,10 +368,25 @@ imoduleDestroy(struct imodule *im) {
 struct omodule *
 addOmodule(char *name) {
 	struct omodule *om;
-	char buf[256];
+	char buf[256], *r;
+	int i, j;
 
 	if (name == NULL)
 		return(NULL);
+
+	for( i = 0; mlibs[i].name; i++) {
+		if(!strcmp(name, mlibs[i].name)) {
+			for(j = 0; (r = mlibs[i].libs[j]) && j < MLIB_MAX; j++) {
+				dprintf("addImodule: going to open library %s "
+						"for module %s\n", name, r);
+				if (dlopen(r, RTLD_LAZY) == NULL) {
+					dprintf("Error [%s] on file [%s]\n",
+							dlerror(), r);
+					return(NULL);
+				}
+			}
+		}
+	}
 
 	if (omodules == NULL) {
 		omodules = (struct omodule *) calloc(1, sizeof(*om));

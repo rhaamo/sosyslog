@@ -10,7 +10,7 @@ struct {
 	char *name;
 	char *libs[MLIB_MAX];
 } mlibs[] = {
-		{"mysql", {"mysqlclient", NULL} },
-		{"pgsql", {"pq", NULL} },
+		{"mysql", {"libmysqlclient.so", NULL} },
+		{"pgsql", {"libpq.so", NULL} },
 		{ NULL, { NULL } }
 	};
