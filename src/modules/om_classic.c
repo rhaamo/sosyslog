@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.48 2000/09/27 20:29:58 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.49 2000/09/27 21:30:50 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -151,8 +151,8 @@ om_classic_init( int argc, char **argv, struct filed *f,
 		break;
 
 	case '/':
-		(void)strncpy(ctx->f_un.f_fname, p, sizeof ctx->f_un.f_fname);
-		ctx->f_un.f_fname[sizeof ctx->f_un.f_fname]=0;
+		(void)strncpy(ctx->f_un.f_fname, p, sizeof(ctx->f_un.f_fname));
+		ctx->f_un.f_fname[sizeof(ctx->f_un.f_fname) - 1] = 0;
 		if ((f->f_file = open(p, O_WRONLY|O_APPEND, 0)) < 0) {
 			f->f_type = F_UNUSED;
 			logerror(p);
