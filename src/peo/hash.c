@@ -1,4 +1,4 @@
-/*	$CoreSDI: hash.c,v 1.27 2000/09/04 23:43:45 alejo Exp $	*/
+/*	$CoreSDI: hash.c,v 1.23.2.3 2000/09/05 23:42:39 alejo Exp $	*/
  
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -96,10 +96,8 @@ mac (int method, const char *data1, unsigned int data1len,
      const char *data2, unsinged int data2len, char *dest)
 {
 	HASH_CTX	 ctx;
-	int		 destlen;
-	int		 i;
+	int		 destlen, i, tmplen = 0;
 	char		*tmp;
-	int		 tmplen;
 
 	/* calculate tmp buffer lenght */
 	if (data1len && data2len) {
@@ -129,25 +127,25 @@ mac (int method, const char *data1, unsigned int data1len,
 
 	/* dest = hash(tmp) */
 	switch(method) {
-	case MD5:
-		MD5Init(&ctx.md5);
-		MD5Update(&ctx.md5, tmp, tmplen);
-		MD5Final(dest, &ctx.md5);
-		destlen = 16;
-		break;
-	case RMD160:
-		RMD160Init(&ctx.rmd160);
-		RMD160Update(&ctx.rmd160, tmp, tmplen);
-		RMD160Final(dest, &ctx.rmd160);
-		destlen = 20;
-		break;
-	case SHA1:
-	default:
-		SHA1Init(&ctx.sha1);
-		SHA1Update(&ctx.sha1, tmp, tmplen);
-		SHA1Final(dest, &ctx.sha1);
-		destlen = 20;
-		break;
+		case MD5:
+			MD5Init(&ctx.md5);
+			MD5Update(&ctx.md5, (unsigned char*) tmp, tmplen);
+			MD5Final((unsigned char*)dest, &ctx.md5);
+			destlen = 16;
+			break;
+		case RMD160:
+			RMD160Init(&ctx.rmd160);
+			RMD160Update(&ctx.rmd160, (unsigned char*) tmp, tmplen);
+			RMD160Final((unsigned char*) dest, &ctx.rmd160);
+			destlen = 20;
+			break;
+		case SHA1:
+		default:
+			SHA1Init(&ctx.sha1);
+			SHA1Update(&ctx.sha1, (unsigned char*) tmp, tmplen);
+			SHA1Final((unsigned char*) dest, &ctx.sha1);
+			destlen = 20;
+			break;
 	}
 		
 	free(tmp);
@@ -286,11 +284,11 @@ asc2bin (unsigned char *dst, const unsigned char *src)
 	int   		 j;
 	unsigned char	*tmp;
 
-	if (src == NULL || dst == NULL || (strlen(src) & 1))
+	if (src == NULL || dst == NULL || (strlen((char*) src) & 1))
 		return (NULL);
 
 	if (dst == src) {
-		if ( (tmp = strdup(src)) == NULL)
+		if ( (tmp = (unsigned char*) strdup((char*) src)) == NULL)
 			return (NULL);
 	} else
 		tmp = (unsigned char*) src;
