@@ -184,7 +184,7 @@ struct IModules {
 	char	*im_name;
 	short	im_type;
 	/* buf, bufsize */ 
-	int	(*im_getLog) (struct i_module *, char *, int, struct im_header_ctx);
+	int	(*im_getLog) (int, struct im_msg *);
 	int	(*im_init) (struct i_module *, int, char **, struct im_header_ctx **);
 	int	(*im_close) (struct i_module *);
 } IModules[MAX_N_IMODULES];
