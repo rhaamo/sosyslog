@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.45 2000/05/26 18:31:41 fgsch Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.46 2000/05/26 18:34:47 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -115,31 +115,33 @@ struct filed {
         struct	o_module *f_omod;			/* module details */
 };
 
-int	modules_load();
-int	modules_init(struct i_module *, char *);
-int	omodule_create(char *c, struct filed *, char *);
-int	imodule_create(char *c, struct filed *, char *);
-int	im_close(struct i_module *);
-int	om_close(struct filed *, struct om_hdr_ctx *);
+int	modules_load __P((void));
+int	modules_init __P((struct i_module *, char *));
+int	omodule_create __P((char *c, struct filed *, char *));
+int	imodule_create __P((char *c, struct filed *, char *));
+int	im_close __P((struct i_module *));
+int	om_close __P((struct filed *, struct om_hdr_ctx *));
 void    logerror __P((char *));
 void	logmsg __P((int, char *, char *, int));
 
-struct  OModule {
-        char    *om_name;
-        short   om_type;
-        int     (*om_doLog) (struct filed *, int, char *, struct om_hdr_ctx *);
-        int     (*om_init) (int, char **, struct filed *, char *, struct om_hdr_ctx **);
-        int     (*om_close) (struct filed *, struct om_hdr_ctx *);
-        int     (*om_flush) (struct filed *, struct om_hdr_ctx *);
+struct OModule {
+        char   *om_name;
+        short	om_type;
+        int	(*om_doLog) __P((struct filed *, int, char *,
+		    struct om_hdr_ctx *));
+        int	(*om_init) __P((int, char **, struct filed *, char *,
+		    struct om_hdr_ctx **));
+        int	(*om_close) __P((struct filed *, struct om_hdr_ctx *));
+        int	(*om_flush) __P((struct filed *, struct om_hdr_ctx *));
 };
 
 struct IModule {
-        char    *im_name;
-        short   im_type;
+        char   *im_name;
+        short	im_type;
         /* buf, bufsize */
-        int     (*im_getLog) (struct i_module *, struct im_msg *);
-        int     (*im_init) (struct i_module *, char **, int);
-        int     (*im_close) (struct i_module *);
+        int	(*im_getLog) __P((struct i_module *, struct im_msg *));
+        int	(*im_init) __P((struct i_module *, char **, int));
+        int	(*im_close) __P((struct i_module *));
 };
 
 #define	MAXREPEAT ((sizeof(repeatinterval) / sizeof(repeatinterval[0])) - 1)
