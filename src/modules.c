@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.59 2000/05/23 01:22:44 alejo Exp $
+/*	$Id: modules.c,v 1.60 2000/05/23 01:44:34 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -127,11 +127,11 @@ modules_load()
 	IModules[IM_UNIX].im_getLog		= im_unix_getLog;
   	IModules[IM_UNIX].im_close		= im_unix_close;
 
-	IModules[IM_UNIX].im_name		= "udp";
-	IModules[IM_UNIX].im_type		= IM_UDP;
-	IModules[IM_UNIX].im_init		= im_udp_init;
-	IModules[IM_UNIX].im_getLog		= im_udp_getLog;
-  	IModules[IM_UNIX].im_close		= im_udp_close;
+	IModules[IM_UDP].im_name		= "udp";
+	IModules[IM_UDP].im_type		= IM_UDP;
+	IModules[IM_UDP].im_init		= im_udp_init;
+	IModules[IM_UDP].im_getLog		= im_udp_getLog;
+  	IModules[IM_UDP].im_close		= im_udp_close;
 
 	return(1);
 }
@@ -189,15 +189,7 @@ int
 im_close(im)
 	struct i_module *im;
 {
-	int i;
-
-	for(i = 0; i < MAX_N_IMODULES &&
-			(IModules[i].im_type != im->im_type); i++);
-
-	if (i == MAX_N_IMODULES)
-		return(-1);
-
-	return(IModules[i].im_close(im));
+	return(IModules[im->im_type].im_close(im));
 }
 
 /* close ALL output modules of a specific filed */
@@ -313,37 +305,10 @@ int omodule_create(c, f, prog)
 	return(1);
 }
 
-char *getomodulename(type)
-	int type;
-{
-	int i;
-
-	for(i = 0; i < MAX_N_OMODULES && OModules[i].om_type != type; i++);
-	if (i == MAX_N_OMODULES)
-		return (NULL);
-	return OModules[i].om_name;
-}
-
-int getomoduleid(mname)
-	char *mname;
-{
-	register int i;
-
-	for(i = 0; i < MAX_N_OMODULES && OModules[i].om_name != NULL
-			&& !strcmp(OModules[i].om_name, mname); i++);
-	if (i == MAX_N_OMODULES)
-		return (-1);
-	return OModules[i].om_type;
-}
-
 
 /*
  *
  * Input modules
- *
- *
- *
- *
  *
  */
 

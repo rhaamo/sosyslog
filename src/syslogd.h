@@ -1,4 +1,4 @@
-/*	$Id: syslogd.h,v 1.40 2000/05/23 01:22:45 alejo Exp $
+/*	$Id: syslogd.h,v 1.41 2000/05/23 01:44:35 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -42,8 +42,8 @@
 #define DEFSPRI		(LOG_KERN|LOG_CRIT)
 #define TIMERINTVL	30		/* interval for checking flush, mark */
 #define TTYMSGTIME	1		/* timeout passed to ttymsg */
-#define MAX_N_OMODULES	64		/* maximum types of out modules */
-#define MAX_N_IMODULES	64		/* maximum types of in  modules */
+#define MAX_N_OMODULES	20		/* maximum types of out modules */
+#define MAX_N_IMODULES	10		/* maximum types of in  modules */
 
 #include <paths.h>
 #include <sys/time.h>

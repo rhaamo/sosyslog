@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.67 2000/05/23 01:22:44 alejo Exp $
+/*	$Id: syslogd.c,v 1.68 2000/05/23 01:44:34 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -258,16 +258,8 @@ main(argc, argv)
 
 				memset(&log, 0,sizeof(struct im_msg));
 
-				for (i = 0; i < MAX_N_IMODULES &&
-						(im->im_type != IModules[i].im_type); i++);
-				if (i == MAX_N_IMODULES) {
-					dprintf("Error getting input module %i on IMODULES\n",
-							im->im_type);
-					continue;
-				}
-
-				if ((i = (*(IModules[i].im_getLog))(im, &log)) < 0) {
-					dprintf("Syslogd: error calling input module"
+				if ((i = (*(IModules[im->im_type].im_getLog))(im, &log)) < 0) {
+					dprintf("Syslogd: Error calling input module"
 		       				" %s, for fd %d\n", im->im_name, im->im_fd);
 				}
 
