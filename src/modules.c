@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.62 2000/05/23 21:47:04 fgsch Exp $	*/
+/*	$CoreSDI: modules.c,v 1.63 2000/05/24 17:58:50 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -48,6 +48,8 @@
 #include "syslogd.h"
 #include "modules.h"
 
+#include "config.h"
+
 int om_peo_doLog(struct filed *, int, char *, struct om_hdr_ctx *);
 int om_peo_init(int, char **, struct filed *, char *, struct om_hdr_ctx **);
 int om_peo_close(struct filed *, struct om_hdr_ctx *);
@@ -58,12 +60,12 @@ int om_classic_init(int, char **, struct filed *, char *, struct om_hdr_ctx **);
 int om_classic_close(struct filed*, struct om_hdr_ctx *);
 int om_classic_flush(struct filed*, struct om_hdr_ctx *);
 
-#ifdef WANT_MYSQL
-	int om_mysql_doLog(struct filed *, int , char *, struct om_hdr_ctx *);
-	int om_mysql_init(int, char **, struct filed *, char *, struct om_hdr_ctx **);
-	int om_mysql_close(struct filed*, struct om_hdr_ctx *);
-	int om_mysql_flush(struct filed*, struct om_hdr_ctx *);
-#endif
+#ifdef HAVE_MYSQL
+int om_mysql_doLog(struct filed *, int , char *, struct om_hdr_ctx *);
+int om_mysql_init(int, char **, struct filed *, char *, struct om_hdr_ctx **);
+int om_mysql_close(struct filed*, struct om_hdr_ctx *);
+int om_mysql_flush(struct filed*, struct om_hdr_ctx *);
+#endif /* HAVE_MYSQL */
 
 int im_bsd_init(struct i_module *, char **, int);
 int im_bsd_getLog(struct i_module *, struct im_msg *);
@@ -97,7 +99,7 @@ modules_load()
 	OModules[OM_CLASSIC].om_close 		= om_classic_close;
 	OModules[OM_CLASSIC].om_flush 		= om_classic_flush;
 
-#ifdef WANT_MYSQL
+#ifdef HAVE_MYSQL
 	/* mysql module */
 	OModules[OM_MYSQL].om_name 		= "mysql";
 	OModules[OM_MYSQL].om_type 		= OM_MYSQL;
