@@ -89,7 +89,6 @@ struct tcp_conn {
 struct im_tcp_ctx {
 	socklen_t	 addrlen;
 	struct tcp_conn	*first;
-	struct tcp_conn	*last;
 	int		flags;
 };
 
@@ -222,12 +221,8 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		}
 
 		/* add to queue */
-		if (c->last == NULL) {
-			c->first = con;
-		} else {
-			c->last->next = con;
-		}
-		c->last = con;
+		con->next = c->first;
+		c->first = con;
 
 
 		dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: new conection from"
@@ -257,7 +252,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 
 	n = read(con->fd, im->im_buf, sizeof(im->im_buf) - 1);
 	if (n == 0) {
-		struct tcp_conn *prev;
+		struct tcp_conn **prev;
 
 		dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: conetion from %s"
 		    " closed\n", con->name);
@@ -267,14 +262,14 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		/* connection closed, remove its tcp_con struct */
 		close (con->fd);
 
-		if (con == c->first) {
-			c->first = con->next;
-			if (con == c->last)
-				c->last = NULL;
-		} else {
-			for(prev = c->first; prev->next != con;
-			    prev = prev->next);
-			prev->next = con->next;
+		/* remove node */
+		for (prev = &c->first; *prev != NULL ; prev = &(*prev)->next) {
+
+			if (*prev == con) {
+
+				*prev = con->next;
+				break;
+			}
 		}
 
 		if (con->saveline[0] != '\0')
