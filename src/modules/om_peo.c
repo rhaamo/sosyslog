@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.24 2000/05/16 21:38:12 claudio Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.25 2000/05/17 19:25:56 claudio Exp $";
 #endif /* not lint */
 
 /*
@@ -103,13 +103,11 @@ om_peo_doLog(f, flags, msg, context)
 	c = (struct om_peo_ctx*) context;
 
 	if (msg == NULL)
-		snprintf(m, MAXBUF, "%s %s %s\n", f->f_lasttime, f->f_prevhost, f->f_prevline);
+		len = snprintf(m, MAXBUF, "%s %s %s\n", f->f_lasttime, f->f_prevhost, f->f_prevline)-1;
 	else
-		snprintf(m, MAXBUF, "%s %s %s\n", f->f_lasttime, f->f_prevhost, msg);
+		len = snprintf(m, MAXBUF, "%s %s %s\n", f->f_lasttime, f->f_prevhost, msg)-1;
 
-	len = strlen(m)-1;
-
-	dprintf ("msg = %s\n ", m);
+	dprintf ("len = %i, msg = %s\n ", len, m);
 
 	/* open keyfile and read last key */
 	if ( (fd = open(c->keyfile, O_RDWR, 0)) == -1) {

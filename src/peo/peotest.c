@@ -12,7 +12,7 @@ char *argv[] = {
 		"-m",
 		"sha1",
 		"-k",
-		"caca"
+		"/var/ssyslog/.var.log.messages.key"
 };
 
 if (om_peo_init(6, &argv, &f, argv[0], &c) == -1) {
