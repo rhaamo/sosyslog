@@ -37,10 +37,10 @@
 input module for reading files and pipes
 .Sh SYNOPSIS
 .Nm file
-.Op Fl p Ar path
-.Op Fl n Ar program
-.Op Fl h Ar hostname
-Provide a hostname to use for this connetion.
+.Op Fl f Ar file path
+.Op Fl n Ar program or alias, hostname
+.Op Fl s Ar start position for the timestamp
+.Op Fl t Ar time format (see strftime)
 .Sh DESCRIPTION
 Reads the log messages from a file/pipe writen by another program
 for processing by the

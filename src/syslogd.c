@@ -577,21 +577,26 @@ main(int argc, char **argv)
 		switch (count = poll(fd_inputs, fd_in_count, -1)) {
 		case 0:
 			m_dprintf(MSYSLOG_INFORMATIVE, "main: poll returned 0\n");
-			continue;
+	continue;
+
 		case -1:
-			m_dprintf(MSYSLOG_INFORMATIVE, "main: poll returned -1\n");
+			m_dprintf(MSYSLOG_INFORMATIVE, "main: poll error: [%d]\n", errno);
 			if (errno != EINTR) logerror("poll");
-			continue;
+	continue;
+
     /* When file descriptors have events */
     default:
-      break;
+    break;
 		}
 
+    /* process each of the file descriptor events */
 		for (i = 0, done = 0; done < count; i++) {
 			char	*mname;
 			int	fd;
 			int	val = -1;
 
+			m_dprintf(MSYSLOG_INFORMATIVE2, "main: file descriptor event: [%d] [%x] [%x]\n",
+                      fd_inputs[i].fd, fd_inputs[i].events, fd_inputs[i].revents);
 		  if (! fd_inputs[i].revents & POLLIN) {
     continue;
       }

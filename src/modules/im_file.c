@@ -55,17 +55,19 @@
 #include "../modules.h"
 #include "../syslogd.h"
 
+void printline(char *, char *, size_t, int);
+
 struct im_file_ctx {
-	int   start;     /* start position of timestamp in the message */
-	char  *timefmt;  /* the format to use in extracting the timestamp */
-	char  *path;     /* the pathname of the file to open */
-	char  *name;     /* the alias for the file (hostname) */
+	int   start;       /* start position of timestamp in the message */
+	char  *timefmt;    /* the format to use in extracting the timestamp */
+	char  *path;       /* the pathname of the file to open */
+	char  *name;       /* the alias for the file (hostname) */
 	struct stat stat;  /* the file statistics (useful in determining if reg file, pipe, or whatever */
+	char  saveline[MAXLINE + 3];   /* if the message is not complete, preserve it */
 };
 
 /*
  * initialize file input
- *
  */
 
 int
@@ -78,11 +80,12 @@ im_file_init(struct i_module *im, char **argv, int argc)
 
 
 	if ((im->im_ctx = malloc(sizeof(struct im_file_ctx))) == NULL) {
-		m_dprintf(MSYSLOG_SERIOUS, "om_file_init: error allocating context!\n");
+		m_dprintf(MSYSLOG_SERIOUS, "im_file_init: error allocating context!\n");
 return (-1);
 	}
 	c = (struct im_file_ctx *) im->im_ctx;
 	c->start = 0;
+	c->saveline[0] = '\0';
 
 	/* parse command line */
 	for ( argcnt = 1;	/* skip module name */
@@ -108,31 +111,33 @@ return (-1);
 			break;
 		default:
 			m_dprintf(MSYSLOG_SERIOUS,
-          "om_file_init: command line error, at arg %c [%s]\n", ch,
+          "im_file_init: command line error, at arg %c [%s]\n", ch,
 			    argv[argcnt]? argv[argcnt]: "");
 return (-1);
 		}
 	}
 
-	if (c->timefmt == NULL) {
-		m_dprintf(MSYSLOG_SERIOUS, "om_file_init: start of time string but no string!\n");
+	if (c->start && c->timefmt == NULL) {
+		m_dprintf(MSYSLOG_SERIOUS, "im_file_init: start specified for time string but no format!\n");
 return (-1);
 	}
 
 	if (c->path == NULL) {
-		m_dprintf(MSYSLOG_SERIOUS, "om_file_init: no file to read\n");
+		m_dprintf(MSYSLOG_SERIOUS, "im_file_init: no file to read\n");
 return (-1);
 	}
 
-	if ( stat( c->path, &c->stat )) {
+	if (stat( c->path, &c->stat )) {
   	m_dprintf(MSYSLOG_SERIOUS,
-        "om_file_init: could not stat file [%s] due to [%s]\n", 
+        "im_file_init: could not stat file [%s] due to [%s]\n", 
         strerror( errno ), c->path);
 return (-1);
  	}
 
-	if ((im->im_fd = open(c->path, O_RDONLY, 0)) < 0) {
-		m_dprintf(MSYSLOG_SERIOUS, "im_file_init: can't open %s (%d)\n", argv[1], errno);
+	if (S_ISREG(c->stat.st_rdev)) {
+    /* regular file cannot be successfully polled */
+    /* a separate mechanism will need to be used */
+		m_dprintf(MSYSLOG_SERIOUS, "im_file_init: regular files not supported: [%s]\n", c->path);
 return (-1);
 	}
 
@@ -140,93 +145,196 @@ return (-1);
 
 	add_fd_input(im->im_fd , im);
 
+ 	m_dprintf(MSYSLOG_INFORMATIVE, "im_file_init: completed\n");
 return (1);
 }
 
 /*
- * get message
- *
+ * poll file descriptor
+ *  the im_file_poll subroutine knows how to poll its own file descriptor.
+ */
+int
+im_file_read(struct i_module *im)
+{
+return( 0 );
+}
+
+/*
+ * read message
  */
 
 int
 im_file_read(struct i_module *im, int infd, struct im_msg  *ret)
 {
-	char *p, *q;
-  int r;
-	int i;
+	char *thisline = NULL;
+	char *nextline = NULL;
+	char *endmark = NULL;
+	char *ptr = NULL;
+	char *qtr = NULL;
+  int wchr;
+	int nx;
 	struct im_file_ctx	*c = (struct im_file_ctx *) (im->im_ctx);
 	RETSIGTYPE (*sigsave)(int);
 
-  /* ignore sigpipes   for mysql_ping */
+ 	m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: entering...\n");
+
+  /* ignore sigpipes */
+  /*
   sigsave = place_signal(SIGPIPE, SIG_IGN);
+  */
 
-	i = read(im->im_fd, im->im_buf, sizeof(im->im_buf) - 1);
-	if (i > 0) {
-		(im->im_buf)[i] = '\0';
-		for (p = im->im_buf; *p != '\0'; ) {
+  /* read a complete message converting non printable characters into 'X' */
+	nx = read(im->im_fd, im->im_buf, sizeof(im->im_buf) - 1);
 
-			/* fsync file after write */
-			ret->im_flags = ADDDATE;
-			ret->im_pri = DEFSPRI;
+  if (nx < 0 && errno != EINTR) {
+ 	  m_dprintf(MSYSLOG_SERIOUS, "im_file_read: error: [%d]\n", errno);
+		logerror("im_file_read");
+	  place_signal(SIGPIPE, sigsave);
+return -1;
+	}
 
-			if (im->im_ctx != NULL) {
-				struct tm		tm;
-				char			*start, *end;
+	endmark = im->im_buf + nx;
+	*endmark = '\0';
+  m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: bytes: [%d] [%s]\n", nx, im->im_buf);
 
-				/* apply strftime */
-				c = (struct im_file_ctx *) im->im_ctx;
-				if ((end = strptime((p + c->start), c->timefmt, &tm)) == NULL) {
-					m_dprintf(MSYSLOG_WARNING, "om_file_read: error parsing time!\n");
-				}
+  /* step through the lines read */
+  for( thisline = im->im_buf; nextline < endmark; thisline = nextline ) {
+
+    /* seek the end of the current line, a.k.a. the start of the nextline */
+    for( nextline = thisline; nextline < endmark; nextline++ ) {
+
+      /* a new line indicates a complete message */
+      if (*nextline == '\n')  {
+        *nextline = '\0';
+    break;
+      }
+
+      /* a carriage return indicates then end of a message */
+      if (*nextline == '\r')  {
+        *nextline = '\0';
+    break;
+      }
+
+      /* change non printable chars to 'X', as you go */
+      if (! isprint((unsigned int) *nextline)) {
+        *nextline = 'X';
+    continue;
+       }
+    }
+	 	m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: bytes remaining B: [%d]\n", (endmark - nextline));
+
+    if ( nextline < endmark ) {
+      m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: current line: [%s]\n", thisline);
+      nextline++;
+    }
+    else {
+      /* then end of the read buffer was reached */
+      if ( strlen(thisline) == 0 ) {
+        m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: end of transmission\n");
+      }
+      else {
+        /* Preseve any partial message */
+        int position;
+        int save_end = strlen(c->saveline);
+
+        m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: partial message: [%s] [%s]\n",
+                        thisline, c->saveline );
+        for( position = 0; (thisline + position) < endmark; position++ )
+        {
+           c->saveline[save_end + position] = thisline[position];
+           if (save_end + position >= sizeof(c->saveline)) {
+             m_dprintf(MSYSLOG_SERIOUS, "im_file_read: partial message too long: [%d] [%s]\n",
+                             sizeof(c->saveline), thisline);
+           }
+        }
+        c->saveline[save_end + position] = '\0';
+        m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: partial message: [%s]\n", c->saveline);
+      }
+return (0);
+    }
+
+    /* append the current line with any prior partial line */
+    if (c->saveline != NULL && c->saveline[0] != '\0') {
+      m_dprintf(MSYSLOG_INFORMATIVE,
+          "im_file_read: append current line with prior partial message: [%s] [%s]\n",
+          c->saveline, thisline);
+      strncat(c->saveline, thisline, sizeof(c->saveline) - 1);
+      c->saveline[sizeof(c->saveline) - 1] = '\0';
+      thisline = c->saveline;
+    }
+
+    /* skip empty lines */
+    if (*thisline == '\0') {
+      m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: empty line\n");
+  continue;
+    }
+
+    { /* process the message */
+			struct tm tm;
+			char   *start, *end;
+
+      m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: current message: [%s]\n", thisline);
+
+      /* presume it does not contain a timestamp nor a host */
+	  	ret->im_flags = ADDDATE | ADDHOST;
+  		ret->im_pri = DEFSPRI;
+
+			c = (struct im_file_ctx *) im->im_ctx;
+
+      if (c->timefmt) {  /* reform/insert the timestamp */
+        if ((end = strptime((thisline + c->start), c->timefmt, &tm)) == NULL)
+        {
+			  	m_dprintf(MSYSLOG_WARNING,
+              "im_file_read: error locating timestamp from [%s] using format [%s]!\n",
+              thisline, c->timefmt);
+		  	}
         else {
-					for (start = p + c->start; *end != '\0';) *start++ = *end++;
-					*start = '\0';
+          /* remove old timestamp from thisline */
+		  		for (start = thisline + c->start; *end != '\0';) *start++ = *end++;
+		  		*start = '\0';
 
-					if (strftime(ret->im_msg,
-					    sizeof(ret->im_msg) - 1,
-					    "%b %e %H:%M:%S ", &tm) == 0) {
-						m_dprintf(MSYSLOG_WARNING,
-						    "om_file_read: error "
-						    "printing time!\n");
-					} else {
-						ret->im_flags &= !ADDDATE;
-					}
+				  if (strftime(ret->im_msg, sizeof(ret->im_msg) - 1, "%b %e %H:%M:%S ", &tm) == 0)
+          {
+				   	m_dprintf(MSYSLOG_WARNING, "im_file_read: error rewriting timestamp!\n");
+		 		  }
+          else {
+				  	ret->im_flags &= !ADDDATE;
+          }
 				}
 			}
-      else if (*p == '<') {
-				ret->im_pri = 0;
-				while (isdigit((int)*++p)) ret->im_pri = 10 * ret->im_pri + (*p - '0');
-				if (*p == '>')
-					++p;
-			}
+      /* generate the priority value, 0 by default */
+      if (*thisline == '<') {
+		  	ret->im_pri = 0;
+		  	for ( ptr = thisline; isdigit((int)*ptr); ptr++ ) {
+          ret->im_pri = 10 * ret->im_pri + (*ptr - '0');
+        }
+		  	if (*ptr == '>') ++ptr;
+		  }
 
-			strncat(ret->im_msg, c->name, strlen(ret->im_msg) - sizeof(ret->im_msg) - 1);
-			strncat(ret->im_msg, ":", strlen(ret->im_msg) - sizeof(ret->im_msg) - 1);
-			m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: Entering with header %s\n", ret->im_msg);
+      /* put the hostname into the message */
+		  strncat(ret->im_msg, c->name, sizeof(ret->im_msg) - 1);
+	  	strncat(ret->im_msg, ":", sizeof(ret->im_msg) - 1);
+	  	m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: reformed header: [%s]\n", ret->im_msg);
 
-			if (ret->im_pri &~ (LOG_FACMASK|LOG_PRIMASK)) ret->im_pri = DEFSPRI;
-			q = ret->im_msg + strlen(ret->im_msg);
-			while (*p != '\0' && (r = *p++) != '\n' &&
-			    q < &ret->im_msg[sizeof(ret->im_msg) - 1]) {
-				*q++ = r;
-			}
-			*q = '\0';
-			ret->im_host[0] = '\0';
-			ret->im_len = strlen(ret->im_msg);
-			logmsg(ret->im_pri, ret->im_msg, ret->im_host,
-			    ret->im_flags);
+	  	if (ret->im_pri &~ (LOG_FACMASK|LOG_PRIMASK)) ret->im_pri = DEFSPRI;
+	  	qtr = ret->im_msg + strlen(ret->im_msg);
+	  	while (*ptr != '\0' && (wchr = *ptr++) != '\n' &&
+	      	    qtr < &ret->im_msg[sizeof(ret->im_msg) - 1]) {
+		  	*qtr++ = wchr;
+		  }
+		  *qtr = '\0';
+		  ret->im_host[0] = '\0';
+		  ret->im_len = strlen(ret->im_msg);
+
+      printline( ret->im_host, thisline, strlen(thisline), im->im_flags );
+	  	m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: bytes remaining: [%d]\n", (endmark - nextline));
 		}
 	}
-  else if (i < 0 && errno != EINTR) {
-		logerror("im_file_read");
-		im->im_fd = -1;
-	}
-
 	/* restore previous SIGPIPE handler */
+  /*
 	place_signal(SIGPIPE, sigsave);
-
-	/* if ok return (2) wich means already logged */
-return (im->im_fd == -1 ? -1 : 2);
+  */
+return (0);
 }
 
 /*

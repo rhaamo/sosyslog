@@ -116,138 +116,6 @@ struct om_pgsql_ctx {
 #define	OM_PGSQL_FACILITY		0x4
 #define	OM_PGSQL_PRIORITY		0x8
 
-
-/*
- * Send to database
- */
-
-int
-om_pgsql_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
-{
-	void	*r;
-	struct	om_pgsql_ctx *c;
-	int	err, i;
-	char    query[MAX_QUERY], err_buf[512], facility[18], priority[18], *p;
-  m->fired++;
-
-	m_dprintf(MSYSLOG_INFORMATIVE, "om_pgsql_write: entering [%s] [%s]\n",
-	    m->msg, f->f_prevline);
-
-	c = (struct om_pgsql_ctx *) ctx;
-
-	if ((c->h) == NULL) {
-		m_dprintf(MSYSLOG_SERIOUS, "om_pgsql_write: error, no "
-		    "connection\n");
-		return (-1);
-	}
-
-	if ((c->PQstatus(c->h)) == CONNECTION_BAD) {
-
-		/* try to reconnect */
-		(c->PQreset(c->h));
-
-		/* connection can't be established */
-		if ((c->PQstatus(c->h)) == CONNECTION_BAD) {
-
-			c->lost++;
-			if (c->lost == 1) {
-				logerror("om_pgsql_write: Lost connection!");
-			}
-		}
-		return (1);
-
-	}
-
-	if (c->flags & OM_PGSQL_FACILITY) {
-		if ((p = decode_val(m->fac<<3, CODE_FACILITY)) != NULL)
-			snprintf(facility, sizeof(facility), "'%s',", p);
-		else
-			snprintf(facility, sizeof(facility), "'%d',", m->fac<<3);
-	}
-
-	if (c->flags & OM_PGSQL_PRIORITY) {
-		if ((p = decode_val(m->pri, CODE_PRIORITY)) != NULL)
-			snprintf(priority, sizeof(priority), "'%s',", p);
-		else
-			snprintf(priority, sizeof(priority), "'%d',", m->pri);
-	}
-
-	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
-	i = snprintf(query, sizeof(query), "INSERT INTO %s (%s%sdate, time, "
-	    "host, message) VALUES(%s%s'%.4d-%.2d-%.2d', '%.2d:%.2d:%.2d', '%s', '",
-	    c->table,
-	    (c->flags & OM_PGSQL_FACILITY)? "facility, " : "",
-	    (c->flags & OM_PGSQL_PRIORITY)? "priority, " : "",
-	    (c->flags & OM_PGSQL_FACILITY)? facility : "",
-	    (c->flags & OM_PGSQL_PRIORITY)? priority : "",
-	    f->f_tm.tm_year + 1900, f->f_tm.tm_mon + 1,
-	    f->f_tm.tm_mday, f->f_tm.tm_hour, f->f_tm.tm_min, f->f_tm.tm_sec,
-	    f->f_prevhost);
-
-	if (c->lost) {
-		int pos = i;
-
-		/*
-		 * Report lost messages, but 2 of them are lost of
-		 * connection and this one (wich we are going
-		 * to log anyway)
-		 */
-		snprintf(err_buf, sizeof(err_buf), "om_pgsql_write: %i "
-		    "messages were lost due to lack of connection",
-		    c->lost - 2);
-
-		/* count reset */
-		c->lost = 0;
-
-		/* put message escaping special SQL characters */
-		pos += to_sql(query + pos, err_buf, sizeof(query) - pos);
-
-		/* finish it with "')" */
-		query[pos++] =  '\'';
-		query[pos++] =  ')';
-		if (pos < sizeof(query))
-			query[pos]   =  '\0';
-		else
-			query[sizeof(query) - 1] = '\0';
-
-		m_dprintf(MSYSLOG_INFORMATIVE2, "om_pgsql_write: query [%s]\n",
-		    query);
-
-		r = (c->PQexec(c->h, query));
-		if ((c->PQresultStatus(r)) != PGRES_COMMAND_OK) {
-			m_dprintf(MSYSLOG_SERIOUS, "om_pgsql_write: %s\n",
-			    (c->PQresultErrorMessage(r)));
-			return (-1);
-		}
-		(c->PQclear(r));
-	}
-
-	/* put message escaping special SQL characters */
-	i += to_sql(query + i, m->msg, sizeof(query) - i);
-
-	/* finish it with "')" */
-	query[i++] =  '\'';
-	query[i++] =  ')';
-	if (i < sizeof(query))
-		query[i]   =  '\0';
-	else
-		query[sizeof(query) - 1] = '\0';
-
-	m_dprintf(MSYSLOG_INFORMATIVE2, "om_pgsql_write: query [%s]\n", query);
-
-	err = 1;
-	r = (c->PQexec(c->h, query));
-	if ((c->PQresultStatus(r)) != PGRES_COMMAND_OK) {
-		m_dprintf(MSYSLOG_INFORMATIVE, "%s\n",
-		    (c->PQresultErrorMessage(r)));
-		err = -1;
-	}
-
-	(c->PQclear(r));
-
-	return (err);
-}
-
 /*
  *  INIT -- Initialize om_pgsql
  *
@@ -403,6 +271,147 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	return (1);
 }
 
+
+/*
+ * Send to database
+ */
+
+int
+om_pgsql_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
+{
+	void	*r;
+	struct	om_pgsql_ctx *c;
+	int	err, i;
+	char    query[MAX_QUERY], err_buf[512], facility[18], priority[18], *p;
+  m->fired++;
+
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_pgsql_write: entering [%s] [%s]\n",
+	    m->msg, f->f_prevline);
+
+	c = (struct om_pgsql_ctx *) ctx;
+
+	if ((c->h) == NULL) {
+		m_dprintf(MSYSLOG_SERIOUS, "om_pgsql_write: error, no "
+		    "connection\n");
+		return (-1);
+	}
+
+	if ((c->PQstatus(c->h)) == CONNECTION_BAD) {
+
+		/* try to reconnect */
+		(c->PQreset(c->h));
+
+		/* connection can't be established */
+		if ((c->PQstatus(c->h)) == CONNECTION_BAD) {
+
+			c->lost++;
+			if (c->lost == 1) {
+				logerror("om_pgsql_write: Lost connection!");
+			}
+		}
+		return (1);
+
+	}
+
+	if (c->flags & OM_PGSQL_FACILITY) {
+		if ((p = decode_val(m->fac<<3, CODE_FACILITY)) != NULL)
+			snprintf(facility, sizeof(facility), "'%s',", p);
+		else
+			snprintf(facility, sizeof(facility), "'%d',", m->fac<<3);
+	}
+
+	if (c->flags & OM_PGSQL_PRIORITY) {
+		if ((p = decode_val(m->pri, CODE_PRIORITY)) != NULL)
+			snprintf(priority, sizeof(priority), "'%s',", p);
+		else
+			snprintf(priority, sizeof(priority), "'%d',", m->pri);
+	}
+
+	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
+	i = snprintf(query, sizeof(query), "INSERT INTO %s (%s%sdate, time, "
+	    "host, message) VALUES(%s%s'%.4d-%.2d-%.2d', '%.2d:%.2d:%.2d', '%s', '",
+	    c->table,
+	    (c->flags & OM_PGSQL_FACILITY)? "facility, " : "",
+	    (c->flags & OM_PGSQL_PRIORITY)? "priority, " : "",
+	    (c->flags & OM_PGSQL_FACILITY)? facility : "",
+	    (c->flags & OM_PGSQL_PRIORITY)? priority : "",
+	    f->f_tm.tm_year + 1900, f->f_tm.tm_mon + 1,
+	    f->f_tm.tm_mday, f->f_tm.tm_hour, f->f_tm.tm_min, f->f_tm.tm_sec,
+	    f->f_prevhost);
+
+	if (c->lost) {
+		int pos = i;
+
+		/*
+		 * Report lost messages, but 2 of them are lost of
+		 * connection and this one (wich we are going
+		 * to log anyway)
+		 */
+		snprintf(err_buf, sizeof(err_buf), "om_pgsql_write: %i "
+		    "messages were lost due to lack of connection",
+		    c->lost - 2);
+
+		/* count reset */
+		c->lost = 0;
+
+		/* put message escaping special SQL characters */
+		pos += to_sql(query + pos, err_buf, sizeof(query) - pos);
+
+		/* finish it with "')" */
+		query[pos++] =  '\'';
+		query[pos++] =  ')';
+		if (pos < sizeof(query))
+			query[pos]   =  '\0';
+		else
+			query[sizeof(query) - 1] = '\0';
+
+		m_dprintf(MSYSLOG_INFORMATIVE2, "om_pgsql_write: query [%s]\n",
+		    query);
+
+		r = (c->PQexec(c->h, query));
+		if ((c->PQresultStatus(r)) != PGRES_COMMAND_OK) {
+			m_dprintf(MSYSLOG_SERIOUS, "om_pgsql_write: %s\n",
+			    (c->PQresultErrorMessage(r)));
+			return (-1);
+		}
+		(c->PQclear(r));
+	}
+
+	/* put message escaping special SQL characters */
+	i += to_sql(query + i, m->msg, sizeof(query) - i);
+
+	/* finish it with "')" */
+	query[i++] =  '\'';
+	query[i++] =  ')';
+	if (i < sizeof(query))
+		query[i]   =  '\0';
+	else
+		query[sizeof(query) - 1] = '\0';
+
+	m_dprintf(MSYSLOG_INFORMATIVE2, "om_pgsql_write: query [%s]\n", query);
+
+	err = 1;
+	r = (c->PQexec(c->h, query));
+	if ((c->PQresultStatus(r)) != PGRES_COMMAND_OK) {
+		m_dprintf(MSYSLOG_INFORMATIVE, "%s\n",
+		    (c->PQresultErrorMessage(r)));
+		err = -1;
+	}
+
+	(c->PQclear(r));
+
+	return (err);
+}
+
+
+/*
+ * a place holder for flushing the output file descriptor
+ */ 
+int om_pgsql_flush(struct filed *f, void *ctx) { return (1); }
+
+/*
+ * release all resources including closing the file descriptor
+ */ 
 int
 om_pgsql_close(struct filed *f, void *ctx) {
 	struct om_pgsql_ctx *c;

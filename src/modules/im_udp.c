@@ -91,7 +91,7 @@ im_udp_init(struct i_module *I, char **argv, int argc)
   m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: entering\n");
 
 	if ( (I->im_ctx = calloc(1, sizeof(struct im_udp_ctx))) == NULL) {
-     m_dprintf(MSYSLOG_SERIOUS, "om_udp_init: cannot alloc memory");
+     m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: cannot alloc memory");
 return (-1);
   }
 

@@ -79,30 +79,28 @@
 int m_dprintf(int, char const *, ...); /* level, format, ... */
 int getxopt(int, char *[], char *, int *);  /* argc, argv, opts, startarg */
 
-
-#define MSYSLOG_CRITICAL	 10
-#define MSYSLOG_SERIOUS		 20
-#define MSYSLOG_NONCRITICAL	 30
-#define MSYSLOG_WARNING		100
-#define MSYSLOG_INFORMATIVE	200 /* calling/returning from a func */
-#define MSYSLOG_INFORMATIVE2	250 /* each message, structure contents */
+#define MSYSLOG_CRITICAL       10
+#define MSYSLOG_SERIOUS        20
+#define MSYSLOG_NONCRITICAL	   30
+#define MSYSLOG_WARNING       100
+#define MSYSLOG_INFORMATIVE   200 /* calling/returning from a func */
+#define MSYSLOG_INFORMATIVE2  250 /* each message, structure contents */
 
 #define MAXUNAMES	20	/* maximum number of user names */
 
 /*
  * Flags to logmsg().
  */
-
-#define IGN_CONS	0x001	/* don't print on console */
-#define SYNC_FILE	0x002	/* do fsync on file after printing */
-#define ADDDATE		0x004	/* add a date to the message */
-#define MARK		0x008	/* this message is a mark */
-
+#define IGN_CONS    0x0001 /* don't print on console */
+#define SYNC_FILE   0x0002 /* do fsync on file after printing */
+#define ADDDATE     0x0004 /* add a date to the message */
+#define MARK        0x0008 /* this message is a mark */
+#define ADDHOST     0x0010 /* add a hostname to the message */
 
 /*
  * maximum number of unix sockets
  */
-#define MAXFUNIX	21
+#define MAXFUNIX    21
 
 /* if UT_NAMESIZE doesn't exist, define it as 32 */
 #ifndef UT_NAMESIZE
@@ -116,14 +114,11 @@ int getxopt(int, char *[], char *, int *);  /* argc, argv, opts, startarg */
 #define CODE_PRIORITY	0x02
 char    *decode_val(int, int);
 
-
-
 /*
- * This is the message structure.
+ * This is the output message structure.
  * It contains the state information for the current message.
  * It is used by om_write.
  */
-
 struct m_msg {
 	int	fac;	/* facility */
 	int	pri;	/* priority level */
@@ -138,7 +133,6 @@ struct m_msg {
  * This structure represents the files that will have log
  * copies printed.
  */
-
 struct filed {
 	struct  filed *f_next;	  /* next in linked list */
 	time_t  f_time;		 /* time this was last written */
@@ -153,7 +147,6 @@ struct filed {
 	int     f_repeatcount;		  /* number of "repeated" msgs */
 	struct	o_module *f_omod;			/* module details */
 };
-
 
 void logerror(char *);
 void logmsg(int, char *, char *, int);
