@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.62 2000/05/15 21:08:44 alejo Exp $
+/*	$Id: syslogd.c,v 1.63 2000/05/15 23:56:32 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -331,8 +331,7 @@ printline(hname, msg, flags)
 
 	q = line;
 
-	while ((c = *p++ & 0177) != '\0' &&
-	    q < &line[sizeof(line) - 1])
+	while ((c = *p++ & 0177) != '\0' && q < &line[sizeof(line) - 1])
 		if (iscntrl(c))
 			if (c == '\n')
 				*q++ = ' ';
