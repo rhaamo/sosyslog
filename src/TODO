@@ -1,4 +1,4 @@
-/*	$CoreSDI: TODO,v 1.45 2000/11/01 17:41:37 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.46 2000/11/01 20:34:39 alejo Exp $	*/
 
 Things to do:
 
@@ -44,16 +44,11 @@ Check for buffer overflows, as we now may get things from the outside world.
 - optimize peochk (readline)
 - Create a module configuration file outside /etc/syslog.conf
 - warn if configuration line is wrong
-- what to do with SQL down ?
 - threads per output module
 - Debug levels. A better macro. No need of newlines.
-- Make om_classic accept other ports for UDP forwarding.
 - Remove all strdup we have. they are error-prone
-- Preocess -a option better/nicer
-- Check repeateds on mysql, also size of messages... check sql_misc too.
 - Create a message structure to be pased from ins to outs
 - Make a dbm/ndbm output module. talk w/ audit for that
-- Make syslogd's cfline more verbose on errors
 - src/Makefile should warn if modules.conf changed to use ./configure
 - Check why messages to console take a while to pop up
 - Support Linux's ! != etc syslog.conf format
