@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.47 2000/09/20 19:56:23 fgsch Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.48 2000/09/27 20:29:58 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -59,7 +59,137 @@
 #include "../syslogd.h"
 #include "../modules.h"
 
-void wallmsg( struct filed *, struct iovec *);
+struct om_classic_ctx {
+        short	flags;
+        int	size;
+	union {
+		char	f_uname[MAXUNAMES][UT_NAMESIZE+1];
+		struct {
+			char	f_hname[MAXHOSTNAMELEN];
+			struct sockaddr_in	f_addr;
+		} f_forw;	/* forwarding address */
+		char	f_fname[MAXPATHLEN];
+	} f_un;
+
+};
+
+void wallmsg( struct filed *, struct iovec *, struct om_classic_ctx *);
+
+
+   
+/*
+ *  INIT -- Initialize om_classic
+ *
+ *  taken mostly from syslogd's cfline
+ */
+int
+om_classic_init( int argc, char **argv, struct filed *f,
+		char *prog, struct om_hdr_ctx **c) {
+	struct hostent *hp;
+	struct om_classic_ctx *ctx = NULL;
+	int i;
+	char *p, *q;
+
+	dprintf("om_classic init\n");
+
+	p = argv[1];
+
+	if (! (*c = (struct om_hdr_ctx *)
+		calloc(1, sizeof(struct om_classic_ctx)))) {
+		dprintf("om_classic: ERROR allocating context\n");
+		return (-1);
+	}
+	ctx = (struct om_classic_ctx *) *c;
+
+	switch (*p)
+	{
+	case '@':
+		if (!(DaemonFlags & SYSLOGD_INET_IN_USE)) {
+			struct sockaddr_in sin;
+			struct servent *sp;
+
+			finet = socket(AF_INET, SOCK_DGRAM, 0);
+
+			sp = getservbyname("syslog", "udp");
+			if (sp == NULL) {
+				errno = 0;
+				logerror("syslog/udp: unknown service");
+				if (ctx)
+					free(ctx);
+   				return(-1);
+			}
+			memset(&sin, 0, sizeof(sin));
+			sin.sin_family = AF_INET;
+			sin.sin_port = LogPort = sp->s_port;
+
+			if (bind(finet, (struct sockaddr *)&sin,
+					sizeof(sin)) < 0) {
+				logerror("bind");
+				if (ctx)
+					free(ctx);
+				return(-1);
+			} else {
+				DaemonFlags |= SYSLOGD_INET_IN_USE;
+			}
+		}
+
+		(void)strncpy(ctx->f_un.f_forw.f_hname, ++p,
+		    sizeof(ctx->f_un.f_forw.f_hname)-1);
+		ctx->f_un.f_forw.f_hname[sizeof(ctx->f_un.f_forw.f_hname)-1] = '\0';
+		hp = gethostbyname(ctx->f_un.f_forw.f_hname);
+		if (hp == NULL) {
+			extern int h_errno;
+
+			logerror((char *)hstrerror(h_errno));
+			break;
+		}
+		ctx->f_un.f_forw.f_addr.sin_family = AF_INET;
+		ctx->f_un.f_forw.f_addr.sin_port = LogPort;
+		memmove(&ctx->f_un.f_forw.f_addr.sin_addr, hp->h_addr,
+		    sizeof(struct in_addr));
+		f->f_type = F_FORW;
+		break;
+
+	case '/':
+		(void)strncpy(ctx->f_un.f_fname, p, sizeof ctx->f_un.f_fname);
+		ctx->f_un.f_fname[sizeof ctx->f_un.f_fname]=0;
+		if ((f->f_file = open(p, O_WRONLY|O_APPEND, 0)) < 0) {
+			f->f_type = F_UNUSED;
+			logerror(p);
+			break;
+		}
+		if (isatty(f->f_file))
+			f->f_type = F_TTY;
+		else
+			f->f_type = F_FILE;
+		if (strcmp(p, ctty) == 0)
+			f->f_type = F_CONSOLE;
+		break;
+
+	case '*':
+		f->f_type = F_WALL;
+		break;
+
+	default:
+		for (i = 0; i < MAXUNAMES && *p; i++) {
+			for (q = p; *q && *q != ','; )
+				q++;
+			(void)strncpy(ctx->f_un.f_uname[i], p, UT_NAMESIZE);
+			if ((q - p) > UT_NAMESIZE)
+				ctx->f_un.f_uname[i][UT_NAMESIZE] = '\0';
+			else
+				ctx->f_un.f_uname[i][q - p] = '\0';
+			while (*q == ',' || *q == ' ')
+				q++;
+			p = q;
+		}
+		f->f_type = F_USERS;
+		break;
+	}
+
+	return(1);
+}
+
 
 int
 om_classic_doLog(struct filed *f, int flags, char *msg,
@@ -68,12 +198,15 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 	struct iovec *v;
 	int l;
 	char line[MAXLINE + 1], greetings[500];
+	struct om_classic_ctx *ctx;
 
 
 	if (msg == NULL || !strcmp(msg, "")) {
 		logerror("om_classic_doLog: no message!");
 		return(-1);
 	}
+
+	ctx = (struct om_classic_ctx *) context;
 
 	v = iov;
 	if (f->f_type == F_WALL) {
@@ -120,14 +253,14 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 				break;
 			}
 
-			dprintf(" %s\n", f->f_un.f_forw.f_hname);
+			dprintf(" %s\n", ctx->f_un.f_forw.f_hname);
 			l = snprintf(line, sizeof(line), "<%d>%.15s %s", f->f_prevpri,
 			    (char *) iov[0].iov_base, (char *) iov[4].iov_base);
 			if (l > MAXLINE)
 				l = MAXLINE;
 			if (sendto(finet, line, l, 0,
-			    (struct sockaddr *)&f->f_un.f_forw.f_addr,
-			    sizeof(f->f_un.f_forw.f_addr)) != l) {
+			    (struct sockaddr *)&ctx->f_un.f_forw.f_addr,
+			    sizeof(ctx->f_un.f_forw.f_addr)) != l) {
 				f->f_type = F_UNUSED;
 				logerror("sendto");
 			}
@@ -142,7 +275,7 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 
 		case F_TTY:
 		case F_FILE:
-			dprintf(" %s\n", f->f_un.f_fname);
+			dprintf(" %s\n", ctx->f_un.f_fname);
 			if (f->f_type != F_FILE) {
 				v->iov_base = "\r\n";
 				v->iov_len = 2;
@@ -158,18 +291,18 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 				 * Check for errors on TTY's due to loss of tty
 				 */
 				if ((e == EIO || e == EBADF) && f->f_type != F_FILE) {
-					f->f_file = open(f->f_un.f_fname,
+					f->f_file = open(ctx->f_un.f_fname,
 					    O_WRONLY|O_APPEND, 0);
 					if (f->f_file < 0) {
 						f->f_type = F_UNUSED;
-						logerror(f->f_un.f_fname);
+						logerror(ctx->f_un.f_fname);
 					} else
 						goto again;
 				} else {
 					f->f_type = F_UNUSED;
 					f->f_file = -1;
 					errno = e;
-					logerror(f->f_un.f_fname);
+					logerror(ctx->f_un.f_fname);
 				}
 			} else if (flags & SYNC_FILE)
 				(void)fsync(f->f_file);
@@ -180,132 +313,35 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 			dprintf("\n");
 			v->iov_base = "\r\n";
 			v->iov_len = 2;
-			wallmsg(f, iov);
+			wallmsg(f, iov, ctx);
 			break;
 	}
 	return(1);
 }
 
-
-/*
- *  INIT -- Initialize om_classic
- *
- *  taken mostly from syslogd's cfline
- */
-int
-om_classic_init( int argc, char **argv, struct filed *f,
-		char *prog, struct om_hdr_ctx **context) {
-	struct hostent *hp;
-	int i;
-	char *p, *q;
-
-	dprintf("om_classic init\n");
-
-	p = argv[1];
-
-	switch (*p)
-	{
-	case '@':
-		if (!(DaemonFlags & SYSLOGD_INET_IN_USE)) {
-			struct sockaddr_in sin;
-			struct servent *sp;
-
-			finet = socket(AF_INET, SOCK_DGRAM, 0);
-
-			sp = getservbyname("syslog", "udp");
-			if (sp == NULL) {
-				errno = 0;
-				logerror("syslog/udp: unknown service");
-   				return(-1);
-			}
-			memset(&sin, 0, sizeof(sin));
-			sin.sin_family = AF_INET;
-			sin.sin_port = LogPort = sp->s_port;
-
-			if (bind(finet, (struct sockaddr *)&sin,
-					sizeof(sin)) < 0) {
-				logerror("bind");
-				return(-1);
-			} else {
-				DaemonFlags |= SYSLOGD_INET_IN_USE;
-			}
-		}
-
-		(void)strncpy(f->f_un.f_forw.f_hname, ++p,
-		    sizeof(f->f_un.f_forw.f_hname)-1);
-		f->f_un.f_forw.f_hname[sizeof(f->f_un.f_forw.f_hname)-1] = '\0';
-		hp = gethostbyname(f->f_un.f_forw.f_hname);
-		if (hp == NULL) {
-			extern int h_errno;
-
-			logerror((char *)hstrerror(h_errno));
-			break;
-		}
-		memset(&f->f_un.f_forw.f_addr, 0,
-		    sizeof(f->f_un.f_forw.f_addr));
-		f->f_un.f_forw.f_addr.sin_family = AF_INET;
-		f->f_un.f_forw.f_addr.sin_port = LogPort;
-		memmove(&f->f_un.f_forw.f_addr.sin_addr, hp->h_addr,
-		    sizeof(struct in_addr));
-		f->f_type = F_FORW;
-		break;
-
-	case '/':
-		(void)strncpy(f->f_un.f_fname, p, sizeof f->f_un.f_fname);
-		f->f_un.f_fname[sizeof f->f_un.f_fname]=0;
-		if ((f->f_file = open(p, O_WRONLY|O_APPEND, 0)) < 0) {
-			f->f_type = F_UNUSED;
-			logerror(p);
-			break;
-		}
-		if (isatty(f->f_file))
-			f->f_type = F_TTY;
-		else
-			f->f_type = F_FILE;
-		if (strcmp(p, ctty) == 0)
-			f->f_type = F_CONSOLE;
-		break;
-
-	case '*':
-		f->f_type = F_WALL;
-		break;
-
-	default:
-		for (i = 0; i < MAXUNAMES && *p; i++) {
-			for (q = p; *q && *q != ','; )
-				q++;
-			(void)strncpy(f->f_un.f_uname[i], p, UT_NAMESIZE);
-			if ((q - p) > UT_NAMESIZE)
-				f->f_un.f_uname[i][UT_NAMESIZE] = '\0';
-			else
-				f->f_un.f_uname[i][q - p] = '\0';
-			while (*q == ',' || *q == ' ')
-				q++;
-			p = q;
-		}
-		f->f_type = F_USERS;
-		break;
-	}
-
-	return(1);
-}
 
 int
 om_classic_close( struct filed *f, struct om_hdr_ctx *ctx) {
+	int ret;
 
 	switch (f->f_type) {
 		case F_FILE:
 		case F_TTY:
 		case F_CONSOLE:
-			return(close(f->f_file));
+			ret = close(f->f_file);
 		case F_FORW:
 			if ((finet > -1) && (DaemonFlags & SYSLOGD_INET_IN_USE)
 					&& !(DaemonFlags & SYSLOGD_FINET_READ)) {
-				return(close(finet));
+				ret = close(finet);
 			}
 		default:
-			return(0);
+			ret = 0;
 	}
+
+	if (ctx)
+		free(ctx);
+
+	return(ret);
 }
 
 int
@@ -326,7 +362,7 @@ om_classic_flush(struct filed *f, struct om_hdr_ctx *context) {
  *	world, or a list of approved users.
  */
 void
-wallmsg( struct filed *f, struct iovec *iov) {
+wallmsg( struct filed *f, struct iovec *iov, struct om_classic_ctx *ctx) {
 	static int reenter;			/* avoid calling ourselves */
 	FILE *uf;
 	struct utmp ut;
@@ -363,9 +399,9 @@ wallmsg( struct filed *f, struct iovec *iov) {
 		}
 		/* should we send the message to this user? */
 		for (i = 0; i < MAXUNAMES; i++) {
-			if (!f->f_un.f_uname[i][0])
+			if (!ctx->f_un.f_uname[i][0])
 				break;
-			if (!strncmp(f->f_un.f_uname[i], ut.ut_name,
+			if (!strncmp(ctx->f_un.f_uname[i], ut.ut_name,
 			    UT_NAMESIZE)) {
 				if ((p = ttymsg(iov, 6, line, TTYMSGTIME))
 								!= NULL) {
