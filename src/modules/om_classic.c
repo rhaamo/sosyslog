@@ -63,7 +63,7 @@ extern time_t now;
 void    logerror __P((char *));
 
 int
-om_classic_doLog(f, flags, message, context)
+om_classic_doLog(f, flags, msg, context)
 	struct filed *f;
 	int flags;
 	char *message;
@@ -72,13 +72,9 @@ om_classic_doLog(f, flags, message, context)
 	struct iovec iov[6];
 	struct iovec *v;
 	int l;
-	char line[MAXLINE + 1], greetings[500], *msg;
+	char line[MAXLINE + 1], greetings[500];
 
-	if (message != NULL) {
-		msg = f->f_prevline;
-	} else if (message != NULL) {
-		msg = f->f_prevline;
-	} else {
+	if (msg == NULL || !strcmp(msg, "")) {
 		logerror("om_classic_doLog: no message!");
 		return(-1);
 	}
