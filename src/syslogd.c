@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.49 2000/04/27 19:05:27 alejo Exp $
+/*	$Id: syslogd.c,v 1.50 2000/04/27 20:24:11 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -170,8 +170,10 @@ main(argc, argv)
 			if (!ststr(optarg, "sysv"))
 				inputs |= IM_SYSV;
 #endif
-			else
+			else {
+				dprintf("Wrong input params [%s]\n", optarg);
 				usage();
+			}
 			break;
 		case 'a':		/* additional AF_UNIX socket name */
 			if (nfunix < MAXFUNIX)
