@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: m_mysql.c,v 1.17 2000/04/06 00:15:24 alejo Exp $";
+static char rcsid[] = "$Id: m_mysql.c,v 1.18 2000/04/06 00:27:43 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -94,6 +94,10 @@ m_mysql_doLog(f, flags, msg, context)
 	struct m_mysql_ctx *c;
 	char	*dummy, *y, *m, *d, *h, *host, mymsg[1024];
         time_t now;
+	int	mn;
+	char	*months[] = { "Jan", "Feb", "Mar", "Apr", "May",
+				"Jun", "Jul", "Aug", "Sep", "Oct",
+				"Nov", "Dec"};
 
 	dprintf("MySQL doLog: entering [%s] [%s]\n", msg, f->f_prevline);
 	if (f == NULL)
@@ -132,11 +136,12 @@ m_mysql_doLog(f, flags, msg, context)
 	*(y + 4) = '\0';
 	if (*d == ' ')
 		*d = '0';
+	for(mn = 1, c = months[0]; c && strncmp(c, m, 3); mn++, c++);
 
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, programname,  msg  */ 
 	snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s"
-			" VALUES('%s-%s-%s', '%s', '%s', '%s')",
-			c->table, y, m, d, h, host, mymsg, MAX_QUERY);
+			" VALUES('%s-%.2s-%s', '%s', '%s', '%s')",
+			c->table, y, mn, d, h, host, mymsg, MAX_QUERY);
 
 	free(dummy);
 	free(y);
