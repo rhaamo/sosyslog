@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_regex.8,v 1.1.2.4 2000/08/30 21:47:28 alejo Exp $
+.\"	$CoreSDI: om_regex.8,v 1.1.2.5 2000/09/04 21:45:23 alejo Exp $
 .\"
 .\" Copyright (c) 2000
 .\"	Core-SDI SA. All rights reserved.
@@ -67,7 +67,7 @@ auth.info %regex -v -t '^1' %regex -m 'root' %classic /var/log/webserver
 .Sh BUGS
 .Bl -bullet
 .It
-You must use one regexp module per expression.
+Still can't escape quotes within expression.
 .It
 If you have found bugs, please report them to syslog-bugs@core-sdi.com
 .El
