@@ -1,4 +1,4 @@
-/*	$CoreSDI: ip_misc.c,v 1.18 2001/09/19 10:52:38 alejo Exp $	*/
+/*	$CoreSDI: ip_misc.c,v 1.19 2001/09/19 11:50:19 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -366,4 +366,37 @@ accept_tcp(int fd, socklen_t addrlen, char *host, int hlen, char *port,
 	free(connsa);
 
 	return (connfd);
+}
+
+/*
+ * sock_udp: create a generic socket for sending udp packets
+ *
+ * NOTE: you must free the struct returned!
+ */
+
+int
+sock_udp(char *host, char *port, void **addr, int *addrlen)
+{
+	struct sockaddr	*sa;
+
+	if (addr == NULL || addrlen == NULL)
+		return (-1);
+
+	if ( (sa = resolv_name(host, port, "udp", (socklen_t *) addrlen))
+	    == NULL)
+		return (-1);
+
+	*addr = sa;
+
+	return (socket(sa->sa_family, SOCK_DGRAM, 0));
+}
+
+/*
+ * udp_send:	send an UDP packet
+ */
+
+int
+udp_send(int fd, char *msg, int mlen, void *addr, int addrlen)
+{
+	return (sendto(fd, msg, mlen, 0, (struct sockaddr *) addr, addrlen));
 }
