@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.52 2000/07/10 19:55:50 claudio Exp $
+dnl	$CoreSDI: configure.in,v 1.53 2000/07/10 21:41:37 claudio Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -8,7 +8,7 @@ echo msyslog version... $MSYSLOG_VERSION
 
 AC_PROG_CC
 AC_PROG_INSTALL
-AC_PREFIX_PROGRAM(syslogd)
+AC_PREFIX_DEFAULT(/usr/local)
 
 CFLAGS="-Wall -O -ggdb"
 LDFLAGS=
@@ -34,18 +34,7 @@ done
 AC_MSG_RESULT(root-mode pid file will go in $dir)
 AC_DEFINE_UNQUOTED(PID_DIR, "$dir")
 
-AC_PREFIX_PROGRAM(syslogd)
-
-for INSTALL_LIBDIR in "/usr/lib" "/usr/local/lib" "/lib"
-do
-	if test -d $INSTALL_LIBDIR
-	then
-		break
-	fi
-done
-AC_MSG_RESULT(dynamic modules will be installed on $INSTALL_LIBDIR)
-
-
+dnl search mandir for non bsd systems
 for MANDIR in "/usr/share/man" "/usr/man"
 do
 	if test -d $MANDIR
@@ -53,40 +42,7 @@ do
 		break;
 	fi
 done
-AC_MSG_RESULT(man pages will be installed on $MANDIR)
 
-#AC_ARG_WITH(mysql,
-#	[  --with-mysql=DIR        enable MySQL support using libraries in DIR],
-#	[with_mysql=$withval],
-#	[with_mysql=no])
-#test "$with_mysql" = "yes" && AC_DEFINE(ENABLE_MYSQL)
-#
-#if test "$with_mysql" = "yes"
-#then
-#	for ac_dir in \
-#	/usr/local/mysql \
-#	/usr/local/lib/mysql
-#	do
-#		if test -d "$ac_dir"
-#		then
-#			with_mysql=$ac_dir
-#		fi
-#	done
-#fi
-#
-#if test -n "$with_mysql" -a "$with_mysql" != "no"
-#then
-#	if test "$with_mysql" = "yes"
-#	then
-#		with_mysql="/usr/local/mysql"	
-#	fi
-#	echo "Enabling MySQL support in $with_mysql"
-#	OMMYSQL_SRC="$OMMYSQL_SRC \$(MYSQL_SRCS)"
-#	CFLAGS="$CFLAGS -I$with_mysql/include/mysql"
-#	LDFLAGS="$LDFLAGS -L$with_mysql/lib/mysql"
-#	OMMYSQL_LIBS="$OMMYSQL_LIBS -lmysqlclient"
-#	AC_DEFINE(ENABLE_MYSQL)
-#fi
 
 HASH_SRCS="hash.c"
 AC_CHECK_FUNC(MD5Init, AC_DEFINE(HAVE_MD5),
@@ -151,8 +107,6 @@ AC_SUBST(DCCFLAGS)
 AC_SUBST(LDFLAGS)
 AC_SUBST(LDDFLAGS)
 AC_SUBST(UNAME)
-AC_SUBST(INSTALL_LIBDIR)
-AC_SUBST(INSTALL_DIR)
 AC_SUBST(MANDIR)
 
 AC_OUTPUT([Makefile

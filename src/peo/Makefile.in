@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.9 2000/07/06 21:06:29 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.10 2000/07/08 00:52:53 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -34,29 +34,32 @@ LDFLAGS=	@LDFLAGS@
 LDDFLAGS=	@LDDFLAGS@
 CPPFLAGS=	@CPPFLAGS@
 CPPFLAGS+=	-I..
-INSTALL_LIBDIR=	@INSTALL_LIBDIR@
-INSTALL_DIR=	@INSTALL_DIR@
+
+INSTALL=	@INSTALL@
+prefix=		@prefix@
+exec_prefix=	@exec_prefix@
+INSTALL_DIR=	@sbindir@
 
 PROG=		peochk
 SRCS=		peochk.c
 SRCS+=		@HASH_SRCS@
-OBJS=		${SRCS:.c=.o}
+OBJS=		$(SRCS:.c=.o)
 
-all: ${PROG} ${OBJS}
+all: $(PROG) $(OBJS)
 
 .c.o:
-	${CC} ${CFLAGS} ${CPPFLAGS} -c $< -o $@
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
-${PROG}: ${OBJS}
-	${CC} ${OBJS} ${LDFLAGS} -o $@
+$(PROG): $(OBJS)
+	$(CC) $(OBJS) $(LDFLAGS) -o $@
 
 .PHONY: clean distclean
 clean:
-	-rm -f ${OBJS} core *.core ${PROG}
+	-rm -f $(OBJS) core *.core $(PROG)
 
 distclean: clean
 	-rm -f Makefile
 
 install:
-	-install -m 111 -o root ${PROG} ${INSTALL_DIR}
+	-$(INSTALL) ${PROG} $(INSTALL_DIR)
 

@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.30 2000/07/10 20:02:00 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.31 2000/07/10 21:01:53 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -37,7 +37,11 @@ DCCFLAGS=	@DCCFLAGS@
 CPPFLAGS=	-I. -I.. 
 CPPFLAGS+=	@CPPFLAGS@
 LDCONFIG_FLAGS=	@LDCONFIG_FLAGS@
-INSTALL_LIBDIR=	@INSTALL_LIBDIR@
+
+INSTALL=	@INSTALL@
+prefix=		@prefix@
+exec_prefix=	@exec_prefix@
+INSTALL_LIBDIR=	@libdir@
 UNAME=		@UNAME@
 
 SSRCS=		@SSRCS@
@@ -143,7 +147,8 @@ distclean: clean
 
 install:
 	@echo installing shared libraries...
-	-install -m 111 -o root libmsyslog_*.so.* $(INSTALL_LIBDIR)
+	-$(INSTALL) libmsyslog_*.so.* $(INSTALL_LIBDIR)
+	@echo updating run-time link database...
 	@-if test "$(UNAME)" = "Linux"; \
 	then \
 		if test -z "`grep $(INSTALL_LIBDIR) /etc/ld.so.conf`"; \
