@@ -42,7 +42,7 @@ im_bsd_init(I, argv, argc)
 	
         I->im_type = IM_BSD;
         I->im_name = "bsd";
-        I->im_path = strdup(argv[1]);
+        I->im_path = strdup(_PATH_KLOG);
         I->im_flags  ^= IMODULE_FLAG_KERN;
         return(I->im_fd);
 }
