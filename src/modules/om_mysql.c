@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.74 2001/08/01 04:16:18 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.75 2001/08/01 05:07:04 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -141,7 +141,7 @@ om_mysql_write(struct filed *f, int flags, char *msg, void *ctx)
 
 	/* table, yyyy-mm-dd, hh:mm:ss, host, msg  */ 
 	i = snprintf(query, sizeof(query), "INSERT %sINTO %s (date, time, "
-	    "host, msg) VALUES('%.4d-%.2d-%.2d', '%.2d:%.2d:%.2d', '%s', '",
+	    "host, message) VALUES('%.4d-%.2d-%.2d', '%.2d:%.2d:%.2d', '%s', '",
 	    (c->flags & OM_MYSQL_DELAYED_INSERTS)? "DELAYED " : "", c->table,
 	    f->f_tm.tm_year + 1900, f->f_tm.tm_mon + 1, f->f_tm.tm_mday,
 	    f->f_tm.tm_hour, f->f_tm.tm_min, f->f_tm.tm_sec, f->f_prevhost);
