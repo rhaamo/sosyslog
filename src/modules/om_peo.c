@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.10 2000/05/04 21:13:04 claudio Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.11 2000/05/05 21:50:22 claudio Exp $";
 #endif /* not lint */
 
 /*
@@ -197,7 +197,7 @@ om_peo_init(argc, argv, f, prog, context)
 	mfd = 0;
 
 	/* parse command line */
-	optreset = 1; optind = 1;
+	optreset = 1; optind = 0;
 	while ((ch = getopt(argc, argv, "k:lm:")) != -1) {
 		switch(ch) {
 			case 'k':
