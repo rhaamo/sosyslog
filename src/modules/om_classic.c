@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.42 2000/08/25 22:37:51 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.43 2000/09/04 23:43:45 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -56,8 +56,8 @@
 #include <syslog.h>
 #include <unistd.h>
 
-#include "syslogd.h"
-#include "modules.h"
+#include "../syslogd.h"
+#include "../modules.h"
 
 int
 om_classic_doLog(struct filed *f, int flags, char *msg,
@@ -66,8 +66,6 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 	struct iovec *v;
 	int l;
 	char line[MAXLINE + 1], greetings[500];
-	time_t now;
-
 
 	if (msg == NULL || !strcmp(msg, "")) {
 		logerror("om_classic_doLog: no message!");
