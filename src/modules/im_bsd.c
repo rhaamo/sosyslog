@@ -90,28 +90,3 @@ im_bsd_getLog(im, ret)
 	return(ret->fd == -1 ? -1: 1);
 }
 
-
-int
-im_bsd_sendLog(im, msg)
-	struct i_module im;
-        struct im_ret  *msg;
-{
-	char *p, *q, *lp, line[MAXLINE + 1];
-
-	if (im == NULL || msg == NULL || msg->msg)
-	    return(-1);
-	(void)strcpy(line, _PATH_UNIX);
-	(void)strcat(line, ": ");
-	lp = line + strlen(line);
-	p = msg;
-
-	q = lp;
-	while (*p != '\0' && (c = *p++) != '\n' &&
-	    q < &line[MAXLINE])
-	        *q++ = c;
-	*q = '\0';
-	logmsg(pri, line, LocalHostName, flags);
-
-	return(1);
-}
-

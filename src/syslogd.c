@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.25 2000/04/15 00:01:06 alejo Exp $
+/*	$Id: syslogd.c,v 1.26 2000/04/15 00:05:05 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -259,6 +259,9 @@ main(argc, argv)
 		       }
 
 		       /* log it */
+		       if (*(im_sendLog)(im, &log) == -1) {
+				logerror("im_sendlog error");
+		       }
 		   }
 		}
 
