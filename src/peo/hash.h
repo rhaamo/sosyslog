@@ -1,4 +1,4 @@
-/*      $Id: hash.h,v 1.7 2000/05/04 21:13:04 claudio Exp $
+/*      $Id: hash.h,v 1.8 2000/05/05 17:23:38 claudio Exp $
  *
  * hash -- some things used by both peo output module and peochk
  *
@@ -26,6 +26,7 @@ extern char *strkey (const char*);
 extern char *strmac (const char*);
 extern char *asc2bin (char*, const char*);
 extern char *bin2asc (char*, const char*, int);
+extern int   getrandom (char*, int);
 
 #endif
 
