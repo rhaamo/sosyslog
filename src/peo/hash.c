@@ -1,4 +1,4 @@
-/*      $Id: hash.c,v 1.9 2000/05/05 17:22:06 claudio Exp $
+/*      $Id: hash.c,v 1.10 2000/05/05 21:47:50 claudio Exp $
  *
  * hash -- few things used by both peo output module and peochk 
  *
@@ -9,18 +9,21 @@
 #include "../config.h"
 
 #include <sys/types.h>
-
+#include <ctype.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #ifdef HAVE_OPENBSD
 	#include <md5.h>
 	#include <sha1.h>
-	#define  RANDOM_DEVICE	"/dev/srandom"
+	#define RANDOM_DEVICE	"/dev/srandom"
 #else
 	#include "md5.h"
 	#include "sha1.h"
-	#define  RANDOM_DEVICE	"/dev/random"
+	#define RANDOM_DEVICE	"/dev/random"
 #endif
 
 #include "rmd160.h"
@@ -76,8 +79,11 @@ mac (method, data1, data1len, data2, data2len, dest)
 			if ( (tmplen = data1len / data2len * data2len) < data1len)
 				tmplen += data2len;
 		}
-		else if ( (tmplen = data2len / data1len * data1len) < data2len)
-			tmplen += data1len;
+		else if (data1len < data2len) {
+			if ( (tmplen = data2len / data1len * data1len) < data2len)
+				tmplen += data1len;
+			}
+		else tmplen = data1len;
 	}
 	else if ( (tmplen = (data1len) ? data1len : data2len) == 0)
 		tmplen = 1; 
@@ -222,20 +228,30 @@ strmac (keyfile)
  *	Buffer lenght = string lenght / 2
  *	(2 byte string "ab" is translated to 1 byte buffer 0xab)
  */
-char*
+unsigned char*
 asc2bin (dst, src)
-	char       *dst;
-	const char *src;
+	unsigned char       *dst;
+	const unsigned char *src;
 {
-/*
-	int i;
-	int j;
-	for (i = 0; src[i] != '\0'; i++)
-		for (j = 0; i < 2; j++)
-			if (
-			
-		
-*/
+	int   i;
+	int   j;
+	unsigned char *tmp;
+
+	if (dst == NULL || (tmp = (dst == src) ? strdup(src) : (char*)src) == NULL)
+		return (NULL);
+
+	for (i = 0; tmp[i+i] != '\0'; i++) {
+		dst[i] = 0;
+		for (j = 0; j < 2; j++)
+			if (tmp[i+i+j] <= '9')
+				dst[i] |= (tmp[i+i+j]-'0') << ((j) ? 0: 4);
+			else
+				dst[i] |= (tolower(tmp[i+i+j])-'a'+10) << ((j) ? 0 : 4);
+		}
+
+	if (dst == src)
+		free(tmp);
+
 	return (dst);
 }
 
@@ -247,13 +263,13 @@ asc2bin (dst, src)
  *	(2 byte buffer 0x3, 0x9a is translated to 4 byte string "039a")
  */
 
-char hex[] = { "0123456789ABCDEF" };
+char hex[] = { "0123456789abcdef" };
 
-char*
+unsigned char*
 bin2asc (dst, src, srclen)
-	char       *dst;
-	const char *src;
-	int         srclen;
+	unsigned char		*dst;
+	const unsigned char	*src;
+	int         		 srclen;
 {
 	int i;
 
@@ -282,28 +298,15 @@ getrandom (buffer, bytes)
 {
 	int fd;
 
-	if (bytes > 0)
-		if ( (fd = open(RANDOM_DEVICE, O_RDONLY, 0)) >= 0)
-			if (read(fd, buffer, bytes) == bytes) {
-				close(fd);
-				return (0);
-			}
-			else close(fd);
+	if ( (fd = open(RANDOM_DEVICE, O_RDONLY, 0)) >= 0) {
+		if (read(fd, buffer, bytes) == bytes) {
+			close(fd);
+			return (0);
+		}
+		close(fd);
+	}
 
 	return (-1);
-}
-
-
-
-#include <stdio.h>
-int main()
-{
-char s1[] = { "010203040506070809" };
-char s2[128];
-
-asc2bin(s2, s1);
-
-return 0;
 }
 
 

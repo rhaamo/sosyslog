@@ -1,4 +1,4 @@
-/*      $Id: peochk.c,v 1.18 2000/05/05 17:22:06 claudio Exp $
+/*      $Id: peochk.c,v 1.19 2000/05/05 21:47:51 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
@@ -147,11 +147,11 @@ check()
 	int   mfd;
 	char  key[41];
 	int   keylen;
-	char  lastkey[20];
+	char  lastkey[21];
 	int   lastkeylen;
 	int   line;
-	char  mkey1[20];
-	char  mkey2[20];
+	char  mkey1[21];
+	char  mkey2[21];
 	int   mkey1len;
 	int   mkey2len;
 	char  msg[MAXLINE];
@@ -201,9 +201,7 @@ check()
 				err(2, macfile);
 			if ( (mkey2len = readline(mfd, mkey2, mkey1len)) < 0)
 				err(2, macfile);
-			if (mkey2len != mkey1len)
-				errx(1, "%s %s\n", macfile, corrupted);
-			if (memcmp(mkey2, mkey1, mkey1len))
+			if ((mkey2len != mkey1len) || memcmp(mkey2, mkey1, mkey1len))
 				errx(1, "%s %s on line %i\n", logfile, corrupted, line);
 			line++;
 		}
@@ -239,7 +237,7 @@ generate()
 	int	 keylen;
 	char	 randvalue[20];
 
-	if (getrandom(randvalue, 20) <= 0) {
+	if (getrandom(randvalue, 20) < 0) {
 		release();
 		err(2, "getrandom");
 	}
