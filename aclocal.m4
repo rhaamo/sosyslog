@@ -1,7 +1,7 @@
 dnl
 dnl Both of this were taken from arla project!!!
 dnl
-dnl $Id: aclocal.m4,v 1.30 2000/12/19 21:25:05 alejo Exp $
+dnl $Id: aclocal.m4,v 1.31 2001/03/10 00:26:05 alejo Exp $
 dnl
 
 AC_DEFUN(AC_HAVE_TYPES, [
@@ -15,7 +15,7 @@ changequote([,])dnl
 END
 ])
 
-dnl $Id: aclocal.m4,v 1.30 2000/12/19 21:25:05 alejo Exp $
+dnl $Id: aclocal.m4,v 1.31 2001/03/10 00:26:05 alejo Exp $
 dnl
 dnl check for existance of a type
 
@@ -28,6 +28,7 @@ AC_CACHE_VAL([ac_cv_type_$cv],
 AC_TRY_COMPILE(
 [#include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #if STDC_HEADERS
 #include <stdlib.h>
 #include <stddef.h>

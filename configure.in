@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.93 2001/03/06 18:21:04 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.94 2001/03/06 21:49:42 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -7,6 +7,9 @@ dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
+
+dnl Do some AIX stuff before
+AC_AIX
 
 dnl Checks for libraries.
 
@@ -90,18 +93,6 @@ done
 
 dnl AC_MSG_CHECKING(for MAXHOSTNAMELEN)
 
-dnl AC_EGREP_CPP(yes,
-dnl 	[#include <sys/param.h>
-dnl 	 #include <netdb.h>
-dnl 	 #ifdef MAXHOSTNAMELEN
-dnl 	   yes
-dnl 	 #endif], [
-dnl 	AC_MSG_RESULT(yes)
-dnl 	] , [
-dnl 	AC_MSG_RESULT(no, using 254)
-dnl 	AC_DEFINE(MAXHOSTNAMELEN, 254)
-dnl ])dnl
-
 AC_CHECK_SIZEOF_DEFINE(MAXHOSTNAMELEN, 254)dnl
 
 dnl Check underscore requirement for dlsym()
@@ -131,8 +122,12 @@ elif test "$UNAME" = "Irix" ; then
         AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
         SHARED_PARAMS="-G"
 	DCCFLAGS="-fPIC"
+elif test "$UNAME" = "AIX" ; then
+        AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
+        SHARED_PARAMS="-G"
+	DCCFLAGS=""
 else
-	AC_MSG_WARN(cannot determine system type, using defaults)dnl
+	AC_MSG_WARN('cannot determine system type falling to defaults')dnl
         AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
         SHARED_PARAMS="-Bshareable"
 fi
@@ -207,52 +202,33 @@ AC_ARG_WITH(unix,
 
 dnl Doors should only be used with streams
 
-dnl AC_ARG_WITH(doors,
-dnl [  --without-doors
-dnl 	Use doors input module (for System V systems). Activated by default.
-dnl ],[
-dnl 	if test $with_doors = "yes" ; then
-dnl 		MSRCS="$MSRCS im_doors.c"
-dnl 		MANPAGES="$MANPAGES im_doors.8"
-dnl 	fi
-dnl ],[
-dnl 	AC_CHECK_HEADER(door.h, [
-dnl 		MSRCS="$MSRCS im_doors.c"
-dnl 		MANPAGES="$MANPAGES im_doors.8"
-dnl 	])dnl
-dnl ])
+AC_MSG_CHECKING(for streams module)
 
+temp_res=no
 AC_ARG_WITH(streams,
 [  --without-streams
 	Use streams input module. Activated by default.
 ],[
-	AC_MSG_CHECKING(for streams module)
 
-	if test $with_streams = "yes" ; then
-		MSRCS="$MSRCS im_streams.c"
-		MLIBS="$MLIBS -lpthread"
-		MANPAGES="$MANPAGES im_streams.8"
-		SYSLOGD_LIBS="$SYSLOGD_LIBS -lthread -ldoor"
-		AC_DEFINE(HAVE_STREAMS_IMODULE)
-        	AC_MSG_RESULT(yes)
-       	else
-        	AC_MSG_RESULT(no)
+	if test "$with_streams" = "yes" ; then
+		temp_res="yes"
 	fi
 ],[
- 	AC_CHECK_HEADER(sys/strlog.h, [
-		MSRCS="$MSRCS im_streams.c"
-		MANPAGES="$MANPAGES im_streams.8"
-		SYSLOGD_LIBS="$SYSLOGD_LIBS -lthread -ldoor"
-		MSRCS="$MSRCS im_doors.c"
-		MANPAGES="$MANPAGES im_doors.8"
-		AC_DEFINE(HAVE_STREAMS_IMODULE)
+ 	AC_CHECK_HEADER(sys/strlog.h, strlog_h="yes", strlog_h="no")dnl
+ 	AC_CHECK_HEADER(door.h, door_h="yes", door_h="no")dnl
+	if test "$strlog_h" = "yes" -a "$door_h" = "yes" ; then
 		temp_res="yes"
-	], [
-		temp_res="no"
-	] )dnl
-	AC_MSG_CHECKING(for streams module)
-        AC_MSG_RESULT($temp_res)
+	fi
 ])
+
+if test "$temp_res" = "yes" ; then
+	MSRCS="$MSRCS im_streams.c"
+	MLIBS="$MLIBS -lpthread"
+	MANPAGES="$MANPAGES im_streams.8"
+	SYSLOGD_LIBS="$SYSLOGD_LIBS -lthread -ldoor"
+	AC_DEFINE(HAVE_STREAMS_IMODULE)
+fi
+AC_MSG_RESULT($temp_res)
 
 AC_ARG_WITH(classic,
 [  --without-classic
@@ -364,6 +340,8 @@ AC_ARG_WITH(regex,
 		MANPAGES="$MANPAGES om_regex.8"
 	])dnl
 ])
+
+AC_CACHE_SAVE
 
 AC_HAVE_TYPES(socklen_t uint32_t uint64_t u_int32_t u_int64_t CODE)dnl
 
