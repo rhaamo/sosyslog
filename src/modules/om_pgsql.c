@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.38 2001/03/06 21:56:02 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.39 2001/03/07 21:35:15 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -119,13 +119,13 @@ om_pgsql_write(struct filed *f, int flags, char *msg, void *ctx)
 	int	err, i;
 	char    query[MAX_QUERY], err_buf[512];
 
-	dprintf(DPRINTF_INFORMATIVE)("om_pgsql_write: entering [%s] [%s]\n",
+	dprintf(MSYSLOG_INFORMATIVE, "om_pgsql_write: entering [%s] [%s]\n",
 	    msg, f->f_prevline);
 
 	c = (struct om_pgsql_ctx *) ctx;
 
 	if ((c->h) == NULL) {
-		dprintf(DPRINTF_SERIOUS)("om_pgsql_write: error, no "
+		dprintf(MSYSLOG_SERIOUS, "om_pgsql_write: error, no "
 		    "connection\n");
 		return (-1);
 	}
@@ -179,12 +179,12 @@ om_pgsql_write(struct filed *f, int flags, char *msg, void *ctx)
 		else
 			query[sizeof(query) - 1] = '\0';
 
-		dprintf(DPRINTF_INFORMATIVE2)("om_pgsql_write: query [%s]\n",
+		dprintf(MSYSLOG_INFORMATIVE2, "om_pgsql_write: query [%s]\n",
 		    query);
 
 		r = (c->PQexec(c->h, query));
 		if ((c->PQresultStatus(r)) != PGRES_COMMAND_OK) {
-			dprintf(DPRINTF_SERIOUS)("om_pgsql_write: %s\n",
+			dprintf(MSYSLOG_SERIOUS, "om_pgsql_write: %s\n",
 			    (c->PQresultErrorMessage(r)));
 			return (-1);
 		}
@@ -202,12 +202,12 @@ om_pgsql_write(struct filed *f, int flags, char *msg, void *ctx)
 	else
 		query[sizeof(query) - 1] = '\0';
 
-	dprintf(DPRINTF_INFORMATIVE2)("om_pgsql_write: query [%s]\n", query);
+	dprintf(MSYSLOG_INFORMATIVE2, "om_pgsql_write: query [%s]\n", query);
 
 	err = 1;
 	r = (c->PQexec(c->h, query));
 	if ((c->PQresultStatus(r)) != PGRES_COMMAND_OK) {
-		dprintf(DPRINTF_INFORMATIVE)("%s\n",
+		dprintf(MSYSLOG_INFORMATIVE, "%s\n",
 		    (c->PQresultErrorMessage(r)));
 		err = -1;
 	}
@@ -241,7 +241,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	char	statbuf[1024];
 	int	ch = 0;
 
-	dprintf(DPRINTF_INFORMATIVE)("om_pgsql_init: entering "
+	dprintf(MSYSLOG_INFORMATIVE, "om_pgsql_init: entering "
 	    "initialization\n");
 
 	if (argv == NULL || *argv == NULL || argc < 2 || f == NULL ||
@@ -257,7 +257,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	ctx = (struct om_pgsql_ctx *) *c;
 
 	if ((ctx->lib = dlopen("libpq.so", DLOPEN_FLAGS)) == NULL) {
-		dprintf(DPRINTF_SERIOUS)("om_pgsql_init: Error loading"
+		dprintf(MSYSLOG_SERIOUS, "om_pgsql_init: Error loading"
 		    " api library, %s\n", dlerror());
 		free(ctx);
 		return (-1);
@@ -274,7 +274,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	    || !(ctx->PQsetdbLogin = dlsym(ctx->lib, SYMBOL_PREFIX
 	    "PQsetdbLogin"))   
 	    || !(ctx->PQfinish = dlsym(ctx->lib, SYMBOL_PREFIX "PQfinish"))) {
-		dprintf(DPRINTF_SERIOUS)("om_mysql_init: Error resolving"
+		dprintf(MSYSLOG_SERIOUS, "om_mysql_init: Error resolving"
 		    " api symbols, %s\n", dlerror());
 		free(ctx);
 		return (-1);
@@ -317,7 +317,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	}
 
 	if (user == NULL || db == NULL || table == NULL) {
-		dprintf(DPRINTF_SERIOUS)("om_pgsql_init: Error missing "
+		dprintf(MSYSLOG_SERIOUS, "om_pgsql_init: Error missing "
 		    "params!\n");
 		dlclose(ctx->lib);
 		free(ctx);
@@ -330,7 +330,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 
 	/* check to see that the backend connection was successfully made */
 	if ((ctx->PQstatus)(h) == CONNECTION_BAD) {
-		dprintf(DPRINTF_SERIOUS)("om_pgsql_init: Error connecting "
+		dprintf(MSYSLOG_SERIOUS, "om_pgsql_init: Error connecting "
 		    "to db server [%s:%s] user [%s] db [%s]\n",
 		    host?host:"(unix socket)", port?port:"(none)", user, db);
 		(ctx->PQfinish)(h); 
@@ -342,13 +342,10 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	ctx->h = h;
 	ctx->table = strdup(table);
 
-	if (Debug) {
-		snprintf(statbuf, sizeof(statbuf), "om_pgsql: sending "
-		    "messages to host %s, database %s, table %s", host,
-		    db, table);
-		*status = strdup(statbuf);
-	} else
-		*status = NULL;
+	snprintf(statbuf, sizeof(statbuf), "om_pgsql: sending "
+	    "messages to host %s, database %s, table %s", host,
+	    db, table);
+	*status = strdup(statbuf);
 
 	return (1);
 }

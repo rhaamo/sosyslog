@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.48 2001/03/06 21:49:43 alejo Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.49 2001/03/07 21:35:14 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -101,7 +101,7 @@ char	*ksym_copyword (char*, char*, int);
 void
 im_linux_usage()
 {
-	dprintf(DPRINTF_INFORMATIVE)("linux input module options:\n"
+	dprintf(MSYSLOG_INFORMATIVE, "linux input module options:\n"
 	    "   [ -k file ]    Use the specified file as source of kernel\n"
 	    "                  symbol information instead of %s.\n"
 	    "   [ -r ]         Force read symbol table on memory.\n"
@@ -172,7 +172,7 @@ im_linux_init (struct i_module *I, char **argv, int argc)
 	int ch;
 	int current_optind;
 
-	dprintf(DPRINTF_INFORMATIVE)("im_linux_init: Entering\n");
+	dprintf(MSYSLOG_INFORMATIVE, "im_linux_init: Entering\n");
 
 	/* parse command line */
 	current_optind = optind;	/* syslogd calls im_linux_init when

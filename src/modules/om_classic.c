@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.72 2001/03/14 21:38:30 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.73 2001/03/22 20:30:37 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -169,21 +169,21 @@ om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
 	v->iov_len = strlen(msg);
 	v++;
 
-	dprintf(DPRINTF_INFORMATIVE)("Logging to %s", TypeNames[c->f_type]);
+	dprintf(MSYSLOG_INFORMATIVE, "Logging to %s", TypeNames[c->f_type]);
 
 	switch (c->f_type) {
 	case F_UNUSED:
-		dprintf(DPRINTF_INFORMATIVE)("\n");
+		dprintf(MSYSLOG_INFORMATIVE, "\n");
 		break;
 	
 	case F_FORW:
 		if (finet < 0) {
-			dprintf(DPRINTF_SERIOUS)("om_classic: write: "
+			dprintf(MSYSLOG_SERIOUS, "om_classic: write: "
 			    "can't forward message, socket down\n");
 			return(-1);
 		}
 
-		dprintf(DPRINTF_INFORMATIVE)(" %s\n", c->f_un.f_forw.f_hname);
+		dprintf(MSYSLOG_INFORMATIVE, " %s\n", c->f_un.f_forw.f_hname);
 		l = snprintf(line, sizeof(line), "<%d>%.15s %s", f->f_prevpri,
 		    (char *) iov[0].iov_base, (char *) iov[4].iov_base);
 
@@ -198,14 +198,14 @@ om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
 
 	case F_CONSOLE:
 		if (flags & IGN_CONS) {
-			dprintf(DPRINTF_INFORMATIVE)(" (ignored)\n");
+			dprintf(MSYSLOG_INFORMATIVE, " (ignored)\n");
 			break;
 		}
 		/* FALLTHROUGH */
 
 	case F_TTY:
 	case F_FILE:
-		dprintf(DPRINTF_INFORMATIVE)(" %s\n", c->f_un.f_fname);
+		dprintf(MSYSLOG_INFORMATIVE, " %s\n", c->f_un.f_fname);
 		if (c->f_type != F_FILE) {
 			v->iov_base = "\r\n";
 			v->iov_len = 2;
@@ -240,7 +240,7 @@ om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
 
 	case F_USERS:
 	case F_WALL:
-		dprintf(DPRINTF_INFORMATIVE)("\n");
+		dprintf(MSYSLOG_INFORMATIVE, "\n");
 		v->iov_base = "\r\n";
 		v->iov_len = 2;
 		wallmsg(f, iov, c);
@@ -266,17 +266,17 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	int i, statbuf_len;
 	char *p, *q, statbuf[1024];
 
-	dprintf(DPRINTF_INFORMATIVE)("om_classic_init: Entering\n");
+	dprintf(MSYSLOG_INFORMATIVE, "om_classic_init: Entering\n");
 
 	/* accepts "%classic /file" or "%classic -t TYPE /file" */
 	if ( (argc != 2 && argc != 4) || argv == NULL) {
-		dprintf(DPRINTF_SERIOUS)("om_classic_init: incorrect "
+		dprintf(MSYSLOG_SERIOUS, "om_classic_init: incorrect "
 		    "parameters %d args\n", argc);
 		return (-1);
 	}
 
 	if ((*ctx = (void *) calloc(1, sizeof(struct om_classic_ctx))) == NULL) {
-		dprintf(DPRINTF_SERIOUS)("om_classic_init: cannot allocate "
+		dprintf(MSYSLOG_SERIOUS, "om_classic_init: cannot allocate "
 		    "context\n");
 		return (-1);
 	}
@@ -286,7 +286,7 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	if (argc > 2) {
 
 		if (strncmp(argv[1], "-t", 2)) {
-			dprintf(DPRINTF_SERIOUS)("om_classic_init: incorrect" 
+			dprintf(MSYSLOG_SERIOUS, "om_classic_init: incorrect" 
 			    " parameter %s, should be '-t'\n", argv[1]);
 			free(*ctx);
 			*ctx = NULL;
@@ -297,7 +297,7 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		for (i = 0; TypeNames[i] && strncmp(TypeNames[i], argv[2],
 		    strlen(argv[2])); i++);
 		if (TypeNames[i] == NULL) {
-			dprintf(DPRINTF_SERIOUS)("om_classic_init: couldn't" 
+			dprintf(MSYSLOG_SERIOUS, "om_classic_init: couldn't" 
 			    " determine type %s\n", argv[2]);
 			free(*ctx);
 			*ctx = NULL;
@@ -356,10 +356,9 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		memmove(&c->f_un.f_forw.f_addr.sin_addr, hp->h_addr,
 		    sizeof(struct in_addr));
 		c->f_type = F_FORW;
-		if (Debug)
-			snprintf(statbuf, sizeof(statbuf), "om_classic: "
-			    "forwarding messages through UDP to host %s",
-			    c->f_un.f_forw.f_hname);
+		snprintf(statbuf, sizeof(statbuf), "om_classic: "
+		    "forwarding messages through UDP to host %s",
+		    c->f_un.f_forw.f_hname);
 		break;
 
 	case '/':
@@ -376,17 +375,14 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 			else
 				c->f_type = F_FILE;
 		}
-		if (Debug)
-			snprintf(statbuf, sizeof(statbuf), "om_classic: "
-			    "saving messages to file %s", c->f_un.f_fname);
+		snprintf(statbuf, sizeof(statbuf), "om_classic: "
+		    "saving messages to file %s", c->f_un.f_fname);
 		break;
 
 	case '*':
 		c->f_type = F_WALL;
-		if (Debug)
-			snprintf(statbuf, sizeof(statbuf), "om_classic: sending "
-			    "messages to all logged users");
-		break;
+		snprintf(statbuf, sizeof(statbuf), "om_classic: sending "
+		    "messages to all logged users");
 
 	default:
 		for (i = 0; i < MAXUNAMES && *p; i++) {
@@ -402,23 +398,18 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 			p = q;
 		}
 		c->f_type = F_USERS;
-		if (Debug) {
-			statbuf_len = snprintf(statbuf, sizeof(statbuf),
-			    "om_classic: forwarding messages to users:");
-			for (i = 0; i < MAXUNAMES &&
-			    c->f_un.f_uname[i][0] != '\0'; i++) {
-				statbuf_len += snprintf(statbuf,
-				    sizeof(statbuf) - statbuf_len, " %s",
-				    c->f_un.f_uname[i]);
-			}
+		statbuf_len = snprintf(statbuf, sizeof(statbuf),
+		    "om_classic: forwarding messages to users:");
+		for (i = 0; i < MAXUNAMES &&
+		    c->f_un.f_uname[i][0] != '\0'; i++) {
+			statbuf_len += snprintf(statbuf,
+			    sizeof(statbuf) - statbuf_len, " %s",
+			    c->f_un.f_uname[i]);
 		}
 		break;
 	}
 
-	if (Debug)
-		*status = strdup(statbuf);
-	else
-		*status = NULL;
+	*status = strdup(statbuf);
 
 	return (1);
 }

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.95 2001/02/28 23:47:42 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.96 2001/03/06 01:18:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -68,14 +68,15 @@
  * informative and up are just for debugging purposes
  *
  */
-#define	dprintf(level)		if (Debug >= level) printf
 
-#define DPRINTF_CRITICAL	 10
-#define DPRINTF_SERIOUS		 20
-#define DPRINTF_NONCRITICAL	 30
-#define DPRINTF_WARNING		100
-#define DPRINTF_INFORMATIVE	200 /* calling/returning from a func */
-#define DPRINTF_INFORMATIVE2	250 /* each message, structure contents */
+int dprintf(int, char const *, ...); /* level, format, ... */
+
+#define MSYSLOG_CRITICAL	 10
+#define MSYSLOG_SERIOUS		 20
+#define MSYSLOG_NONCRITICAL	 30
+#define MSYSLOG_WARNING		100
+#define MSYSLOG_INFORMATIVE	200 /* calling/returning from a func */
+#define MSYSLOG_INFORMATIVE2	250 /* each message, structure contents */
 
 #define MAXUNAMES	20	/* maximum number of user names */
 

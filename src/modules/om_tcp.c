@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_tcp.c,v 1.10 2001/03/06 21:49:44 alejo Exp $	*/
+/*	$CoreSDI: om_tcp.c,v 1.11 2001/03/07 21:35:15 alejo Exp $	*/
 /*
      Copyright (c) 2001, Core SDI S.A., Argentina
      All rights reserved
@@ -92,15 +92,15 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	char	statbuf[1024];
 
 	if (argv == NULL || argc != 5) {
-		dprintf(DPRINTF_INFORMATIVE)("om_tcp_init: wrong param count"
+		dprintf(MSYSLOG_INFORMATIVE, "om_tcp_init: wrong param count"
 		    " %d, should be 5\n", argc);
 		return (-1);
 	}
 
-	dprintf(DPRINTF_INFORMATIVE)("om_tcp init: Entering\n");
+	dprintf(MSYSLOG_INFORMATIVE, "om_tcp init: Entering\n");
 
 	if ((*ctx = (void *) calloc(1, sizeof(struct om_tcp_ctx))) == NULL) {
-		dprintf(DPRINTF_INFORMATIVE)("om_tcp_init: couldn't allocate"
+		dprintf(MSYSLOG_INFORMATIVE, "om_tcp_init: couldn't allocate"
 		    " context\n");
 		return (-1);
 	}
@@ -127,7 +127,7 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 			c->port = strdup(optarg);
 			break;
 		default:
-			dprintf(DPRINTF_SERIOUS)("om_tcp_init: parsing error"
+			dprintf(MSYSLOG_SERIOUS, "om_tcp_init: parsing error"
 			    " [%c]\n", ch);
 			if (c->host)
 				free(c->host);
@@ -139,7 +139,7 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	}
 
 	if ( !c->host || !c->port ) {
-		dprintf(DPRINTF_SERIOUS)("om_tcp_init: parsing\n");
+		dprintf(MSYSLOG_SERIOUS, "om_tcp_init: parsing\n");
 		om_tcp_close(NULL, c);
 		return (-1);
 	}
@@ -149,7 +149,7 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	 */
 	if ( (c->fd = connect_tcp(c->host, c->port)) < 0) {
 
-		dprintf(DPRINTF_SERIOUS)("om_tcp_init: error connecting "
+		dprintf(MSYSLOG_SERIOUS, "om_tcp_init: error connecting "
 		    "to remote host %s, %s\n", c->host, c->port);
 
 		if (retry == 0) {
@@ -158,13 +158,10 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		}
 	}
 
-	if (Debug) {
-		snprintf(statbuf, sizeof(statbuf), "om_tcp: forwarding "
-		    "messages through TCP to host %s, port %s", c->host,
-		    c->port);
-		*status = strdup(statbuf);
-	} else
-		*status = NULL;
+	snprintf(statbuf, sizeof(statbuf), "om_tcp: forwarding "
+	    "messages through TCP to host %s, port %s", c->host,
+	    c->port);
+	*status = strdup(statbuf);
 
 	return (1);
 }
@@ -197,7 +194,7 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 	l = snprintf(line, sizeof(line), "<%d>%.15s %s\n", f->f_prevpri,
 	    time_buf, msg);
 
-	dprintf(DPRINTF_INFORMATIVE)("om_tcp_write: sending to %s, %s",
+	dprintf(MSYSLOG_INFORMATIVE, "om_tcp_write: sending to %s, %s",
 	    c->host, line);
 
 	/* Ignore sigpipes so broken connections won't bother */
@@ -207,7 +204,7 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 	for (i = 0 ; (c->fd < 0) || (write(c->fd, line, l) != l)
 	    || i > 3 ; i++) {
 
-		dprintf(DPRINTF_SERIOUS)("om_tcp_write: broken connection "
+		dprintf(MSYSLOG_SERIOUS, "om_tcp_write: broken connection "
 		    "to remote host %s, port %s\n", c->host, c->port);
 
 		/* just in case */
@@ -217,7 +214,7 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 	
 			place_signal(SIGPIPE, sigsave);
   
-			dprintf(DPRINTF_CRITICAL)("om_tcp_write: "
+			dprintf(MSYSLOG_CRITICAL, "om_tcp_write: "
 			    "error re-connecting to remote host %s, "
 			    "port %s\n", c->host, c->port);
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.32 2001/03/06 21:49:44 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.33 2001/03/07 21:35:15 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -95,12 +95,13 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	char	statbuf[1048], *p;
 
 	creg = NULL;
+	p = NULL;
 
 	/* for debugging purposes */
-	dprintf(DPRINTF_INFORMATIVE)("om_regex init\n");
+	dprintf(MSYSLOG_INFORMATIVE, "om_regex init\n");
 
 	if (argc < 2 || argv == NULL || argv[1] == NULL) {
-		dprintf(DPRINTF_SERIOUS)("om_regex: error on "
+		dprintf(MSYSLOG_SERIOUS, "om_regex: error on "
 		    "initialization\n");
 		return (-1);
 	}
@@ -111,10 +112,8 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	c = (struct om_regex_ctx *) *ctx;
 	c->size = sizeof(struct om_regex_ctx);
 
-	statbuf_len = 0;  /* make compiler happy */
-	if (Debug)
-		statbuf_len = snprintf(statbuf, sizeof(statbuf),
-		    "om_regex: filtering");
+	statbuf_len = snprintf(statbuf, sizeof(statbuf),
+	    "om_regex: filtering");
 
 	/*
 	 * Parse options with getopt(3)
@@ -136,64 +135,55 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		switch (ch) {
 		case 'v':
 			c->filters |= OM_FILTER_INVERSE;
-			if(Debug){
-				statbuf_len += snprintf(statbuf,
-				    sizeof(statbuf) - statbuf_len, " inverse");
-				p = NULL;
-			}
+			statbuf_len += snprintf(statbuf + statbuf_len,
+			    sizeof(statbuf) - statbuf_len, ", inverse");
 			continue;
 
 		case 'm':
 			c->filters |= OM_FILTER_MESSAGE;
 			creg = &c->msg_exp;
-			if(Debug)
-				p = " message,";
+			p = ", message";
 			break;
 
 		case 'h':
 			c->filters |= OM_FILTER_HOST;
 			creg = &c->host_exp;
-			if(Debug)
-				p = " host";
+			p = ", host";
 			break;
 
 		case 'd':
 			c->filters |= OM_FILTER_DATE;
 			creg = &c->date_exp;
-			if(Debug)
-				p = " date";
+			p = ", date";
 			break;
 
 		case 't':
 			c->filters |= OM_FILTER_TIME;
 			creg = &c->time_exp;
-			if(Debug)
-				p = " time";
+			p = ", time";
 			break;
 
 		default:
-			dprintf(DPRINTF_SERIOUS)("om_regex: unknown parameter"
+			dprintf(MSYSLOG_SERIOUS, "om_regex: unknown parameter"
 			    " [%c]\n", ch);
 			free(*ctx);
 			return (-1);
 		}
 
 		if (regcomp(creg, optarg, REG_EXTENDED) != 0) {
-			dprintf(DPRINTF_SERIOUS)("om_regex: error compiling "
+			dprintf(MSYSLOG_SERIOUS, "om_regex: error compiling "
 			    "regular expression [%s] for message\n", optarg);
 			free(*ctx);
 			return (-1);
 		}
 
-		if (Debug && p)
-			statbuf_len += snprintf(statbuf, sizeof(statbuf)
-			    - statbuf_len, " %s [%s]", p, optarg);
+		if (p)
+			statbuf_len += snprintf(statbuf + statbuf_len,
+			    sizeof(statbuf) - statbuf_len, " %s [%s]", p,
+			    optarg);
 	}
 
-	if (Debug && (statbuf_len > 0))
-		*status = strdup(statbuf);
-	else
-		*status = NULL;
+	*status = strdup(statbuf);
 
 	return (1);
 }

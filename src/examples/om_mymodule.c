@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mymodule.c,v 1.12 2001/03/07 21:35:13 alejo Exp $	*/
+/*	$CoreSDI: om_mymodule.c,v 1.13 2001/03/22 20:16:09 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -109,7 +109,7 @@ om_mymodule_init (int argc, char **argv, struct filed *f, char *prog,
 	char *myArg;
 
 	/* for debugging purposes */
-	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_init: Entering\n");
+	dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_init: Entering\n");
 
 	/*
 	 * Parse your options with getopt(3)
@@ -129,7 +129,7 @@ om_mymodule_init (int argc, char **argv, struct filed *f, char *prog,
 				myArg = optarg;
 				break;
 			default :
-				dprintf(DPRINTF_INFORMATIVE)("om_mymodule: "
+				dprintf(MSYSLOG_INFORMATIVE, "om_mymodule: "
 				    "error on arguments\n");
 				return (-1);
 		}
@@ -145,7 +145,7 @@ om_mymodule_init (int argc, char **argv, struct filed *f, char *prog,
 			-1  something went wrong
 	*/
 
-	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_init: Leaving ok\n");
+	dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_init: Leaving ok\n");
 	return (1);
 }
 
@@ -156,7 +156,7 @@ om_mymodule_init (int argc, char **argv, struct filed *f, char *prog,
 int
 om_mymodule_close (struct filed *f, void *ctx) {
 
-	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_close: Entering\n");
+	dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_close: Entering\n");
 
 	/* flush any buffered data and close this output */
 
@@ -165,7 +165,7 @@ om_mymodule_close (struct filed *f, void *ctx) {
 			-1  BAD
 	 */
 
-	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_close: Leaving ok\n");
+	dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_close: Leaving ok\n");
 
 	return (ret);
 }
@@ -173,7 +173,7 @@ om_mymodule_close (struct filed *f, void *ctx) {
 int
 om_mymodule_flush (struct filed *f, void *context) {
 
-	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_flush: Entering\n");
+	dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_flush: Entering\n");
 	/* flush any pending output */
 
 	/* return:
@@ -181,7 +181,7 @@ om_mymodule_flush (struct filed *f, void *context) {
 			-1  BAD
 	 */
 
-	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_flush: Leaving ok\n");
+	dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_flush: Leaving ok\n");
 
 	return (1);
 }

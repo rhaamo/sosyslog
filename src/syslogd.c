@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.182 2001/03/14 22:31:30 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.183 2001/03/14 23:25:48 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.182 2001/03/14 22:31:30 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.183 2001/03/14 23:25:48 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -116,6 +116,7 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.182 2001/03/14 22:31:30 alejo Exp
 #include <unistd.h>
 #include <poll.h>
 #include <dlfcn.h>
+#include <stdarg.h>
 
 #define SYSLOG_NAMES
 #include <syslog.h>
@@ -233,7 +234,7 @@ main(int argc, char **argv)
 
         if ((main_lib = dlopen(INSTALL_LIBDIR "/" MLIBNAME_STR,
 	    DLOPEN_FLAGS)) == NULL) {
-                dprintf(DPRINTF_CRITICAL)("Error opening main library, [%s] "
+                dprintf(MSYSLOG_CRITICAL, "Error opening main library, [%s] "
                     "file [%s]\n", dlerror(), INSTALL_LIBDIR "/" MLIBNAME_STR);
                 return(-1);
         }
@@ -327,12 +328,12 @@ main(int argc, char **argv)
 	}
 
 	if ( Inputs.im_fd < 0 && Inputs.im_next == NULL ) {
-		dprintf(DPRINTF_SERIOUS)("syslogd: no inputs active\n");
+		dprintf(MSYSLOG_SERIOUS, "syslogd: no inputs active\n");
 		usage();
 	}
 
 	if ( (argc -= optind) != 0 )
-		dprintf(DPRINTF_SERIOUS)("syslogd: remaining command"
+		dprintf(MSYSLOG_SERIOUS, "syslogd: remaining command"
 		    " line not parsed!\n");
 
 	if (!Debug) {
@@ -395,7 +396,7 @@ main(int argc, char **argv)
 	place_signal(SIGPIPE, SIG_IGN);
 
 	if ( (alt_stack.ss_sp = malloc(SIGSTKSZ)) == NULL) {
-		dprintf(DPRINTF_CRITICAL)("malloc altstack struct");
+		dprintf(MSYSLOG_CRITICAL, "malloc altstack struct");
 		exit(-1);
 	}
 #if 0 /* should we do this on some OSs (ie. Aix)? */
@@ -513,7 +514,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	dprintf(DPRINTF_INFORMATIVE)("off & running....\n");
+	dprintf(MSYSLOG_INFORMATIVE, "off & running....\n");
 
 	init(0);
 	place_signal(SIGHUP, init);
@@ -523,7 +524,7 @@ main(int argc, char **argv)
 		log.im_mlen = MAXLINE;
 	log.im_mlen++;
 	if ( (log.im_msg = malloc(log.im_mlen)) == NULL) {
-		dprintf(DPRINTF_CRITICAL)("malloc log struct");
+		dprintf(MSYSLOG_CRITICAL, "malloc log struct");
 		exit(-1);
 	}
 
@@ -531,7 +532,7 @@ main(int argc, char **argv)
 		int count, i, done;
 
 		if (fd_inputs == NULL) {
-			dprintf(DPRINTF_CRITICAL)("no input struct");
+			dprintf(MSYSLOG_CRITICAL, "no input struct");
 			exit(-1);
 		}
 
@@ -542,10 +543,10 @@ main(int argc, char **argv)
 		/* count will always be less than fd_in_count */
 		switch ( (count = poll(fd_inputs, fd_in_count, -1))) {
 		case 0:
-			dprintf(DPRINTF_INFORMATIVE)("main: poll returned 0\n");
+			dprintf(MSYSLOG_INFORMATIVE, "main: poll returned 0\n");
 			continue;
 		case -1:
-			dprintf(DPRINTF_INFORMATIVE)("main: poll returned "
+			dprintf(MSYSLOG_INFORMATIVE, "main: poll returned "
 			    "-1\n");
 			if (errno != EINTR)
 				logerror("select");
@@ -580,7 +581,7 @@ main(int argc, char **argv)
 				    (val = (*fd_inputs_mod[i]->im_func->im_read)
 				    (fd_inputs_mod[i], fd_inputs[i].fd,
 				    &log)) < 0) {
-					dprintf(DPRINTF_SERIOUS)("syslogd: "
+					dprintf(MSYSLOG_SERIOUS, "syslogd: "
 					    "Error calling input module %s, "
 					    "for fd %i\n",
 					    fd_inputs_mod[i]->im_func->im_name,
@@ -682,7 +683,7 @@ logmsg(int pri, char *msg, char *from, int flags)
 	time_t now;
 	struct tm timestamp;
 
-	dprintf(DPRINTF_INFORMATIVE2)("logmsg: pri 0%o, flags 0x%x, from %s,"
+	dprintf(MSYSLOG_INFORMATIVE2, "logmsg: pri 0%o, flags 0x%x, from %s,"
 	    " msg %s\n", pri, flags, from, msg);
 
 	sigemptyset(&mask);
@@ -763,12 +764,14 @@ logmsg(int pri, char *msg, char *from, int flags)
 			    && consfile.f_omod->om_func->om_close != NULL)
 				(*consfile.f_omod->om_func->om_close)
 				    (&consfile, consfile.f_omod->ctx);
-			if (consfile.f_omod->ctx)
-				free(consfile.f_omod->ctx);
-			if (consfile.f_omod->status)
-				free(consfile.f_omod->status);
-			free(consfile.f_omod);
-			consfile.f_omod = NULL;
+			if (consfile.f_omod) {
+				if (consfile.f_omod->ctx)
+					free(consfile.f_omod->ctx);
+				if (consfile.f_omod->status)
+					free(consfile.f_omod->status);
+				free(consfile.f_omod);
+				consfile.f_omod = NULL;
+			}
 		}
 		sigprocmask(SIG_SETMASK, &omask, NULL);
 		return;
@@ -803,7 +806,7 @@ logmsg(int pri, char *msg, char *from, int flags)
 		    !strcmp(from, f->f_prevhost)) {
 			memcpy(&f->f_tm, &timestamp, sizeof(f->f_tm));
 			f->f_prevcount++;
-			dprintf(DPRINTF_INFORMATIVE)("msg repeated %d times,"
+			dprintf(MSYSLOG_INFORMATIVE, "msg repeated %d times,"
 			    " %ld sec of %d\n", f->f_prevcount,
 			    (long)(now - f->f_time),
 			    repeatinterval[f->f_repeatcount]);
@@ -870,7 +873,7 @@ doLog(struct filed *f, int flags, char *message)
 	time(&f->f_time);
 	for (om = f->f_omod; om; om = om->om_next) {
 		if (!om->om_func || !om->om_func->om_write) {
-			dprintf(DPRINTF_SERIOUS)("doLog: error, no write "
+			dprintf(MSYSLOG_SERIOUS, "doLog: error, no write "
 			    "function in output module [%s], message [%s]\n",
 			    om->om_func->om_name, msg);
 			continue;
@@ -879,7 +882,7 @@ doLog(struct filed *f, int flags, char *message)
 		/* call this module write */
 		ret = (*(om->om_func->om_write))(f,flags,msg,om->ctx);
 		if (ret < 0) {
-			dprintf(DPRINTF_SERIOUS)("doLog: error with output "
+			dprintf(MSYSLOG_SERIOUS, "doLog: error with output "
 			    "module [%s] for message [%s]\n",
 			    om->om_func->om_name, msg);
 		} else if (ret == 0)
@@ -924,7 +927,7 @@ markit(void)
 	for (f = Files; f; f = f->f_next) {
 		if (f->f_prevcount && now >= REPEATTIME(f)) {
 			/* we should report this based on module */
-			dprintf(DPRINTF_INFORMATIVE)("flush: repeated %d "
+			dprintf(MSYSLOG_INFORMATIVE, "flush: repeated %d "
 			    "times, %d sec.\n", f->f_prevcount,
 			    repeatinterval[f->f_repeatcount]);
 			doLog(f, 0, (char *)NULL);
@@ -952,7 +955,7 @@ logerror(char *type) {
 	else
 		(void)snprintf(buf, sizeof(buf), "syslogd: %s", type);
 	errno = 0;
-	dprintf(DPRINTF_INFORMATIVE)("%s\n", buf);
+	dprintf(MSYSLOG_INFORMATIVE, "%s\n", buf);
 	logmsg(LOG_SYSLOG|LOG_ERR, buf, LocalHostName, ADDDATE);
 }
 
@@ -974,7 +977,7 @@ die(int signo) {
 	Initialized = was_initialized;
 
 	if (signo) {
-		dprintf(DPRINTF_SERIOUS)("syslogd: exiting on signal %d\n",
+		dprintf(MSYSLOG_SERIOUS, "syslogd: exiting on signal %d\n",
 		    signo);
 		(void)sprintf(buf, "exiting on signal %d", signo);
 		errno = 0;
@@ -1021,7 +1024,7 @@ init(int signo)
  	char prog[NAME_MAX+1];
 	struct o_module *om, *om_next;
 
-	dprintf(DPRINTF_INFORMATIVE)("init\n");
+	dprintf(MSYSLOG_INFORMATIVE, "init\n");
 
 	/*
 	 *  Close all open log files.
@@ -1072,7 +1075,7 @@ init(int signo)
 	/* Load main modules library */
 	if ((main_lib = dlopen( INSTALL_LIBDIR "/" MLIBNAME_STR,
 	    DLOPEN_FLAGS)) == NULL) {
-		dprintf(DPRINTF_CRITICAL)("Error opening main library,"
+		dprintf(MSYSLOG_CRITICAL, "Error opening main library,"
 		    " [%s] file [%s]\n", dlerror(), INSTALL_LIBDIR "/"
 		    MLIBNAME_STR);
 		exit(-1);
@@ -1094,16 +1097,16 @@ init(int signo)
 
 	/* open the configuration file */
 	if ((cf = fopen(ConfFile, "r")) == NULL) {
-		dprintf(DPRINTF_SERIOUS)("cannot open %s\n", ConfFile);
+		dprintf(MSYSLOG_SERIOUS, "cannot open %s\n", ConfFile);
 		if ( (*nextp = (struct filed *) calloc(1, sizeof(*f)))
 		    == NULL) {
-			dprintf(DPRINTF_CRITICAL)("calloc struct filed");
+			dprintf(MSYSLOG_CRITICAL, "calloc struct filed");
 			exit(-1);
 		}
 		cfline("*.ERR\t/dev/console", *nextp, "*");
 		if ( ((*nextp)->f_next = (struct filed *) calloc(1, sizeof(*f)))
 		    == NULL) {
-			dprintf(DPRINTF_CRITICAL)("calloc struct filed");
+			dprintf(MSYSLOG_CRITICAL, "calloc struct filed");
 			exit(-1);
 		}
 		cfline("*.PANIC\t*", (*nextp)->f_next, "*");
@@ -1155,7 +1158,7 @@ init(int signo)
 			}
 		*p = '\0';
 		if ( (f = (struct filed *)calloc(1, sizeof(*f))) == NULL) {
-			dprintf(DPRINTF_CRITICAL)("calloc struct filed");
+			dprintf(MSYSLOG_CRITICAL, "calloc struct filed");
 			exit(-1);
 		}
 		*nextp = f;
@@ -1168,7 +1171,7 @@ init(int signo)
 
 	Initialized = 1;
 
-	if (Debug >= DPRINTF_SERIOUS) {
+	if (Debug >= MSYSLOG_SERIOUS) {
 		for (f = Files; f; f = f->f_next) {
 			for (i = 0; i <= LOG_NFACILITIES; i++)
 				if (f->f_pmask[i] == INTERNAL_NOPRI)
@@ -1191,7 +1194,7 @@ init(int signo)
 	}
 
 	logmsg(LOG_SYSLOG|LOG_INFO, "syslogd: restart", LocalHostName, ADDDATE);
-	dprintf(DPRINTF_INFORMATIVE)("syslogd: restarted\n");
+	dprintf(MSYSLOG_INFORMATIVE, "syslogd: restarted\n");
 }
 
 /*
@@ -1203,7 +1206,7 @@ cfline(char *line, struct filed *f, char *prog) {
 	char *bp, *p, *q;
 	char buf[MAXLINE], ebuf[100];
 
-	dprintf(DPRINTF_INFORMATIVE)("cfline(\"%s\", f, \"%s\")\n", line,
+	dprintf(MSYSLOG_INFORMATIVE, "cfline(\"%s\", f, \"%s\")\n", line,
 	    prog);
 
 	errno = 0;	/* keep strerror() stuff out of logerror messages */
@@ -1283,11 +1286,11 @@ cfline(char *line, struct filed *f, char *prog) {
 		p++;
 
 	if (omodule_create(p, f, NULL) == -1) {
-		dprintf(DPRINTF_SERIOUS)("Error initializing modules!\n");
+		dprintf(MSYSLOG_SERIOUS, "Error initializing modules!\n");
 		return;
 	}
 
-	dprintf(DPRINTF_INFORMATIVE)("cfline: all ok\n");
+	dprintf(MSYSLOG_INFORMATIVE, "cfline: all ok\n");
 }
 
 /*
@@ -1305,7 +1308,7 @@ getmsgbufsize()
 	mib[1] = KERN_MSGBUFSIZE;
 	size = sizeof msgbufsize;
 	if (sysctl(mib, 2, &msgbufsize, &size, NULL, 0) == -1) {
-		dprintf(DPRINTF_INFORMATIVE)("couldn't get kern.msgbufsize\n");
+		dprintf(MSYSLOG_INFORMATIVE, "couldn't get kern.msgbufsize\n");
 		return (0);
 	}
 
@@ -1357,12 +1360,12 @@ add_fd_input(int fd, struct i_module *im)
 {
 
 	if ( fd < 0 || im == NULL) {
-		dprintf(DPRINTF_INFORMATIVE)("add_fd_input: error on params"
+		dprintf(MSYSLOG_INFORMATIVE, "add_fd_input: error on params"
 		    " %d%s\n", fd, im ? "" : " null im");
 		return (-1);
 	}
 
-	dprintf(DPRINTF_INFORMATIVE)("add_fd_input: adding fd %d "
+	dprintf(MSYSLOG_INFORMATIVE, "add_fd_input: adding fd %d "
 	    "for module %s\n", fd, im->im_func->im_name ?
 	    im->im_func->im_name : "unknown");
 
@@ -1372,7 +1375,7 @@ add_fd_input(int fd, struct i_module *im)
 		if ( (fd_inputs = (struct pollfd *) realloc(fd_inputs,
 		    (size_t) (fd_in_count + 50) * sizeof(struct pollfd)))
 		    == NULL) {
-			dprintf(DPRINTF_CRITICAL)("realloc inputs");
+			dprintf(MSYSLOG_CRITICAL, "realloc inputs");
 			exit(-1);
 		}
 
@@ -1380,7 +1383,7 @@ add_fd_input(int fd, struct i_module *im)
 		    realloc(fd_inputs_mod, (size_t) (fd_in_count + 50)
 		    * sizeof(struct i_module *)))
 		    == NULL) {
-			dprintf(DPRINTF_CRITICAL)("realloc inputs");
+			dprintf(MSYSLOG_CRITICAL, "realloc inputs");
 			exit(-1);
 		}
 
@@ -1449,3 +1452,21 @@ place_signal(int signo, RETSIGTYPE (*func)(int))) (int)
 	return(oldact.sa_handler);
 }
 
+/*
+ * Report errors on debug active
+ */
+
+int
+dprintf(const int level, char const *fmt, ...)
+{
+	int ret;
+	va_list var;
+
+	if (level >= Debug)
+		return (1);
+
+	va_start(var, fmt);
+	ret = vfprintf(stderr, fmt, var);
+	va_end(var);
+	return(ret);
+}

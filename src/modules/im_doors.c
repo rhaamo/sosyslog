@@ -1,4 +1,4 @@
-/*      $CoreSDI: im_doors.c,v 1.11 2001/03/06 21:49:43 alejo Exp $   */
+/*      $CoreSDI: im_doors.c,v 1.12 2001/03/07 21:35:14 alejo Exp $   */
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -71,10 +71,10 @@ im_doors_init(struct i_module *I, char **argv, int argc)
 	char *door_path = DEFAULT_DOOR;
 	int fd;
 
-	dprintf(DPRINTF_INFORMATIVE)("im_doors_init: Entering\n");
+	dprintf(MSYSLOG_INFORMATIVE, "im_doors_init: Entering\n");
 
 	if (argc < 1 || argc > 2) {
-		dprintf(DPRINTF_SERIOUS)("doors usage: -i doors[:path]\n\n");
+		dprintf(MSYSLOG_SERIOUS, "doors usage: -i doors[:path]\n\n");
 		return (-1);
 	}
 
@@ -83,35 +83,35 @@ im_doors_init(struct i_module *I, char **argv, int argc)
 
 	if (unlink(door_path) == -1) {
 		if (errno != ENOENT) {
-			dprintf(DPRINTF_SERIOUS)("im_doors: unlink(%s): %s\n",
+			dprintf(MSYSLOG_SERIOUS, "im_doors: unlink(%s): %s\n",
 			    door_path, strerror (errno));
 			return (-1);
 		}
-		dprintf(DPRINTF_INFORMATIVE)("%s didn't exist; it will be "
+		dprintf(MSYSLOG_INFORMATIVE, "%s didn't exist; it will be "
 		    "created\n", door_path);
 	}
 
 	if ((fd = open (door_path, O_CREAT | O_RDWR, 00644)) == -1) {
-		dprintf(DPRINTF_SERIOUS)("im_doors: open(%s): %s\n", door_path,
+		dprintf(MSYSLOG_SERIOUS, "im_doors: open(%s): %s\n", door_path,
 		    strerror (errno));
 		return (-1);
 	}
 
 	if (close(fd) == -1) {
 		/* if close() fails here, there's probably an fs error */
-		dprintf(DPRINTF_SERIOUS)("im_doors: close(%s): %s\n",
+		dprintf(MSYSLOG_SERIOUS, "im_doors: close(%s): %s\n",
 		    door_path, strerror (errno));
 		return (-1);
 	}
 
 	if ((fd = door_create(im_door_func, NULL, 0)) == -1) {
-		dprintf(DPRINTF_SERIOUS)("im_doors: door_create: %s\n",
+		dprintf(MSYSLOG_SERIOUS, "im_doors: door_create: %s\n",
 		    strerror (errno));
 		return (-1);
 	}
 
 	if (fattach(fd, door_path) == -1) {
-		dprintf(DPRINTF_SERIOUS)("im_doors: fattach(%s): %s\n",
+		dprintf(MSYSLOG_SERIOUS, "im_doors: fattach(%s): %s\n",
 		    door_path, strerror (errno));
 		return (-1);
 	}
@@ -137,14 +137,14 @@ void im_door_func(cookie, dataptr, datasize, descptr, ndesc)
 		logerror (logbuf);
 	} else {
 
-		dprintf(DPRINTF_INFORMATIVE)("door connection from uid %lu",
+		dprintf(MSYSLOG_INFORMATIVE, "door connection from uid %lu",
 		    (unsigned long)dcred.dc_euid);
 
 		if (dcred.dc_euid != dcred.dc_ruid)
-			dprintf(DPRINTF_INFORMATIVE) (" (%lu)",
+			dprintf(MSYSLOG_INFORMATIVE) (" (%lu)",
 			    (unsigned long)dcred.dc_ruid);
 
-		dprintf(DPRINTF_INFORMATIVE) ("\n");
+		dprintf(MSYSLOG_INFORMATIVE) ("\n");
 	}
 
 	/* this function does absolutely nothing except return */

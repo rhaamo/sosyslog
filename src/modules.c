@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.151 2001/03/06 21:49:42 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.152 2001/03/07 21:35:12 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -88,19 +88,19 @@ prepare_module_libs(const char *modname, void **ret) {
 	int i;
 	char buf[LIB_PATH_MAX];
 
-	dprintf(DPRINTF_INFORMATIVE)("prepare_module_libs: called for "
+	dprintf(MSYSLOG_INFORMATIVE, "prepare_module_libs: called for "
 	    "module:%s\n", modname);
 
 	snprintf(buf, sizeof(buf), "%s/" MLIBNAME_STR,
 	    libdir ? libdir : INSTALL_LIBDIR);
 
-	dprintf(DPRINTF_INFORMATIVE)("prepare_module_libs: Going to open %s\n",
+	dprintf(MSYSLOG_INFORMATIVE, "prepare_module_libs: Going to open %s\n",
 	    buf);
 
 	/* We don't care if it is not open */
 	*ret = dlopen(buf, DLOPEN_FLAGS);
 
-	dprintf(DPRINTF_INFORMATIVE)("prepare_module_libs: lib %s was "
+	dprintf(MSYSLOG_INFORMATIVE, "prepare_module_libs: lib %s was "
 	    "%sopened\n", buf, *ret == NULL?  "not " : "");
 
 #endif
@@ -127,14 +127,14 @@ get_symbol(const char *modname, const char *funcname, void *h, void **ret) {
 	if (main_lib == NULL || ( (*ret = dlsym(main_lib, buf)) == NULL &&
 	    (*ret = dlsym(main_lib, buf +  1)) == NULL ) ) {
 
-		dprintf(DPRINTF_INFORMATIVE)("get_symbol: func %s not found "
+		dprintf(MSYSLOG_INFORMATIVE, "get_symbol: func %s not found "
 		    "on main lib \n", buf);
 
 	}
 
 	if (*ret == NULL && h && ( (*ret = dlsym(h, buf)) == NULL &&
 	    (*ret = dlsym(h, buf + 1)) == NULL) ) {
-	   	dprintf(DPRINTF_SERIOUS)("get_symbol: error linking function "
+	   	dprintf(MSYSLOG_SERIOUS, "get_symbol: error linking function "
 		    "%s, %s\n", buf, dlerror());
 	   	return(-1);
 	}
@@ -159,7 +159,7 @@ imodule_create(struct i_module *I, char *line)
 
 	/* create initial node for Inputs list */
 	if (I == NULL) {
-	    dprintf(DPRINTF_SERIOUS)("imodule_create: Error from caller\n");
+	    dprintf(MSYSLOG_SERIOUS, "imodule_create: Error from caller\n");
 	    return (-1);
 	}
 
@@ -171,7 +171,7 @@ imodule_create(struct i_module *I, char *line)
 	} else {
 		if((im_prev->im_next = (struct i_module *) calloc(1,
 		    sizeof(struct i_module))) == NULL) {
-			dprintf(DPRINTF_SERIOUS)("No memory available for "
+			dprintf(MSYSLOG_SERIOUS, "No memory available for "
 			    "calloc\n");
 			return (-1);
 		}
@@ -298,7 +298,7 @@ omodule_create(char *c, struct filed *f, char *prog)
 					}
 				}
 
-				dprintf(DPRINTF_INFORMATIVE)("omodule_create: "
+				dprintf(MSYSLOG_INFORMATIVE, "omodule_create: "
 				    "got output module %s\n", argv[0]);
 
 				/* build argv and argc, modifies input p */
@@ -334,7 +334,7 @@ omodule_create(char *c, struct filed *f, char *prog)
 						p++;
 				}
 
-				dprintf(DPRINTF_INFORMATIVE)("omodule_create:"
+				dprintf(MSYSLOG_INFORMATIVE, "omodule_create:"
 				    " successfully made output module "
 				    "%s's argv[]\n", argv[0]);
 
@@ -378,7 +378,7 @@ omodule_create(char *c, struct filed *f, char *prog)
 
 	free(line);
 
-	dprintf(DPRINTF_INFORMATIVE)("omodule_create: all done for output "
+	dprintf(MSYSLOG_INFORMATIVE, "omodule_create: all done for output "
 	    "module %s\n", argv[0]);
 	return (1);
 
@@ -489,7 +489,7 @@ addImodule(char *name)
 
 		free(im);
 
-		dprintf(DPRINTF_SERIOUS)("addImodule: couldn't config %s input"
+		dprintf(MSYSLOG_SERIOUS, "addImodule: couldn't config %s input"
 		    " module\n", buf);
 		return(NULL);
 	}
@@ -499,7 +499,7 @@ addImodule(char *name)
 
 	im->im_name = strdup(name);
 
-	dprintf(DPRINTF_INFORMATIVE)("addImodule: successfully configured %s "
+	dprintf(MSYSLOG_INFORMATIVE, "addImodule: successfully configured %s "
 	    "input module\n", buf);
 
 	return (im);
@@ -549,7 +549,7 @@ addOmodule(char *name)
 	get_symbol(buf, "close", om->h, (void *) &om->om_close); 
 	get_symbol(buf, "flush", om->h, (void *) &om->om_flush); 
 
-	dprintf(DPRINTF_INFORMATIVE)("addOmodule: successfully configured %s "
+	dprintf(MSYSLOG_INFORMATIVE, "addOmodule: successfully configured %s "
 	    "output module\n", buf);
 
 
@@ -565,7 +565,7 @@ omoduleDestroy(struct omodule *om)
 		return (-1);
 
 	if (om->h && dlclose(om->h) < 0) {
-	   	dprintf(DPRINTF_SERIOUS)("Error [%s]\n", dlerror());
+	   	dprintf(MSYSLOG_SERIOUS, "Error [%s]\n", dlerror());
 		return (-1);
 	}
 

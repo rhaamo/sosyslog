@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.66 2001/03/06 21:56:02 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.67 2001/03/07 21:35:15 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -102,7 +102,7 @@ om_mysql_write(struct filed *f, int flags, char *msg, void *ctx)
 	int i;
 	RETSIGTYPE (*sigsave)(int);
 
-	dprintf(DPRINTF_INFORMATIVE)("om_mysql_write: entering [%s] [%s]\n",
+	dprintf(MSYSLOG_INFORMATIVE, "om_mysql_write: entering [%s] [%s]\n",
 	    msg, f->f_prevline);
 
 	c = (struct om_mysql_ctx *) ctx;
@@ -118,7 +118,7 @@ om_mysql_write(struct filed *f, int flags, char *msg, void *ctx)
 		place_signal(SIGPIPE, sigsave);
 		c->lost++;
 		if (c->lost == 1) {
-			dprintf(DPRINTF_SERIOUS)("om_mysql_write: Lost "
+			dprintf(MSYSLOG_SERIOUS, "om_mysql_write: Lost "
 			    "connection!");
 			logerror("om_mysql_write: Lost connection!");
 		}
@@ -160,7 +160,7 @@ om_mysql_write(struct filed *f, int flags, char *msg, void *ctx)
 		else
 			query[sizeof(query) - 1] = '\0';
 
-		dprintf(DPRINTF_INFORMATIVE2)("om_mysql_write: query [%s]\n",
+		dprintf(MSYSLOG_INFORMATIVE2, "om_mysql_write: query [%s]\n",
 		    query);
 
 		if ((c->mysql_query)(c->h, query) < 0)
@@ -178,7 +178,7 @@ om_mysql_write(struct filed *f, int flags, char *msg, void *ctx)
 	else
 		query[sizeof(query) - 1] = '\0';
 
-	dprintf(DPRINTF_INFORMATIVE2)("om_mysql_write: query [%s]\n",
+	dprintf(MSYSLOG_INFORMATIVE2, "om_mysql_write: query [%s]\n",
 	    query);
 
 	return ((c->mysql_query)(c->h, query) < 0 ? -1 : 1);
@@ -210,14 +210,14 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	    c == NULL || *c != NULL)
 		return (-1);
 
-	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: alloc context\n");
+	dprintf(MSYSLOG_INFORMATIVE, "om_mysql_init: alloc context\n");
 	/* alloc context */
 	if ((*c = (void *) calloc(1, sizeof(struct om_mysql_ctx))) == NULL)
 		return (-1);
 	ctx = (struct om_mysql_ctx *) *c;
 
 	if ((ctx->lib = dlopen("libmysqlclient.so", DLOPEN_FLAGS)) == NULL) {
-		dprintf(DPRINTF_SERIOUS)("om_mysql_init: Error loading"
+		dprintf(MSYSLOG_SERIOUS, "om_mysql_init: Error loading"
 		    " api library, %s\n", dlerror());
 		free(ctx);  
 		return (-1);
@@ -229,7 +229,7 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	    "mysql_real_connect"))
 	    || !(ctx->mysql_query = dlsym(ctx->lib, SYMBOL_PREFIX
 	    "mysql_query"))) {
-		dprintf(DPRINTF_SERIOUS)("om_mysql_init: Error resolving"
+		dprintf(MSYSLOG_SERIOUS, "om_mysql_init: Error resolving"
 		    " api symbols, %s\n", dlerror());
 		free(ctx);  
 		return (-1);
@@ -282,19 +282,16 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 		goto om_mysql_init_bad;
 	}
 
-	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: mysql_init returned %p\n",
+	dprintf(MSYSLOG_INFORMATIVE, "om_mysql_init: mysql_init returned %p\n",
 	    ctx->h);
 
-	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: params %p %s %s %s %i"
+	dprintf(MSYSLOG_INFORMATIVE, "om_mysql_init: params %p %s %s %s %i"
 	    " \n", ctx->h, ctx->host, ctx->user, ctx->db, ctx->port);
 
-	if (Debug) {
-		snprintf(statbuf, sizeof(statbuf), "om_mysql: sending "
-		    "messages to %s, database %s, table %s.", ctx->host,
-		    ctx->db, ctx->table);
-		*status = strdup(statbuf);
-	} else
-		*status = NULL;
+	snprintf(statbuf, sizeof(statbuf), "om_mysql: sending "
+	    "messages to %s, database %s, table %s.", ctx->host,
+	    ctx->db, ctx->table);
+	*status = strdup(statbuf);
 
 	if (!((ctx->mysql_real_connect)(ctx->h, ctx->host, ctx->user,
 	    ctx->passwd, ctx->db, ctx->port, NULL, 0)) ) {

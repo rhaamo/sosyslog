@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.13 2001/03/07 21:35:14 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.14 2001/03/15 20:38:17 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -109,9 +109,9 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 {
 	struct im_tcp_ctx *c;
 
-        dprintf(DPRINTF_INFORMATIVE)("im_tcp_init: entering\n");
+        dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: entering\n");
         if (argc != 3) {
-        	dprintf(DPRINTF_SERIOUS)("im_tcp: error on params! %d, should "
+        	dprintf(MSYSLOG_SERIOUS, "im_tcp: error on params! %d, should "
 		    "be 3\n", argc);
         	return (-1);
         }
@@ -122,7 +122,7 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 	c = (struct im_tcp_ctx *) I->im_ctx;
 
 	if ( (I->im_fd = listen_tcp(argv[1], argv[2], &c->addrlen)) < 0) {
-        	dprintf(DPRINTF_SERIOUS)("im_tcp: error with listen_tcp()\n");
+        	dprintf(MSYSLOG_SERIOUS, "im_tcp: error with listen_tcp()\n");
 		return (-1);
 	}
 
@@ -133,7 +133,7 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 
 	add_fd_input(I->im_fd , I);
 
-        dprintf(DPRINTF_INFORMATIVE)("im_tcp: running\n");
+        dprintf(MSYSLOG_INFORMATIVE, "im_tcp: running\n");
 
         return (1);
 }
@@ -152,7 +152,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 	int n;
 
 	if (im == NULL || ret == NULL) {
-		dprintf(DPRINTF_SERIOUS)("im_tcp_read: arg %s%s is null\n",
+		dprintf(MSYSLOG_SERIOUS, "im_tcp_read: arg %s%s is null\n",
 		    ret? "ret":"", im? "im" : "");
 		return (-1);
 	}
@@ -165,7 +165,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 
 		/* accept it and add to queue */
 		if ( (connfd = accept_tcp(infd, c->addrlen, &hname)) < 0) {
-			dprintf(DPRINTF_SERIOUS)("im_tcp: couldn't accept\n");
+			dprintf(MSYSLOG_SERIOUS, "im_tcp: couldn't accept\n");
 			return (-1);
 		}
 
@@ -173,7 +173,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		if (c->conns == NULL) {
 			if ( (con = (struct tcp_conn *)	
 			    calloc(1, sizeof(struct tcp_conn))) == NULL) {
-        			dprintf(DPRINTF_SERIOUS)("im_tcp: "
+        			dprintf(MSYSLOG_SERIOUS, "im_tcp: "
 				    "error allocating conn struct\n");
 				return (-1);
 			}
@@ -185,7 +185,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 				if ( (con->next = (struct tcp_conn *)	
 				    calloc(1, sizeof(struct tcp_conn)))
 				    == NULL) {
-        				dprintf(DPRINTF_SERIOUS)("im_tcp: "
+        				dprintf(MSYSLOG_SERIOUS, "im_tcp: "
 					    "error allocating conn struct\n");
 					return (-1);
 				}
@@ -196,7 +196,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		con->fd  = connfd;
 		con->name  = hname;
 
-		dprintf(DPRINTF_INFORMATIVE)("im_tcp_read: new conection from"
+		dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: new conection from"
 		    " %s with fd %d\n", con->name, con->fd);
 
 		/* add to inputs list */
@@ -208,14 +208,14 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 
 	/* read connected socket */
 
-	dprintf(DPRINTF_INFORMATIVE)("im_tcp_read: reading connection fd %d\n",
+	dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: reading connection fd %d\n",
 	    infd);
 
 	/* find connection */
 	for (con = c->conns; con && con->fd != infd; con = con->next);
 
 	if (con == NULL || con->fd != infd) {
-		dprintf(DPRINTF_SERIOUS)("im_tcp_read: no such connection "
+		dprintf(MSYSLOG_SERIOUS, "im_tcp_read: no such connection "
 		    "fd %d !\n", infd);
 		return (-1);
 	}
@@ -224,7 +224,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 	if (n == 0) {
 		struct tcp_conn *prev;
 
-		dprintf(DPRINTF_INFORMATIVE)("im_tcp_read: conetion from %s"
+		dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: conetion from %s"
 		    " closed\n", con->name);
 
 		remove_fd_input(con->fd);

@@ -1,4 +1,4 @@
-/*	$CoreSDI: ip_misc.c,v 1.6 2001/03/15 16:15:35 alejo Exp $	*/
+/*	$CoreSDI: ip_misc.c,v 1.7 2001/03/15 20:22:53 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -111,7 +111,7 @@ resolv_addr(struct sockaddr *addr, socklen_t addrlen)
 #endif /* HAVE_GETNAMEINFO */
 
 	if (n != 0) {
-	       	dprintf(DPRINTF_INFORMATIVE)("im_tcp: error resolving "
+	       	dprintf(MSYSLOG_INFORMATIVE, "im_tcp: error resolving "
 		    "remote host name! [%d]\n", n);
 		return (NULL);
 	}
@@ -141,7 +141,7 @@ resolv_name(const char *host, const char *port, socklen_t *salen)
 
 	if ( (i = getaddrinfo(host, port, &hints, &res)) != 0) {
 
-		dprintf(DPRINTF_INFORMATIVE)("resolv_name: error on address "
+		dprintf(MSYSLOG_INFORMATIVE, "resolv_name: error on address "
 		    "to listen %s, %s: %s\n", host, port, gai_strerror(i));
 
 		return (NULL);
@@ -165,7 +165,7 @@ resolv_name(const char *host, const char *port, socklen_t *salen)
 		portnum = 0;
 
 	if ( (hp = gethostbyname(host)) == NULL ) {
-		dprintf(DPRINTF_SERIOUS)("resolv_name: error resolving "
+		dprintf(MSYSLOG_SERIOUS, "resolv_name: error resolving "
 		    "host address %s, %s\n", host, port);
 		return (NULL);
 	}

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.48 2001/03/06 21:49:43 alejo Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.49 2001/03/07 21:35:14 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -111,7 +111,7 @@ im_unix_init(struct i_module *I, char **argv, int argc)
 	struct sockaddr_un sunx;
 	char *logger;
 
-	dprintf(DPRINTF_INFORMATIVE)("im_unix_init: Entering\n");
+	dprintf(MSYSLOG_INFORMATIVE, "im_unix_init: Entering\n");
 
 	if (I == NULL || argv == NULL || (argc != 2 && argc != 1)) 
 		return (-1);
@@ -136,7 +136,7 @@ im_unix_init(struct i_module *I, char **argv, int argc)
 		(void) snprintf(I->im_buf, sizeof(I->im_buf),
 		    "cannot create %s", logger);
 		logerror(I->im_buf);
-		dprintf(DPRINTF_SERIOUS)("cannot create %s (%d)\n",
+		dprintf(MSYSLOG_SERIOUS, "cannot create %s (%d)\n",
 		    logger, errno);
 		return (-1);
 	}

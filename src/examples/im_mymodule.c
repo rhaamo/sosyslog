@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_mymodule.c,v 1.9 2001/03/06 21:49:43 alejo Exp $	*/
+/*	$CoreSDI: im_mymodule.c,v 1.10 2001/03/07 21:35:13 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -54,11 +54,11 @@ int
 im_mymodule_read(struct i_module *im, int index, struct im_msg *ret)
 {
 
-	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_read: Entering\n");
+	dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_read: Entering\n");
 
 	/* read from input */
 
-	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_read: Leaving\n");
+	dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_read: Leaving\n");
 
 	return (1);
 }
@@ -71,11 +71,11 @@ im_mymodule_read(struct i_module *im, int index, struct im_msg *ret)
 int
 im_mymodule_init (struct i_module *I, char **argv, int argc)
 {
-	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_init: Entering\n");
+	dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_init: Entering\n");
 
 	/* initialize */
 
-	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_init: Leaving\n");
+	dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_init: Leaving\n");
 
 	add_fd_input(I->im_fd , I, 0);
 
@@ -89,11 +89,11 @@ im_mymodule_init (struct i_module *I, char **argv, int argc)
 int
 im_mymodule_close (struct i_module *im) 
 {
-	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_close: Entering\n");
+	dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_close: Entering\n");
 
 	/* close */
 
-	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_close: Leaving\n");
+	dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_close: Leaving\n");
 
         return (1);
 }
