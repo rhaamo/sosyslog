@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.125 2000/09/15 00:32:26 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.126 2000/09/15 21:03:06 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.125 2000/09/15 00:32:26 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.126 2000/09/15 21:03:06 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -127,7 +127,7 @@ typedef struct _code {
 } CODE;
 #endif
  
-#ifndef HAVE_PRIORITYNAMES
+#ifdef NEED_PRIORITYNAMES
 CODE prioritynames[] = {
         { "alert",      LOG_ALERT },
         { "crit",       LOG_CRIT },
@@ -482,6 +482,19 @@ main(int argc, char **argv) {
 					printline(log.im_host, log.im_msg, im->im_flags);
 				}
 			}
+			/* silently DROP what comes */
+			if ((finet > 0) && !(DaemonFlags & SYSLOGD_FINET_READ) &&
+					(FD_ISSET(finet, &readfds))) {
+
+				struct sockaddr_in frominet;
+				int len = sizeof(frominet);
+				char line[MAXLINE];
+
+				recvfrom(finet, line, MAXLINE, 0,
+						(struct sockaddr *)&frominet, &len);
+			}
+
+
 		}
 	}
 
