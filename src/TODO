@@ -1,4 +1,4 @@
-/*	$CoreSDI: TODO,v 1.82 2001/04/25 19:22:30 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.83 2001/04/26 22:01:10 alejo Exp $	*/
 
 FOR THIS RELEASE
 
@@ -25,6 +25,7 @@ FOR UNKNOWN FUTURE
 
 - Use one function per module, with action as a parameter.
 - Check linux kernel 2.4 potential header problems
+- Let im_tcp do the connect, and om_tcp do the listen.
 
 For handling errors logging in a particular module, create a om_onerror
 function to do proper reinit or whatever (and after that the module should
