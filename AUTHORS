@@ -1,17 +1,17 @@
-$Id: AUTHORS,v 1.1 2000/12/04 23:25:26 alejo Exp $
+$Id: AUTHORS,v 1.2 2001/10/18 20:32:35 alejo Exp $
 
 We are probably omiting some authors. If you know about them, please notify
-developers by mail at core.devel.alat@core-sdi.com
+developers by mail at core.devel.alat@corest.com
 
 Eric Allman wrote the original BSD syslog
 Ralph Campbell made extensive changes
 Eric Allman then did more extensive changes
 The NetBSD project (www.netbsd.org) adapted it
 The OpenBSD project(www.openbsd.org) project did a security audit and adapted it
-Alejo Sanchez (alejo@core-sdi.com) developed Modular Syslog for Core-SDI
+Alejo Sanchez (alejo@corest.com) developed Modular Syslog for Core-SDI
 coding specially autoconf sql support, and dynamic library use.
-Federico Schwindt (fgsch@core-sdi.com) did configure
-Claudio Castiglia (claudio@core-sdi.com) did makefile work
+Federico Schwindt (fgsch@corest.com) did configure
+Claudio Castiglia (claudio@corest.com) did makefile work
 The Core-SDI consulting project did security audit for msyslog 1.0
 
 Current ALAT project (msyslog, auditd, etc.) coordinator is Federico Schwindt,

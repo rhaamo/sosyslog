@@ -1,4 +1,4 @@
-/*	$CoreSDI: sql_misc.c,v 1.9 2001/03/06 21:49:44 alejo Exp $	*/
+/*	$CoreSDI: sql_misc.c,v 1.10 2001/03/07 21:35:15 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -32,7 +32,7 @@
 /*
  * sql_misc - Functions shared by SQL modules
  *
- * Author: Gerardo_Richarte@core-sdi.com
+ * Author: Gerardo_Richarte@corest.com
  *         Extracted from om_pgsql.c by Oliver Teuber (ot@penguin-power.de)
  *
  */

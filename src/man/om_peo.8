@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_peo.8,v 1.16 2001/03/07 21:35:13 alejo Exp $
+.\"	$CoreSDI: om_peo.8,v 1.17 2001/06/14 04:53:30 alejo Exp $
 .\"
 .\" Copyright (c) 2001
 .\"	Core-SDI SA. All rights reserved.
@@ -95,7 +95,7 @@ You should generate the initial key with
 program, then rotate the logfile(s) and restart msyslog. Afterwards
 you can check the logfile integrity with the same program.
 .Sh SEE ALSO
-.Li Vcr and Peo Revised documentation - http://www.core-sdi.com/papers/peo.ps
+.Li Vcr and Peo Revised documentation - http://www.corest.com/papers/peo.ps
 .Xr peochk 8 ,
 .Xr syslogd 8 ,
 .Xr syslog.conf 5 ,
@@ -123,5 +123,12 @@ or
 .Pp
 .Dl *.err	%peo -k /var/ssyslog/.var.log.messages  %classic /var/log/messages.key
 .It
-If you found bugs, please report them to syslog-bugs@core-sdi.com
+Submit bugs at this project's Sourceforge Bug reporting system at:
+http://sourceforge.net/tracker/?func=add&group_id=25741&atid=385117
+You may also report them directly to the authors; send an email to
+core.devel.alat@corest.com, describing the problem the most you can,
+containing also machine description, hardware description, the
+configuration file (/etc/syslog.conf), the OS description, and the
+invoking command line.
+The more you describe the bug, the faster we can fix it.
 .El

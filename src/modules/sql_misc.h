@@ -1,4 +1,4 @@
-/*	$CoreSDI: sql_misc.h,v 1.2 2000/10/31 19:42:15 alejo Exp $	*/
+/*	$CoreSDI: sql_misc.h,v 1.3 2001/03/07 21:35:15 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -32,7 +32,7 @@
 /*
  * sql_misc header - Functions shared by SQL modules
  *
- * Author: Gerardo_Richarte@core-sdi.com
+ * Author: Gerardo_Richarte@corest.com
  */
 
 int to_sql(char *, const char *, int);

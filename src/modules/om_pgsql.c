@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.45 2001/08/01 04:19:34 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.46 2001/08/06 20:22:39 claudio Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -37,7 +37,7 @@
  *
  * Changes:
  *
- * 06/08/2000 - Gerardo_Richarte@core-sdi.com
+ * 06/08/2000 - Gerardo_Richarte@corest.com
  *   Moved to_sql() to sql_misc.c to reuse it in om_mysql
  *   removed some code regarding msg being NULL, this is checked before calling
  *   write

@@ -1,4 +1,4 @@
-/*	$CoreSDI: README,v 1.13 2001/05/01 02:26:36 alejo Exp $	*/
+/*	$CoreSDI: README,v 1.14 2001/08/15 05:13:25 alejo Exp $	*/
 
 Installation
 ------------
@@ -19,10 +19,14 @@ more. The remaining things are Solaris support and Audit compatibility
 Reporting Bugs
 --------------
 
-Please send an email to core.devel.alat@core-sdi.com, describing the problem
-the most you can, containing also machine description, hardware
-description, the configuration file (/etc/syslog.conf), the OS
-description, and the invoking command line.
+Submit bugs at this project's Sourceforge Bug reporting system at:
+http://sourceforge.net/tracker/?func=add&group_id=25741&atid=385117
+
+You may also report them directly to the authors; send an email to
+core.devel.alat@corest.com, describing the problem the most you can,
+containing also machine description, hardware description, the
+configuration file (/etc/syslog.conf), the OS description, and the
+invoking command line.
 
 The more you describe the bug, the faster we can fix it.
 

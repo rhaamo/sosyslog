@@ -1,4 +1,4 @@
-$Id: INSTALL,v 1.13 2001/04/30 19:00:06 alejo Exp $
+$Id: INSTALL,v 1.14 2001/10/18 20:32:35 alejo Exp $
 ==============================================================================
                          Modular Syslog package
                              INSTALL file
@@ -27,7 +27,7 @@ at: arthur@korn.ch.
 1.a. Getting the last version
 
   The last version of the secure syslog package will always be available
-at http://www.core-sdi.com/english/freesoft.html. You may want to check
+at http://www.corest.com/english/freesoft.html. You may want to check
 out for a new release before installing.
   The distribution file should look like 'msyslog-X.XX.tar.gz'. Where
 X.XX stands for version number (i.e. 'msyslog-0.99.tar.gz'). You will
@@ -130,11 +130,11 @@ corresponding directory on the shell variable LD_PATH.
         developers or any other person interested in the inner
         working parts of msyslog.
 
-  Send a message to majordomo@core-sdi.com with the text:
+  Send a message to majordomo@corest.com with the text:
 
 subscribe list-name
 
 in the message body, replacing list-name by the name of the
 choosen list. You can also send an email to  the developers only
-at core.devel.alat@core-sdi.com.
+at core.devel.alat@corest.com.
 
