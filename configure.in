@@ -86,7 +86,7 @@ AC_SUBST(INSTALL_DIR)
 #	echo "Disabling MySQL support..."
 #fi
 
-VERSION=`grep VERSION src/syslogd.h | sed '/#define VERSION/s///'`
+VERSION=`grep VERSION src/syslogd.h | sed '/#define VERSION /s///'`
 
 HASH_SRCS="hash.c"
 AC_CHECK_FUNC(MD5Init, AC_DEFINE(HAVE_MD5),
@@ -97,146 +97,123 @@ AC_CHECK_FUNC(RMD160Init, AC_DEFINE(HAVE_RMD160),
 	HASH_SRCS="$HASH_SRCS rmd160.c")
 AC_SUBST(HASH_SRCS)
 
+AC_DEFUN(BEGIN_MODULES_CONF, [
+STATIC_MODULES="src/static_modules"
+FIRST_ADD_OUTPUT=1
+FIRST_ADD_INPUT=1
+cp -f $STATIC_MODULES.c.in $STATIC_MODULES.c
+printf "\
+/*\n\
+ * Automatically generated static modules header file\n\
+ */\n\n" > $STATIC_MODULES.h
+
+SSRCS=""
 unix=""
 udp=""
 bsd=""
 linux=""
 classic=""
 peo=""
-regex=""
 mysql=""
 pgsql=""
-SSRCS=""
-DSRCS=""
-eval `./modules_conf.sh < modules.conf`
-if test "$unix"
+regex=""
+eval `cat ./modules.conf`
+])
+
+AC_DEFUN(END_MODULES_CONF, [
+AC_SUBST(SSRCS)
+printf "\treturn(0);\n}\n" >> $STATIC_MODULES.c
+])
+
+AC_DEFUN(add_om, [ 
+printf "\
+extern int om_%s_init (int, char**, struct filed*, char*,\
+struct om_hdr_ctx**);\n\
+extern int om_%s_doLog (struct filed*, int, char*, struct om_hdr_ctx*);\n\
+extern int om_%s_flush (struct filed*, struct om_hdr_ctx*);\n\
+extern int om_%s_close (struct filed*, struct om_hdr_ctx*);\n" \
+$1 $1 $1 $1 >> $STATIC_MODULES.h
+
+printf "\
+\tif ( (om = (struct omodule*)calloc(1, sizeof(struct omodule))) == NULL)\n\
+\t\treturn(-1);\n" >> $STATIC_MODULES.c
+
+if test "$FIRST_ADD_OUTPUT"
 then
-	SRC="im_unix.c"
-	if test "$unix" = "static"
-	then
-		SSRCS="$SSRCS $SRC"
-	else
-		DUNIX_SRC="$DSRCS $SRC"
-		DUNIX="libim_unix.so"
-	fi
+        printf "\tolast = omodules = om;\n" >> $STATIC_MODULES.c
+        FIRST_ADD_OUTPUT=""
+else
+        printf "\tolast->om_next = om;\n\tolast = om;\n" >> $STATIC_MODULES.c
 fi
 
-if test "$udp"
+printf "\
+\tolast->om_name=\"%s\";\n\
+\tolast->om_init=om_%s_init;\n\
+\tolast->om_doLog=om_%s_doLog;\n\
+\tolast->om_flush=om_%s_flush;\n\
+\tolast->om_close=om_%s_close;\n\n" \
+$1 $1 $1 $1 $1 >> $STATIC_MODULES.c
+])
+
+AC_DEFUN(add_im, [
+printf "\
+extern int im_%s_init (struct i_module*, char**, int);\n\
+extern int im_%s_getLog (struct i_module*, struct im_msg*);\n\
+extern int im_%s_close (struct i_module*);\n" \
+$1 $1 $1 >> $STATIC_MODULES.h
+
+printf "\
+\tif ( (im = (struct imodule*)calloc(1, sizeof(struct imodule))) == NULL)\n\
+\t\treturn(-1);\n" >> $STATIC_MODULES.c
+
+if test "$FIRST_ADD_INPUT"
 then
-	SRC="im_udp.c"
-	if test "$udp" = "static"
-	then
-		SSRCS="$SSRCS $SRC"
-	else
-		DUDP_SRC="$DSRCS $SRC"
-		DUDP="libim_udp.so"
-	fi
+        printf "\tilast = imodules = im;\n" >> $STATIC_MODULES.c
+        FIRST_ADD_INPUT=""
+else
+        printf "\tilast->im_next = im;\n\tilast = im;\n" >> $STATIC_MODULES.c
 fi
 
-if test "$bsd"
-then
-	SRC="im_bsd.c"
-	if test "$bsd" = "static"
-	then
-		SSRCS="$SSRCS $SRC"
-	else
-		DBSD_SRC="$DSRCS $SRC"
-		DBSD="libim_bsd.so"
-	fi
-fi
+printf "\
+\tilast->im_name=\"%s\";\n\
+\tilast->im_init=im_%s_init;\n\
+\tilast->im_getLog=im_%s_getLog;\n\
+\tilast->im_close=im_%s_close;\n\n" \
+$1 $1 $1 $1 >> $STATIC_MODULES.c
+])
 
-if test "$linux"
+AC_DEFUN(CHECK_MODULE, [
+AC_MSG_CHECKING([configuration for $1 module])
+if test "x$2" = "xstatic"
 then
-	SRC="im_linux.c"
-	if test "$linux" = "static"
-	then
-		SSRCS="$SSRCS $SRC"
-	else
-		DLINUX_SRC="$DSRCS $SRC"
-		DLINUX="libim_linux.so"
-	fi
+	SSRCS="$SSRCS $3" 
+	add_$4($1)
+	AC_MSG_RESULT([static]);
+elif test "x$2" = "xdynamic"
+then
+	D$1_SRC="$3"
+	D$1="lib$4_$1.so"
+	AC_SUBST(D$1)
+	AC_SUBST(D$1_SRC)
+	AC_MSG_RESULT([dynamic]);
+else
+	AC_MSG_RESULT([not activated])
 fi
+])
 
-if test "$classic"
-then
-	SRC="om_classic.c"
-	if test "$classic" = "static"
-	then
-		SSRCS="$SSRCS $SRC"
-	else
-		DCLASSIC_SRC="$DSRCS $SRC"
-		DCLASSIC="libom_classic.so"$VERSION
-	fi
-fi
-
-if test "$peo"
-then
-	SRC="om_peo.c"
-	if test "$peo" = "static"
-	then
-		SSRCS="$SSRCS $SRC"
-	else
-		DPEO_SRC="$DSRCS $SRC"
-		DPEO="libom_peo.so"
-	fi
-fi
-
-if test "$mysql"
-then
-	SRC="om_mysql.c sql_misc.c"
-	if test "$mysql" = "static"
-	then
-		SSRCS="$SSRCS $SRC"
-	else
-		DMYSQL_SRC="$DSRCS $SRC"
-		DMYSQL="libom_mysql.so"
-	fi
-fi
-
-if test "$pgsql"
-then
-	SRC="om_pgsql.c sql_misc.c"
-	if test "$pgsql" = "static"
-	then
-		SSRCS="$SSRCS $SRC"
-	else
-		DPGSQL_SRC="$DSRCS $SRC"
-		DPGSQL="libom_pgsql.so"
-	fi
-fi
-
-if test "$regex"
-then
-	SRC="om_regex.c"
-	if test "$regex" = "static"
-	then
-		SSRCS="$SSRCS $SRC"
-	else
-		DREGEX_SRC="$SRC"
-		DREGEX="libom_regex.so$VERSION"
-	fi
-fi
+BEGIN_MODULES_CONF()
+CHECK_MODULE(unix, $unix, im_unix.c, im)
+CHECK_MODULE(udp, $udp, im_udp.c, im)
+CHECK_MODULE(bsd, $bsd, im_bsd.c, im)
+CHECK_MODULE(linux, $linux, im_linux.c, im)
+CHECK_MODULE(classic, $classic, om_classic.c, om)
+CHECK_MODULE(peo, $peo, om_peo.c, om)
+CHECK_MODULE(mysql, $mysql, om_mysql.c, om)
+CHECK_MODULE(pgsql, $pgsql, om_pgsql.c, om)
+CHECK_MODULE(regex, $regex, om_regex.c, om)
+END_MODULES_CONF()
 
 LIBS="$LIBS -ldl"
 AC_SUBST(LIBS)
-AC_SUBST(SSRCS)
-AC_SUBST(DUNIX)
-AC_SUBST(DUDP)
-AC_SUBST(DBSD)
-AC_SUBST(DLINUX)
-AC_SUBST(DCLASSIC)
-AC_SUBST(DPEO)
-AC_SUBST(DMYSQL)
-AC_SUBST(DPGSQL)
-AC_SUBST(DREGEX)
-AC_SUBST(DUNIX_SRC)
-AC_SUBST(DUDP_SRC)
-AC_SUBST(DBSD_SRC)
-AC_SUBST(DLINUX_SRC)
-AC_SUBST(DCLASSIC_SRC)
-AC_SUBST(DPEO_SRC)
-AC_SUBST(DMYSQL_SRC)
-AC_SUBST(DPGSQL_SRC)
-AC_SUBST(DREGEX_SRC)
 
 AC_OUTPUT([Makefile src/Makefile src/modules/Makefile src/peo/Makefile])

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.53 2000/06/16 00:26:57 alejo Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.54 2000/06/21 22:15:01 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -61,10 +61,7 @@
 
 
 int
-im_bsd_init(I, argv, argc)
-	struct i_module *I;
-	char	**argv;
-	int	argc;
+im_bsd_init(struct i_module *I, char **argv, int argc)
 {
 	if ((I->im_fd = open(_PATH_KLOG, O_RDONLY, 0)) < 0) {
 		dprintf("can't open %s (%d)\n", _PATH_KLOG, errno);
@@ -84,9 +81,7 @@ im_bsd_init(I, argv, argc)
  */
 
 int
-im_bsd_getLog(im, ret)
-	struct i_module *im;
-	struct im_msg  *ret;
+im_bsd_getLog(struct i_module *im, struct im_msg *ret)
 {
 	char *p, *q, *lp;
 	int i, c;
@@ -134,3 +129,15 @@ im_bsd_getLog(im, ret)
 	/* if ok return (2) wich means already logged */
 	return(im->im_fd == -1 ? -1: 2);
 }
+
+int
+im_bsd_close (struct i_module *im)
+{
+	if (im->im_fd >= 0)
+		close(im->im_fd);
+
+	return(0);
+}
+
+
+

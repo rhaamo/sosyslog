@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.7 2000/06/26 23:36:00 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.8 2000/06/27 01:22:08 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -37,27 +37,27 @@ INSTALL_LIBDIR=	@INSTALL_LIBDIR@
 
 SSRCS=		@SSRCS@
 SOBJS=		$(SSRCS:.c=.o)
-DUDP=		@DUDP@
-DBSD=		@DBSD@
-DLINUX=		@DLINUX@
-DCLASSIC=	@DCLASSIC@
-DPEO=		@DPEO@
+DUDP=		@Dudp@
+DBSD=		@Dbsd@
+DLINUX=		@Dlinux@
+DCLASSIC=	@Dclassic@
+DPEO=		@Dpeo@
 HASH_SRCS=	@HASH_SRCS@
 HASH_OJBS=	$(HASH_SRCS:.c=.o)
-DMYSQL=		@DMYSQL@
-DPGSQL=		@DPGSQL@
-DREGEX=		@DREGEX@
-DUNIX_SRC=	@DUNIX_SRC@
-DUDP_SRC=	@DUDP_SRC@
-DBSD_SRC=	@DBSD_SRC@
-DLINUX_SRC=	@DLINUX_SRC@
-DCLASSIC_SRC=	@DCLASSIC_SRC@
-DPEO_SRC=	@DPEO_SRC@
-DMYSQL_SRC=	@DMYSQL_SRC@
-DPGSQL_SRC=	@DPGSQL_SRC@
-DREGEX_SRC=	@DREGEX_SRC@
+DMYSQL=		@Dmysql@
+DPGSQL=		@Dpgsql@
+DREGEX=		@Dregex@
+DUNIX_SRC=	@Dunix_SRC@
+DUDP_SRC=	@Dudp_SRC@
+DBSD_SRC=	@Dbsd_SRC@
+DLINUX_SRC=	@Dlinux_SRC@
+DCLASSIC_SRC=	@Dclassic_SRC@
+DPEO_SRC=	@Dpeo_SRC@
+DMYSQL_SRC=	@Dmysql_SRC@
+DPGSQL_SRC=	@Dpgsql_SRC@
+DREGEX_SRC=	@Dregex_SRC@
 DUNIX_OBJ=	$(DUNIX_SRC:.c=.o)
-DUDP_OBJ=	$(DUDP_SRC:.c.o)
+DUDP_OBJ=	$(DUDP_SRC:.c=.o)
 DBSD_OBJ=	$(DBSD_SRC:.c=.o)
 DLINUX_OBJ=	$(DLINUX_SRC:.c=.o)
 DCLASSIC_OBJ=	$(DCLASSIC_SRC:.c=.o)
@@ -82,11 +82,11 @@ $(DUNIX):
 
 $(DUDP): 
 	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DUDP_SRC)
-	$(LD) -Bshareable -o $@ $(notdir $(DUDP_OBJ))
+	$(LD) -Bshareable -o $@ $(DUDP_OBJ)
 
 $(DBSD):
 	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DBSD_SRC)
-	$(LD) -Bshareable -o $@ $(notdir $(DBSD_OBJ))
+	$(LD) -Bshareable -o $@ $(DBSD_OBJ)
 
 $(DLINUX):
 	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DLINUX_SRC)
@@ -102,15 +102,15 @@ $(DPEO):
 
 $(DMYSQL):
 	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DMYSQL_SRC)
-	$(LD) -Bshareable -o $@ $(notdir $(DMYSQL_OBJ))
+	$(LD) -Bshareable -o $@ $(DMYSQL_OBJ)
 
 $(DPGSQL):
 	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DPGSQL_SRC)
-	$(LD) -Bshareable -o $@ $(notdir $(DPGSQL_OBJ))
+	$(LD) -Bshareable -o $@ $(DPGSQL_OBJ)
 
 $(DREGEX):
 	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DREGEX_SRC)
-	$(LD) -Bshareable -o $@ $(notdir $(DREGEX_OBJ))
+	$(LD) -Bshareable -o $@ $(DREGEX_OBJ)
 
 .PHONY:	clean distclean
 clean:
