@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_regex.8,v 1.4 2000/09/04 21:46:58 alejo Exp $
+.\"	$CoreSDI: om_regex.8,v 1.5 2000/09/04 23:46:20 alejo Exp $
 .\"
 .\" Copyright (c) 2000
 .\"	Core-SDI SA. All rights reserved.
@@ -41,8 +41,10 @@ output module used to filter and redirect logs
 .Op Fl mhdt Ar exp
 .Sh DESCRIPTION
 .Nm regex output module 
-receives a message and checks whether the regular expression exp matches
-fiven field of a log. You must select ONE of the following parameters:
+receives a message and checks whether the regular expression
+.Ar exp
+matches
+given field of a log. You must select ONE of the following parameters:
 .Bl -tag -width Ds
 .It Fl v
 reverse result
