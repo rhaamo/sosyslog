@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.34 2000/04/25 22:59:59 alejo Exp $
+/*	$Id: modules.c,v 1.35 2000/04/26 01:37:07 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -131,22 +131,23 @@ int omodule_create(c, f, prog)
 	char	*line, *p;
 	char	*argv[20];
 	int	argc;
-	struct o_module		*m;
+	struct o_module	*m, *prev;
 	char quotes=0;
 	int	i;
 
 	line = strdup(c);
-	p = line;
+	p = line; prev = NULL;
 
 	/* create context and initialize module for logging */
 	while (*p) {
 		if (f->f_mod == NULL) {
 			f->f_mod = (struct o_module *) calloc(1, sizeof *f->f_mod);
 			m = f->f_mod;
+			prev = NULL;
 		} else {
-			for (m = f->f_mod; m->om_next; m = m->om_next);
-			m->om_next = (struct o_module *) calloc(1, sizeof *f->f_mod);
-			m = m->om_next;
+			for (prev = f->f_mod; prev->om_next; prev = prev->om_next);
+			prev->om_next = (struct o_module *) calloc(1, sizeof *f->f_mod);
+			m = prev->om_next;
 		}
 
 		switch (*p) {
@@ -204,7 +205,16 @@ int omodule_create(c, f, prog)
 				m->om_type = OM_CLASSIC;
 				break;
 		}
-		(OModules[m->om_type].om_init)(argc, argv, f, prog, (void *) &(m->context));
+		if ((OModules[m->om_type].om_init)(argc, argv, f,
+				prog, (void *) &(m->context)) < 0) {
+			free(m);
+			m = NULL;
+			if (prev == NULL) {
+				f->f_mod = NULL;
+			} else {
+				prev->om_next = NULL;
+			}
+		}
 	}
 	free(line);
 	return(1);

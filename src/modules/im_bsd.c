@@ -91,16 +91,16 @@ im_bsd_getLog(im, ret)
 		                ret->flags |= IGN_CONS;
 		        }
 		        if (ret->pri &~ (LOG_FACMASK|LOG_PRIMASK))
-		         ret->pri = DEFSPRI;
+				ret->pri = DEFSPRI;
+			q = lp;
+			while (*p != '\0' && (c = *p++) != '\n' &&
+					q < &line[MAXLINE])
+				*q++ = c;
+			*q = '\0';
+			ret->msg = strdup(outLine);
+			ret->host = strdup(LocalHostName);
 		}
 
-		q = lp;
-		while (*p != '\0' && (c = *p++) != '\n' &&
-		        q < &line[MAXLINE])
-		    *q++ = c;
-		*q = '\0';
-		ret->msg = strdup(outLine);
-                ret->host = strdup(LocalHostName);
 	} else if (i < 0 && errno != EINTR) {
 		logerror("im_bsd_getLog");   
 		im->fd = -1;
