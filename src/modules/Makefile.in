@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.52 2000/11/03 23:52:10 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.53 2000/11/09 19:50:36 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -39,7 +39,7 @@ CPPFLAGS +=	@CPPFLAGS@
 LDCONFIG_FLAGS=	@LDCONFIG_FLAGS@
 
 INSTALL=	@INSTALL@
-INSTALL_LIBDIR=	@MSYSLOG_LIBDIR@
+INSTALL_LIBDIR=	${prefix}/lib/alat
 UNAME=		@UNAME@
 
 SSRCS=		@SSRCS@

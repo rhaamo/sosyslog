@@ -10,7 +10,7 @@ dnl but WITHOUT ANY WARRANTY, to the extent permitted by law; without
 dnl even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 dnl PARTICULAR PURPOSE.
 
-dnl	$CoreSDI: aclocal.m4,v 1.26 2000/11/09 19:45:55 alejo Exp $
+dnl	$CoreSDI: aclocal.m4,v 1.27 2000/11/09 20:28:11 alejo Exp $
 
 
 dnl
@@ -26,17 +26,6 @@ then
 	fi
 fi
 ])
-
-
-dnl
-dnl Check given library install directory
-dnl
-AC_DEFUN(MSYSLOG_CHECK_MSYSLOG_LIBDIR, [
-AC_ARG_WITH(msyslog-libdir,
-	[--with-msyslog-libdir=DIR        specify msyslog library dir],
-	[MSYSLOG_LIBDIR="$withval"],
-	[MSYSLOG_LIBDIR="${libprefix}/alat"]
-)])
 
 
 dnl

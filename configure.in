@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.66 2000/11/09 19:45:56 alejo Exp $
+dnl	$CoreSDI: configure.in,v 1.67 2000/11/09 23:39:13 alejo Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -8,7 +8,7 @@ echo msyslog version... $MSYSLOG_VERSION
 
 AC_PROG_CC
 AC_PROG_INSTALL
-AC_PREFIX_DEFAULT(/usr/local)
+dnl AC_PREFIX_DEFAULT(/usr/local)
 
 CFLAGS="-O2"
 LDFLAGS=
@@ -17,9 +17,8 @@ DCCFLAGS="-fPIC"
 LDCONFIG_FLAGS="-m"
 UNAME=`uname`
 
-
-MSYSLOG_CHECK_MSYSLOG_LIBDIR()
-AC_DEFINE_UNQUOTED(INSTALL_LIBDIR, "$MSYSLOG_LIBDIR")
+alatlibdir="${prefix}/lib/alat"
+AC_DEFINE_UNQUOTED(INSTALL_LIBDIR, "$alatlibdir")
 
 dnl
 dnl Check needed libs (Mostly for Solaris)
@@ -176,7 +175,7 @@ then
 fi
 dnl end manpage stuff
 
-AC_SUBST(MSYSLOG_LIBDIR)
+AC_SUBST(alatlibdir)
 AC_SUBST(HASH_SRCS)
 AC_SUBST(SHASH_SRCS)
 AC_SUBST(DHASH_SRCS)
@@ -195,6 +194,7 @@ AC_SUBST(PGSQL_CPPFLAGS)
 AC_SUBST(PGSQL_LIBS)
 AC_SUBST(MSYSLOG_VERSION)
 AC_SUBST(MANPAGES)
+AC_SUBST(INSTALL_LIBDIR)
 
 AC_OUTPUT([Makefile
 	   src/Makefile src/static_modules.h src/static_modules.c
