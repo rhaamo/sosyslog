@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.32 2000/06/09 21:31:16 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.33 2000/06/12 20:44:51 claudio Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -57,11 +57,6 @@
 #include "syslogd.h"
 #include "modules.h"
 
-#ifdef HAVE_LINUX
-#	define UT_NAME	ut.ut_user
-#else
-#	define UT_NAME	ut.ut_name
-#endif
 
 void	wallmsg (struct filed *, struct iovec *);
 char   *ttymsg (struct iovec *, int, char *, int);
@@ -340,7 +335,7 @@ wallmsg(f, iov)
 	}
 	/* NOSTRICT */
 	while (fread((char *)&ut, sizeof(ut), 1, uf) == 1) {
-		if (UT_NAME[0] == '\0')
+		if (ut.ut_name[0] == '\0')
 			continue;
 		strncpy(line, ut.ut_line, sizeof(ut.ut_line));
 		line[sizeof(ut.ut_line)] = '\0';
@@ -355,7 +350,7 @@ wallmsg(f, iov)
 		for (i = 0; i < MAXUNAMES; i++) {
 			if (!f->f_un.f_uname[i][0])
 				break;
-			if (!strncmp(f->f_un.f_uname[i], UT_NAME,
+			if (!strncmp(f->f_un.f_uname[i], ut.ut_name,
 			    UT_NAMESIZE)) {
 				if ((p = ttymsg(iov, 6, line, TTYMSGTIME))
 								!= NULL) {
