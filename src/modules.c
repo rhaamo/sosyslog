@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.101 2000/06/21 23:05:27 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.102 2000/06/27 01:22:07 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -67,7 +67,7 @@ modules_init (I, line)
 {
 	int argc;
 	char **argv, *p;
-	struct i_module *im;
+	struct i_module *im, *imprev;
 
 	/* create initial node for Inputs list */
 	if (I == NULL) {
@@ -75,17 +75,19 @@ modules_init (I, line)
 	    return(-1);
 	}
 
-	for (im = I; im->im_next != NULL; im = im->im_next);
-	if (im == I && im->im_fd > -1) {
-		im->im_next = (struct i_module *) calloc(1,
+	for (im_prev = I; im_prev->im_next != NULL; im_prev = im_prev->im_next);
+	if (im_prev == I && im_prev->im_fd > -1) {
+		im_prev->im_next = (struct i_module *) calloc(1,
 		    sizeof(struct i_module));
-		im = im->im_next;
+		im = im_prev->im_next;
 		im->im_fd = -1;
+		im->im_prev = im_prev;
 	}
 
 	for (p = line; *p != '\0'; p++)
 	    if (*p == ':')
 	        *p = ' ';
+
 	if ((argc = parseParams(&argv, line)) < 1) {
 	    dprintf("Error initializing module %s [%s]\n", argv[0], line);
 	    return(-1);
@@ -113,10 +115,10 @@ omodule_create(char *c, struct filed *f, char *prog)
 {
 	char	*line, *p, quotes, *argv[20];
 	int	argc;
-	struct o_module	*om, *prev;
+	struct o_module	*om, *om_prev;
 
 	line = strdup(c); quotes = 0;
-	p = line; prev = NULL;
+	p = line;
 
 	/* create context and initialize module for logging */
 	while (*p) {
@@ -124,11 +126,12 @@ omodule_create(char *c, struct filed *f, char *prog)
 			f->f_omod = (struct o_module *) calloc(1,
 			    	sizeof(*f->f_omod));
 			om = f->f_omod;
-			prev = NULL;
+			om_prev = NULL;
 		} else {
-			for (prev = f->f_omod; prev->om_next; prev = prev->om_next);
-			prev->om_next = (struct o_module *) calloc(1, sizeof *f->f_omod);
+			for (om_prev = f->f_omod; om_prev->om_next; om_prev = om_prev->om_next);
+			om_prev->om_next = (struct o_module *) calloc(1, sizeof *f->f_omod);
 			om = prev->om_next;
+			om->om_prev = om_prev;
 		}
 
 		switch (*p) {

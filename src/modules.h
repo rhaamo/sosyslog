@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.28 2000/06/16 00:26:55 alejo Exp $	*/
+/*	$CoreSDI: modules.h,v 1.29 2000/06/21 22:14:59 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -55,6 +55,7 @@ struct om_hdr_ctx {
 
 struct o_module {
 	struct	o_module *om_next;
+	struct	o_module *om_prev;
 	struct	omodule *om_func; /* where are this puppy's functions? */
 	struct  om_hdr_ctx	*ctx;
 };
@@ -65,6 +66,7 @@ struct o_module {
 
 struct i_module {
 	struct	 i_module *im_next;
+	struct	 i_module *im_prev;
 	struct	 imodule *im_func; /* where are this puppy's functions? */
 	int	 im_fd;	/*  for use with select() */
 	int	 im_flags;  /* input module should initialize this */
