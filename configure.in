@@ -1,17 +1,17 @@
-#	$CoreSDI: configure.in,v 1.33 2000/06/30 23:11:17 alejo Exp $
+dnl	$CoreSDI: configure.in,v 1.34 2000/06/30 23:39:07 claudio Exp $
+
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
+AC_PROG_CC
+AC_PROG_INSTALL
 
 MSYSLOG_VERSION=`awk '/#define VERSION/ { print $3 }' src/syslogd.h`
 echo msyslog version... $MSYSLOG_VERSION
 
 CFLAGS="-O -ggdb"
 LDFLAGS=
+LDCONFIG_FLAGS="-m"
 
-AC_PROG_CC
-AC_PROG_INSTALL
-
-LINUX_INSTALL="no"
 UNAME=`uname`
 if test "$UNAME" = "OpenBSD"
 then
@@ -21,10 +21,9 @@ elif test "$UNAME" = "Linux"
 then
 	echo Linux system detected
 	LIBS="$LIBS -ldl"
-	LINUX_INSTALL="yes"
+	LDCONFIG_FLAGS="-n"
 	AC_DEFINE(HAVE_LINUX)
 fi
-AC_SUBST(LINUX_INSTALL)
 
 AC_CHECK_HEADERS(paths.h)
 
@@ -132,16 +131,19 @@ LDFLAGS="$LDFLAGS -L$with_mysql/lib/mysql"
 LIBS="$LIBS -lmysqlclient"
 ])
 
+
+AC_DEFUN(CONF_PGSQL, [
+printf "\n\n\n>>>>>>> PGSQL Module libraries should be defined <<<<<<\n\n\n"
+])
+
+
 AC_DEFUN(BEGIN_MODULES_CONF, [
 STATIC_MODULES="src/static_modules"
 MODULES_DIR="src/modules"
 FIRST_ADD_OUTPUT=1
 FIRST_ADD_INPUT=1
-cp -f $STATIC_MODULES.c.in $STATIC_MODULES.c
-printf "\
-/*\n\
- * Automatically generated static modules header file\n\
- */\n\n" > $STATIC_MODULES.h
+SMODULES_HEADER=""
+SMODULES_LOAD=""
 
 SSRCS=""
 unix=""
@@ -156,76 +158,88 @@ regex=""
 eval `cat ./modules.conf`
 ])
 
+
 AC_DEFUN(END_MODULES_CONF, [
+AC_SUBST(SMODULES_HEADER)
+AC_SUBST(SMODULES_LOAD)
 AC_SUBST(SSRCS)
-printf "\treturn(0);\n}\n" >> $STATIC_MODULES.c
 ])
 
-AC_DEFUN(add_om, [ 
-printf "\
-extern int om_%s_init (int, char**, struct filed*, char*,\
-struct om_hdr_ctx**);\n\
-extern int om_%s_doLog (struct filed*, int, char*, struct om_hdr_ctx*);\n" \
-$1 $1 >> $STATIC_MODULES.h
 
-printf "\
-\tif ( (om = (struct omodule*)calloc(1, sizeof(struct omodule))) == NULL)\n\
-\t\treturn(-1);\n" >> $STATIC_MODULES.c
+AC_DEFUN(add_om, [ 
+SMODULES_HEADER="$SMODULES_HEADER \
+extern int \
+om_$1_init (int, char**, struct filed*, char*, struct om_hdr_ctx**); \
+extern int \
+om_$1_doLog (struct filed*, int, char*, struct om_hdr_ctx*);"
+
+SMODULES_LOAD="$SMODULES_LOAD \
+if ( (om = (struct omodule*)calloc(1, sizeof(struct omodule))) == NULL) \
+	return(-1);"
 
 if test "$FIRST_ADD_OUTPUT"
 then
-        printf "\tolast = omodules = om;\n" >> $STATIC_MODULES.c
+	SMODULES_LOAD="$SMODULES_LOAD \
+		olast = omodules = om;"
         FIRST_ADD_OUTPUT=""
 else
-        printf "\tolast->om_next = om;\n\tolast = om;\n" >> $STATIC_MODULES.c
+        SMODULES_LOAD="$SMODULES_LOAD \
+		olast->om_next = om; \
+		olast = om;"
 fi
 
-printf "\
-\tolast->om_name=\"%s\";\n\
-\tolast->om_init=om_%s_init;\n\
-\tolast->om_doLog=om_%s_doLog;\n" $1 $1 $1 >> $STATIC_MODULES.c
+SMODULES_LOAD="$SMODULES_LOAD \
+	olast->om_name=\"$1\"; \
+	olast->om_init=om_$1_init; \
+	olast->om_doLog=om_$1_doLog;"
 
 GREP(om_$1_flush, "$MODULES_DIR/$2", [
-printf "extern int om_%s_flush (struct filed*, struct om_hdr_ctx*);\n" \
-$1 >> $STATIC_MODULES.h
-printf "\tolast->om_flush=om_%s_flush;\n" $1 >> $STATIC_MODULES.c
+SMODULES_HEADER="$SMODULES_HEADER \
+	extern int om_$1_flush (struct filed*, struct om_hdr_ctx*);" 
+SMODULES_LOAD="$SMODULES_LOAD \
+	olast->om_flush=om_$1_flush;"
 ]) 
 
 GREP(om_$1_close, "$MODULES_DIR/$2", [
-printf "extern int om_%s_close (struct filed*, struct om_hdr_ctx*);\n" \
-$1 >> $STATIC_MODULES.h
-printf "\tolast->om_close=om_%s_close;\n\n" $1 >> $STATIC_MODULES.c ]) 
-
+SMODULES_HEADER="$SMODULES_HEADER \
+	extern int om_$1_close (struct filed*, struct om_hdr_ctx*);"
+SMODULES_LOAD="$SMODULES_LOAD \
+	olast->om_close=om_$1_close;" ])
 ])
 
-AC_DEFUN(add_im, [
-printf "\
-extern int im_%s_init (struct i_module*, char**, int);\n\
-extern int im_%s_getLog (struct i_module*, struct im_msg*);\n" \
-$1 $1 >> $STATIC_MODULES.h
 
-printf "\
-\tif ( (im = (struct imodule*)calloc(1, sizeof(struct imodule))) == NULL)\n\
-\t\treturn(-1);\n" >> $STATIC_MODULES.c
+AC_DEFUN(add_im, [
+SMODULES_HEADER="$SMODULES_HEADER \
+extern int im_$1_init (struct i_module*, char**, int); \
+extern int im_$1_getLog (struct i_module*, struct im_msg*);" 
+
+SMODULES_LOAD="$SMODULES_LOAD \
+if ( (im = (struct imodule*)calloc(1, sizeof(struct imodule))) == NULL) \
+	return(-1);"
 
 if test "$FIRST_ADD_INPUT"
 then
-        printf "\tilast = imodules = im;\n" >> $STATIC_MODULES.c
+        SMODULES_LOAD="$SMODULES_LOAD \
+	ilast = imodules = im;"
         FIRST_ADD_INPUT=""
 else
-        printf "\tilast->im_next = im;\n\tilast = im;\n" >> $STATIC_MODULES.c
+	SMODULES_LOAD="$SMODULES_LOAD \
+        ilast->im_next = im; \
+	ilast = im;"
 fi
 
-printf "\
-\tilast->im_name=\"%s\";\n\
-\tilast->im_init=im_%s_init;\n\
-\tilast->im_getLog=im_%s_getLog;\n" $1 $1 $1 >> $STATIC_MODULES.c
+SMODULES_LOAD="$SMODULES_LOAD \
+	ilast->im_name=\"$1\"; \
+	ilast->im_init=im_$1_init; \
+	ilast->im_getLog=im_$1_getLog;"
 
 GREP(im_$1_close, "$MODULES_DIR/$2", [
-printf "extern int im_%s_close (struct i_module*);\n" $1 >> $STATIC_MODULES.h
-printf "\tilast->im_close=im_%s_close;\n\n" $1 >> $STATIC_MODULES.c ]) 
-
+SMODULES_HEADER="$SMODULES_HEADER \
+	extern int im_$1_close (struct i_module*);"
+SMODULES_LOAD="$SMODULES_LOAD \
+	ilast->im_close=im_$1_close;" ])
 ])
+
 
 AC_DEFUN(CHECK_MODULE, [
 AC_MSG_CHECKING([configuration for $1 module])
@@ -237,7 +251,7 @@ then
 elif test "x$2" = "xdynamic"
 then
 	D$1_SRC="$3"
-	D$1="lib$1.so.$MSYSLOG_VERSION"
+	D$1="libmsyslog.$1.so.$MSYSLOG_VERSION"
 	AC_SUBST(D$1)
 	AC_SUBST(D$1_SRC)
 	AC_MSG_RESULT([dynamic]);
@@ -245,6 +259,7 @@ else
 	AC_MSG_RESULT([not activated])
 fi
 ])
+
 
 BEGIN_MODULES_CONF()
 CHECK_MODULE(unix, $unix, im_unix.c, im)
@@ -266,14 +281,24 @@ then
 	CONF_MYSQL()
 fi
 CHECK_MODULE(pgsql, $pgsql, om_pgsql.c sql_misc.c, om)
+if test "x$pgsql" = "xstatic" -o "x$pgsql" = "xdynamic"
+then
+	CONF_PGSQL()
+fi
 CHECK_MODULE(regex, $regex, om_regex.c, om)
 END_MODULES_CONF()
 
 AC_SUBST(HASH_SRCS)
 AC_SUBST(SHASH_SRCS)
 AC_SUBST(DHASH_SRCS)
+
+AC_SUBST(LINUX_INSTALL)
+AC_SUBST(LDCONFIG_FLAGS)
 AC_SUBST(LIBS)
 AC_SUBST(CFLAGS)
 AC_SUBST(LDFLAGS)
 
-AC_OUTPUT([Makefile src/Makefile src/modules/Makefile src/peo/Makefile])
+AC_OUTPUT([Makefile
+	   src/Makefile src/static_modules.h src/static_modules.c
+	   src/modules/Makefile
+	   src/peo/Makefile])

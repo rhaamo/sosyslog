@@ -1,4 +1,4 @@
-/*
+/* $CoreSDI: Id$
  * Automatically generated static modules initialization file
  */
 
@@ -22,4 +22,9 @@ modules_load()
 
 	imodules = NULL;
 	omodules = NULL;
+
+	@SMODULES_LOAD@
+
+	return(0);
+}
 
