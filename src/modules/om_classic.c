@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.53 2000/10/31 19:42:14 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.54 2000/11/01 18:18:03 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -58,6 +58,7 @@
 
 #include "../syslogd.h"
 #include "../modules.h"
+#include "../conditional.h"
 
 #define TTYMSGTIME	1		/* timeout passed to ttymsg */
 
