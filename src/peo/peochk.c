@@ -1,4 +1,4 @@
-/*	$CoreSDI: peochk.c,v 1.44 2001/03/06 21:49:44 alejo Exp $	*/
+/*	$CoreSDI: peochk.c,v 1.45 2001/03/07 21:35:16 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -70,7 +70,7 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 
-#if !((__svr4__ && __sun__) || sgi)
+#ifdef HAVE_ERR_H
 #include <err.h>
 #endif
 #include <errno.h>

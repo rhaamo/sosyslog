@@ -91,6 +91,7 @@
 #undef HAVE_UNISTD_H
 
 #undef HAVE_SYSCTL_H
+#undef HAVE_ERR_H
 
 #undef MSYSLOG_VERSION_STR
 #undef MLIBNAME_STR

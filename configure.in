@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.96 2001/03/10 00:34:15 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.97 2001/03/10 00:35:20 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -22,7 +22,7 @@ dnl AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 
 AC_CHECK_HEADERS(fcntl.h limits.h paths.h strings.h sys/ioctl.h \
-    sys/time.h syslog.h unistd.h sysctl.h )dnl
+    sys/time.h syslog.h unistd.h sysctl.h err.h sys/context.h )dnl
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST

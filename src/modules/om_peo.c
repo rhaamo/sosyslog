@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.65 2001/03/06 21:49:44 alejo Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.66 2001/03/07 21:35:15 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -53,7 +53,7 @@
 #include <sys/param.h>
 
 #include <ctype.h>
-#if !((__svr4__ && __sun__) || sgi)
+#ifdef HAVE_ERR_H
 #include <err.h>
 #endif
 #include <errno.h>
