@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.65 2000/11/03 23:52:10 alejo Exp $
+dnl	$CoreSDI: configure.in,v 1.66 2000/11/09 19:45:56 alejo Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -20,6 +20,14 @@ UNAME=`uname`
 
 MSYSLOG_CHECK_MSYSLOG_LIBDIR()
 AC_DEFINE_UNQUOTED(INSTALL_LIBDIR, "$MSYSLOG_LIBDIR")
+
+dnl
+dnl Check needed libs (Mostly for Solaris)
+dnl
+AC_CHECK_LIB(dl, dlopen)
+AC_CHECK_LIB(socket, connect)
+AC_CHECK_LIB(nsl, nlsenv)
+dnl AC_CHECK_LIB(resolv, gethostbyaddr)
 
 AC_CHECK_HEADERS(paths.h)
 AC_MSG_CHECKING(wheter optreset is needed)
