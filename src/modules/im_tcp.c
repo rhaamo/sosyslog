@@ -1,4 +1,4 @@
-/*	$Id: im_tcp.c,v 1.44 2003/02/22 03:40:58 jkohen Exp $	*/
+/*	$Id: im_tcp.c,v 1.45 2003/04/04 17:22:24 phreed Exp $	*/
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
  * All rights reserved
@@ -386,8 +386,8 @@ return (0);
 					          &n1, host, &n2) != 1 &&
 					   sscanf(thisline, "%*3s %*i %*i:%*i:%*i %n%89s %n",
 					          &n1, host, &n2) != 1 &&
-					   sscanf(thisline, "%n%89s %n",
-					          &n1, host, &n2) != 1)
+		         sscanf(ret->im_msg, "<%*d>%n%89s %n%*s", &n1, host, &n2) != 1 &&
+					   sscanf(thisline, "%n%89s %n", &n1, host, &n2) != 1)
 					  || im->im_buf[n2] == '\0')
 				{
 					m_dprintf(MSYSLOG_INFORMATIVE,

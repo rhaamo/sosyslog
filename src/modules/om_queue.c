@@ -115,6 +115,51 @@ struct om_queue_context {
   struct om_queue_element_node *footer_node;    /* the first footer's node */
 };
 
+struct xml_encoding {
+  char to_encode;
+  char encoding[16];
+};
+
+static struct xml_encoding encodings[] = {
+  { '&', "&amp;" },  /* AMPERSAND **MUST** GO FIRST !! */
+  { '<', "&lt;"  },
+  { '>', "&gt;"  },
+};
+
+static int no_encodings = sizeof(encodings)/sizeof(encodings[0]);
+
+static char *xml_encode(char *from, char *to, int to_length) {
+  int to1_length = strlen(from) * 6;
+  char to1[to1_length], to2[to1_length];
+
+  char *swap1 = to1, *swap2 = to2;
+  int ix;
+
+  strcpy(swap1, from);
+  for(ix = 0 ; ix < no_encodings ; ++ix) {
+
+    char to_encode = encodings[ix].to_encode;
+    char *encoding = encodings[ix].encoding;
+
+    char *position = swap1, *new_position;
+    char *swapper;
+
+    *swap2 = '\0';
+
+    while(  ( new_position = strchr(position, to_encode) )  !=  0  ) {
+      strncat(swap2, position, new_position - position);
+      strcat(swap2, encoding);
+      position = new_position + 1;
+    }
+    strcat(swap2, position);
+
+    swapper = swap1; swap1 = swap2; swap2 = swapper;
+  }
+
+  strncpy(to, swap1, to_length); to[to_length - 1] = '\0';
+
+return to;
+}
 
 /*  
   WRITE -- Write to the directory queue
@@ -190,26 +235,56 @@ return (-1);
 
     for( node = ctx->header_node; node != 0; node = node->element_node ) {
     if (! node->element) continue;
-      fprintf( filehandle, 
-          ((*node->payload == '\0') ? "\n<%s%s%s/>" : "\n<%s%s%s>%s</%s>"), 
-          node->element, (*node->attribute == '\0' ? "":" "), node->attribute,
-          node->payload, node->element );
-    } 
-    fprintf( filehandle, "\n<patient>%s</patient>", fil->f_prevhost );
 
+      if (*node->payload == '\0') {
+        fprintf( filehandle, "\n<%s%s%s/>",
+         node->element, (*node->attribute == '\0' ? "":" "), node->attribute );
+    continue;
+      }
+
+      int encoded_length = strlen(node->payload) * 6;
+      char encoded_payload[encoded_length];
+      fprintf( filehandle, "\n<%s%s%s>%s</%s>", 
+       node->element, (*node->attribute == '\0' ? "":" "), node->attribute,
+       xml_encode(node->payload, encoded_payload, encoded_length), node->element );
+    } 
+
+    {
+      int encoded_length = strlen(fil->f_prevhost) * 6;
+      char encoded_payload[encoded_length];
+      fprintf( filehandle, "\n<patient>%s</patient>",
+       xml_encode(fil->f_prevhost, encoded_payload, encoded_length) );
+    }
     fprintf( filehandle, "\n<timestamp>%d</timestamp>", (int)timer );
 
-    if (ctx->key) fprintf( filehandle, "\n<key>%s</key>", ctx->key );
+    if (ctx->key) {
+      int encoded_length = strlen(ctx->key) * 6;
+      char encoded_payload[encoded_length];
+      fprintf( filehandle, "\n<key>%s</key>",
+       xml_encode(ctx->key, encoded_payload, encoded_length) );
+    }
 
-    fprintf( filehandle, "\n<message facility=\"%d\" priority=\"%d\">%s</message>",
-                      msg->fac, msg->pri, msg->msg );
+    {
+      int encoded_length = strlen(msg->msg) * 6;
+      char encoded_payload[encoded_length];
+      fprintf( filehandle, "\n<message facility=\"%d\" priority=\"%d\">%s</message>",
+       msg->fac, msg->pri, xml_encode(msg->msg, encoded_payload, encoded_length) );
+    }
 
     for( node = ctx->footer_node; node != 0; node = node->element_node ) {
     if (! node->element) continue;
-      fprintf( filehandle, 
-          ((*node->payload == '\0') ? "\n<%s%s%s/>" : "\n<%s%s%s>%s</%s>"), 
-          node->element, (*node->attribute == '\0' ? "":" "), node->attribute,
-          node->payload, node->element );
+
+      if (*node->payload == '\0') {
+        fprintf( filehandle, "\n<%s%s%s/>",
+         node->element, (*node->attribute == '\0' ? "":" "), node->attribute );
+    continue;
+      }
+
+      int encoded_length = strlen(node->payload) * 6;
+      char encoded_payload[encoded_length];
+      fprintf( filehandle, "\n<%s%s%s>%s</%s>", 
+       node->element, (*node->attribute == '\0' ? "":" "), node->attribute,
+       xml_encode(node->payload, encoded_payload, encoded_length), node->element );
     } 
 
     { fprintf( filehandle, "\n</ticket>\n" ); }

@@ -1,4 +1,4 @@
- /*	$Id: im_udp.c,v 1.81 2003/04/01 21:07:26 phreed Exp $	*/
+ /*	$Id: im_udp.c,v 1.82 2003/04/04 17:22:24 phreed Exp $	*/
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
  * All rights reserved
@@ -209,10 +209,11 @@ im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 		int   n1 = 0;
 		int   n2 = 0;
 
-		if ((sscanf(ret->im_msg, "<%*d>%*3s %*i %*i:%*i:%*i %n%89s "
-		    "%n%*s", &n1, host, &n2) != 1
+		if ((sscanf(ret->im_msg, "<%*d>%*3s %*i %*i:%*i:%*i %n%89s %n%*s",
+           &n1, host, &n2) != 1
 		    && sscanf(ret->im_msg, "%*3s %*i %*i:%*i:%*i %n%89s %n%*s",
-		    &n1, host, &n2) != 1
+		       &n1, host, &n2) != 1
+		    && sscanf(ret->im_msg, "<%*d>%n%89s %n%*s", &n1, host, &n2) != 1
 		    && sscanf(ret->im_msg, "%n%89s %n%*s", &n1, host, &n2) != 1)
 		    || ret->im_msg[n2] == '\0') {
 
