@@ -1,4 +1,4 @@
-/*	$CoreSDI: TODO,v 1.50 2000/11/04 00:02:17 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.51 2000/11/06 23:36:16 alejo Exp $	*/
 
 Things to do:
 
@@ -10,6 +10,8 @@ Things to do:
 - No more autoconf, just plain Makefiles
 - redo parsing functions
 - CHECK LIBC and GLIBC's way to work
+- More docs on source code
+- unify documentation
 
 FOR FUTURE WORKING
 
