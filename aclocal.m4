@@ -1,4 +1,4 @@
-dnl	$CoreSDI: aclocal.m4,v 1.16 2000/08/30 19:04:16 alejo Exp $
+dnl	$CoreSDI: aclocal.m4,v 1.11.2.5.2.1 2000/09/08 22:26:52 alejo Exp $
 
 dnl
 dnl MSYSLOG_GREP patt file comm
@@ -273,7 +273,9 @@ elif test "x$2" = "xdynamic"
 then
 	D$1_SRCS="$4 $5"
 	D$1="libmsyslog_$3_$1.so.$MSYSLOG_VERSION"
+	D$1_PLAIN="libmsyslog_$3_$1.so"
 	AC_SUBST(D$1)
+	AC_SUBST(D$1_PLAIN)
 	AC_SUBST(D$1_SRCS)
 	AC_MSG_RESULT([dynamic]);
 else

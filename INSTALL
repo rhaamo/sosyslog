@@ -1,4 +1,4 @@
-$Id: INSTALL,v 1.8 2000/09/04 23:38:21 alejo Exp $
+$Id: INSTALL,v 1.9 2000/09/09 00:53:20 alejo Exp $
 ==============================================================================
                          Modular Syslog package
                              INSTALL file
@@ -153,9 +153,7 @@ corresponding directory on the shell variable LD_PATH.
         developers or any other person interested in the inner
         working parts of msyslog.
 
-To subscribe to any of this lists check
-http://www.core-sdi.com/english/lists.html or send a message to
-majordomo@core-sdi.com with the text:
+  Send a message to majordomo@core-sdi.com with the text:
 
 subscribe list-name
 
