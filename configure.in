@@ -38,11 +38,29 @@ AC_ARG_WITH(mysql,
 	[with_mysql=no])
 test "$with_mysql" = "yes" && AC_DEFINE(MYSQL_ENABLE)
 
+if test "$with_mysql" = "yes"
+then
+	for ac_dir in 
+	do
+		if test -f "$ac_dir/"
+		then
+			with_mysql=$ac_dir
+		fi
+	done
+fi
+
 if test -n "$with_mysql" -a "$with_mysql" != "no"
 then
-    AC_DEFINE(MYSQL_ENABLE)
+	if test "$with_mysql" = "yes"
+	then
+		with_mysql=""	
+	fi
+	echo "Enabling mysql support in $with_mysql"
+	EXTRAOBJ="$EXTRAOBJ om_mysql.o"
+	LIBS="$LIBS -lmysql"
+	AC_DEFINE(MYSQL_ENABLE)
 else
-    echo 'Disabling mysql support...'
+	echo 'Disabling mysql support...'
 fi
 
 AC_OUTPUT(Makefile)

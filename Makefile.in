@@ -3,6 +3,7 @@
 CC = @CC@
 CFLAGS = @CFLAGS@
 LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
 
 EXTRAOBJ = @EXTRAOBJ@
 
@@ -18,7 +19,7 @@ objs = $(protobjs) $(EXTRAOBJS)
 all: syslogd
 
 syslogd: $(objs)
-	$(CC) $(objs) -o syslogd $(LDFLAGS)
+	$(CC) $(objs) -o syslogd $(LIBS) $(LDFLAGS)
 
 .PHONY: install
 install:
