@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_mysql.8,v 1.2 2000/06/14 23:22:17 claudio Exp $
+.\"	$CoreSDI: om_mysql.8,v 1.3 2000/06/27 00:22:55 alejo Exp $
 .\"
 .\" Copyright (c) 2000
 .\"	Core-SDI SA. All rights reserved.
@@ -36,7 +36,9 @@
 .Os Core-SDI
 .Sh NAME
 .Nm MySQL output module
-.Nd syslogd(8) output module used to log on MySQL servers
+.Nd
+.Xr syslogd 8
+output module used to log on MySQL servers
 .Sh SYNOPSIS
 .Nm mysql
 .Op Fl s Ar host
@@ -57,7 +59,9 @@ Specifies the username to use on the MySQL server. This user
 must have enough permissions to insert on the specified database and table.
 .It Fl p Ar password
 The plaintext password for this MySQL user. Thus it is recommended NOT to
-leave syslog.conf(5) world readable if this module is used.
+leave
+.Xr syslog.conf 5
+world readable if this module is used.
 .It Fl d Ar database
 The database name to use on the specified MySQL server.
 .It Fl t Ar table
