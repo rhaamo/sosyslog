@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.7 2000/05/03 22:00:54 claudio Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.8 2000/05/04 00:19:13 claudio Exp $";
 #endif /* not lint */
 
 /*
@@ -70,7 +70,6 @@ static char rcsid[] = "$Id: om_peo.c,v 1.7 2000/05/03 22:00:54 claudio Exp $";
 struct om_peo_ctx {
 	short	flags;
 	int	size;
-
 	int	hash_method;
 	char	*keyfile;
 	char	*macfile;
@@ -91,6 +90,8 @@ om_peo_doLog(f, flags, msg, context)
 	char	*m;
 	int	 mfd;
 	u_char	 mkey[41];
+	char	*newkey;
+	int	 newkeylen;
 
 	dprintf ("peo output module: doLog\n");
 	
@@ -120,23 +121,28 @@ om_peo_doLog(f, flags, msg, context)
 	dprintf ("last key: %s\n", key);
 
 	/* open macfile and write mac'ed msg */
-	if ( (mfd = open(c->macfile, O_WRONLY, 0)) == -1) {
+	if (c->macfile) {
+		if ( (mfd = open(c->macfile, O_WRONLY, 0)) == -1) {
+			close(fd);
+			dprintf ("%s: %s\n", c->macfile, strerror(errno));
+			return (-1);
+		}
+		lseek(mfd, 0, SEEK_END);
+		write(mfd, mkey, mac2(key, keylen, m, len, mkey));
+		close(mfd);
+		dprintf ("new entry added on %s\n", c->macfile);
+	}
+
+	/* generate new key and save it on keyfile */
+	lseek(fd, 0, SEEK_SET);
+	ftruncate(fd, 0);
+	if ( (newkeylen = mac(c->hash_method, key, keylen, m, len, newkey)) == -1) {
 		close(fd);
 		return (-1);
 	}
-	lseek(mfd, 0, SEEK_END);
-	write(mfd, mkey, mac2(key, keylen, m, mkey));
-	close(mfd);
-	
-	dprintf ("macfile: %s\n", (c->macfile) ? "new entry added" : "no");
+	write(fd, newkey, newkeylen);
 
-	/* generate new key and save it on keyfile */
-	keylen = mac(c->hash_method, key, keylen, m, key);
-	lseek(fd, 0, SEEK_SET);
-	ftruncate(fd, 0);
-	write(fd, key, keylen);
-
-	dprintf (" new key: %s\n", key);
+	dprintf (" new key: %s\n", newkey);
 
 	close(fd);
 	return(0);
@@ -187,8 +193,7 @@ om_peo_init(argc, argv, f, prog, context)
 
 	dprintf("peo output module init: called by %s\n", prog);
 	
-	if (argv == NULL || *argv == NULL ||
-		argc == 0 || f == NULL || context == NULL)
+	if (argv == NULL || *argv == NULL || argc == 0 || f == NULL || context == NULL)
 		return (-1);
 
 	/* default values */
@@ -198,7 +203,7 @@ om_peo_init(argc, argv, f, prog, context)
 	mfd = 0;
 
 	/* parse command line */
-	optreset = 1; optind = 0;
+	optreset = 1; optind = 1;
 	while ((ch = getopt(argc, argv, "k:lm:")) != -1) {
 		switch(ch) {
 			case 'k':
@@ -255,8 +260,7 @@ om_peo_init(argc, argv, f, prog, context)
 	c->macfile = macfile;
 	*context = (struct om_header_ctx*) c;
 
-	dprintf ("method: %d\nkeyfile: %s\nmacfile: %s\n",
-		hash_method, keyfile, macfile);
+	dprintf ("method: %d\nkeyfile: %s\nmacfile: %s\n", hash_method, keyfile, macfile);
 
 	return (0);
 }

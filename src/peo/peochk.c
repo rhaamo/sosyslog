@@ -1,4 +1,4 @@
-/*      $Id: peochk.c,v 1.13 2000/05/03 22:00:54 claudio Exp $
+/*      $Id: peochk.c,v 1.14 2000/05/04 00:19:14 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
@@ -45,6 +45,7 @@
 #include "hash.h"
 #include "../syslogd.h"
 
+char	*corrupted = "corrupted\n";
 char	*default_logfile = "/var/log/messages";
 char	*keyfile;
 char	*key0file;
@@ -103,8 +104,8 @@ usage()
 	"\tkeyfile    : /var/ssyslog/.var.log.messages.key\n"
 	"\tkey0file   : strcat(keyfile, \"0\");\n"
 	"\thash_method: sha1\n\n"
-	"\tIf -l switch is specified, the hashed log file is "
-	"strcat(keyfile, \".msg\");\n");
+	"\tIf -l switch is specified, the mac'ed log file is "
+	"strcat(keyfile, \".mac\");\n");
 	exit(1);
 }
 
@@ -141,17 +142,19 @@ int readline (fd, buf, len)
 void
 check()
 {
-	int  i;
-	int  input;
-	int  mfd;
-	char key[41];
-	int  keylen;
-	char lastkey[41];
-	int  lastkeylen;
-	int  line;
-	char mkey1[41];
-	char mkey2[41];
-	char msg[MAXLINE];
+	int   i;
+	int   input;
+	int   mfd;
+	char *key;
+	int   keylen;
+	char  lastkey[41];
+	int   lastkeylen;
+	int   line;
+	char  mkey1[41];
+	char  mkey2[41];
+	int   mkeylen;
+	char  msg[MAXLINE];
+	int   msglen;
 	
 	/* open logfile */
 	if (use_stdin)
@@ -170,7 +173,7 @@ check()
 	if ( (keylen = read(i, key, 40)) == -1)
 		err(1, key0file);
 	if (!keylen)
-		errx(1, "%s: file corrupted", key0file);
+		errx(1, "%s: %s", key0file, corrupted);
 	key[keylen] = 0;
 	close(i);
 
@@ -180,26 +183,29 @@ check()
 	if ( (lastkeylen = read(i, lastkey, 40)) == -1)
 		err(1, keyfile);
 	if (!lastkeylen)
-		errx(1, "%s: file corrupted", keyfile);
+		errx(1, "%s: %s", keyfile, corrupted);
 	lastkey[lastkeylen] = 0;
 	close(i);
 
-	/* test both keys lenght */
+	/* test both key lenghts */
 	if (lastkeylen != keylen)
-		errx(1, "%s and/or %s files corrupted", key0file, keyfile);
+		errx(1, "%s and/or %s %s", key0file, keyfile, corrupted);
 
 	/* check it */
 	line = 1;
+	msglen = strlen(msg);
 	while( (i = readline(input, msg, MAXLINE)) > 0) {
 		if (macfile) {
-			mac(SHA1, key, keylen, msg, mkey1);
-			if (readline(mfd, mkey2, 40) < 0)
+			if ( (mkeylen = mac2(key, keylen, msg, msglen, mkey1)) < 0)
 				err(1, macfile);
-			if (strncmp(mkey2, mkey1, 40))
-				errx(1, "%s file corrupted on line %i\n", logfile, line);
+			if (readline(mfd, mkey2, mkeylen) < 0)
+				err(1, macfile);
+			if (strncmp(mkey2, mkey1, mkeylen))
+				errx(1, "%s %s on line %i\n", logfile, corrupted, line);
 			line++;
 		}
-		keylen = mac(method, key, keylen, msg, key);
+		if ( (keylen = mac(method, key, keylen, msg, msglen, key)) == -1)
+			err(1, "mac function");
 	}
 
 	if (macfile)
@@ -209,7 +215,7 @@ check()
 		errx(1, "error reading logs form %s", (use_stdin) ? "standard input" : logfile);
 
 	if (strcmp(lastkey, key)) 
-		errx(1, "%s file corrupted\n", logfile);
+		errx(1, "%s %s\n", logfile, corrupted);
 
 	fprintf(stderr, "%s file is ok\n", logfile);
 }
@@ -222,30 +228,33 @@ check()
 void
 generate()
 {
+	int	 ctimelen;
+	char	*ctimestr;
+	int	 kfd;
+	int	 k0fd;
 	char	 newkey[41];
-	int	 len;
-	int	 fkey;
-	int	 fkey0;
+	int	 newkeylen;
 	time_t	 t;
 
 	time(&t);
-	len = mac(method, NULL, 0, ctime(&t), newkey);
-	if ( (fkey = open(keyfile, O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR)) == -1) {
+	ctimelen = strlen( (ctimestr = ctime(&t)));
+	newkeylen = mac(method, NULL, 0, ctimestr, ctimelen, newkey);
+	if ( (kfd = open(keyfile, O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR)) == -1) {
 		release();
 		err(1, keyfile);
 	}
-	if ( (fkey0 = open(key0file, O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR)) == -1) {
+	if ( (k0fd = open(key0file, O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR)) == -1) {
 		unlink(keyfile);
-		close(fkey);
+		close(kfd);
 		release();
 		err(1, key0file);
 	}
 
 	/* write key 0 */
-	write(fkey, newkey, len);
-	write(fkey0, newkey, len);
-	close(fkey);
-	close(fkey0);
+	write(kfd, newkey, newkeylen);
+	write(k0fd, newkey, newkeylen);
+	close(kfd);
+	close(k0fd);
 }
 	
 
@@ -265,15 +274,14 @@ main (argc, argv)
 
 	/* default values */
 	use_stdin = 1;
-	macfile = NULL;
-	mcd = 0;
 	logfile = default_logfile;
 	keyfile = default_keyfile;
 	key0file = NULL;
+	macfile = NULL;
 	method = SHA1;
 
 	/* parse command line */
-	while ( (ch = getopt(argc, argv, "f:ghi:k:lm:?")) != -1) {
+	while ( (ch = getopt(argc, argv, "f:ghi:k:lm:")) != -1) {
 		switch (ch) {
 			case 'f':
 				/* log file (intrusion detection mode) */
@@ -318,7 +326,6 @@ main (argc, argv)
 				}
 				break;
 			case 'h':
-			case '?':
 			default:
 				release();
 				usage();
@@ -359,20 +366,16 @@ main (argc, argv)
 	}
 
 	/* create macfile */
-	if (macfile) {
-		if ( (macfile = (char*)calloc(1, strlen(keyfile)+4)) == NULL) {
-		release();
-		err(1, "macfile");
+	if (macfile)
+		if ( (macfile = strmac(keyfile)) == NULL) {
+			release();
+			err(1, "creating %s.mac", keyfile);
 		}
-		strcpy(macfile, keyfile);
-		strcat(macfile, ".msg");
-	}
 
-	/* check integrity */
-	if (action == 0)
-		check();
-	/* generate new key */
-	else generate();
+	/* execute action */
+	if (action)
+		generate();
+	else check();
 
 	release();
 	return (0);

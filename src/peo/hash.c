@@ -1,4 +1,4 @@
-/*      $Id: hash.c,v 1.5 2000/05/03 22:00:53 claudio Exp $
+/*      $Id: hash.c,v 1.6 2000/05/04 00:19:13 claudio Exp $
  *
  * hash -- few things used by both peo output module and peochk 
  *
@@ -47,81 +47,79 @@ typedef union {
  *	data1len:	data1 lenght
  *	data2:		buffer 2 (commonly a message)
  *	data2len:	data2 lenght
- *	destlen:	destination buffer lenght (key[i+1])
+ *	dest:		destination buffer
  *
- *	Fills dest with a key converted to string (includes final \0)
- *	and put the new string lenght on destlen (without the final \0)
- *	On error returns NULL pointer
+ *	Fills dest with a key converted to string (including final \0)
+ *	and returns dest lenght on (without the final \0).
+ *	dest should have enough space.
+ *	On error returns -1
  */
-char*
-mac (method, data1, data1len, data2, data2len, destlen)
-	int			 method;
-	const unsigned char	*data1;
-	int			 data1len;
-	const unsigned char	*data2;
-	int			 data2len;
-	int			*destlen;
+int
+mac (method, data1, data1len, data2, data2len, dest)
+	int		 method;
+	const char	*data1;
+	int		 data1len;
+	const char	*data2;
+	int		 data2len;
+	char		*dest;
 {
 	HASH_CTX	 ctx;
-	char		*dest;
+	int		 destlen;
 	int		 i;
 	char		*tmp;
 	int		 tmplen;
 
 	/* calculate tmp buffer lenght */
-	if (data1len > data2len) {
-		if ( (tmplen = data1len / data2len * data2len) < data1len)
-			tmplen += data2len;
+	if (data1len && data2len) {
+		if (data1len > data2len) {
+			if ( (tmplen = data1len / data2len * data2len) < data1len)
+				tmplen += data2len;
+		}
+		else if ( (tmplen = data2len / data1len * data1len) < data2len)
+			tmplen += data1len;
 	}
-	else if ( (tmplen = data2len / data1len * data1len) < data2len)
-		tmplen += data1len;
-
+	else if ( (tmplen = (data1len) ? data1len : data2len) == 0)
+		tmplen = 1; 
+	
 	/* allocate needed memory and clear tmp buffer */
 	if ( (tmp = (char*) calloc (1, tmplen)) == NULL)
-		return (NULL);
+		return (-1);
 	bzero(tmp, tmplen);
-	switch(method) {
-		case MD5:
-			*destlen = 32;
-		case RMD160:
-			*destlen = 40;
-			break;
-		case SHA1:
-		default:
-			*destlen = 40;
-			break;
-	}
-	if ( (dest = (char*) calloc (1, *destlen)) == NULL) {
-		free(tmp);
-		return (NULL);
-	}
 
 	/* tmp = data1 xor data2 */
-	for (i = 0; i < tmplen; i++)
-		tmp[i] = data1[i % data1len] ^ data2[i % data2len];
+	if (data1len && data2len)
+		for (i = 0; i < tmplen; i++)
+			tmp[i] = data1[i % data1len] ^ data2[i % data2len];
+	else if (data1len)
+		memcpy(tmp, data1, tmplen);
+	else
+		memcpy(tmp, data2, tmplen);
 
-	/* calculate hash(tmp) = hash(data1 xor data2) */
+	/* dest = hash(tmp) */
 	switch(method) {
 		case MD5:
 			MD5Init(&ctx.md5);
 			MD5Update(&ctx.md5, tmp, tmplen);
 			MD5End(&ctx.md5, dest);
+			destlen = 32;
 			break;
 		case RMD160:
 			RMD160Init(&ctx.rmd160);
 			RMD160Update(&ctx.rmd160, tmp, tmplen);
 			RMD160End(&ctx.rmd160, dest);
+			destlen = 40;
 			break;
 		case SHA1:
 		default:
 			SHA1Init(&ctx.sha1);
 			SHA1Update(&ctx.sha1, tmp, tmplen);
 			SHA1End(&ctx.sha1, dest);
+			destlen = 40;
 			break;
 	}
 		
 	free(tmp);
-	return (dest);
+	return (destlen);
 }
 
 
@@ -134,7 +132,7 @@ mac (method, data1, data1len, data2, data2len, destlen)
  */
 int
 gethash (str)
-	char *str;
+	const char *str;
 {
 	int i;
 
@@ -148,9 +146,9 @@ gethash (str)
 
 /*
  * strkey:
- * 	receives something like this: /a/b/c/d/e
+ * 	Receives something like this: /a/b/c/d/e
  *	and generates something like this: .a.b.c.d.e
- *	the new buffer should be freed using free(3)
+ *	The new buffer should be freed using free(3)
  */
 char*
 strkey (logfile)
@@ -169,21 +167,31 @@ strkey (logfile)
 
 /*
  * mac2:
- *	Generates a mac key using two hash methods
+ *	data1:		buffer 1 (commonly key[i])
+ *	data1len:	data1 lenght
+ *	data2:		buffer 2 (commonly message)
+ *	data2len:	data2 lenght
+ *	dest:		destination buffer (commonly key[i+1])
+ *
+ *	Fills dest with a digest converted to string (including final \0)
+ *	and returns dest lenght (without the final \0).
+ *	dest should have enough space.
+ *	On error returns -1
  */
 int
-mac2 (key, keylen, msg, buf)
-	char *key;
-	int   keylen;
-	char *msg;
-	char *buf;
+mac2 (data1, data1len, data2, data2len, dest)
+	const char	*data1;
+	int		 data1len;
+	const char	*data2;
+	int		 data2len;
+	char		*dest;
 {
-	/*
-	hash(SHA1, key, keylen, msg, buf);
-	hash(RMD160, buf, 40, buf, buf);
-	return (40);
-	*/
-	return (-1);
+	int destlen;
+
+	if ( (destlen = mac(SHA1, data1, data1len, data2, data2len, dest)) != -1)
+		destlen = mac(RMD160, dest, destlen, data2, data2len, dest);
+
+	return (destlen);
 }
 
 
