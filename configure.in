@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.64 2000/11/03 23:25:44 alejo Exp $
+dnl	$CoreSDI: configure.in,v 1.65 2000/11/03 23:52:10 alejo Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -192,6 +192,7 @@ AC_OUTPUT([Makefile
 	   src/Makefile src/static_modules.h src/static_modules.c
 	   src/modules/Makefile
 	   src/peo/Makefile
+	   src/man/Makefile
 	   src/man/BSDmakefile
 	   src/man/GNUmakefile])
 

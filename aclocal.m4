@@ -1,4 +1,4 @@
-dnl	$CoreSDI: aclocal.m4,v 1.24 2000/11/03 19:30:38 alejo Exp $
+dnl	$CoreSDI: aclocal.m4,v 1.25 2000/11/03 23:25:43 alejo Exp $
 
 
 dnl
@@ -23,7 +23,7 @@ AC_DEFUN(MSYSLOG_CHECK_MSYSLOG_LIBDIR, [
 AC_ARG_WITH(msyslog-libdir,
 	[--with-msyslog-libdir=DIR        specify msyslog library dir],
 	[MSYSLOG_LIBDIR="$withval"],
-	[MSYSLOG_LIBDIR="${prefix}/lib/alat"]
+	[MSYSLOG_LIBDIR="${libprefix}/alat"]
 )])
 
 

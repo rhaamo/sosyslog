@@ -858,7 +858,7 @@ if test "${with_msyslog_libdir+set}" = set; then
   withval="$with_msyslog_libdir"
   MSYSLOG_LIBDIR="$withval"
 else
-  MSYSLOG_LIBDIR="${prefix}/lib/alat"
+  MSYSLOG_LIBDIR="${libprefix}/alat"
 
 fi
 
@@ -2582,6 +2582,7 @@ trap 'rm -fr `echo "Makefile
 	   src/Makefile src/static_modules.h src/static_modules.c
 	   src/modules/Makefile
 	   src/peo/Makefile
+	   src/man/Makefile
 	   src/man/BSDmakefile
 	   src/man/GNUmakefile src/config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
@@ -2716,6 +2717,7 @@ CONFIG_FILES=\${CONFIG_FILES-"Makefile
 	   src/Makefile src/static_modules.h src/static_modules.c
 	   src/modules/Makefile
 	   src/peo/Makefile
+	   src/man/Makefile
 	   src/man/BSDmakefile
 	   src/man/GNUmakefile"}
 EOF
