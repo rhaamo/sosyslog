@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.128 2000/09/15 23:34:06 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.129 2000/09/15 23:57:34 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.128 2000/09/15 23:34:06 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.129 2000/09/15 23:57:34 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -280,8 +280,9 @@ main(int argc, char **argv) {
 		dprintf("Error initializing classic output module!\n");
 	}
 
-	(void)strncat(consfile.f_un.f_fname, ctty,
+	(void)strncpy(consfile.f_un.f_fname, ctty,
 			sizeof(consfile.f_un.f_fname) - 1);
+	consfile.f_un.f_fname[sizeof(consfile.f_un.f_fname) - 1] = '\0';
 	(void)gethostname(LocalHostName, sizeof(LocalHostName));
 	if ((p = strchr(LocalHostName, '.')) != NULL) {
 		*p++ = '\0';
@@ -654,6 +655,7 @@ logmsg(int pri, char *msg, char *from, int flags) {
 		    !strcmp(msg, f->f_prevline) &&
 		    !strcmp(from, f->f_prevhost)) {
 			(void)strncpy(f->f_lasttime, timestamp, 15);
+			f->f_lasttime[15] = '\0';
 			f->f_prevcount++;
 			dprintf("msg repeated %d times, %ld sec of %d\n",
 			    f->f_prevcount, (long)(now - f->f_time),
@@ -675,12 +677,14 @@ logmsg(int pri, char *msg, char *from, int flags) {
 			f->f_repeatcount = 0;
 			f->f_prevpri = pri;
 			(void)strncpy(f->f_lasttime, timestamp, 15);
+			f->f_lasttime[16] = '\0';
 			(void)strncpy(f->f_prevhost, from,
 					sizeof(f->f_prevhost)-1);
 			f->f_prevhost[sizeof(f->f_prevhost)-1] = '\0';
 			if (msglen < MAXSVLINE) {
 				f->f_prevlen = msglen;
 				(void)strncpy(f->f_prevline, msg, sizeof(f->f_prevline) - 1);
+				f->f_prevline[sizeof(f->f_prevline) - 1] = '\0';
 				doLog(f, flags, (char *)NULL);
 			} else {
 				f->f_prevline[0] = 0;
