@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.11 2000/07/04 16:44:09 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.12 2000/07/04 18:56:40 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -63,8 +63,7 @@ struct om_regex_ctx {
 #define	OM_FILTER_INVERSE	0x01
 #define	OM_FILTER_MESSAGE	0x02
 #define	OM_FILTER_HOST		0x04
-#define	OM_FILTER_DATE		0x08
-#define	OM_FILTER_TIME		0x10
+#define	OM_FILTER_TIME		0x08
 };
 
 
@@ -118,9 +117,6 @@ om_regex_init(int argc, char ** argv, struct filed *f, char *prog,
 			case 'h':
 				ctx->filters |= OM_FILTER_HOST;
 				break;
-			case 'd':
-				ctx->filters |= OM_FILTER_DATE;
-				break;
 			case 't':
 				ctx->filters |= OM_FILTER_TIME;
 				break;
@@ -149,7 +145,6 @@ int
 om_regex_doLog(struct filed *f, int flags, char *msg,
 		struct om_hdr_ctx *context, struct sglobals *sglobals) {
 	struct om_regex_ctx *ctx;
-	char *host, *date, *time;
 	int ret;
 
 	ctx = (struct om_regex_ctx *) context;
@@ -163,20 +158,16 @@ om_regex_doLog(struct filed *f, int flags, char *msg,
 		ret = !(((ctx->filters & OM_FILTER_MESSAGE) &&
 						!regexec(ctx->exp, msg, 0, NULL, 0))
 				|| ((ctx->filters & OM_FILTER_HOST) &&
-						!regexec(ctx->exp, host, 0, NULL, 0))
-				|| ((ctx->filters & OM_FILTER_DATE) &&
-						!regexec(ctx->exp, date, 0, NULL, 0))
+						!regexec(ctx->exp, f->f_prevhost, 0, NULL, 0))
 				|| ((ctx->filters & OM_FILTER_TIME) &&
-						!regexec(ctx->exp, time, 0, NULL, 0)));
+						!regexec(ctx->exp, ctime(&f->f_time), 0, NULL, 0)));
 	} else {
 		ret = (((ctx->filters & OM_FILTER_MESSAGE) &&
 						!regexec(ctx->exp, msg, 0, NULL, 0))
 				|| ((ctx->filters & OM_FILTER_HOST) &&
-						!regexec(ctx->exp, host, 0, NULL, 0))
-				|| ((ctx->filters & OM_FILTER_DATE) &&
-						!regexec(ctx->exp, date, 0, NULL, 0))
+						!regexec(ctx->exp, f->f_prevhost, 0, NULL, 0))
 				|| ((ctx->filters & OM_FILTER_TIME) &&
-						!regexec(ctx->exp, time, 0, NULL, 0)));
+						!regexec(ctx->exp, ctime(&f->f_time), 0, NULL, 0)));
 	}
 
 	/* return:
