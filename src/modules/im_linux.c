@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.10 2000/06/06 17:47:20 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.11 2000/06/06 18:19:59 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -80,6 +80,7 @@ typedef struct {
 int	 symbols = 0;
 int	 offset = 0;
 FILE	*ksym_fd = NULL;
+char	*ksym_path = PATH_KSYM;
 Symbol	*symbol_table = NULL;
 
 int	 ksym_init(struct i_module*);
@@ -88,6 +89,26 @@ Symbol	*ksym_lookup(Symbol*, char*);
 int	 ksym_getSymbol(Symbol*);
 int	 ksym_parseLine(char*, Symbol*);
 int	 ksym_copy(char*, char*, int);
+
+
+/*
+ * usage
+ */
+void
+im_linux_usage()
+{
+	fprintf(stderr, "linux input module options:\n"
+			"    [ -k file ]        Use the specified file as source of kernel\n"
+			"                       symbol information instead of %s.\n"
+			"    [ -x ]             Do not translate kernel symbols.\n"
+			"    [ -s ]             Force to use syscall instead of %s to log\n"
+			"                       kernel messages.\n"
+			"Default:\n"
+			"    Reads kernel messages from %s; if this file don't exists it\n"
+			"    uses the syscall method.\n"
+			"    Symbols are translated only if %s exists.\n\n",
+			PATH_KSYM, _PATH_KLOG, _PATH_KLOG, PATH_KSYM);
+}
 
 
 /*
@@ -100,10 +121,9 @@ im_linux_init(I, argv, argc)
 	char	**argv;
 	int	argc;
 {
-	dprintf ("im_linux_init...\n");
+	dprintf ("\nim_linux_init...\n");
 
-	flags = TRANSLATE_KSYMBOLS;
-	if (!parseCommandLine(argc, argv))
+	if (im_linux_parseCommandLine(argc, argv) < 0)
 		return(-1);
 	I->im_path = NULL;
 	I->im_fd = 0;
@@ -115,6 +135,8 @@ im_linux_init(I, argv, argc)
 			return(-1);
 		}
 	}
+	;;;/* hay que agregar la lectura de la symbol table segun flags */
+	;;;	
         I->im_type = IM_LINUX;
         I->im_name = "linux";
         I->im_flags |= IMODULE_FLAG_KERN;
@@ -123,22 +145,44 @@ im_linux_init(I, argv, argc)
 
 
 int
-parseCommandLine(argc, argv)
+im_linux_parseCommandLine(argc, argv)
 	int    argc;
 	char **argv;
 {
-	int i;
-	dprintf ("e cuesto e' lo que reccibito: \n");
-	for (i = 0; i < argc; i++)
-		dprintf("%i: %s\n", argv[i]);
-	return(-1);
+	int ch;
+
+	flags = TRANSLATE_KSYMBOLS;
+	if (argc > 1) {
+		optind = 1;
+		while( (ch = getopt(argc, argv, "k:sxh?")) != -1)
+			switch(ch) {
+				case 'k': /* specify symbol file */
+					ksym_path = strdup(optarg);
+					break;
+
+				case 's': /* force to use syscall instead of _PATH_KLOG */
+					flags |= USE_SYSCALL;
+					break;
+
+				case 'x': /* do not tranlate kernel symbols */
+					flags &= ~TRANSLATE_KSYMBOLS;
+					break;
+
+				case 'h': /* usage */
+				case '?':
+				default:
+					im_linux_usage();
+					return(-1);
+			}
+	}
+	return(0);
 }
 
 
 /*
- * get kernel messge:
+ * get kernel message:
  * take input line from _PATH_KLOG or klogctl(2),
- * split and format similar to syslog().
+ * and log it.
  */
 
 int
@@ -147,46 +191,49 @@ im_linux_getLog(im, ret)
 	struct im_msg  *ret;
 {
 	int i;
-	int pri;
 	int readed;
 
 	if (im->im_fd < 0)
 		return (-1);
 
 	/* read message from kernel */
-	if (im->im_path)
-		readed = read(im->im_fd, im->im_buf, sizeof(im->im_buf));
-	else
+	if (im->im_path == NULL || flags & USE_SYSCALL)
 		/* readed = klogctl(2, im->im_buf, sizeof(im->im_buf)); */ /* this blocks */
 		readed = klogctl(4, im->im_buf, sizeof(im->im_buf));	/* this don't block... testing */
+	else
+		readed = read(im->im_fd, im->im_buf, sizeof(im->im_buf));
 
 	if (readed < 0 && errno != EINTR) {
 		logerror("im_linux_getLog");
 		return(-1);
 	}
 
-	im->im_buf[readed-1] = '\0';
+	if (readed) {
+		im->im_buf[readed-1] = '\0';
 
-	/* get priority */
-	i = 0;
-	if (readed >= 3 && im->im_buf[0] == '<' && im->im_buf[2] == '>' && isdigit(im->im_buf[1])) {
-		pri = '9' - im->im_buf[1];
-		i = 3;
-		readed -= 3;
+		/* get priority */
+		i = 0;
+		if (readed >= 3 && im->im_buf[0] == '<' && im->im_buf[2] == '>' && isdigit(im->im_buf[1])) {
+			ret->im_pri = '9' - im->im_buf[1];
+			i = 3;
+			readed -= 3;
+		}
+		else
+			ret->im_pri = LOG_WARNING;	/* from printk.c: DEFAULT_MESSAGE_LOGLEVEL */
+
+		/* parse kernel/module symbols */
+		if (flags & TRANSLATE_KSYMBOLS) {
+			;;;
+			;;;
+		}
+
+		/* log msg */
+		ret->im_len = snprintf(ret->im_msg, sizeof(ret->im_msg), "kernel: %s", &im->im_buf[i]);
+		strncpy(ret->im_host, LocalHostName, sizeof(ret->im_host));
+		ret->im_host[sizeof(ret->im_host)-1] = '\0';
+
+		logmsg(ret->im_pri, ret->im_msg, ret->im_host, ret->im_flags);
 	}
-	else
-		pri = LOG_WARNING;	/* from printk.c: DEFAULT_MESSAGE_LOGLEVEL */
-
-	/* parse kernel/module symbols */
-	;;;
-	;;;
-
-	/* log msg */
-	ret->im_len = snprintf(ret->im_msg, sizeof(ret->im_msg), "kernel: %s", &im->im_buf[i]);
-	strncpy(ret->im_host, LocalHostName, sizeof(ret->im_host));
-	ret->im_host[sizeof(ret->im_host)-1] = '\0';
-
-	logmsg(ret->im_pri, ret->im_msg, ret->im_host, ret->im_flags);
 	return(0);
 
 //	char *p, *q, *lp;
@@ -244,9 +291,9 @@ int
 im_linux_close(im)
 	struct i_module *im;
 {
+	ksym_close();
 	if (im->im_path != NULL) 
 		return(close(im->im_fd));
-
 	return(0);
 }
 
@@ -260,7 +307,7 @@ ksym_init(I)
 	struct i_module *I;
 {
 	ksym_close();
-	if ( (ksym_fd = fopen(PATH_KSYM, "r")) < 0) {
+	if ( (ksym_fd = fopen(ksym_path, "r")) < 0) {
 		/* read ksym using syscalls */
 		;;;
 		;;;
@@ -285,6 +332,8 @@ ksym_close()
 		symbol_table = NULL;
 		symbols = 0;
 	}
+	if (ksym_path != PATH_KSYM)
+		free(ksym_path);
 }
 
 
