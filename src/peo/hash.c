@@ -1,4 +1,4 @@
-/*	$CoreSDI: hash.c,v 1.23.2.3 2000/09/05 23:42:39 alejo Exp $	*/
+/*	$CoreSDI: hash.c,v 1.29 2000/09/09 00:45:03 alejo Exp $	*/
  
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -93,8 +93,7 @@ typedef union {
  */
 int
 mac (int method, const char *data1, unsigned int data1len,
-     const char *data2, unsinged int data2len, char *dest)
-{
+     const char *data2, unsigned int data2len, char *dest) {
 	HASH_CTX	 ctx;
 	int		 destlen, i, tmplen = 0;
 	char		*tmp;
@@ -228,7 +227,7 @@ strallocat (const char *s1, const char *s2)
 
 	size = strlen(s1) + strlen(s2);
 
-	if ((dest = (char *) calloc(1, size + 1))) != NULL)
+	if ((dest = (char *) calloc(1, size + 1)) != NULL)
 		snprintf(dest, size, "%s%s", (s1) ? s1 : "", (s2) ? s2 : "");
 	return (dest);
 }
@@ -262,7 +261,7 @@ strrealpath (const char *path)
 {
 	char *resolved;
 
-	if ((resolved = (char *) malloc(1, PATH_MAX)) != NULL)
+	if ((resolved = (char *) calloc(1, PATH_MAX)) != NULL)
 		return realpath(path, resolved);
 	return(NULL);
 }
