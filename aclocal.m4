@@ -1,4 +1,4 @@
-dnl	$CoreSDI: aclocal.m4,v 1.8 2000/07/21 21:15:46 alejo Exp $
+dnl	$CoreSDI: aclocal.m4,v 1.9 2000/07/26 21:00:37 alejo Exp $
 
 dnl
 dnl MSYSLOG_GREP patt file comm
@@ -22,7 +22,7 @@ dnl
 AC_DEFUN(MSYSLOG_CHECK_MYSQL, [
 AC_ARG_WITH(mysql-lib,
 	[--with-mysql-lib=DIR        specify mysql library dir],
-	[CPPFLAGS="$CPPFLAGS -L$withval"],
+	[MYSQL_CPPFLAGS="$MYSQL_CPPFLAGS -L$withval"],
 	[
 for i in /usr/local/lib /usr/local/lib/mysql /usr/lib/mysql /usr/lib no
 do
@@ -35,16 +35,22 @@ do
 		break
 	fi
 done
-CPPFLAGS="$CPPFLAGS -L$i"
+MYSQL_CPPFLAGS="$MYSQL_CPPFLAGS -L$i"
 	])
 
-AC_CHECK_LIB(mysqlclient, mysql_real_connect,, [
+CPPFLAGS_save="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $MYSQL_CPPFLAGS"
+AC_CHECK_LIB(mysqlclient, mysql_real_connect, [
+	     MYSQL_LIBS="-lmysqlclient"
+	     AC_DEFINE_UNQUOTED(HAVEmysqlclient)
+             ] , [
 	     echo "Need mysqlclient library to enable mysql module"
 	     exit ])
+CPPFLAGS="$CPPFLAGS_save"
 
 AC_ARG_WITH(mysql-inc,
 	    [--with-mysql-inc=DIR        specify mysql include dir],
-	    [CPPFLAGS="$CPPFLAGS -I$withval"],
+	    [MYSQL_CPPFLAGS="$MYSQL_CPPFLAGS -I$withval"],
 	    [
 for i in /usr/local/include/mysql /usr/local/mysql/include \
 	 /usr/local/include /usr/include/mysql /usr/include no
@@ -59,8 +65,9 @@ then
 	echo "Need mysql.h header file to enable mysql output module"
 	exit
 fi
-CPPFLAGS="$CPPFLAGS -I$i"
+MYSQL_CPPFLAGS="$MYSQL_CPPFLAGS -I$i"
 	    ])
+CPPFLAGS="$CPPFLAGS_save"
 ])
 
 
@@ -71,7 +78,7 @@ dnl
 AC_DEFUN(MSYSLOG_CHECK_PGSQL, [
 AC_ARG_WITH(pgsql-lib,
 	    [--with-pgsql-lib=DIR        specify pgsql library dir],
-	    [CPPFLAGS="$CPPFLAGS -L$withval"],
+	    [PGSQL_CPPFLAGS="$PGSQL_CPPFLAGS -L$withval"],
 	    [
 for i in /usr/local/pgsql/lib /usr/local/lib/pgsql /usr/lib/pgsql /usr/lib no
 do
@@ -84,16 +91,21 @@ do
 		break
 	fi
 done
-CPPFLAGS="$CPPFLAGS -L$i"
+PGSQL_CPPFLAGS="$PGSQL_CPPFLAGS -L$i"
 	    ])
 
-AC_CHECK_LIB(pq, PQsetdbLogin,, [
+CPPFLAGS_save="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $PGSQL_CPPFLAGS"
+AC_CHECK_LIB(pq, PQsetdbLogin, [
+	     PGSQL_LIBS="-lpq"
+	     AC_DEFINE_UNQUOTED(HAVEpq)
+             ] , [
 	     echo "Need pq library to enable pgsql module"
 	     exit ])
 
 AC_ARG_WITH(pgsql-inc,
 	    [--with-pgsql-inc=DIR        specify pgsql include dir],
-	    [CPPFLAGS="$CPPFLAGS -I$withval"],
+	    [PGSQL_CPPFLAGS="$PGSQL_CPPFLAGS -I$withval"],
 	    [
 for i in /usr/local/pgsql/include /usr/local/include/pgsql \
 	 /usr/local/include /usr/include/pgsql /usr/include no
@@ -108,8 +120,9 @@ then
 	echo "Need libpq-fe.h header file to enable pgsql output module"
 	exit
 fi
-CPPFLAGS="$CPPFLAGS -I$i"
+PGSQL_CPPFLAGS="$PGSQL_CPPFLAGS -I$i"
 	    ])
+CPPFLAGS="$CPPFLAGS_save"
 ])
 
 
