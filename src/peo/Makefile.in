@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.17 2001/03/06 21:49:44 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.18 2001/03/07 21:35:15 alejo Exp $
 #
 # Copyright (c) 2001, Core SDI S.A., Argentina
 # All rights reserved
@@ -36,8 +36,7 @@ INSTALL=	@INSTALL@
 INSTALL_DIR=	@prefix@/sbin
 
 PROG=		peochk
-SRCS=		peochk.c
-SRCS +=		@HASH_SRCS@
+SRCS=		peochk.c @HASH_SRCS@
 OBJS=		$(SRCS:.c=.o)
 
 all: $(PROG) $(OBJS)
