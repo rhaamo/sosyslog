@@ -1,4 +1,4 @@
-.\"	$CoreSDI: im_tcp.8,v 1.7 2001/10/18 20:32:35 alejo Exp $
+.\"	$CoreSDI: im_tcp.8,v 1.8 2001/10/18 21:19:12 alejo Exp $
 .\"
 .\" Copyright (c) 2001
 .\"	Core-SDI SA. All rights reserved.
@@ -38,6 +38,7 @@ input module used to receive from tcp connections
 .Sh SYNOPSIS
 .Nm tcp
 .Op Fl a
+.Op Fl q
 .Op Fl h Ar host
 .Op Fl p Ar port
 .Sh DESCRIPTION
@@ -53,7 +54,7 @@ The following command installs
 daemon and activates tcp system accepting remote connections on local
 address machinename.example.com port 3210:
 .Pp
-.Dl syslogd -i 'tcp machinename.somedomainexample.com 3210'
+.Dl syslogd -i 'tcp -h machinename.somedomainexample.com -p 3210'
 .El
 .Bl -bullet
 .It
@@ -62,14 +63,18 @@ The following command installs
 daemon and activates tcp system accepting remote connections on all local
 addresses port 3210:
 .Pp
-.Dl syslogd -i 'tcp 3210'
+.Dl syslogd -i 'tcp -p 3210'
 .El
 .Bl -bullet
 .It
-The following is the same as the previous, but extracts the host name
+The following is the similar to the previous, but extracts the host name
 from the message:
 .Pp
-.Dl syslogd -a -i 'tcp machinename.somedomainexample.com 3210'
+.Dl syslogd -i 'tcp -a -p 3210'
+.It
+The following is the same, but avoids adding full fomain (FQDN):
+.Pp
+.Dl syslogd -i 'tcp -q -p 3210'
 .Pp
 .Sh BUGS
 .Bl -bullet
@@ -94,4 +99,5 @@ The more you describe the bug, the faster we can fix it.
 .Xr im_streams.8 ,
 .Xr im_unix.8 ,
 .Xr im_udp.8 ,
+.Xr om_tcp.8 ,
 .Xr syslogd.8
