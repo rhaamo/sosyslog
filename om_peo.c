@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.6 2000/04/25 17:45:14 claudio Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.7 2000/04/26 20:07:24 claudio Exp $";
 #endif /* not lint */
 
 /*
@@ -53,10 +53,9 @@ static char rcsid[] = "$Id: om_peo.c,v 1.6 2000/04/25 17:45:14 claudio Exp $";
 #include <sys/types.h>
 
 #include <ctype.h>
+#include <err.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <md5.h>
-#include <sha1.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -65,19 +64,7 @@ static char rcsid[] = "$Id: om_peo.c,v 1.6 2000/04/25 17:45:14 claudio Exp $";
 
 #include "syslogd.h"
 #include "modules.h"
-
-
-enum {
-	SHA1,
-	MD5
-};
-
-typedef union {
-	MD5_CTX		md5;
-	SHA1_CTX	sha;
-} HASH_CTX;
-
-char default_keyfile[] = { "/var/ssyslog/peo_key" };
+#include "peo/hash.h"
 
 struct om_peo_ctx {
 	short	flags;
@@ -86,7 +73,6 @@ struct om_peo_ctx {
 	int	hash_method;
 	char	*keyfile;
 };
-
 
 int
 om_peo_doLog(f, flags, msg, context)
@@ -97,7 +83,6 @@ om_peo_doLog(f, flags, msg, context)
 {
 	struct om_peo_ctx *c;
 	int	 fd;
-	HASH_CTX hctx;
 	u_char	 key[41];
 	int	 keylen;
 	int	 len;
@@ -130,25 +115,8 @@ om_peo_doLog(f, flags, msg, context)
 
 	dprintf ("last key: %s\n", key);
 
-	/* generate new key */
-	switch (c->hash_method) {
-		case MD5:
-			MD5Init(&hctx.md5);
-			MD5Update(&hctx.md5, key, keylen);
-			MD5Update(&hctx.md5, (u_char*)m, len);
-			MD5End(&hctx.md5, key);
-			keylen = 32;
-			break;
-		case SHA1:
-		default:
-			SHA1Init(&hctx.sha);
-			SHA1Update(&hctx.sha, key, keylen);
-			SHA1Update(&hctx.sha, (u_char*)m, len);
-			SHA1End(&hctx.sha, key);
-			keylen = 40;
-			break;
-	}
-
+	/* generate new key and save it on keyfile */
+	keylen = hash(c->hash_method, key, keylen, m, key);
 	lseek(fd, 0, SEEK_SET);
 	ftruncate(fd, 0);
 	write(fd, key, keylen);
@@ -167,14 +135,14 @@ om_peo_doLog(f, flags, msg, context)
  * 
  *  params:
  * 
- *	-k <keyfile>		(default: /var/ssyslog/peo_key)
+ *	-k <keyfile>		(default: /var/ssyslog/.var.log.messages)
  *	-m <hash_method>	sha1 or md5 (default: sha1)
  *
  */
 
 extern char	*optarg;
-extern int	optind,
-		optreset;
+extern int	 optind,
+		 optreset;
 
 int
 om_peo_init(argc, argv, f, prog, context)
@@ -184,10 +152,10 @@ om_peo_init(argc, argv, f, prog, context)
 	char *prog;
 	struct om_header_ctx **context;
 {
-	int	ch;
-	int	hash_method;
+	int	 ch;
+	int	 hash_method;
 	char	*keyfile;
-	struct	om_peo_ctx *c;
+	struct	 om_peo_ctx *c;
 
 	dprintf("peo output module init: called by %s\n", prog);
 	
@@ -210,11 +178,14 @@ om_peo_init(argc, argv, f, prog, context)
 				break;
 			case 'm':
 				/* set method */
-				if (strcasecmp(optarg, "sha1") == NULL)
-					hash_method = SHA1;
+				if (strcasecmp(optarg, "md5") == NULL)
+					hash_method = MD5; 
 				else
-					if (strcasecmp(optarg, "md5") == NULL)
-						hash_method = MD5; 
+					if (strcasecmp(optarg, "sha1") == NULL)
+						hash_method = SHA1;
+				else
+					if (strcasecmp(optarg, "rmd160") == NULL)
+						hash_method = RMD160;
 				else {
 					if (keyfile != default_keyfile)
 						free(keyfile);
