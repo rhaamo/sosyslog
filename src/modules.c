@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.9 2000/03/29 20:41:04 gera Exp $
+/*	$Id: modules.c,v 1.10 2000/03/29 22:15:23 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -87,22 +87,18 @@ int modules_close(f)
 }
 
 /* create all necesary modules for a specific filed */
-int modules_create(line, f, prog)
-	char *line;
+int modules_create(p, f, prog)
+	char *p;
 	struct filed *f;
 	char *prog;
 {
-	char	name[MAX_MODULE_NAME_LEN + 1], *b;
 	char	line[LINE_MAX + 1];
+	char	*argv[20];
+	char	argc;
 	struct o_module		*m;
 	struct Modules	*mf;
+	char quotes=0;
 	int	i;
-	char	*p;
-
-	memset(name, 0, MAX_MODULE_NAME_LEN + 1);
-
-	if (argv == NULL || argc == 0)
-		return (-1);
 
 	/* create context and initialize module for logging */
 	if (f->f_mod == NULL) {
@@ -114,42 +110,54 @@ int modules_create(line, f, prog)
 		m = m->m_next;
 	}
 
-	p = *argv;
-	switch (*p)
-	{
-	case '%':
-		/* get this module name */
-		for (i = 0; p && i < MAX_MODULE_NAME_LEN &&
-				(isalnum(*p) || *p == '_'); p++, i++)
-			name[i] = *p;
-		if (!i)
-			return(-1);
+	while (*p) {
+		switch (*p) {
+			case '%':
+				/* get this module name */
+				argv[argc++]=++p;
+				for (i = 0; p && i < MAX_MODULE_NAME_LEN &&
+						(isalnum(*p) || *p == '_'); p++, i++);
+				if (!i)
+					return(-1);
 
-		/* get this module function */
-		for (mf = Modules; mf; mf++) {
-			if (strncmp(name, mf->m_name, MAX_MODULE_NAME_LEN) == 0)
+				*p++=0;
+
+				/* get this module function */
+				for (mf = Modules; mf; mf++) {
+					if (strncmp(argv[0], mf->m_name, MAX_MODULE_NAME_LEN) == 0)
+						break;
+				}
+				/* no functions for this module where found */
+				if (!mf)
+					return(-1);
+
+				m->m_type = mf->m_type;
+
+				/* build argv and argc, modifies input p */
+				while (*p && *p!='%' && *p !='\n' && *p!='\r' && argc<20) { 
+					while (isspace(*p)) p++;
+				
+					quotes = (*p=='"' || *p=='\'')?quotes=*p++:0;
+						
+					argv[argc++]=p;
+					if (quotes) while (*++p != quotes);
+						else while (!isspae(*p++));
+					*p++=0;
+				}
+
+				(*mf->m_init)(argc, argv, f, prog, (void *) &(m->context));
+
+				break;
+			case '@':
+			case '/':
+			case '*':
+			default:
+				/* classic style */
+				/* prog is already on this filed */
+				m_classic_init(argc, argv, f, NULL, NULL);
+				
 				break;
 		}
-		/* no functions for this module where found */
-		if (!mf)
-			return(-1);
-
-		m->m_type = mf->m_type;
-
-		/* advance to module params */
-		while(isspace(*p)) p++;
-		(*mf->m_init)(argc, argv, f, prog, (void *) &(m->context));
-
-		break;
-	case '@':
-	case '/':
-	case '*':
-	default:
-		/* classic style */
-		/* prog is already on this filed */
-		m_classic_init(argc, argv, f, NULL, NULL);
-		
-		break;
 	}
 }
 
