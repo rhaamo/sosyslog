@@ -1,4 +1,4 @@
-# $CoreSDI: GNUmakefile.in,v 1.5 2000/08/28 22:07:00 alejo Exp $
+# $CoreSDI: GNUmakefile.in,v 1.4.2.4 2000/08/30 20:29:32 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -30,7 +30,7 @@
 
 prefix=	@prefix@
 MANDIR=	@mandir@
-MAN=	im_linux.8 om_peo.8 om_mysql.8 peochk.8 syslogd.8 syslog.conf.5
+MAN=	im_linux.8 om_peo.8 om_mysql.8 om_regex.8 peochk.8 syslogd.8 syslog.conf.5
 OMAN=	$(MAN:=.gz)
 
 all:
@@ -39,7 +39,7 @@ all:
 install maninstall: $(OMAN)
 
 $(OMAN):
-	gzip -cf $(@:%.gz=%) > $(MANDIR)/man$(subst .,,$(suffix $(@:%.gz=%)))/$@
+	-gzip -cf $(@:%.gz=%) > $(MANDIR)/man$(subst .,,$(suffix $(@:%.gz=%)))/$@
 
 distclean cleandir clean:
 	-rm -f GNUmakefile
