@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.22 2000/04/17 15:00:00 alejo Exp $
+/*	$Id: modules.c,v 1.23 2000/04/17 22:20:57 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -57,6 +57,8 @@ int modules_init (I)
 {
 	/* initialize module function assignations */
 	memset(OModules, 0, sizeof(OModules));
+	*I = (struct i_module *) calloc(sizeof(struct i_modules), 1);
+	(*I)->fd = -1;
 
 	/* classic module */
 	/* classic module */
@@ -75,6 +77,7 @@ int modules_init (I)
 	OModules[M_MYSQL].om_close 		= om_mysql_close;
 	OModules[M_MYSQL].om_flush 		= om_mysql_flush;
 
+  
 }
 
 
