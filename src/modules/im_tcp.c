@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.24 2001/09/19 11:55:11 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.25 2001/09/19 16:03:32 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -31,7 +31,7 @@
 
 /*
  * im_tcp -- input from INET using TCP
- *      
+ *
  * Author: Alejo Sanchez for Core SDI S.A.
  * 
  * This input module is a bit tricky, because of the nature of TCP
@@ -113,11 +113,11 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 	char			*host, *port;
 	int			ch;
 
-        dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: entering\n");
+	dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: entering\n");
 
 	if ( (I->im_ctx = calloc(1, sizeof(struct im_tcp_ctx))) == NULL) {
 		dprintf(MSYSLOG_SERIOUS, "om_tcp_init: cant alloc memory");
-        	return (-1);
+		return (-1);
 	}
 
 	c = (struct im_tcp_ctx *) I->im_ctx;
@@ -152,19 +152,19 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 	}
 
 	if ( (I->im_fd = listen_tcp(host, port, &c->addrlen)) < 0) {
-        	dprintf(MSYSLOG_SERIOUS, "im_tcp_init: error with listen_tcp() %s\n",
+		dprintf(MSYSLOG_SERIOUS, "im_tcp_init: error with listen_tcp() %s\n",
 		    strerror(errno));
 		free(c);
 		return (-1);
 	}
 
-        I->im_path = NULL;
+	I->im_path = NULL;
 
 	add_fd_input(I->im_fd , I);
 
-        dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: running\n");
+	dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: running\n");
 
-        return (1);
+	return (1);
 }
 
 
@@ -196,7 +196,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		/* create a new connection */
 		if ((con = (struct tcp_conn *) calloc(1, sizeof(*con)))
 		    == NULL) {
-       			dprintf(MSYSLOG_SERIOUS, "im_tcp_read: "
+			dprintf(MSYSLOG_SERIOUS, "im_tcp_read: "
 			    "error allocating conn struct\n");
 			return (-1);
 		}
@@ -239,6 +239,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 	if (con == NULL || con->fd != infd) {
 		dprintf(MSYSLOG_SERIOUS, "im_tcp_read: no such connection "
 		    "fd %d !\n", infd);
+		remove_fd_input(infd);
 		return (-1);
 	}
 
@@ -258,7 +259,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		    && prev->next != con; prev = prev->next);
 
 		if (prev == c->first && prev == con) {
-			/* c->cons and prev point to con now */
+			/* c->cons and prev point to con->next now */
 			c->first = con->next;
 		} else if (prev->next == con) {
 			prev->next = con->next;
@@ -268,12 +269,14 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		return (0);
 	}
 
-	if (n == 0) {
-		return (0); /* nothing to log */
- 	} else if (n < 0 && errno != EINTR) {
+	if (n < 0 && errno != EINTR) {
+		dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: conetion from %s"
+		    " closed with error\n", con->name, strerror(errno));
 		logerror("im_tcp_read");
 		con->fd = -1;
-        } else {
+		remove_fd_input(con->fd);
+		return (0);
+	} else {
 		char	*p, *nextline, *cr;
 
 		/* terminate it */
@@ -315,9 +318,9 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 				    sscanf(p, "%n%90s %n", &n1,
 				    ret->im_host, &n2) != 1)
 				    || im->im_buf[n2] == '\0') {
-        				dprintf(MSYSLOG_INFORMATIVE,
-					    "im_tcp_read: ignoring message [%s]"
-					    "because it is invalid\n", p);
+					dprintf(MSYSLOG_INFORMATIVE,
+					    "im_tcp_read: ignoring invalid "
+					    "message [%s]\n", p);
 					if (nextline != NULL) {
 						p = nextline;
 						continue;
@@ -338,7 +341,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 				ret->im_host[sizeof(ret->im_host) - 1] = '\0';
 			}
 
-			printline(ret->im_host, im->im_buf, strlen(im->im_buf), 0);
+			printline(ret->im_host, p,  strlen(p),  0);
 
 			p = nextline;
 
@@ -354,7 +357,7 @@ im_tcp_close(struct i_module *im)
 	struct im_tcp_ctx *c;
 	struct tcp_conn *con, *cnext;
 
-        c = (struct im_tcp_ctx *) im->im_ctx;
+	c = (struct im_tcp_ctx *) im->im_ctx;
 
 	/* close all connections */
 	for (con = c->first; con; con = cnext) {
@@ -366,6 +369,6 @@ im_tcp_close(struct i_module *im)
 
 	im->im_ctx = NULL;
 
-        /* close listening socket */
-        return (close(im->im_fd));
+	/* close listening socket */
+	return (close(im->im_fd));
 }
