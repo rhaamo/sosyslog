@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.141 2001/08/09 01:08:05 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.142 2001/09/19 10:52:06 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -264,8 +264,8 @@ AC_ARG_WITH(udp,
 	])dnl
 ])dnl
 if test "X$temp_res" = "Xyes" ; then
-	MSRCS="$MSRCS im_udp.c"
-	MANPAGES="$MANPAGES im_udp.8";
+	MSRCS="$MSRCS im_udp.c om_udp.c"
+	MANPAGES="$MANPAGES im_udp.8 om_udp.8";
 fi
 
 temp_res="yes";

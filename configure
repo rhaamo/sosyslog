@@ -2452,8 +2452,8 @@ fi
 
 fi
 if test "X$temp_res" = "Xyes" ; then
-	MSRCS="$MSRCS im_udp.c"
-	MANPAGES="$MANPAGES im_udp.8";
+	MSRCS="$MSRCS im_udp.c om_udp.c"
+	MANPAGES="$MANPAGES im_udp.8 om_udp.8";
 fi
 
 temp_res="yes";
