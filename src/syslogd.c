@@ -186,7 +186,14 @@ main(argc, argv)
 	else
 		setlinebuf(stdout);
 
+	/* assign functions and other module settings */
+	modules_init();
+
 	consfile.f_type = F_CONSOLE;
+        /* this should get into Files and be way nicer */
+        consfile.f_mod = (struct o_module *) calloc(1, sizeof(struct o_module));
+        consfile.f_mod->m_type = M_CLASSIC;
+
 	(void)strcpy(consfile.f_un.f_fname, ctty);
 	(void)gethostname(LocalHostName, sizeof(LocalHostName));
 	if ((p = strchr(LocalHostName, '.')) != NULL) {
@@ -572,19 +579,14 @@ fprintlog(f, flags, msg)
 	struct	o_module *m;
 
         for (m = f->f_mod; m; m = m->m_next) {
-		if(!m->context) {
-			dprintf("module has no context, skipping. msg: "
-				"[%s] type [%i]\n", msg, m->m_type);
-			continue;
-		}
-		if(m_functions[m->m_type].m_printlog == NULL) {
+		if(Modules[m->m_type].m_printlog == NULL) {
 			dprintf("Unsupported module type [%i] "
 			        "for message [%s]\n", m->m_type, msg);
 			continue;
 		};
 
 		/* call this module printlog */
-		if((*(m_functions[m->m_type].m_printlog))(f,flags,msg,m->context) != 0) {
+		if((*(Modules[m->m_type].m_printlog))(f,flags,msg,m->context) != 0) {
 			dprintf("printlog error with module type [%i] "
 			        "for message [%s]\n",
 				m->m_type, msg);
@@ -795,12 +797,12 @@ init(signo)
 		for (m = f->f_mod; m; m = m->m_next) {
 			/* flush any pending output */
 			if (f->f_prevcount &&
-			    m_functions[m->m_type].m_flush != NULL) {
-				(*m_functions[m->m_type].m_flush) (f,m->context);
+			    Modules[m->m_type].m_flush != NULL) {
+				(*Modules[m->m_type].m_flush) (f,m->context);
 			}
 
-			if (m_functions[m->m_type].m_close != NULL) {
-				(*m_functions[m->m_type].m_close) (f,m->context);
+			if (Modules[m->m_type].m_close != NULL) {
+				(*Modules[m->m_type].m_close) (f,m->context);
 			}
 		}
 		next = f->f_next;
@@ -810,9 +812,6 @@ init(signo)
 	}
 	Files = NULL;
 	nextp = &Files;
-
-	/* assign functions and other module settings */
-	modules_init();
 
 	/* open the configuration file */
 	if ((cf = fopen(ConfFile, "r")) == NULL) {

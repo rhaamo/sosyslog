@@ -189,6 +189,7 @@ m_classic_printlog(f, flags, msg, context)
 		break;
 	}
 	f->f_prevcount = 0;
+	return(0);
 }
 
 

@@ -55,24 +55,25 @@ static char copyright[] =
 int modules_init ()
 {
 	/* initialize module function assignations */
-	memset(m_functions, 0, sizeof(m_functions));
+	memset(Modules, 0, sizeof(Modules));
 
 	/* classic module */
-	m_functions[M_CLASSIC].m_name 		= "classic";
-	m_functions[M_CLASSIC].m_type 		= M_CLASSIC;
-	m_functions[M_CLASSIC].m_printlog 	= m_classic_printlog;
-	m_functions[M_CLASSIC].m_init 		= m_classic_init;
-	m_functions[M_CLASSIC].m_close 		= m_classic_close;
-	m_functions[M_CLASSIC].m_flush 		= m_classic_flush;
+	/* classic module */
+	Modules[M_CLASSIC].m_name 		= "classic";
+	Modules[M_CLASSIC].m_type 		= M_CLASSIC;
+	Modules[M_CLASSIC].m_printlog 	= m_classic_printlog;
+	Modules[M_CLASSIC].m_init 		= m_classic_init;
+	Modules[M_CLASSIC].m_close 		= m_classic_close;
+	Modules[M_CLASSIC].m_flush 		= m_classic_flush;
 
 #if 0
 	/* mysql module */
-	m_functions[M_MYSQL].m_name 		= "mysql";
-	m_functions[M_CLASSIC].m_type 		= M_MYSQL;
-	m_functions[M_MYSQL].m_printlog 	= m_mysql_printlog;
-	m_functions[M_MYSQL].m_init 		= m_mysql_init;
-	m_functions[M_MYSQL].m_close 		= m_mysql_close;
-	m_functions[M_MYSQL].m_flush 		= m_mysql_flush;
+	Modules[M_MYSQL].m_name 		= "mysql";
+	Modules[M_MYSQL].m_type 		= M_MYSQL;
+	Modules[M_MYSQL].m_printlog 	= m_mysql_printlog;
+	Modules[M_MYSQL].m_init 		= m_mysql_init;
+	Modules[M_MYSQL].m_close 		= m_mysql_close;
+	Modules[M_MYSQL].m_flush 		= m_mysql_flush;
 #endif
 
 }
@@ -94,7 +95,7 @@ int modules_create(p, f, prog)
 	char	name[MAX_MODULE_NAME_LEN + 1], *b;
 	char	line[LINE_MAX + 1];
 	struct o_module		*m;
-	struct m_functions	*mf;
+	struct Modules	*mf;
 	int	i;
 
 	memset(name, 0, MAX_MODULE_NAME_LEN + 1);
@@ -123,7 +124,7 @@ int modules_create(p, f, prog)
 			return(-1);
 
 		/* get this module function */
-		for (mf = m_functions; mf; mf++) {
+		for (mf = Modules; mf; mf++) {
 			if (strncmp(name, mf->m_name, MAX_MODULE_NAME_LEN) == 0)
 				break;
 		}
@@ -148,5 +149,28 @@ int modules_create(p, f, prog)
 		
 		break;
 	}
+}
+
+char *getmodulename(type)
+	int type;
+{
+	int i;
+
+	for(i = 0; i < MAX_N_MODULES && Modules[i].m_type != type; i++);
+	if (i == MAX_N_MODULES)
+		return (NULL);
+	return Modules[i].m_name;
+}
+
+int getmoduleid(mname)
+	char *mname;
+{
+	int i;
+
+	for(i = 0; i < MAX_N_MODULES && Modules[i].m_name != NULL
+			&& !strcmp(Modules[i].m_name, mname); i++);
+	if (i == MAX_N_MODULES)
+		return (-1);
+	return Modules[i].m_type;
 }
 

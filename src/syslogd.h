@@ -127,7 +127,7 @@ struct filed {
         struct	o_module *f_mod;			/* module details */
 };
 
-struct	m_functions {
+struct	Modules {
 	char	*m_name;
 	short	m_type;
 	int	(*m_printlog) (struct filed *, int, char *, void *);
@@ -135,7 +135,10 @@ struct	m_functions {
 	int	(*m_init) (char *, struct filed *, char *, void *);
 	int	(*m_close) (struct filed *, void *);
 	int	(*m_flush) (struct filed *, void *);
-} m_functions[MAX_N_MODULES];
+} Modules[MAX_N_MODULES];
+
+char	*getmodulename(int);
+int	getmoduleid(char*);
 
 #define	MAXREPEAT ((sizeof(repeatinterval) / sizeof(repeatinterval[0])) - 1)
 #define	REPEATTIME(f)	((f)->f_time + repeatinterval[(f)->f_repeatcount])
@@ -153,8 +156,9 @@ struct	m_functions {
 #define F_WALL		6		/* everyone logged on */
 
 /* values for m_type */
-#define	M_CLASSIC	1
-#define	M_SQL		2
+#define	M_CLASSIC	0
+#define	M_PEO		1
+#define	M_MYSQL		2
 
 /* values for integrity facilities */
 #define I_NONE		0
