@@ -1,0 +1,89 @@
+.\"	$CoreSDI: om_snmptrap.8,v 1.5 2002/03/15 19:55:37 claudio Exp $
+.\"
+.\" Copyright (c) 2001, 2002 CORE SDI S.A., Buenos Aires, Argentina.
+.\" All rights reserved.
+.\"
+.\" THIS IS UNPUBLISHED PROPIETARY SOURCE CODE OF CORE SDI S.A.
+.\"
+.\" THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES
+.\" ARE DISCLAIMED. IN NO EVENT SHALL CORE SDI S.A. BE LIABLE FOR ANY DIRECT,
+.\" INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY OR CONSEQUENTIAL DAMAGES
+.\" RESULTING FROM THE USE OR MISUSE OF ANY RECOMPILATION OF THIS SOURCE
+.\" CODE NOT PROVIDED BY CORE SDI S.A.
+.\"
+.Dd Mar 8, 2002
+.Dt OM_SNMPTRAP 8 SMM
+.Os CoreSDI
+.Sh NAME
+.Nm om_snmptrap
+.Nd
+msyslog-1.x output module used to generate SNMP traps
+.Sh SYNOPSIS
+.Nm
+.Op Fl h Ar host
+.Op Fl p Ar port
+.Op Fl c Ar community
+.Fl t Ar trap_oid
+.Op Fl g Ar generic_type
+.Op Fl s Ar specific_trap
+.Op Ar var_oid
+.Sh DESCRIPTION
+The
+.Nm
+msyslog-1.x output module
+allows the generation of SNMP TRAPS. The options are as follows:
+.Bl -tag -width Ds
+.It Fl h Ar host
+Specifies the remote host where the snmp trap is sent; the default is
+.Em 127.0.0.1 .
+.It Fl p Ar port
+Specifies the port where the remote host is listening for incoming snmp traps;
+the default is 
+.Em 162 .
+.It Fl c Ar community
+Specifies the SNMPv1 community; the default is
+.Em private .
+.It Fl t Ar trap_oid
+This argument is mandatory and specifies the trap OID (object identifier).
+.It Fl g Ar generic_type
+Specifies generic trap TYPE; the default is
+.Em 6
+(ENTERPRISE SPECIFIC trap).
+.It Fl s Ar specific_type
+Specifies the specific trap TYPE; the default is
+.Em 0 .
+.It Ar var_oid
+This arguments specifies de variable OID; when an snmp trap is generated, the
+module asigns the msyslog message to this object identifier.
+.El
+.Sh EXAMPLES
+If you want to generate an ``enterprises.pepeAndCo.invalidHost'' trap and
+specific trap ``1'' each time the syslog receives a message from a host
+whose name is ``untrusted'' then, the follwing line should be added into the
+.Xr syslog.conf 5
+file:
+.Bd -literal -offset indent
+*.*	%regex -h "untrusted" %snmptrap -t enterprises.pepeAndCo.invalidHost -s 1
+.Ed
+.Pp
+If you want the syslog message being assigned to the
+"enterprises.pepeAndCo.invalidHost.message" variable, then the following
+line should be specified:
+.Bd -literal -offset indent
+*.*	%regex -h "untrusted" %snmptrap -t enterprises.pepeAndCo.invalidHost -s 1 enterprises.pepeAndCo.invalidHost.message
+.Ed
+.Sh AUTHORS
+.Bl -bullet
+.It
+Claudio Castiglia <claudio@corest.com>
+.It
+Hernan Gips <chipi@corest.com>
+.El
+.Sh SEE ALSO
+.Xr snmpd 1 ,
+.Xr snmptrap 1 ,
+.Xr syslog.conf 5 ,
+.Xr om_regex 8 ,
+.Xr msyslogd 8 ,
+.Xr syslogd 8 ,
+.Xr snmptrapd 8 .
