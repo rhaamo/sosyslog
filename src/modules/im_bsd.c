@@ -66,7 +66,7 @@ im_bsd_getLog(im, ret)
 
 	i = read(im->im_fd, im->im_buf, sizeof(im->im_buf) - 1);
 	if (i > 0) {
-		(ret->im_msg)[i] = '\0';
+		(ret->im_buf)[i] = '\0';
 		ret->im_len = i;
 		for (p = ret->im_msg; *p != '\0'; ) {
 			/* fsync file after write */
