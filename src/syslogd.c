@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.135 2000/09/27 00:38:25 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.136 2000/09/27 20:29:57 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.135 2000/09/27 00:38:25 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.136 2000/09/27 20:29:57 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -957,28 +957,6 @@ init(int signo) {
 				else
 					printf("%d ", f->f_pmask[i]);
 			printf("%s: ", TypeNames[f->f_type]);
-			switch (f->f_type) {
-			case F_FILE:
-			case F_TTY:
-			case F_CONSOLE:
-				printf("%s", f->f_un.f_fname);
-				break;
-
-			case F_FORW:
-				printf("%s", f->f_un.f_forw.f_hname);
-				break;
-
-			case F_USERS:
-				for (i = 0; i < MAXUNAMES && *f->f_un.f_uname[i]; i++)
-					printf("%s, ", f->f_un.f_uname[i]);
-				break;
-			case F_MODULE:
-				for (om = f->f_omod; om; om = om->om_next) 
-					printf("%s, ", om->om_func->om_name);
-				break;
-			}
-			if (f->f_program)
-				printf(" (%s)", f->f_program);
 			printf("\n");
 		}
 	}
