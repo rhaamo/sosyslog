@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.121 2001/04/09 18:32:15 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.122 2001/04/09 18:50:18 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -200,24 +200,23 @@ AC_ARG_WITH(maximum-optimization,
 	MAXOPT=no
 ])
 
+temp_res="no";
 AC_ARG_WITH(bsd,
 [  --without-bsd
 	Use bsd input module. Automatically detected.
-],[
-	if test $with_bsd = "yes" ; then
-		MSRCS="$MSRCS im_bsd.c"
-		AC_DEFINE(HAVE_BSD_IMODULE)
-	fi
-],[
+],[ temp_res="$with_bsd"; ],[
 	if test "$UNAME" = "OpenBSD" -o "$UNAME" = "NetBSD" \
 	    -o "$UNAME"  = "FreeBSD" -o "$UNAME" = "BSDi" \
 	    -o "$UNAME"  = "386BSD"  -o "$UNAME" = "ArchBSD" \
 	    -o "$UNAME"  = "TrustedBSD" ; then
-		MSRCS="$MSRCS im_bsd.c"
-		AC_DEFINE(HAVE_BSD_IMODULE)
+		temp_res="yes";
 	fi
 ])dnl
-
+if test "X$temp_res" = "Xyes" ; then
+		MSRCS="$MSRCS im_bsd.c";
+		MANPAGES="$MANPAGES im_bsd.8";
+		AC_DEFINE(HAVE_BSD_IMODULE)dnl
+fi
 
 AC_ARG_WITH(linux,
 [  --without-linux
@@ -296,7 +295,7 @@ temp_res=no
 AC_ARG_WITH(classic,
 [  --without-classic
 	Use classic output module. Activated by default.
-],[ temp_res="$with_unix"; ],[ temp_res="yes"; ],[
+],[ temp_res="$with_classic"; ],[ temp_res="yes"; ],[
 ])
 if test "X$temp_res" = "Xyes" ; then
 	MSRCS="$MSRCS om_classic.c ttymsg.c"
