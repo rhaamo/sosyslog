@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.95 2001/03/10 00:26:05 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.96 2001/03/10 00:34:15 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -202,8 +202,6 @@ AC_ARG_WITH(unix,
 
 dnl Doors should only be used with streams
 
-AC_MSG_CHECKING(for streams module)
-
 temp_res=no
 AC_ARG_WITH(streams,
 [  --without-streams
@@ -228,6 +226,7 @@ if test "$temp_res" = "yes" ; then
 	SYSLOGD_LIBS="$SYSLOGD_LIBS -lthread -ldoor"
 	AC_DEFINE(HAVE_STREAMS_IMODULE)
 fi
+AC_MSG_CHECKING(for streams module)
 AC_MSG_RESULT($temp_res)
 
 AC_ARG_WITH(classic,
