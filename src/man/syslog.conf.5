@@ -1,4 +1,4 @@
-.\"	$CoreSDI: syslog.conf.5,v 1.7.2.1.2.1 2000/09/11 23:07:15 alejo Exp $
+.\"	$CoreSDI: syslog.conf.5,v 1.13 2000/10/31 19:42:13 alejo Exp $
 .\"
 .\" Copyright (c) 1990, 1991, 1993
 .\"	The Regents of the University of California.  All rights reserved.
@@ -317,9 +317,15 @@ configuration file.
 .El
 .Sh SEE ALSO
 .Xr syslog 3 ,
-.Xr syslogd 8 ,
-.Xr om_peo 8 ,
-.Xr peochk 8 
+.Xr om_classic.8 ,
+.Xr om_mysql.8 ,
+.Xr om_peo.8 ,
+.Xr om_pgsql.8 ,
+.Xr om_regex.8 ,
+.Xr om_tcp.8 ,
+.Xr om_udp.8 ,
+.Xr peochk.8 ,
+.Xr syslogd.8
 .Sh HISTORY
 The
 .Nm
@@ -347,3 +353,13 @@ the correct lines are:
 .Pp
 .Dl *.*	%classic /dev/console
 .Dl *.*	%classic /var/log/messages
+.It
+Submit bugs at this project's Sourceforge Bug reporting system at:
+http://sourceforge.net/tracker/?func=add&group_id=25741&atid=385117
+You may also report them directly to the authors; send an email to
+core.devel.alat@corest.com, describing the problem the most you can,
+containing also machine description, hardware description, the
+configuration file (/etc/syslog.conf), the OS description, and the
+invoking command line.
+The more you describe the bug, the faster we can fix it.
+.El
