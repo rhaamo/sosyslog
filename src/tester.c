@@ -15,24 +15,26 @@ int lfacility[] = { LOG_AUTH, LOG_AUTHPRIV, LOG_CRON, LOG_DAEMON, LOG_FTP,
 
 void
 usage(char *pname) {
-  printf("Usage:  %s <-l level> <-o option> <-f facility> <-m 'message'>\n"
+  printf("Usage:  %s <-l level> <-o option> <-f facility> "
+         " <-m 'message'> <-d>\n"
 	 "        you may specify multiple options\n"
 	 "        you MUST specify l,o,f together\n");
   exit(-1);
 }
 
+#define dprintf		if (Debug) printf
 
 int
 main(int argc, char *argv[]) {
-  int l, o, f, ch, started, m;
+  int l, o, f, ch, started, m, Debug;
   char *pname, msg[512];
   extern char *optarg;
   extern int optind;
 
-  l = 0; o = 0; f = 0; started = 0; m = 0;
+  l = 0; o = 0; f = 0; started = 0; m = 0; Debug = 0;
   pname = strdup(argv[0]);
 
-  while ((ch = getopt(argc, argv, "l:o:f:m:")) != -1) {
+  while ((ch = getopt(argc, argv, "l:o:f:m:d")) != -1) {
           switch (ch) {
               case 'l':
                       l = atoi(optarg);
@@ -50,6 +52,9 @@ main(int argc, char *argv[]) {
                       strncpy(msg, optarg, 511);
                       m++;
                       break;
+              case 'd':
+                      Debug++;
+                      break;
               case '?':
               default:
                       usage(pname);
@@ -63,12 +68,12 @@ main(int argc, char *argv[]) {
 
   if ( started == 3) {
       openlog("SuperMegaTest", loption[o], lfacility[f]);
-      printf("%s: going to log l %i, o %i, f %i\n", pname, l, o, f);
+      dprintf("%s: going to log l %i, o %i, f %i\n", pname, l, o, f);
       syslog(level[l], "%s level = [%i]"
 	      " option = [%i] facility = [%i]", msg, l, o, f);
       closelog();
   } else if (started > 0) {
-      printf("You nust specify ALL args or none\n");
+      dprintf("You nust specify ALL args or none\n");
       usage(pname);
   } else {
       for(l = 0; l < 8; l++) {
@@ -77,7 +82,7 @@ main(int argc, char *argv[]) {
                   openlog("SuperMegaTest", loption[o], lfacility[f]);
                   syslog(level[l], "%s level = [%i] option = [%i]"
                           " facility = [%i]", msg, l, o, f);
-                  printf("%s: going to log l %i, o %i, f %i\n", pname, l, o, f);
+                  dprintf("%s: going to log l %i, o %i, f %i\n", pname, l, o, f);
                   closelog();
               }
           }
