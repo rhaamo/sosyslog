@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.21 2000/09/14 01:12:43 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.22 2000/09/15 21:50:10 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -248,7 +248,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog,
 
 	if(createTable)
 	{
-		snprintf(query,MAX_QUERY - 2,"CREATE TABLE %s ( logdate DATE, logtime TIME, host VARCHAR(64), msg TEXT )",table);
+		snprintf(query, MAX_QUERY, "CREATE TABLE %s ( logdate DATE, logtime TIME, host VARCHAR(64), msg TEXT )",table);
 		r=PQexec(h, query);
 		if(PQresultStatus(r) != PGRES_COMMAND_OK)
 		{
