@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.50 2000/11/02 17:04:47 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.51 2000/11/03 20:10:09 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -69,12 +69,14 @@ struct om_mysql_ctx {
 	char	*db;
 };
 
+int om_mysql_close(struct filed *, void *);
+
 int
 om_mysql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 {
 	struct om_mysql_ctx *c;
 	char	query[MAX_QUERY], err_buf[100];
-	int i, j;
+	int i;
 	void (*sigsave)(int);
 
 	dprintf("om_mysql_dolog: entering [%s] [%s]\n", msg, f->f_prevline);
@@ -108,7 +110,7 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 	    f->f_tm.tm_hour, f->f_tm.tm_min, f->f_tm.tm_sec, f->f_prevhost);
 
 	if (c->lost) {
-		int pos;
+		int pos = i;
 
 		/*
 		 * Report lost messages, but 2 of them are lost of

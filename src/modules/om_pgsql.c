@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.26 2000/11/01 18:18:03 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.27 2000/11/03 20:10:10 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -194,7 +194,6 @@ int
 om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 {
 	PGconn  *h;
-	PGresult *r;
 	struct  om_pgsql_ctx *ctx;
 	char    *host, *user, *passwd, *db, *table, *port, *p;
 	int     ch = 0;
