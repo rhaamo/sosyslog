@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.18 2000/07/04 17:47:40 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.19 2000/07/04 19:11:22 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -134,8 +134,10 @@ install:
 		then \
 			echo "${INSTALL_LIBDIR}" >> /etc/ld.so.conf; \
 		fi; \
+		ldconfig \
+	else \
+		ldconfig ${LDCONFIG_FLAGS} ${INSTALL_LIBDIR} \
 	fi
-	-ldconfig ${LDCONFIG_FLAGS} ${INSTALL_LIBDIR}
 	
 
 
