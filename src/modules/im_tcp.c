@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.18 2001/06/14 01:24:09 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.19 2001/06/28 15:13:15 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -130,7 +130,8 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 	c = (struct im_tcp_ctx *) I->im_ctx;
 
 	if ( (I->im_fd = listen_tcp(host, port, &c->addrlen)) < 0) {
-        	dprintf(MSYSLOG_SERIOUS, "im_tcp: error with listen_tcp()\n");
+        	dprintf(MSYSLOG_SERIOUS, "im_tcp: error with listen_tcp() %s\n",
+		    strerror(errno));
 		return (-1);
 	}
 
