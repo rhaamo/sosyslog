@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.24 2000/05/26 16:53:37 fgsch Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.25 2000/05/26 18:31:40 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -228,7 +228,7 @@ om_classic_init(argc, argv, f, prog, context)
 		f->f_un.f_forw.f_addr.sin_family = AF_INET;
 		f->f_un.f_forw.f_addr.sin_port = LogPort;
 		memmove(&f->f_un.f_forw.f_addr.sin_addr, hp->h_addr,
-		    hp->h_length);
+		    sizeof(struct in_addr));
 		f->f_type = F_FORW;
 		break;
 
