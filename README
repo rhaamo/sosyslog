@@ -1,4 +1,31 @@
-/*	$CoreSDI: README,v 1.5.4.1 2000/09/09 00:35:45 alejo Exp $	*/
+/*	$CoreSDI: README,v 1.5.4.3 2000/09/13 23:54:37 alejo Exp $	*/
+
+Installation
+------------
+
+Please read the file INSTALL.
+
+
+Reporting Bugs
+--------------
+
+Please send an email to core.devel.alat@core-sdi.com, describing the problem
+the most you can, containing also machine description, hardware
+description, the configuration file (/etc/syslog.conf), the OS
+description, and the invoking command line.
+
+The more you describe the bug, the faster we can fix it.
+
+Known Bugs
+----------
+
+- You can use both sql modules at the same time. This will be fixed eventually.
+- If an output module goes down (ie. mysql), logs are lost and no reconnection
+  is done. This will be fixed eventually.
+- Still no support for '!' and '=' on syslog.conf
+- If a module blocks on I/O the hole daemon blocks, and messages can get lost
+  on extremely busy hosts.
+
 
 Main differences with previous BSD syslog
 -----------------------------------------
@@ -13,8 +40,69 @@ A new notation was made for configuration of modules.
 
 This new approach allows adding new functionality without complicating the code.
 
-Current availble outout modules are classic, mysql, peo, pgsql and regex.
+Current available output modules are classic, mysql, peo, pgsql and regex.
 Available input modules are bsd, linux, unix, and udp. Current modules under
-development or in the makings range from tcp connections, to a special module
+development or in the makings range from tcp transport, to a special module
 for setting up triggers on actions and priority redirection.
+
+
+Classic Output Module
+---------------------
+
+Performs the previous BSD syslogd output tasks: save to a file, forward
+to a remote host though UDP, mail a user, send a message to a console,
+send a message to a tty, send message to all users (WALL).
+
+MySQL Output Module
+-------------------
+
+Performs loggin in a MySQL server, either local or remote. The table format
+must be specified as om_mysql(8) manpage specifies.
+
+
+PostgreSQL Output Module
+-------------------
+
+Performs loggin in a PostgreSQL server, either local or remote. Since this
+module is similar to the MySQL one, the table format must be specified as
+om_mysql(8) manpage specifies.
+
+Regular Expression Output Module
+--------------------------------
+
+This module acts as a filter, applying a regular expression to a message,
+hour, date or host. If message matches all, the next module in the
+configuration file is called. If reverse flag is used, pass all but matching
+messages. See om_regex(8) manpage for more details.
+
+Peo Output Module
+-----------------
+
+This module does hash protection on logs. See om_peo(8) manpage for
+more information on useage.
+
+BSD Input Module
+----------------
+
+Gets messages from a BSD special kernel logging device. Use it simply
+as this on command line -i /dev/klog.
+
+Linux Input Module
+------------------
+
+Gets messages from a Linux special kernel logging device. Read im_linux(8)
+manpage for more details.
+
+UDP Input Module
+----------------
+
+Read messages from an UDP socket. Use it simply as this on command line
+-i udp <port number>. The port number is optional, and default is
+the one specified on /etc/services for "udp" and "syslog".
+
+Unix Input Module
+-----------------
+
+Reads messages from a unix domain socket. Use it simply as this on command
+line -i 'unix /dev/log' or -i unix:/dev/log.
 

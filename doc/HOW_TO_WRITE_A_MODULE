@@ -24,3 +24,9 @@ called.
 
 It is not guaranteed that it will be called at that precise time, but that
 it will NOT be called before it.
+
+Libraries
+---------
+
+You must specify all needed libraries in "src/modules_libs.c".
+
