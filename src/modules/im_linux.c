@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.23 2000/06/14 18:34:50 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.24 2000/06/14 18:37:23 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -251,7 +251,6 @@ im_linux_init(I, argv, argc)
 	if ((flags & KSYM_TRANSLATE) && ksym_init() < 0)
 		return(-1);
 
-        I->im_type = IM_LINUX;
         I->im_name = "linux";
         I->im_flags |= IMODULE_FLAG_KERN;
 	optind = current_optind;
