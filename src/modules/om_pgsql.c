@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.19 2000/09/04 23:43:45 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.17.2.4.2.2 2000/09/14 01:09:32 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -101,15 +101,15 @@ om_pgsql_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *ctx) {
 	/* PostgreSQL needs 2000-01-25 like format */
 	dummy = strdup(f->f_lasttime);
 	*(dummy + 3)  = '\0'; *(dummy + 6)  = '\0';
-	*(dummy + 15) = '\0'; *(dummy + 20) = '\0';
+	*(dummy + 15) = '\0';
 	mo = dummy;
 	d = dummy + 4;
 	h = dummy + 7;
 	y = strdup(dummy + 16);
 
 	if(strcmp(y, "") == 0) {
-		time_t now;
 
+		if (y) free(y);
 		(void) time(&now);
 		y = strdup(ctime(&now) + 20);
 	}
@@ -174,8 +174,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog,
 	PGresult *r;
 	struct  om_pgsql_ctx *ctx;
 	char    *host, *user, *passwd, *db, *table, *port, *p, *query;
-	int     client_flag, createTable;
-	int     ch;
+	int     createTable = 0, ch = 0;
 
 	dprintf("PostgreSQL: entering initialization\n");
 
@@ -184,7 +183,6 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog,
 		return (-1);
 
 	user = NULL; passwd = NULL; db = NULL; port = 0; host = NULL; table = NULL;
-	client_flag = 0; createTable = 0;
 
 	/* parse line */
 	optind = 1;
@@ -306,8 +304,11 @@ om_pgsql_destroy_ctx(ctx)
 
 int
 om_pgsql_close(struct filed *f, struct om_hdr_ctx *ctx) {
-	PQfinish(((struct om_pgsql_ctx *)ctx)->h);
-	om_pgsql_destroy_ctx(ctx);
 
-	return (-1);
+	if (((struct om_pgsql_ctx *)ctx)->h) {
+		PQfinish(((struct om_pgsql_ctx *)ctx)->h);
+		om_pgsql_destroy_ctx(ctx);
+	}
+
+	return (0);
 }
