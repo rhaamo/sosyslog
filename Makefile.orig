@@ -1,4 +1,4 @@
-#	$CoreSDI$
+#	$CoreSDI: Makefile,v 1.37 2000/05/23 22:17:57 fgsch Exp $
 
 CC	= cc
 CFLAGS	= -O2 -Wall

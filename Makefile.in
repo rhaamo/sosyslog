@@ -1,0 +1,33 @@
+#
+
+CC = @CC@
+CFLAGS = @CFLAGS@
+LDFLAGS = @LDFLAGS@
+
+EXTRAOBJ = @EXTRAOBJ@
+
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL = @INSTALL@
+
+protobjs = iolib.o modules.o ttymsg.o syslogd.o im_bsd.o im_udp.o
+	   im_unix.o om_classic.o peo/om_peo.o hash.o
+
+objs = $(protobjs) $(EXTRAOBJS)
+
+all: syslogd
+
+syslogd: $(objs)
+	$(CC) $(objs) -o syslogd $(LDFLAGS)
+
+.PHONY: install
+	$(INSTALL_PROGRAM) syslogd $(bindir)/syslogd
+
+.PHONY: clean distclean
+clean:
+	-rm -f *.core core $(objs) syslogd
+
+distclean: clean
+	-rm -f Makefile tags 
+	-rm -f config.cache config.status config.log
+
