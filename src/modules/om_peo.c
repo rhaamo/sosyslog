@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.15 2000/05/11 20:07:00 claudio Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.16 2000/05/11 20:37:18 claudio Exp $";
 #endif /* not lint */
 
 /*
@@ -66,10 +66,6 @@ static char rcsid[] = "$Id: om_peo.c,v 1.15 2000/05/11 20:07:00 claudio Exp $";
 #include "../syslogd.h"
 #include "../modules.h"
 #include "hash.h"
-
-#ifndef PEO_ALONE
-#define PEO_ALONE 0
-#endif
 
 struct om_peo_ctx {
 	short	flags;
@@ -204,7 +200,7 @@ om_peo_init(argc, argv, f, prog, context)
 	#ifndef HAVE_LINUX
 		optreset = 1;
 	#endif
-	optind = PEO_ALONE;
+	optind = 1;
 	while ((ch = getopt(argc, argv, "k:lm:")) != -1) {
 		switch(ch) {
 			case 'k':
