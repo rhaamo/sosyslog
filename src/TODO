@@ -1,4 +1,4 @@
-/*	$CoreSDI: TODO,v 1.33 2000/09/15 22:38:59 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.34 2000/09/18 18:58:29 alejo Exp $	*/
 
 Things to do:
 
@@ -48,3 +48,4 @@ Check for buffer overflows, as we now may get things from the outside world.
 - Create a message structure to be pased from ins to outs
 - Make a dbm/ndbm output module. talk w/ audit for that
 - Make syslogd's cfline more verbose on errors
+- src/Makefile should warn if modules.conf changed to use ./configure
