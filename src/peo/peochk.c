@@ -27,6 +27,7 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/syslog.h>
 #include <sys/uio.h>
 
 #include <err.h>
@@ -109,6 +110,8 @@ check()
 	int  input;
 	char key[41];
 	int  keylen;
+	char lastkey[41];
+	int  lastkeylen;
 	char msg[MAXLINE];
 	
 	/* open logfile */
@@ -121,21 +124,41 @@ check()
 
 	/* read initial key */
 	if ( (i = open(key0file, O_RDONLY, 0)) == -1)
-		err(1, keyfile);
-	if ( (keylen = read(i, key, 40)) == -1) 
-		err(1, keyfile);
-	if (keylen == 0)
-		errx(1, "%s: Initial key file corrupted", key0file);
+		err(1, key0file);
+	if ( (keylen = read(i, key, 40)) == -1)
+		err(1, key0file);
+	if (!keylen)
+		errx(1, "%s: file corrupted", key0file);
 	key[keylen] = 0;
 	close(i);
 
+	/* read last key */
+	if ( (i = open(keyfile, O_RDONLY, 0)) == -1)
+		err(1, keyfile);
+	if ( (lastkeylen = read(i, lastkey, 40)) == -1)
+		err(1, keyfile);
+	if (!lastkeylen)
+		errx(1, "%s: file corrupted", keyfile);
+	lastkey[lastkeylen] = 0;
+	close(i);
+
+	/* test both keys lenght */
+	if (lastkeylen != keylen)
+		errx(1, "%s and/or %s files corrupted", key0file, keyfile);
+
 	/* check it */
 	while( (i = read(input, msg, MAXLINE)) > 0) {
-		if (i < 0)
-			errx(1, "error reading logs");
-		
+		msg[i] = 0;
+		keylen = hash(method, key, keylen, msg, key);
+	}
 
-	
+	if (i < 0)
+		errx(1, "error reading logs form %s", (use_stdin) ? "standard input" : logfile);
+
+	if (strcmp(lastkey, key)) 
+		errx (1, "%s file corrupted\n", logfile);
+
+	fprintf (stderr, "%s file is ok\n", logfile);
 }
 
 
@@ -148,7 +171,7 @@ generate()
 	char	 newkey[41];
 	int	 len;
 	int	 fkey;
-	INT	 FKey0;
+	int	 fkey0;
 	time_t	 t;
 
 	time(&t);
@@ -202,7 +225,7 @@ main (argc, argv)
 					free(logfile);
 				if ( (logfile = strdup(optarg)) == NULL) {
 					release();
-					err(1, NULL);
+					err(1, optarg);
 				}
 				use_stdin = 0;
 				break;
@@ -216,7 +239,7 @@ main (argc, argv)
 					free(key0file);
 				if ( (key0file = strdup(optarg)) == NULL) {
 					release();
-					err(1, NULL);
+					err(1, optarg);
 				}
 				break;
 			case 'k':
@@ -225,7 +248,7 @@ main (argc, argv)
 					free(keyfile);
 				if ( (keyfile = strdup(optarg)) == NULL) {
 					release();
-					err(1, NULL); 
+					err(1, optarg); 
 				}
 				break;
 			case 'm':
@@ -255,7 +278,7 @@ main (argc, argv)
 	if (argc && use_stdin)
 		if ( (logfile = strdup(argv[argc-1])) == NULL) {
 			release();
-			err(1, NULL);
+			err(1, argv[argc-1]);
 		}
 
 	/* if keyfile was not specified converted logfile is used instead */
@@ -263,7 +286,7 @@ main (argc, argv)
 		char *tmp;
 		if ( (tmp = strkey(logfile)) == NULL) {
 			release();
-			err(1, NULL);
+			err(1, logfile);
 		}
 		keyfile = (char*) calloc(1, 14+strlen(tmp));
 		strcpy(keyfile, "/var/ssyslog/");
@@ -275,7 +298,7 @@ main (argc, argv)
 	if (key0file == NULL) {
 		if ( (key0file = calloc(1, strlen(keyfile)+1)) == NULL) {
 			release();
-			err(1, NULL);
+			err(1, keyfile);
 		}
 		strcpy(key0file, keyfile);
 		strcat(key0file, "0");

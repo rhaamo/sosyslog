@@ -37,11 +37,17 @@ typedef struct {
 
 /* function prototypes */
 
-void RMD160Init __P((RMD160_CTX *context));
-void RMD160Transform __P((u_int32_t state[5], const u_int32_t block[16]));
-void RMD160Update __P((RMD160_CTX *context, const u_char *data, u_int nbytes));
-void RMD160Final __P((u_char digest[20], RMD160_CTX *context));
-char *RMD160End __P((RMD160_CTX *, char *));
+extern
+void RMD160Init (RMD160_CTX *context);
+
+extern
+void RMD160Transform (u_int32_t state[5], const u_int32_t block[16]);
+
+extern
+void RMD160Update (RMD160_CTX *context, const u_char *data, u_int nbytes);
+
+extern
+char *RMD160End (RMD160_CTX *, char *);
 
 #endif  /* _RMD160_H */
 
