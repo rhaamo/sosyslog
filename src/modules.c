@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.133 2000/11/09 19:57:56 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.89.2.6.2.4.4.10 2000/11/21 23:47:03 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -508,7 +508,7 @@ addOmodule(char *name)
 		}
 	}
 
-	snprintf(buf, LIB_PATH_MAX, "%s/libmsyslog_om_%s.so.1.01",
+	snprintf(buf, LIB_PATH_MAX, "%s/libmsyslog_om_%s.so." MSYSLOG_VERSION_STR,
 			libdir ? libdir : INSTALL_LIBDIR, name);
 
 	if ((om->h = dlopen(buf, DLOPEN_FLAGS)) == NULL) {

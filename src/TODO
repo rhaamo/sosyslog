@@ -1,10 +1,8 @@
-/*	$CoreSDI: TODO,v 1.53 2000/11/14 01:12:51 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.54 2000/11/14 02:02:45 alejo Exp $	*/
 
 Things to do:
 
-- remove memory leaks (needs adding an optional destroy function)
 - define STYLE for names (ie. underscore or caps, indentation)
-- test solaris port
 - module configuration file so eliminate most command line options
 - no more static modules
 - No more autoconf, just plain Makefiles

@@ -1,9 +1,9 @@
-dnl	$CoreSDI: configure.in,v 1.72 2000/11/14 01:57:34 alejo Exp $
+dnl	$CoreSDI: configure.in,v 1.73 2000/11/15 18:44:26 alejo Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
 
-MSYSLOG_VERSION=1.01
+MSYSLOG_VERSION=1.03
 AC_DEFINE_UNQUOTED(MSYSLOG_VERSION_STR, "$MSYSLOG_VERSION")dnl
 echo msyslog version... $MSYSLOG_VERSION
 

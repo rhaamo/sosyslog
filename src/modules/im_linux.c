@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.38 2000/11/06 23:11:28 alejo Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.31.2.4.4.9 2000/11/21 23:01:45 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -99,8 +99,7 @@ char	*ksym_copyword (char*, char*, int);
 void
 im_linux_usage()
 {
-	dprintf(stderr,
-		"linux input module options:\n"
+	dprintf("linux input module options:\n"
 		"   [ -k file ]    Use the specified file as source of kernel\n"
 		"                  symbol information instead of %s.\n"
 		"   [ -r ]         Force read symbol table on memory.\n"
@@ -373,7 +372,7 @@ ksym_init()
 	if (flags & KSYM_READ_TABLE) {
 		last = NULL;
 		while (fgets(buf, sizeof(buf), ksym_fd) != NULL) {
-			if ( (next = (Symbol*) malloc(1, sizeof(Symbol))) == NULL) {
+			if ( (next = (Symbol*) malloc(sizeof(Symbol))) == NULL) {
 				warn("%s: ksym_init", linux_input_module);
 				ksym_close();
 				return (-1);

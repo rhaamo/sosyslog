@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.149 2000/11/06 23:11:28 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.90.2.9.2.4.4.15 2000/11/21 23:20:21 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.149 2000/11/06 23:11:28 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.90.2.9.2.4.4.15 2000/11/21 23:20:21 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -76,7 +76,10 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.149 2000/11/06 23:11:28 alejo Exp
 #include <sys/wait.h>
 #include <sys/un.h>
 #include <sys/types.h>
-#if (__svr4__ && __sun__)
+#ifdef HAVE_LINUX
+#include <time.h>
+extern char *strptime(const char *, const char *, struct tm *);
+#elif (__svr4__ && __sun__)
 #define _REENTRANT
 #include <time.h>
 #undef  _REENTRANT
@@ -1099,10 +1102,10 @@ cfline(char *line, struct filed *f, char *prog) {
 int
 getmsgbufsize()
 {
+#ifdef HAVE_OPENBSD
 	int msgbufsize, mib[2];
 	size_t size;
                 
-#if !(__svr4__ && __sun__)
 
 	mib[0] = CTL_KERN;
 	mib[1] = KERN_MSGBUFSIZE;
@@ -1111,11 +1114,11 @@ getmsgbufsize()
 		dprintf("couldn't get kern.msgbufsize\n");
 		return (0);
 	}
-#else
-	msgbufsize = MAXLINE;
-#endif
 
 	return (msgbufsize);
+#else
+	return (MAXLINE);
+#endif
 }
 
 
