@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.26 2000/12/14 00:16:45 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.27 2001/01/27 01:04:20 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -184,8 +184,9 @@ bad:
 int
 om_regex_write(struct filed *f, int flags, char *msg, void *ctx)
 {
-	struct om_regex_ctx *c;
-	char time_buf[16];
+	struct	om_regex_ctx *c;
+	char	time_buf[16];
+	int	res;
 
 	c = (struct om_regex_ctx *) ctx;
 
@@ -199,13 +200,23 @@ om_regex_write(struct filed *f, int flags, char *msg, void *ctx)
 			 0  nomatch -> stop logging it
 	 */
 
-	if ((c->filters & OM_FILTER_MESSAGE) &&
-	    regexec(c->msg_exp, msg, 0, NULL, 0))
-		goto nomatch;
+	if (c->filters & OM_FILTER_MESSAGE) {
 
-	if ((c->filters & OM_FILTER_HOST) &&
-	    regexec(c->host_exp, f->f_prevhost, 0, NULL, 0))
-		goto nomatch;
+		res = regexec(c->msg_exp, msg, 0, NULL, 0);
+
+		if ( (!(c->filters & OM_FILTER_INVERSE) && res) ||
+		    (c->filters & OM_FILTER_INVERSE && !res) )
+			return (0);
+	}
+
+	if (c->filters & OM_FILTER_HOST) {
+
+		res = regexec(c->host_exp, f->f_prevhost, 0, NULL, 0);
+
+		if ( (!(c->filters & OM_FILTER_INVERSE) && res) ||
+		    (c->filters & OM_FILTER_INVERSE && !res) )
+			return (0);
+	}
 
 	/* get message time and separate date and time */
 	if ((c->filters & OM_FILTER_DATE) || (c->filters & OM_FILTER_TIME)) {
@@ -217,20 +228,27 @@ om_regex_write(struct filed *f, int flags, char *msg, void *ctx)
 		time_buf[15] = 0;
 	}
 
-	if ((c->filters & OM_FILTER_DATE) &&
-	    regexec(c->date_exp, time_buf, 0, NULL, 0))
-		goto nomatch;
+	if (c->filters & OM_FILTER_DATE) {
 
-	if ((c->filters & OM_FILTER_TIME) &&
-	    regexec(c->time_exp, time_buf + 7, 0, NULL, 0))
-		goto nomatch;
+		res = regexec(c->date_exp, time_buf, 0, NULL, 0);
+
+		if ( (!(c->filters & OM_FILTER_INVERSE) && res) ||
+		    (c->filters & OM_FILTER_INVERSE && !res) )
+			return (0);
+	}
+
+	if (c->filters & OM_FILTER_TIME) {
+
+		res = regexec(c->time_exp, time_buf + 7, 0, NULL, 0);
+
+		if ( (!(c->filters & OM_FILTER_INVERSE) && res) ||
+		    (c->filters & OM_FILTER_INVERSE && !res) )
+			return (0);
+	}
 
 	/* matched */
-	return (c->filters & OM_FILTER_INVERSE ? 0 : 1);
+	return (1);
 
-nomatch:
-	/* not  matched */
-	return (c->filters & OM_FILTER_INVERSE ? 1 : 0);
 }
 
 int
