@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.90 2001/03/01 01:41:04 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.91 2001/03/06 01:18:28 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(config.h)dnl
@@ -221,12 +221,12 @@ dnl 		MANPAGES="$MANPAGES im_doors.8"
 dnl 	])dnl
 dnl ])
 
-AC_MSG_CHECKING(for streams module)
-
 AC_ARG_WITH(streams,
 [  --without-streams
 	Use streams input module. Activated by default.
 ],[
+	AC_MSG_CHECKING(for streams module)
+
 	if test $with_streams = "yes" ; then
 		MSRCS="$MSRCS im_streams.c"
 		MLIBS="$MLIBS -lpthread"
@@ -245,8 +245,12 @@ AC_ARG_WITH(streams,
 		MSRCS="$MSRCS im_doors.c"
 		MANPAGES="$MANPAGES im_doors.8"
 		AC_DEFINE(HAVE_STREAMS_IMODULE)
-        	AC_MSG_RESULT(yes)
-	], AC_MSG_RESULT(no) )dnl
+		test="yes"
+	], [
+		test="no"
+	] )dnl
+	AC_MSG_CHECKING(for streams module)
+        AC_MSG_RESULT($test)
 ])
 
 AC_ARG_WITH(classic,
