@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.41 2000/06/07 21:27:38 claudio Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.42 2000/06/16 00:26:59 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -55,8 +55,8 @@
 
 #include "syslogd.h"
 #include "modules.h"
-#if 0
-#include "hash.h"
+#if 1
+#include "../peo/hash.h"
 #else
 extern char *default_keyfile;
 #define	SHA1	0
