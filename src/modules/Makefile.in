@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.40 2000/08/29 23:57:00 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.41 2000/08/30 00:57:06 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -166,10 +166,12 @@ install:
 	if [ ! -d $(MSYSLOG_BASEDIR) ] ; \
 	then \
 		mkdir $(MSYSLOG_BASEDIR)
+		chmod 755 $(MSYSLOG_BASEDIR)
 	fi 
 	if [ ! -d $(INSTALL_LIBDIR) ] ; \
 	then \
 		mkdir $(INSTALL_LIBDIR)
+		chmod 755 $(INSTALL_LIBDIR)
 	fi 
 	if [ -f libmsyslog_*.so.* ] ; \
 	then \
