@@ -74,6 +74,7 @@ if test `uname` = "Linux"
 then
 	echo "Enabling Linux input module..."
 	EXTRA_SRCS="$EXTRA_SRCS \$(LINUX_SRCS)"
+	AC_DEFINE(HAVE_LINUX)
 fi
 
 AC_SUBST(EXTRA_SRCS)

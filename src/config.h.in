@@ -1,4 +1,4 @@
-/*	$CoreSDI: config.h.in,v 1.6 2000/05/30 19:21:17 fgsch Exp $	*/
+/*	$CoreSDI: config.h.in,v 1.7 2000/06/09 20:12:46 gera Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -32,6 +32,8 @@
 #undef HAVE_PATHS_H
 
 #undef HAVE_OPTRESET
+
+#undef HAVE_LINUX
 
 #undef ENABLE_MYSQL
 
