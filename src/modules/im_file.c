@@ -133,9 +133,10 @@ return (-1);
         strerror( errno ), c->path);
 return (-1);
  	}
+  c->stat.st_size = 0;
 
-	if (! S_ISREG(c->stat.st_rdev)) {
-		m_dprintf(MSYSLOG_SERIOUS, "im_file_init: ramdom access files only, try im_pipe: [%s]\n", c->path);
+	if (! S_ISREG(c->stat.st_mode)) {
+		m_dprintf(MSYSLOG_SERIOUS, "im_file_init: random access files only, try im_pipe: [%s]\n", c->path);
 return (-1);
 	}
 
@@ -174,13 +175,13 @@ im_file_poll(struct i_module *I)
 return( 0 );
   }
 
-  if (new_stat.st_mtime == c->stat.st_mtime) {
-return( 0 );
+  /* do I care about the timestamp? */
+  /*
+  if (new_stat.st_mtime != c->stat.st_mtime) {
+    c->stat = new_stat;
+return( 1 );
   }
-
-  if (new_stat.st_size == c->stat.st_size) {
-return( 0 );
-  }
+  */
 
   /* if the file got bigger it was probably appended */
   if (new_stat.st_size > c->stat.st_size) {
@@ -195,7 +196,7 @@ return( 1 );
 return( 1 );
   }
 
-  /* if the file still exists then keep working on it */
+  /* if the file still exists then keep waiting on it */
   if (new_stat.st_nlink > 0) {
 return( 0 );
   }

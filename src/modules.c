@@ -136,7 +136,8 @@ get_symbol(const char *modname, const char *funcname, void **h, void **ret)
 	 */
 	if (*h == NULL) {
 		if (main_lib == NULL || ((*ret = dlsym(main_lib, buf)) == NULL
-		    && (*ret = dlsym(main_lib, buf + 1)) == NULL)) {
+		    && (*ret = dlsym(main_lib, buf + 1)) == NULL))
+    {
 
 			m_dprintf(MSYSLOG_INFORMATIVE, "get_symbol: func %s "
 			    "not found on main library\n", buf);
@@ -155,7 +156,6 @@ get_symbol(const char *modname, const char *funcname, void **h, void **ret)
 				m_dprintf(MSYSLOG_INFORMATIVE, "%s\n",
 				    (*h == NULL) ? "failed" : "ok");
 			}
-
 		}
 	}
 
@@ -503,10 +503,13 @@ return (NULL);
 		im = imodules;
 	} else {
 		for (im = imodules; im->im_next; im = im->im_next);
-		im->im_next = (struct imodule *) calloc(1,
-		    sizeof(struct imodule));
+		im->im_next = (struct imodule *) calloc(1, sizeof(struct imodule));
 		im = im->im_next;
 	}
+	im->im_init = NULL;
+	im->im_read = NULL;
+	im->im_close = NULL;
+	im->im_poll = NULL;
 
 	snprintf(buf, sizeof(buf), "im_%s", name);
 
@@ -525,18 +528,19 @@ return (NULL);
 
 		free(im);
 
-		m_dprintf(MSYSLOG_SERIOUS, "addImodule: couldn't config %s input"
-		    " module\n", buf);
+		m_dprintf(MSYSLOG_SERIOUS,
+                    "addImodule: couldn't config %s input module\n", buf);
 return(NULL);
 	}
 
-	/* this is not mandatory */
+	/* these functions are not mandatory */
 	get_symbol(buf, "close", &im->h, (void *) &im->im_close); 
+	get_symbol(buf, "poll", &im->h, (void *) &im->im_poll);
 
 	im->im_name = strdup(name);
 
-	m_dprintf(MSYSLOG_INFORMATIVE, "addImodule: successfully configured %s "
-	    "input module\n", buf);
+	m_dprintf(MSYSLOG_INFORMATIVE,
+                  "addImodule: successfully configured %s input module\n", buf);
 
 return (im);
 }
@@ -556,10 +560,13 @@ return (NULL);
 		om = omodules;
 	} else {
 		for (om = omodules; om->om_next != NULL; om = om->om_next);
-		om->om_next =
-		    (struct omodule *)calloc(1, sizeof(struct omodule));
+		om->om_next = (struct omodule *)calloc(1, sizeof(struct omodule));
 		om = om->om_next;
 	}
+  om->om_init = NULL;
+  om->om_write = NULL;
+  om->om_flush = NULL;
+  om->om_close = NULL;
 
 	if (om == NULL) {
 		m_dprintf(MSYSLOG_CRITICAL, "addOmodule: %s\n", strerror(errno));

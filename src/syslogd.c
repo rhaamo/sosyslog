@@ -589,13 +589,12 @@ exit(-1);
 
     /* error */
 		case -1:
-			m_dprintf(MSYSLOG_INFORMATIVE, "main: poll error: [%d]\n", errno);
+			m_dprintf(MSYSLOG_INFORMATIVE, "syslogd: poll error: [%d]\n", errno);
 			if (errno != EINTR) logerror("poll");
 	  break;
 
     /* timeout */
 		case 0:
-			m_dprintf(MSYSLOG_INFORMATIVE, "main: poll returned 0\n");
 		  for (ix = 0; ix < unpoll_fd_cnt; ix++)
       {
         struct i_module *current = unpoll_fd_modules[ix];
@@ -619,11 +618,11 @@ exit(-1);
     continue;  /* try the next one */
         }
 
-		  	m_dprintf(MSYSLOG_INFORMATIVE2, "main: input module: [%d]\n", unpoll_fd[ix]);
-
-        if ( ! (*current->im_func->im_poll) (current) ) {
+        if ( !(*current->im_func->im_poll) (current) ) {
     continue;
         }
+
+		  	m_dprintf(MSYSLOG_INFORMATIVE2, "syslogd: input module: [%d]\n", unpoll_fd[ix]);
 
 		  	im_read_proxy( current, unpoll_fd[ix], current->im_func->im_name );
       }
@@ -631,6 +630,7 @@ exit(-1);
 
     /* When file descriptors have events */
     default:
+			m_dprintf(MSYSLOG_INFORMATIVE, "syslogd: [%d] poll events\n", count);
 		  for (ix = 0; ix < poll_fd_cnt || count < 1; ix++)
       {
         struct i_module *current = poll_fd_modules[ix];
