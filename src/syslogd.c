@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.154 2000/12/04 23:25:28 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.155 2000/12/14 00:16:43 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.154 2000/12/04 23:25:28 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.155 2000/12/14 00:16:43 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -286,8 +286,6 @@ main(int argc, char **argv) {
 
 	if (((argc -= optind) != 0) || Inputs.im_fd < 0)
 		usage();
-
-printf("Debug level is: %i\n", Debug);
 
 	if (!Debug) {
 		int fd;
