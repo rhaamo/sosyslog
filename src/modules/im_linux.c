@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.20 2000/06/12 20:44:51 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.21 2000/06/12 22:20:41 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -148,6 +148,8 @@ im_linux_init(I, argv, argc)
 {
 	int ch;
 	int current_optind;
+	unsigned long loglevel;
+	char *err;
 
 
 	dprintf ("\nim_linux_init...\n");
@@ -159,8 +161,17 @@ im_linux_init(I, argv, argc)
 	flags = KSYM_TRANSLATE;
 	if (argc > 1) {
 		optind = 1;
-		while ( (ch = getopt(argc, argv, "k:rsxh?")) != -1)
+		while ( (ch = getopt(argc, argv, "c:k:rsxh?")) != -1)
 			switch(ch) {
+			case 'c': /* specify console loglebel */
+				if ( (loglevel = strtoul(optarg, &err, 10)) < 0 || loglevel > 7 || *err != '\0') {
+					warnx("%s: invalid loglevel <%s>", linux_input_module, optarg);
+					return(-1);
+				}
+				warnx("%s: setting console loglevel to <%i>", loglevel);
+				klogctl(8, NULL, loglevel);
+				break;
+				
 			case 'k': /* specify symbol file */
 				if (strcmp(ksym_path, optarg))
 					if ( (ksym_path = strdup(optarg)) == NULL) {

@@ -1,4 +1,4 @@
-.\"	$CoreSDI: im_linux.8,v 1.2 2000/06/12 18:25:14 claudio Exp $
+.\"	$CoreSDI: im_linux.8,v 1.3 2000/06/13 18:00:36 claudio Exp $
 .\"
 .\" Copyright (c) 2000
 .\"	Core-SDI SA. All rights reserved.
@@ -40,6 +40,7 @@
 .Nd syslogd(8) input module used to log linux kernel messages
 .Sh SYNOPSIS
 .Nm linux 
+.Op Fl c Ar loglevel
 .Op Fl k Ar ksym_path
 .Op Fl r
 .Op Fl s
@@ -52,6 +53,8 @@
 allows syslogd(8) daemon to log linux kernel messges. The
 options are as follows:
 .Bl -tag -width Ds
+.It Fl c Ar loglevel
+Sets the default log level of console message to \fIloglevel\fP.
 .It Fl k Ar ksym_path
 Specify the kernel symbol table file pathname; the default is
 /proc/ksyms.
