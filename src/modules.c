@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.102 2000/06/27 01:22:07 claudio Exp $	*/
+/*	$CoreSDI: modules.c,v 1.103 2000/06/28 21:22:37 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -67,7 +67,7 @@ modules_init (I, line)
 {
 	int argc;
 	char **argv, *p;
-	struct i_module *im, *imprev;
+	struct i_module *im, *im_prev;
 
 	/* create initial node for Inputs list */
 	if (I == NULL) {
@@ -130,7 +130,7 @@ omodule_create(char *c, struct filed *f, char *prog)
 		} else {
 			for (om_prev = f->f_omod; om_prev->om_next; om_prev = om_prev->om_next);
 			om_prev->om_next = (struct o_module *) calloc(1, sizeof *f->f_omod);
-			om = prev->om_next;
+			om = om_prev->om_next;
 			om->om_prev = om_prev;
 		}
 
