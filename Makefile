@@ -1,30 +1,24 @@
 #	$CoreSDI$
 
-CC	=	gcc
-CFLAGS	=	-O2 -Wall
-LDADD	=	-lc
-#-L/usr/local/lib/mysql -lmysqlclient
-COMPILE	=	$(CC) $(CFLAGS) -c $(.ALLSRC)
-LINK	=	$(CC) $(CFLAGS) $(LDADD) -o $(.TARGET) $(.ALLSRC)
+CC	= cc
+CFLAGS	= -O2 -Wall
 
+#
+# Uncomment this to add mysql support
+#
+#LDFLAGS= -L/usr/local/lib/mysql -lmysqlclient
 
-all:	syslogd	\
-	peochk	\
-	man
+OBJS	= syslogd.o ttymsg.o modules.o om_classic.o im_bsd.o im_udp.o \
+	  im_unix.o iolib.o peo/om_peo.o peo/hash.o peo/rmd160.o
 
-syslogd:	syslogd.c\
-		ttymsg.c\
-		modules.c\
-		om_classic.c\
-		im_bsd.c\
-		im_udp.c\
-		im_unix.c\
-		iolib.c\
-		peo/om_peo.o\
-		peo/hash.o\
-		peo/rmd160.o
-	$(LINK)
-	
+all:	syslogd peochk man
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
+syslogd: $(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) -o $@ $(LDFLAGS)
+
 peochk:
 	@(cd peo && make peochk);
 
@@ -36,5 +30,5 @@ man:
 
 clean:
 	-@(cd peo && make clean);
-	-@rm -f core *.core *.o syslogd
+	-rm -f core *.core *.o syslogd
 

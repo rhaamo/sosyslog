@@ -1,30 +1,19 @@
 #	$CoreSDI$
 
-CC	=	gcc
-CFLAGS	=	-Wall
-LDADD	=	-lc
-COMPILE	=	$(CC) $(CFLAGS) -c $(.ALLSRC)
-LINK	=	$(CC) $(CFLAGS) $(LDADD) -o $(.TARGET) $(.ALLSRC)
-
+CC	= cc
+CFLAGS	= -Wall -O2
+OBJS	= peochk.o hash.o rmd160.o
 
 all: peochk om_peo
 
-peochk:		peochk.o hash.o rmd160.o
-	$(LINK)
+.c.o:
+	$(CC) $(CFLAGS) -c $<
 
-om_peo:		om_peo.o hash.o rmd160.o
+peochk: $(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) -o $@ $(LDFLAGS)
 
-peochk.o:	peochk.c 
-	$(COMPILE)
-
-om_peo.o:	om_peo.c
-	$(COMPILE)
-
-hash.o:		hash.c
-	$(COMPILE)
-
-rmd160.o:	rmd160.c
-	$(COMPILE)
+om_peo:	om_peo.o hash.o rmd160.o
 
 clean:
-	rm -f *.o peochk
+	-rm -f core *.core *.o peochk
+

@@ -252,7 +252,7 @@ asc2bin (dst, src)
 {
 	int   		 i;
 	int   		 j;
-	unsigned char	*tmp;
+	unsigned char	*tmp = NULL;
 
 	if (src == NULL || dst == NULL || (strlen(src) & 1))
 		return (NULL);

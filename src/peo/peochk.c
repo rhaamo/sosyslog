@@ -165,12 +165,14 @@ check()
 	int   mkey2len;
 	char  msg[MAXLINE];
 	int   msglen;
-	
+
 	/* open logfile */
 	if (actionf & ST_IN)
 		input = STDIN_FILENO;
 	else if ( (input = open(logfile, O_RDONLY, 0)) == -1)
 		err(-1, logfile);
+
+	mfd = 0;	/* shutup gcc */
 
 	/* open macfile */
 	if (macfile)
