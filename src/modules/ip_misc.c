@@ -1,4 +1,4 @@
-/*	$CoreSDI: ip_misc.c,v 1.19 2001/09/19 11:50:19 alejo Exp $	*/
+/*	$CoreSDI: ip_misc.c,v 1.20 2001/09/19 16:00:13 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -53,19 +53,20 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#ifdef HAVE_MACHINE_ENDIAN_H
-# include <machine/endian.h>
-#endif
+#include <ctype.h>
+#include <errno.h>
 #ifdef HAVE_INTTYPES_H
 # include <inttypes.h>
 #endif
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
+#ifdef HAVE_MACHINE_ENDIAN_H
+# include <machine/endian.h>
+#endif
 #include <netdb.h>
+#include <string.h>
 #include <stdio.h>
-#include <inttypes.h>
+#include <stdlib.h>
 #include <syslog.h>
+#include <unistd.h>
 
 #include "../modules.h"
 #include "../syslogd.h"
@@ -107,10 +108,8 @@ resolv_addr(struct sockaddr *addr, socklen_t addrlen, char *host, int hlen,
 	if (hp) {
 		strncpy(host, hp->h_name, (unsigned) hlen - 1);
 		host[hlen] = '\0';
-# ifdef HAVE_INET_NTOHS
 		if (port)
 			snprintf(port, (unsigned) plen, "%u", ntohs(sin4->sin_port));
-# endif /* HAVE_INET_NTOHS */
 		return (1);
 	}
 
@@ -182,6 +181,7 @@ resolv_name(char *host, char *port, char *proto, socklen_t *salen)
 	else
 		hints.ai_socktype = SOCK_STREAM;
 
+
 	if ( (i = getaddrinfo(host, port, &hints, &res)) != 0) {
 
 		dprintf(MSYSLOG_INFORMATIVE, "resolv_name: error on address "
@@ -196,35 +196,41 @@ resolv_name(char *host, char *port, char *proto, socklen_t *salen)
 	freeaddrinfo(res);
 
 #else	/* we are on an extremely outdated and ugly api */
+	struct sockaddr_in	*sin;
 	struct hostent *hp;
 	struct servent *se;
 	short portnum;
 
-	if (port != NULL) {
+	if (port != NULL && isdigit((int) *port)) {
+
 		portnum = strtol(port, NULL, 10);
 
-	} else if ((se = getservbyname(port, proto == NULL? "tcp" : proto))
-	    != NULL) {
+	} else if ((se = getservbyname(port == NULL? "syslog" : port,
+	    proto == NULL? "tcp" : proto)) != NULL) {
+
 		portnum = se->s_port;
+
 	} else
-		portnum = 0;
+		portnum = 514;
 
 #ifndef	WORDS_BIGENDIAN
 	portnum = htons(portnum);
 #endif
 
-	if (host == NULL) {
-		struct sockaddr_in *sin;
-
-		sin = (struct sockaddr_in *) malloc(sizeof(*sin));
+	sin = (struct sockaddr_in *) malloc(sizeof(*sin));
 #ifdef HAVE_SOCKADDR_SA_LEN
-		sin->sin_len = sizeof(*sin);
+	sin->sin_len = sizeof(*sin);
 #endif
-		sin->sin_family = AF_INET;
-		sin->sin_port = portnum;
-		memset(&sin->sin_addr, 0, sizeof(sin->sin_addr));
+	sin->sin_family = AF_INET;
+	sin->sin_port = portnum;
+	memset(&sin->sin_addr, 0, sizeof(sin->sin_addr));
+
+	if (host == NULL || inet_aton(host, &sin->sin_addr) == 1) {
+
 		return ((struct sockaddr *) sin);
+
 	} else if ((hp = gethostbyname(host)) == NULL) {
+
 		dprintf(MSYSLOG_SERIOUS, "resolv_name: error "
 		    "resolving host address %s, %s\n", host, port);
 		return (NULL);
