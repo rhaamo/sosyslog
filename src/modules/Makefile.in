@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.9 2000/06/27 21:21:45 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.10 2000/06/30 19:46:15 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -120,6 +120,6 @@ distclean: clean
 	-rm -f Makefile
 
 install:
-	-chmod 111 *.so.* && cp -f *.so.* $INSTALL_LIBDIR
+	-chmod 111 *.so.* && cp -f *.so.* $(INSTALL_LIBDIR)
 
 

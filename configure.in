@@ -1,3 +1,4 @@
+#	$CoreSDI: Id$
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
 
@@ -232,7 +233,7 @@ then
 elif test "x$2" = "xdynamic"
 then
 	D$1_SRC="$3"
-	D$1="lib$4_$1.so.$MSYSLOG_VERSION"
+	D$1="lib$1.so.$MSYSLOG_VERSION"
 	AC_SUBST(D$1)
 	AC_SUBST(D$1_SRC)
 	AC_MSG_RESULT([dynamic]);

@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.19 2000/06/27 01:27:59 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.20 2000/06/30 19:46:14 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -34,6 +34,7 @@ LDFLAGS=	@LDFLAGS@
 CPPFLAGS=	-I.
 LIBS=		@LIBS@
 INSTALL_LIBDIR=	@INSTALL_LIBDIR@
+INSTALL_DIR=	@INSTALL_DIR@
 
 PROG=		syslogd
 SRCS=		modules.c syslogd.c ttymsg.c static_modules.c

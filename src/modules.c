@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.104 2000/06/28 22:09:44 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.105 2000/06/30 21:41:10 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -281,7 +281,7 @@ addImodule(name)
 		im = im->im_next;
 	}
 
-	snprintf(buf, 127, "lib%s.so.%s", name, "VERSION");
+	snprintf(buf, 127, "lib%s.so.%1.1f", name, VERSION);
 
 	if ((im->h = dlopen(buf, RTLD_LAZY)) == NULL) {
 	   	dprintf("Error [%s]\n", dlerror());
@@ -345,7 +345,7 @@ addOmodule(name)
 		om = om->om_next;
 	}
 
-	snprintf(buf, 127, "lib%s.so.%s", name, "VERSION");
+	snprintf(buf, 127, "lib%s.so.%1.1f", name, VERSION);
 
 	if ((om->h = dlopen(buf, RTLD_LAZY)) == NULL) {
 	   	dprintf("Error [%s]\n", dlerror());
