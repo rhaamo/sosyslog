@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mymodule.c,v 1.3 2000/05/29 20:35:43 fgsch Exp $	*/
+/*	$CoreSDI: om_mymodule.c,v 1.4 2000/05/29 21:08:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -85,7 +85,6 @@ om_mymodule_doLog(f, flags, msg, context)
 /*
  *  INIT -- Initialize om_mymodule
  *
- *  taken mostly from syslogd's cfline
  */
 int
 om_mymodule_init(argc, argv, f, prog, context)
