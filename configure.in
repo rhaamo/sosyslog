@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.102 2001/03/14 22:32:22 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.103 2001/03/14 22:52:11 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -120,38 +120,32 @@ AC_EGREP_HEADER(stack_t, [signal.h],[
 UNAME=`uname`
 if test "$UNAME" = "OpenBSD" ; then
 	MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
-	CREATE_SHARED='$(LD) $(SHARED_PARAMS) -o $(MLIBNAME) $(MOBJS) $(HASH_OBJS)'
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
 	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "_")dnl
 	SHARED_PARAMS="-Bshareable"
 	DCCFLAGS="-fPIC"
 elif test "$UNAME" = "Linux" ; then
 	MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
-	CREATE_SHARED='$(LD) $(SHARED_PARAMS) -o $(MLIBNAME) $(MOBJS) $(HASH_OBJS)'
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY | RTLD_GLOBAL)dnl
 	SHARED_PARAMS="-Bshareable"
 	DCCFLAGS=""
 elif test "$UNAME" = "SunOS" ; then
 	MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
-	CREATE_SHARED='$(LD) $(SHARED_PARAMS) -o $(MLIBNAME) $(MOBJS) $(HASH_OBJS)'
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
 	SHARED_PARAMS="-G"
 	DCCFLAGS="-fPIC"
 elif test "$UNAME" = "Irix" ; then
 	MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
-	CREATE_SHARED='$(LD) $(SHARED_PARAMS) -o $(MLIBNAME) $(MOBJS) $(HASH_OBJS)'
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
 	SHARED_PARAMS="-G"
 	DCCFLAGS="-fPIC"
 elif test "$UNAME" = "AIX" ; then
 	MLIBNAME="libmsyslog.a" ;
-	CREATE_SHARED='ar qv $(MLIBNAME) $(MOBJS) $(HASH_OBJS)'
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
 	DCCFLAGS="-shared"
-	SHARED_PARAMS=""
+	SHARED_PARAMS="-G -lc -bexpall"
 else
 	MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
-	CREATE_SHARED='$(LD) $(SHARED_PARAMS) -o $(MLIBNAME) $(MOBJS) $(HASH_OBJS)'
 	AC_MSG_WARN(cannot determine system type falling to defaults)dnl
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
 	SHARED_PARAMS="-Bshareable"
@@ -381,7 +375,6 @@ AC_SUBST(DCCFLAGS)dnl
 AC_SUBST(MSRCS)dnl
 AC_SUBST(MLIBS)dnl
 AC_SUBST(MLIBNAME)dnl
-AC_SUBST(CREATE_SHARED)dnl
 AC_SUBST(MANPAGES)dnl
 AC_SUBST(HASH_SRCS)dnl
 AC_SUBST(HAVE_SOCKLEN_T)dnl
