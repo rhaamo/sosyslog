@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.26 2000/06/05 23:22:06 fgsch Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.27 2000/06/06 20:20:00 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -100,6 +100,8 @@ im_unix_init(I, argv, argc)
 	int argc;
 {
 	struct sockaddr_un sunx;
+
+	dprintf ("\nim_unix_init...\n");
 
 	if (I == NULL || argv == NULL || argc != 2)
 		return(-1);

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.12 2000/06/06 20:23:01 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.13 2000/06/07 21:27:37 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -46,6 +46,7 @@
 #include <ctype.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <err.h>
 #include <paths.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,24 +72,37 @@ char	*linux_input_module = "linux input module";
 #define MAX_NAME_LEN	80
 #define MAX_MNAME_LEN	20
 
-typedef struct {
+typedef struct _Symbol {
 	char addr[MAX_ADDR_LEN + 1];
 	char name[MAX_NAME_LEN + 1];
 	char mname[MAX_MNAME_LEN + 1];
+	struct _Symbol *next;
 } Symbol;
 
-int	 symbols = 0;
-int	 ksym_offset = 0;
 FILE	*ksym_fd = NULL;
 char	*ksym_path = PATH_KSYM;
-Symbol	*symbol_table = NULL;
+Symbol	*ksym_first = NULL;
+Symbol	*ksym_current = NULL;
 
 int	 ksym_init();
 void	 ksym_close();
 Symbol	*ksym_lookup (Symbol*, char*);
 int	 ksym_getSymbol (Symbol*);
 int	 ksym_parseLine (char*, Symbol*);
-void	 ksym_copyWord (char*, char*, int);
+char	*ksym_copyWord (char*, char*, int);
+
+
+/*
+ * readline
+ */
+int
+readline (fd, buf, max)
+	int	 fd;
+	char	*buf;
+	int	 max;
+{
+	return(-1);
+}
 
 
 /*
@@ -114,6 +128,23 @@ im_linux_usage()
 
 
 /*
+ * getLine
+ */
+char*
+getLine (buf, i)
+	char *buf;
+	int  *i;
+{
+	if (buf[*i] == '\0')
+		return(NULL);
+	while (buf[*i] != '\n' && buf[*i] != '\0')
+		(*i)++;
+	buf[*i] = '\0';
+	return(buf);
+}
+
+
+/*
  * Initialize linux input module
  */
 int
@@ -123,10 +154,13 @@ im_linux_init(I, argv, argc)
 	int	argc;
 {
 	int ch;
+	int current_optind;
+
 
 	dprintf ("\nim_linux_init...\n");
 
 	/* parse command line */
+	current_optind = optind;
 	flags = KSYM_TRANSLATE;
 	if (argc > 1) {
 		optind = 1;
@@ -175,6 +209,7 @@ im_linux_init(I, argv, argc)
         I->im_type = IM_LINUX;
         I->im_name = "linux";
         I->im_flags |= IMODULE_FLAG_KERN;
+	optind = current_optind;
         return(I->im_fd);
 }
 
@@ -190,8 +225,10 @@ im_linux_getLog(im, ret)
 	struct i_module *im;
 	struct im_msg  *ret;
 {
-	int i;
-	int readed;
+	int   i;
+	int   j;
+	int   readed;
+	char *ptr;
 
 	if (im->im_fd < 0)
 		return (-1);
@@ -211,28 +248,35 @@ im_linux_getLog(im, ret)
 	if (readed) {
 		im->im_buf[readed-1] = '\0';
 
-		/* get priority */
-		i = 0;
-		if (readed >= 3 && im->im_buf[0] == '<' && im->im_buf[2] == '>' && isdigit(im->im_buf[1])) {
-			ret->im_pri = '9' - im->im_buf[1];
-			i = 3;
-			readed -= 3;
+		/* log each msg line */
+		i = j = 0;
+		while ( (ptr = getLine(im->im_buf + i, &j)) != NULL && readed) {
+			i += j + 1;
+			readed -= j;
+			
+			/* get priority */
+			if (j >= 3 && ptr[0] == '<' && ptr[2] == '>' && isdigit(ptr[1])) {
+				ret->im_pri = ptr[1] - '0';
+				ptr += 3;
+			}
+			else
+				ret->im_pri = LOG_WARNING;	/* from printk.c: DEFAULT_MESSAGE_LOGLEVEL */
+
+			/* parse kernel/module symbols */
+			if (flags & KSYM_TRANSLATE) {
+				;;;
+				;;;
+			}
+
+			/* log msg */
+			ret->im_len = snprintf(ret->im_msg, sizeof(ret->im_msg), "kernel: %s", ptr);
+			strncpy(ret->im_host, LocalHostName, sizeof(ret->im_host));
+			ret->im_host[sizeof(ret->im_host)-1] = '\0';
+			logmsg(ret->im_pri, ret->im_msg, ret->im_host, ret->im_flags);
+
+
+			;;;detectar el final de la linea verdadera => con readed
 		}
-		else
-			ret->im_pri = LOG_WARNING;	/* from printk.c: DEFAULT_MESSAGE_LOGLEVEL */
-
-		/* parse kernel/module symbols */
-		if (flags & KSYM_TRANSLATE) {
-			;;;
-			;;;
-		}
-
-		/* log msg */
-		ret->im_len = snprintf(ret->im_msg, sizeof(ret->im_msg), "kernel: %s", &im->im_buf[i]);
-		strncpy(ret->im_host, LocalHostName, sizeof(ret->im_host));
-		ret->im_host[sizeof(ret->im_host)-1] = '\0';
-
-		logmsg(ret->im_pri, ret->im_msg, ret->im_host, ret->im_flags);
 	}
 	return(0);
 
@@ -305,36 +349,36 @@ int
 ksym_init()
 {
 	char	 buf[128];
-	int	 i;
-	Symbol	*ptr;
+	Symbol	*last;
+	Symbol	*next;
 
 	ksym_close();
 	if ( (ksym_fd = fopen(ksym_path, "r")) == NULL) {
-		warn("%s: ksym_init: open: %s: %s\n", linux_input_module, ksym_path, strerror(errno));
+		warn("%s: ksym_init: %s", linux_input_module, ksym_path);
 		return(-1);
 	}
 	if (flags & KSYM_READ_TABLE) {
-		while (!feof(ksym_fd) && fgets(buf, sizeof(buf), ksym_fd) != NULL) {
-			if ( (ptr = (Symbol*)realloc(ptr, sizeof(Symbol)*(symbols+1))) == NULL) {
-				warn("%s: ksym_init: realloc: %s: %s\n", linux_input_module, ksym_path, strerror(errno));
+		last = NULL;
+		while (fgets(buf, sizeof(buf), ksym_fd) != NULL) {
+			if ( (next = (Symbol*)malloc(sizeof(Symbol))) == NULL) {
+				warn("%s: ksym_init", linux_input_module);
 				ksym_close();
 				return(-1);
 			}
-			symbol_table = ptr;
-			symbols++;
-			if (ksym_parseLine(buf, ptr + symbols) < 0) {
-				warn("%s: ksym_init: incorrect line: < %s >\n", linux_input_module, buf);
+			next->next = NULL;
+			if (last)
+				last->next = next;
+			else
+				ksym_first = next;
+			if (ksym_parseLine(buf, next) < 0) {
+				warnx("%s: ksym_init: incorrect symbol file: %s", linux_input_module, ksym_path);
 				ksym_close();
 				return(-1);
 			}
+			last = next;
 		}
 		fclose(ksym_fd);
 		ksym_fd = NULL;
-		if (!symbols) {
-			warn("%s: ksym_init: incorrect symbol file: %s\n", linux_input_module, ksym_path);
-			ksym_close();
-			return(-1);
-		}
 	}
 	return(0);
 }
@@ -346,14 +390,16 @@ ksym_init()
 void
 ksym_close()
 {
+	Symbol *s;
+
 	if (ksym_fd != NULL) {
 		fclose(ksym_fd);
 		ksym_fd = NULL;
 	}
-	if (symbol_table != NULL) {
-		free(symbol_table);
-		symbol_table = NULL;
-		symbols = 0;
+	while (ksym_first) {
+		s = ksym_first->next;
+		free(ksym_first);
+		ksym_first = s;
 	}
 	if (ksym_path != PATH_KSYM)
 		free(ksym_path);
@@ -373,12 +419,11 @@ ksym_lookup (sym, addr)
 {
 	/* reset symbol table/file */
 	if (ksym_fd == NULL)
-		ksym_offset = 0;
+		ksym_current = ksym_first;
 	else
 		fseek(ksym_fd, 0, SEEK_SET);
 
 	/* search for symbol */
-	ksym_offset = 0;
 	while(!ksym_getSymbol(sym))
 		if (!strcasecmp(sym->addr, addr))
 			return(sym);
@@ -398,8 +443,9 @@ ksym_getSymbol (sym)
 	char msg[MAXLINE];
 
 	if (ksym_fd == NULL) {
-		if (ksym_offset < symbols) {
-			*sym = symbol_table[ksym_offset++];
+		if (ksym_current != NULL) {
+			sym = ksym_current;
+			ksym_current = ksym_current->next;
 			return(0);
 		}
 	} else if (fgets(msg, sizeof(msg), ksym_fd) != NULL)
@@ -412,7 +458,7 @@ ksym_getSymbol (sym)
  * ksym_parseLine: converts a line onto a Symbol
  * returns 0 on success and -1 on error
  */
-#define QUIT_BLANK(a)	while (isblank(*a) && *a != '\0' && *a != '\n') a++;
+#define QUIT_BLANK(a)	while (*a == ' ' || *a == '\t') a++;
 
 int
 ksym_parseLine (p, sym)
@@ -426,13 +472,13 @@ ksym_parseLine (p, sym)
 	QUIT_BLANK(p);
 	if (*p == '\0' || *p == '\n')
 		return(-1);
- 	ksym_copyWord(sym->addr, p, MAX_ADDR_LEN);
+ 	p = ksym_copyWord(sym->addr, p, MAX_ADDR_LEN);
 
 	/* copy name */
 	QUIT_BLANK(p);
 	if (*p == '\0' || *p == '\n')
 		return(-1);
-	ksym_copyWord(sym->name, p, MAX_NAME_LEN);
+	p = ksym_copyWord(sym->name, p, MAX_NAME_LEN);
 
 	/* copy module name (if any) */
 	QUIT_BLANK(p);
@@ -447,7 +493,7 @@ ksym_parseLine (p, sym)
  * Copy from src to dst until reaches
  * len bytes or '\0' or '\n'
  */
-void
+char*
 ksym_copyWord (dst, src, max)
 	char *dst;
 	char *src;
@@ -457,10 +503,10 @@ ksym_copyWord (dst, src, max)
 
 	if (max) {
 		max--;
-		while (!isblank(*src) && *src != '\0' && *src != '\n' && i < max)
+		while (*src != ' ' && *src != '\t' && *src != '\0' && *src != '\n' && i < max)
 			dst[i++] = *src++;
 		dst[i] = '\0';
 	}
+	return(src);
 }
-
 
