@@ -426,10 +426,11 @@ AC_ARG_WITH(queue,
 		MSRCS="$MSRCS om_directory.c om_queue.c"
 		MANPAGES="$MANPAGES om_directory.8"
 	fi
-],[
-	MSRCS="$MSRCS om_directory.c om_queue.c"
-	MANPAGES="$MANPAGES om_directory.8"
-])
+dnl ],[
+dnl 	MSRCS="$MSRCS om_directory.c om_queue.c"
+dnl 	MANPAGES="$MANPAGES om_directory.8"
+dnl ]
+)
 
 AC_ARG_WITH(regex,
 [  --without-regex
