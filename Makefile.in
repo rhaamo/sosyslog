@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.23 2000/12/04 23:25:26 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.24 2001/01/03 23:39:07 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -61,4 +61,4 @@ clean: clean-recursive
 install: all install-recursive
 
 distclean: distclean-recursive
-	-rm -f Makefile config.cache config.log config.status config.h
+	-rm -f Makefile config.cache config.log config.status

@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.41 2001/02/12 17:19:37 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.42 2001/03/06 21:49:42 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -62,7 +62,7 @@ clean:
 	-rm -f $(OBJS) core *.core $(PROG)
 
 distclean: clean
-	-rm -f Makefile
+	-rm -f Makefile config.h
 
 install-prog:
 	@if [ -f "$(INSTALL_DIR)/$(PROG)" ]; then \
