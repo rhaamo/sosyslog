@@ -1,4 +1,4 @@
-/*  $Id: syslogd.c,v 1.234 2003/01/07 21:56:05 phreed Exp $	*/
+/*  $Id: syslogd.c,v 1.235 2003/01/08 16:02:44 phreed Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c  8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: syslogd.c,v 1.234 2003/01/07 21:56:05 phreed Exp $";
+static char rcsid[] = "$Id: syslogd.c,v 1.235 2003/01/08 16:02:44 phreed Exp $";
 #endif /* not lint */
 
 /*
@@ -1480,39 +1480,34 @@ return (-1);
       *bp = '\0';
 
       if (*buf == '*') {
+
         for (i = 0; i <= LOG_NFACILITIES; i++) {
+
           if (pri == INTERNAL_NOPRI) {
-            if (ignorepri)
-              f->f_pmask[i] =
-                  TABLE_ALLPRI;
-            else
-              f->f_pmask[i] =
-                  TABLE_NOPRI;
+
+            if (ignorepri) f->f_pmask[i] = TABLE_ALLPRI;
+            else           f->f_pmask[i] = TABLE_NOPRI;
+
           } else if (singlpri) {
-            if (ignorepri)
-              f->f_pmask[i] &=
-                  ~(1<<pri);
-            else
-              f->f_pmask[i] |=
-                  (1<<pri);
+
+            if (ignorepri) f->f_pmask[i] &= ~(1<<pri);
+            else           f->f_pmask[i] |= (1<<pri);
+
           } else {
+
             if (pri == TABLE_ALLPRI) {
-              if (ignorepri)
-                f->f_pmask[i] =
-                    TABLE_NOPRI;
-              else
-                f->f_pmask[i] =
-                    TABLE_ALLPRI;
+
+              if (ignorepri) f->f_pmask[i] = TABLE_NOPRI;
+              else           f->f_pmask[i] = TABLE_ALLPRI;
+
             } else {
-              if (ignorepri)
-                for (j = 0; j <= pri; ++j)
-                  f->f_pmask[i] &= ~(1<<j);
-              else
-                for (j= 0; j <= pri; ++j)
-                  f->f_pmask[i] |= (1<<j);
+
+              if (ignorepri) for (j = 0; j <= pri; ++j) f->f_pmask[i] &= ~(1<<j);
+              else           for (j = 0; j <= pri; ++j) f->f_pmask[i] |= (1<<j);
             }
           }
         }
+
       } else {
         i = decode(buf, facilitynames);
 
@@ -1524,44 +1519,32 @@ return (-1);
         }
 
         if (pri == INTERNAL_NOPRI) {
-          if (ignorepri)
-            f->f_pmask[i >> 3] =
-                TABLE_ALLPRI;
-          else
-            f->f_pmask[i >> 3] =
-                TABLE_NOPRI;
+
+          if (ignorepri) f->f_pmask[i >> 3] = TABLE_ALLPRI;
+          else           f->f_pmask[i >> 3] = TABLE_NOPRI;
+
         } else if (singlpri) {
-          if (ignorepri)
-            f->f_pmask[i >> 3] &=
-                ~(1<<pri);
-          else
-            f->f_pmask[i >> 3] |=
-                (1<<pri);
+
+          if (ignorepri) f->f_pmask[i >> 3] &= ~(1<<pri);
+          else           f->f_pmask[i >> 3] |= (1<<pri);
+
         } else {
+
           if (pri == TABLE_ALLPRI) {
-            if (ignorepri)
-              f->f_pmask[i >> 3] =
-                  TABLE_NOPRI;
-            else
-              f->f_pmask[i >> 3] =
-                  TABLE_ALLPRI;
+
+            if (ignorepri) f->f_pmask[i >> 3] = TABLE_NOPRI;
+            else           f->f_pmask[i >> 3] = TABLE_ALLPRI;
+
           } else {
-            if (ignorepri)
-              for (j = 0; j <= pri;
-                  ++j)
-                f->f_pmask[i>>3]
-                    &= ~(1<<j);
-            else
-              for (j= 0; j <= pri;
-                  ++j)
-                f->f_pmask[i>>3]
-                    |= (1<<j);
+
+            if (ignorepri) for (j = 0; j <= pri; ++j) f->f_pmask[i>>3] &= ~(1<<j);
+            else           for (j = 0; j <= pri; ++j) f->f_pmask[i>>3] |= (1<<j);
+
           }
         }
       }
 
-      while (*p == ',' || *p == ' ')
-        p++;
+      while (*p == ',' || *p == ' ') ++p;
     }
 
     p = q;

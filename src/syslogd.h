@@ -1,4 +1,4 @@
-/*	$Id: syslogd.h,v 1.111 2002/09/17 05:20:26 alejo Exp $	*/
+/*	$Id: syslogd.h,v 1.112 2003/01/08 16:02:48 phreed Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -137,7 +137,7 @@ struct m_msg {
 struct filed {
 	struct  filed *f_next;	  /* next in linked list */
 	time_t  f_time;		 /* time this was last written */
-	u_char  f_pmask[LOG_NFACILITIES+1];     /* priority mask */
+	u_short f_pmask[LOG_NFACILITIES+1];     /* priority mask */
 	char    *f_program;	     /* program this applies to */
 	struct	tm f_tm;	/* date of message */
 	char    f_prevline[MAXSVLINE];	  /* last message logged */
@@ -212,6 +212,11 @@ struct imodule {
  * some systems lack those, so we define them here
  */
 
+#ifdef INTERNAL_NOPRI
+#undef INTERNAL_NOPRI
+#endif
+#define INTERNAL_NOPRI 0x100
+
 #ifndef HAVE_CODE
 # ifdef SYSLOG_NAMES
 
@@ -235,7 +240,6 @@ struct imodule {
 #  define LOG_FAC(p) (((p) & LOG_FACMASK) >> 3)
 # endif
 
-# define INTERNAL_NOPRI 0x10
 # define INTERNAL_MARK  LOG_MAKEPRI(LOG_NFACILITIES, 0) 
 
 
@@ -291,4 +295,4 @@ CODE facilitynames[] =
     
     
 
-#endif
+#endif /* HAVE_CODE */
