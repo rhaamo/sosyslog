@@ -1,5 +1,5 @@
 #ifdef __OpenBSD__
-	#define HAVE_OPEN_BSD
+	#define HAVE_OPENBSD
 #else
 	#define HAVE_LINUX
 #endif
