@@ -183,13 +183,14 @@ struct	OModules {
 struct IModules {
 	char	*im_name;
 	short	im_type;
-	int	(*im_getLog) (char *, int, struct im_header_ctx); 	/* buf, bufsize */ 
-	int	(*im_init) (int, char **, struct im_header_ctx **);
-	int	(*im_close) (struct im_header_ctx *);
+	/* buf, bufsize */ 
+	int	(*im_getLog) (struct i_module *, char *, int, struct im_header_ctx);
+	int	(*im_init) (struct i_module *, int, char **, struct im_header_ctx **);
+	int	(*im_close) (struct i_module *);
 } IModules[MAX_N_IMODULES];
 
 
-int modules_init();
+int modules_init(struct i_module **);
 int omodule_create(char *, struct filed *, char *);
 
 
