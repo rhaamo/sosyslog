@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.93 2000/06/09 19:20:06 fgsch Exp $	*/
+/*	$CoreSDI: modules.c,v 1.94 2000/06/16 00:26:55 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -76,7 +76,7 @@ modules_init (I, line)
 	    return(-1);
 	}
 
-	for(im = I; im->im_next != NULL; im = im->im_next);
+	for (im = I; im->im_next != NULL; im = im->im_next);
 	if (im == I && im->im_fd > -1) {
 		im->im_next = (struct i_module *) calloc(1,
 		    sizeof(struct i_module));
@@ -84,7 +84,7 @@ modules_init (I, line)
 		im->im_fd = -1;
 	}
 
-	for(p = line;*p != '\0'; p++)
+	for (p = line; *p != '\0'; p++)
 	    if (*p == ':')
 	        *p = ' ';
 	if ((argc = parseParams(&argv, line)) < 1) {
@@ -310,7 +310,7 @@ addImFunc(name)
 		im = im->im_next;
 	}
 
-	if ((im->h = dlopen(path, DL_LAZY)) == NULL) {
+	if ((im->h = dlopen(path, RTLD_LAZY)) == NULL) {
 	   	dprintf("Error [%s]\n", dlerror());
 	   	return(NULL);
 	}
@@ -336,13 +336,11 @@ imoduleDestroy(im)
 		return(-1);
 
 	if (dlclose(im->h) < 0) {
-	   	dprintf("Error [%s]\n", dlerror());
+	   	dprintf("imoduleDestory: Error [%s]\n", dlerror());
 		return(-1);
 	}
+
 	free(im->im_name);
-	free(im->im_init);
-	free(im->im_getLog);
-	free(im->im_close);
 
 	return(1);
 }
@@ -367,7 +365,7 @@ addOmFunc(name)
 		om = om->om_next;
 	}
 
-	if ((om->h = dlopen(path, DL_LAZY)) == NULL) {
+	if ((om->h = dlopen(path, RTLD_LAZY)) == NULL) {
 	   	dprintf("Error [%s]\n", dlerror());
 	   	return(NULL);
 	}
@@ -378,7 +376,7 @@ addOmFunc(name)
 	   	dprintf("Error [%s]\n", dlerror());
 	   	return(NULL);
 	}
-
+	om->om_flush = dlsym(om->h, "om_flush");
 	om->om_name = strdup(name);
 
 	return(om);
@@ -391,18 +389,11 @@ omoduleDestroy(om)
 {
 	if (om == NULL || om->h == NULL || om->om_next)
 		return(-1);
-
 	if (dlclose(om->h) < 0) {
 	   	dprintf("Error [%s]\n", dlerror());
 		return(-1);
 	}
-
 	free(om->om_name);
-	free(om->om_init);
-	free(om->om_doLog);
-	free(om->om_flush);
-	free(om->om_close);
-
 	return(1);
 }
 
