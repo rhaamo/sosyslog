@@ -51,58 +51,41 @@ im_bsd_init(argc, argv, c)
  */
 
 int
-im_bsd_getLog(im)
+im_bsd_getLog(im, ret)
 	struct i_module im;
+        struct im_ret  *ret;
 {
-	char line[MSGBSIZE + 1];
-	int i;
+	char *p, line[MSG_BSIZE + 1];
+        int i;
 
 	i = read(im->fd, line, sizeof(line) - 1);
 	if (i > 0) {
 		line[i] = '\0';
-		printsys(line);
+		ret->len = i;
+	        for (p = line; *p != '\0'; ) {
+	                /* fsync file after write */
+	                ret->flags = SYNC_FILE | ADDDATE;
+	                ret->pri = DEFSPRI;
+	                if (*p == '<') {
+	                    ret->pri = 0;
+	                    while (isdigit(*++p))
+	                        ret->pri = 10 * ret->pri + (*p - '0');
+	                    if (*p == '>')
+	                            ++p;
+	                } else {
+	                        /* kernel printf's come out on console */
+	                        ret->flags |= IGN_CONS;
+	                }
+	                if (ret->pri &~ (LOG_FACMASK|LOG_PRIMASK))
+	                        ret->pri = DEFSPRI;
+	        }
+
 	} else if (i < 0 && errno != EINTR) {
-		logerror("klog");   
-		fklog = -1;
+		logerror("im_bsd_getLog");   
+		im->fd = -1;
 	}
 
-
-
-
-
-
-
-printsys(msg)
-        char *msg;
-{
-        int c, pri, flags;
-        char *lp, *p, *q, line[MAXLINE + 1];
-
-        (void)strcpy(line, _PATH_UNIX);
-        (void)strcat(line, ": ");
-        lp = line + strlen(line);
-        for (p = msg; *p != '\0'; ) {
-                flags = SYNC_FILE | ADDDATE;    /* fsync file after write */
-                pri = DEFSPRI;
-                if (*p == '<') {
-                        pri = 0;
-                        while (isdigit(*++p))
-                                pri = 10 * pri + (*p - '0');
-                        if (*p == '>')
-                                ++p;
-                } else {
-                        /* kernel printf's come out on console */
-                        flags |= IGN_CONS;
-                }
-                if (pri &~ (LOG_FACMASK|LOG_PRIMASK))
-                        pri = DEFSPRI;
-                q = lp;
-                while (*p != '\0' && (c = *p++) != '\n' &&
-                    q < &line[MAXLINE])
-                        *q++ = c;
-                *q = '\0';
-                logmsg(pri, line, LocalHostName, flags);
-        }
+	return(ret->fd == -1 ? -1: 1);
 }
 
 

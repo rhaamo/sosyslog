@@ -130,9 +130,10 @@ struct i_module {
  */
 
 struct im_ret {
-	int	level;
 	int	pid;
+	int	pri;
 	int	flags;
+	int	len;
 #define  SYSLOG_IM_PID_CHECKED	0x01
 #define  SYSLOG_IM_HOST_CHECKED	0x02
 	char	*msg;
@@ -181,7 +182,7 @@ struct	OModules {
 struct IModules {
 	char	*im_name;
 	short	im_type;
-	int	(*im_getmsg) (char *, int, struct im_header_ctx); 	/* buf, bufsize */ 
+	int	(*im_getLog) (char *, int, struct im_header_ctx); 	/* buf, bufsize */ 
 	int	(*im_init) (int, char **, struct im_header_ctx **);
 	int	(*im_close) (struct im_header_ctx *);
 } IModules[MAX_N_IMODULES];

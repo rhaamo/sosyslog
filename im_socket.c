@@ -28,7 +28,7 @@ struct im_bsd_ctx {
  */
 
 int
-im_bsd_getmsg(buf, size, c, r)
+im_bsd_getLog(buf, size, c, r)
 	char   *buf;
 	int   size;
 	struct im_header_ctx  *c;
@@ -119,7 +119,7 @@ im_bsd_init(argc, argv, c)
  */
 
 char *
-im_bsd_getmsg(c)
+im_bsd_getLog(c)
 	struct im_header_ctx  *c;
 {
 	struct im_bsd_ctx *ctx;
