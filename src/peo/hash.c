@@ -1,4 +1,4 @@
-/*	$CoreSDI: hash.c,v 1.38 2001/03/06 21:49:44 alejo Exp $	*/
+/*	$CoreSDI: hash.c,v 1.39 2001/03/07 21:35:15 alejo Exp $	*/
  
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -44,7 +44,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <strings.h>
 #include <unistd.h>
 #ifdef __OpenBSD__	/* Change this */
 #include <md5.h>
