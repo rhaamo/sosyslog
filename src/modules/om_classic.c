@@ -1,4 +1,4 @@
-/*	$Id: om_classic.c,v 1.16 2000/05/17 16:23:25 gera Exp $
+/*	$Id: om_classic.c,v 1.17 2000/05/17 16:25:32 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -236,6 +236,10 @@ om_classic_init(argc, argv, f, prog, context)
 		break;
 
 	case '/':
+#error Buffer overflow!!! Si, esta leyendo de la configuracion, pero que pasa
+#error si mas adelante hacemos que un auditor remotamente pueda cambiar la
+#error configuracion... No es lo mismo conceptualmente poder configurar el
+#error syslog que ser root... no
 		(void)strcpy(f->f_un.f_fname, p);
 		if ((f->f_file = open(p, O_WRONLY|O_APPEND, 0)) < 0) {
 			f->f_type = F_UNUSED;
