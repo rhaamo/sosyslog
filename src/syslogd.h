@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.67 2000/07/14 01:04:32 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.68 2000/07/18 01:02:49 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -48,9 +48,9 @@
 #define VERSION		1.0
 
 /* Some default timeouts for select */
-#define SYSLOG_TIMEOUT_SEC	10
-#define SYSLOG_TIMEOUT_USEC	0
-#define SYSLOG_TIMEOUT_MINUSEC	100
+#define SYSLOG_TIMEOUT_SEC	10L
+#define SYSLOG_TIMEOUT_USEC	0L
+#define SYSLOG_TIMEOUT_MINUSEC	100L
 
 #ifdef HAVE_PATHS_H
 #include <paths.h>

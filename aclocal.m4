@@ -1,4 +1,4 @@
-dnl	$CoreSDI: aclocal.m4,v 1.6 2000/07/10 22:53:19 claudio Exp $
+dnl	$CoreSDI: aclocal.m4,v 1.7 2000/07/14 21:39:00 alejo Exp $
 
 dnl
 dnl MSYSLOG_GREP patt file comm
@@ -234,7 +234,8 @@ SMODULES_LOAD="$SMODULES_LOAD \
 
 MSYSLOG_GREP(im_$1_timer, "$MODULES_DIR/$2", [
 SMODULES_HEADER="$SMODULES_HEADER \
-	int im_$1_timer (struct i_module*, struct sglobals*);"
+	int im_$1_timer (struct i_module*, struct im_msg*, \
+struct sglobals*);"
 SMODULES_LOAD="$SMODULES_LOAD \
 	ilast->im_timer=im_$1_timer;" ])
 ])

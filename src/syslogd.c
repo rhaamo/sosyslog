@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.109 2000/07/14 01:04:32 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.110 2000/07/18 01:02:48 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -275,9 +275,24 @@ main(int argc, char **argv) {
 		gettimeofday(&tnow, NULL);
 		timeout.tv_sec = nextcall.tv_sec - tnow.tv_sec;
 		timeout.tv_usec = nextcall.tv_usec - tnow.tv_usec;
-		if (timeout.tv_sec < 1 && timeout.tv_usec < SYSLOG_TIMEOUT_MINUSEC) {
+		dprintf("\t** syslogd: nextcall es %li\t%li\n", nextcall.tv_sec,
+				nextcall.tv_usec);
+		dprintf("\t** syslogd: timeout  es %li\t%li\n", timeout.tv_sec,
+				timeout.tv_usec);
+		dprintf("\t** syslogd:    tnow es %li\t%li\n", tnow.tv_sec,
+				tnow.tv_usec);
+
+		if (timeout.tv_sec < 1 && (timeout.tv_usec < SYSLOG_TIMEOUT_MINUSEC ||
+				timeout.tv_usec < -1)) {
 			timeout.tv_sec = SYSLOG_TIMEOUT_SEC;
 			timeout.tv_usec = SYSLOG_TIMEOUT_USEC;
+
+			dprintf("\t** syslogd: nextcall es %li\t%li\n", nextcall.tv_sec,
+					nextcall.tv_usec);
+			dprintf("\t** syslogd: timeout  es %li\t%li\n", timeout.tv_sec,
+					timeout.tv_usec);
+			dprintf("\t** syslogd:    tnow es %li\t%li\n", tnow.tv_sec,
+					tnow.tv_usec);
 		}
 
 		/* dprintf("readfds = %#x\n", readfds); */
@@ -291,8 +306,8 @@ main(int argc, char **argv) {
 		}
 
 		dprintf("\t** syslogd: sali del select %i\n", nfds);
-		dprintf("\t** %d sec \n", timeout.tv_sec);
-		gettimeofday(&nextcall.tv_sec, NULL);
+		dprintf("\t** %li sec \n", timeout.tv_sec);
+		gettimeofday(&nextcall, NULL);
 		nextcall.tv_sec += SYSLOG_TIMEOUT_SEC;
 		nextcall.tv_usec += SYSLOG_TIMEOUT_USEC;
 
