@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.31 2000/04/19 20:47:26 alejo Exp $
+/*	$Id: modules.c,v 1.32 2000/04/19 21:01:51 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -32,12 +32,6 @@
  */
 
 #include "config.h"
-
-#ifndef lint
-static char copyright[] =
-"@(#) Copyright (c) 1983, 1988, 1993, 1994\n\
-	The Regents of the University of California.  All rights reserved.\n";
-#endif /* not lint */
 
 /*
  *  syslogd generic module functions --

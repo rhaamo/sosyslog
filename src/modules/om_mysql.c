@@ -31,17 +31,6 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char copyright[] =
-"@(#) Copyright (c) 1983, 1988, 1993, 1994\n\
-	The Regents of the University of California.  All rights reserved.\n";
-#endif /* not lint */
-
-#ifndef lint
-/*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_mysql.c,v 1.6 2000/04/19 20:47:27 alejo Exp $";
-#endif /* not lint */
-
 /*
  *  om_mysql -- MySQL database syupport Module
  *
