@@ -30,6 +30,9 @@
 
 1- think some way to specify multiple modules on syslog.conf
 
+13-Apr-2000
+
+1- Check configuration parsing, there is at least 1 buffer overflow
 
 FOR FUTURE WORKING
 
