@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.31 2000/05/29 20:37:13 fgsch Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.32 2000/05/29 23:48:00 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -36,7 +36,7 @@
  *
  */
 
-#include "../config.h"
+#include "config.h"
 
 #include <sys/time.h>
 #include <sys/types.h>
@@ -52,9 +52,15 @@
 #include <unistd.h>
 #include <sys/syslog.h>
 
-#include "../syslogd.h"
-#include "../modules.h"
+#include "syslogd.h"
+#include "modules.h"
+#if 0
 #include "hash.h"
+#else
+extern char *default_keyfile;
+#define	SHA1	0
+#endif
+
 
 #define MAXBUF	MAXSVLINE+MAXHOSTNAMELEN+20
 
