@@ -1,7 +1,9 @@
 			HOW TO WRITE A SYSLOGD MODULE
 			=============================
 
-First, it is recommended that you use the templates for module creations. 
+First, it is recommended that you use the templates for module creations,
+im_myodule.c and om_mymodule.c.
+
 Names
 -----
 

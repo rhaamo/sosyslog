@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.78 2000/05/29 23:40:11 gera Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.79 2000/05/29 23:40:45 gera Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -107,7 +107,7 @@ char	*TypeNames[8] = {
 struct	filed *Files;
 struct	filed consfile;
 
-int	Debug;			/* debug flag */
+int	Debug = 0;		/* debug flag */
 char	LocalHostName[MAXHOSTNAMELEN];	/* our hostname */
 char	*LocalDomain;		/* our local domain name */
 int	InetInuse = 0;		/* non-zero if INET sockets are being used */

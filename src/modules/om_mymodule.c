@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mymodule.c,v 1.4 2000/05/29 21:08:28 alejo Exp $	*/
+/*	$CoreSDI: om_mymodule.c,v 1.5 2000/05/29 23:34:59 gera Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -94,12 +94,34 @@ om_mymodule_init(argc, argv, f, prog, context)
 	char *prog;		/* program name doing this log */
 	struct om_hdr_ctx **context; /* our context */
 {
+	char *myArg;
 
 	/* for debugging purposes */
 	dprintf("om_mymodule init\n");
 
-	/* parse your options with getopt(3)
+	/*
+	 * Parse your options with getopt(3)
+	 *
+	 * we give an example for a -s argument
+	 *
+	 *
 	 */
+
+	 optind = 1;
+#ifdef HAVE_OPTRESET 
+	optreset = 1;
+#endif
+	while ((ch = getopt(argc, argv, "s:")) != -1) {
+		switch (ch) { 
+			case 's':
+				myArg = optarg;
+				break;
+			default :
+				dprintf("om_mymodule: error on arguments\n");
+				return(-1);
+		}
+	}
+
 
 	/* open files, connect  to database, initialize algorithms,
 	   etc. Save them in your context if necesary.
