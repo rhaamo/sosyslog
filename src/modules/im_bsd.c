@@ -1,10 +1,10 @@
-/*	$CoreSDI: im_bsd.c,v 1.43 2000/05/26 19:41:38 claudio Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.44 2000/05/26 21:33:39 fgsch Exp $	*/
 
 /*
  * im_bsd -- classic behaviour module for BSD like systems
  *      
  * Author: Alejo Sanchez for Core-SDI SA
- *         form syslogd.c by Eric Allman and Ralph Campbell
+ *         from syslogd.c by Eric Allman and Ralph Campbell
  *    
  */
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.25 2000/05/26 18:31:40 fgsch Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.26 2000/05/26 22:00:58 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -37,7 +37,7 @@
  *  om_classic -- classic behaviour module
  *
  * Author: Alejo Sanchez for Core-SDI SA
- *         form syslogd.c Eric Allman  and Ralph Campbell
+ *         from syslogd.c Eric Allman  and Ralph Campbell
  *
  */
 

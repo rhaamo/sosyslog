@@ -1,10 +1,10 @@
-/*	$CoreSDI: im_udp.c,v 1.26 2000/05/26 19:41:38 claudio Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.27 2000/05/26 21:28:49 fgsch Exp $	*/
 
 /*
- * im_udp -- classic behaviour module for BSD like systems
+ * im_udp -- input from INET using UDP
  *      
  * Author: Alejo Sanchez for Core SDI S.A.
- *         form syslogd.c by Eric Allman and Ralph Campbell
+ *         from syslogd.c by Eric Allman and Ralph Campbell
  *    
  */
 

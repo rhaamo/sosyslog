@@ -1,11 +1,12 @@
 OpenBSD
 =======
 
-VERSION WARNING: only tested on 2.6 and above. Should work well on 2.2 and above.
+VERSION WARNING: only tested on OpenBSD 2.6/27, and RedHat 6.0.
 RUNNING WARNING: Now you MUST specify "-i bsd", it isn't default. comments?
 
 
-Uncompress modular_syslog-0.1.tar.gz and 
+Uncompress msyslog-0.9a.tar.gz and do a "./configure" and then a "make".
+If everything goes well (it should! ;), do a "make install".
 
 FreeBSD
 =======
@@ -36,7 +37,5 @@ SuSe GNU/Linux
 ==============
 
 No thorough testing yet, so no help available yet.
-
-
 
 

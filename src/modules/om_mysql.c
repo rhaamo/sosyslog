@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.15 2000/05/23 21:47:05 fgsch Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.16 2000/05/26 16:53:38 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -37,7 +37,7 @@
  *  om_mysql -- MySQL database syupport Module
  *
  * Author: Alejo Sanchez for Core-SDI SA
- *         form syslogd.c Eric Allman  and Ralph Campbell
+ *         from syslogd.c Eric Allman  and Ralph Campbell
  *
  */
 
