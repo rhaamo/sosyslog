@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.128 2001/04/25 22:39:34 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.129 2001/04/26 17:09:25 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -125,6 +125,23 @@ AC_EGREP_HEADER(stack_t, [signal.h],[
 
 
 AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")dnl
+
+AC_MSG_CHECKING(for daemon name)
+
+MSYSLOG_DAEMON_NAME="syslogd";
+
+AC_ARG_WITH(daemon-name,
+[  --with-daemon-name Set a different daemon name, instead of syslogd
+],[
+	if test "X$withval" = "Xyes" ; then
+		error_tmp="You have to specify a value, --with-daemon-name";
+		AC_MSG_ERROR("$error_tmp")
+	else
+		MSYSLOG_DAEMON_NAME="$withval";
+	fi
+])dnl
+
+AC_MSG_RESULT("$MSYLOG_DAEMON_NAME")
 
 AC_ARG_WITH(maximum-optimization,
 [  --without-maximum-optimization
@@ -426,6 +443,7 @@ AC_SUBST(HASH_SRCS_MODULES)dnl
 AC_SUBST(HASH_OBJS_MODULES)dnl
 AC_SUBST(HAVE_SOCKLEN_T)dnl
 AC_SUBST(MAIN_CPPFLAGS)dnl
+AC_SUBST(MSYSLOG_DAEMON_NAME)dnl
 
 dnl AC_SUBST(SYMBOL_PREFIX)dnl
 

@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.50 2001/04/05 19:09:25 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.51 2001/04/23 23:13:28 alejo Exp $
 #
 # Copyright (c) 2001, Core SDI S.A., Argentina
 # All rights reserved
@@ -38,7 +38,7 @@ SYSLOGD_LIBS=	@SYSLOGD_LIBS@
 INSTALL=	@INSTALL@
 INSTALL_DIR=    @prefix@/sbin
 
-PROG=		syslogd
+PROG=		@MSYSLOG_DAEMON_NAME@
 SRCS=		modules.c syslogd.c
 OBJS=		$(SRCS:.c=.o)
 
