@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_peo.8,v 1.7 2000/06/03 01:03:05 alejo Exp $
+.\"	$CoreSDI: om_peo.8,v 1.8 2000/06/14 23:22:18 claudio Exp $
 .\"
 .\" Copyright (c) 2000
 .\"	Core-SDI SA. All rights reserved.
@@ -36,7 +36,9 @@
 .Os Core-SDI
 .Sh NAME
 .Nm peo output module
-.Nd syslogd(8) output module used to protect log files
+.Nd
+.Xr syslogd 8
+output module used to protect log files
 .Sh SYNOPSIS
 .Nm peo
 .Op Fl k Ar keyfile
@@ -82,12 +84,15 @@ If you want to protect the
 .Pa /var/log/authlog
 file you should edit the
 .Pa /etc/syslog.conf
-file (see syslog.conf(5)) and add a line with something like this:
+file (see
+.Xr syslog.conf 5
+) and add a line with something like this:
 .Pp
 .Dl auth.info   %peo -l -k /var/ssyslog/.var.log.authlog.key %classic /var/log/authlog
 .Pp
 When you want to check the protected file integrity you should use the
-peochk(8) command.
+.Xr peochk 8
+command.
 .Sh SEE ALSO
 .Li Vcr and Peo Revised documentation - http://www.core-sdi.com/papers/peo.ps
 .Xr peochk 8 ,
