@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.74 2000/05/29 19:11:43 fgsch Exp $	*/
+/*	$CoreSDI: modules.c,v 1.75 2000/05/29 20:35:42 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -332,22 +332,6 @@ int omodule_create(c, f, prog)
 	}
 	free(line);
 	return(1);
-}
-
-
-/*
- *
- * Input modules
- *
- */
-
-/* create all necesary modules for a specific input */
-int imodule_create(c, f, prog)
-	char *c;
-	struct filed *f;
-	char *prog;
-{
-	return(-1);
 }
 
 /*
