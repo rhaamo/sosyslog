@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.5 2000/04/28 17:59:49 claudio Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.6 2000/05/02 21:10:58 claudio Exp $";
 #endif /* not lint */
 
 /*
@@ -51,6 +51,7 @@ static char rcsid[] = "$Id: om_peo.c,v 1.5 2000/04/28 17:59:49 claudio Exp $";
 
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 
 #include <ctype.h>
 #include <err.h>
@@ -72,6 +73,7 @@ struct om_peo_ctx {
 
 	int	hash_method;
 	char	*keyfile;
+	char	*hashedlogfile;
 };
 
 int
@@ -83,6 +85,8 @@ om_peo_doLog(f, flags, msg, context)
 {
 	struct om_peo_ctx *c;
 	int	 fd;
+	int	 hfd;
+	u_char	 mkey[41];
 	u_char	 key[41];
 	int	 keylen;
 	int	 len;
@@ -115,6 +119,18 @@ om_peo_doLog(f, flags, msg, context)
 
 	dprintf ("last key: %s\n", key);
 
+	/* open hashedlogfile and write hashed msg */
+	if ( (hfd = open(c->hashedlogfile, O_WRONLY, 0)) == -1) {
+		fclose(fd);
+		return (-1);
+	}
+	hash(SHA1, key, keylen, m, mkey);
+	lseek(hfd, 0, SEEK_END);
+	write(hfd, mkey, 40);
+	close(hfd);
+
+	dprintf ("hashed msg logged\n");
+
 	/* generate new key and save it on keyfile */
 	keylen = hash(c->hash_method, key, keylen, m, key);
 	lseek(fd, 0, SEEK_SET);
@@ -136,6 +152,8 @@ om_peo_doLog(f, flags, msg, context)
  *  params:
  * 
  *	-k <keyfile>		(default: /var/ssyslog/.var.log.messages)
+ *	-l			line number corruption detect
+ *				(generates a strcat(keyfile, ".msg") file)
  *	-m <hash_method>	sha1 or md5 (default: sha1)
  *
  */
@@ -154,7 +172,9 @@ om_peo_init(argc, argv, f, prog, context)
 {
 	int	 ch;
 	int	 hash_method;
+	int	 hlf;
 	char	*keyfile;
+	char	*hashedlogfile;
 	struct	 om_peo_ctx *c;
 
 	dprintf("peo output module init: called by %s\n", prog);
@@ -166,15 +186,21 @@ om_peo_init(argc, argv, f, prog, context)
 	/* default values */
 	hash_method = SHA1;
 	keyfile = default_keyfile;
+	hashedlogfile = NULL;
+	hlf = 0;
 
 	/* parse command line */
 	optreset = 1; optind = 0;
-	while ((ch = getopt(argc, argv, "k:m:")) != -1) {
+	while ((ch = getopt(argc, argv, "k:lm:")) != -1) {
 		switch(ch) {
 			case 'k':
 				/* set keyfile */
 				if ( (keyfile = strdup(optarg)) == NULL)
 					return (-1);
+				break;
+			case 'l':
+				/* set hashedlog file */
+				hlf = 1;
 				break;
 			case 'm':
 				/* set method */
@@ -193,20 +219,42 @@ om_peo_init(argc, argv, f, prog, context)
 		}
 	}
 
+	/* set hashed log file */
+	if (hlf) {
+		if ( (hashedlogfile = (char*) calloc(1, strlen(keyfile)+4)) == NULL) {
+			if (keyfile != default_keyfile)
+				free (keyfile);
+			return (-1);
+		}
+		strcpy(hashedlogfile, keyfile);
+		strcat(hashedlogfile, ".msg");
+
+		if (! (hlf = open(hashedlogfile, O_CREAT, S_IRUSR|S_IWUSR))) {
+			if (errno != EEXIST)
+				return (-1);
+		}
+		else close(hlf);
+		
+	}
+
 	/* save data on context */
 	if ( (c = (struct om_peo_ctx*)
 		calloc (1, sizeof(struct om_peo_ctx))) == NULL) {
 			if (keyfile != default_keyfile)
 				free (keyfile);
+			if (hlf)
+				free(hashedlogfile);
 			return (-1);
 		}
 
 	c->size = sizeof(struct om_peo_ctx);
 	c->hash_method = hash_method;
 	c->keyfile = keyfile; 
+	c->hashedlogfile = hashedlogfile;
 	*context = (struct om_header_ctx*) c;
 
-	dprintf ("method: %d\nkeyfile: %s\n", hash_method, keyfile);
+	dprintf ("method: %d\nkeyfile: %s\nhashedlogfile: %s\n",
+		hash_method, keyfile, hashedlogfile);
 
 	return (0);
 }
@@ -224,6 +272,8 @@ om_peo_close(f, context)
 	c = (struct om_peo_ctx*) *context;
 	if (c->keyfile != default_keyfile)
 		free(c->keyfile);
+	if (c->hashedlogfile)
+		free(c->hashedlogfile);
 	free (*context);
 	*context = NULL;
 	return (0);

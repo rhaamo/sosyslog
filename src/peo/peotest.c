@@ -8,13 +8,14 @@ struct filed f;
 struct om_header_ctx *c;
 char *argv[] = {
 		"myname",
+		"-l",
 		"-m",
 		"sha1",
 		"-k",
 		"caca"
 };
 
-if (om_peo_init(5, &argv, &f, argv[0], &c) == -1) {
+if (om_peo_init(6, &argv, &f, argv[0], &c) == -1) {
 	perror("caca en init");
 	return -1;
 }

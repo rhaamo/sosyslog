@@ -1,11 +1,11 @@
-/*      $Id: peochk.c,v 1.11 2000/04/28 17:59:49 claudio Exp $
+/*      $Id: peochk.c,v 1.12 2000/05/02 21:10:59 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
  * Author: Claudio Castiglia for Core-SDI SA
  *
  *
- * peochk [-f logfile] [-g] [-i key0file] [-k keyfile] [-m hash_method] [logfile]
+ * peochk [-f logfile] [-g] [-i key0file] [-k keyfile] [-l] [-m hash_method] [logfile]
  *
  * supported hash_method values:
  *			md5
@@ -49,6 +49,7 @@ char	*default_logfile = "/var/log/messages";
 char	*keyfile;
 char	*key0file;
 char	*logfile;
+char	*hashedlogfile;
 int	 method;
 int	 use_stdin;
 
@@ -67,6 +68,8 @@ release()
 		free(key0file);
 	if (logfile != default_logfile)
 		free(logfile);
+	if (hashedlogfile)
+		free(hashedlogfile);
 }
 
 
@@ -99,7 +102,9 @@ usage()
 	"\tlogfile    : /var/log/messages\n"
 	"\tkeyfile    : /var/ssyslog/.var.log.messages.key\n"
 	"\tkey0file   : strcat(keyfile, \"0\");\n"
-	"\thash_method: sha1\n\n");
+	"\thash_method: sha1\n\n"
+	"\tIf -l switch is specified, the hashed log file is "
+	"strcat(keyfile, \".msg\");\n");
 	exit(1);
 }
 
@@ -138,10 +143,14 @@ check()
 {
 	int  i;
 	int  input;
+	int  hfd;
 	char key[41];
 	int  keylen;
 	char lastkey[41];
 	int  lastkeylen;
+	int  line;
+	char mkey1[41];
+	char mkey2[41];
 	char msg[MAXLINE];
 	
 	/* open logfile */
@@ -149,6 +158,11 @@ check()
 		input = STDIN_FILENO;
 	else if ( (input = open(logfile, O_RDONLY, 0)) == -1)
 		err(1, logfile);
+
+	/* open hashed log file */
+	if (hashedlogfile)
+		if ( (hfd = open(hashedlogfile, O_RDONLY, 0)) == -1)
+			err(1, hashedlogfile);
 
 	/* read initial key */
 	if ( (i = open(key0file, O_RDONLY, 0)) == -1)
@@ -175,8 +189,21 @@ check()
 		errx(1, "%s and/or %s files corrupted", key0file, keyfile);
 
 	/* check it */
-	while( (i = readline(input, msg, MAXLINE)) > 0)
+	line = 1;
+	while( (i = readline(input, msg, MAXLINE)) > 0) {
+		if (hashedlogfile) {
+			hash(SHA1, key, keylen, msg, mkey1);
+			if (readline(hfd, mkey2, 40) < 0)
+				err(1, hashedlogfile);
+			if (strncmp(mkey2, mkey1, 40))
+				errx(1, "%s file corrupted on line %i\n", logfile, line);
+			line++;
+		}
 		keylen = hash(method, key, keylen, msg, key);
+	}
+
+	if (hashedlogfile)
+		close(hfd);
 
 	if (i < 0)
 		errx(1, "error reading logs form %s", (use_stdin) ? "standard input" : logfile);
@@ -231,19 +258,22 @@ main (argc, argv)
 {
 	int	 action;
 	int	 ch;
+	int	 hlf;
 
 	/* integrity check mode */
 	action = 0;
 
 	/* default values */
 	use_stdin = 1;
+	hashedlogfile = NULL;
+	hlf = 0;
 	logfile = default_logfile;
 	keyfile = default_keyfile;
 	key0file = NULL;
 	method = SHA1;
 
 	/* parse command line */
-	while ( (ch = getopt(argc, argv, "f:ghi:k:m:")) != -1) {
+	while ( (ch = getopt(argc, argv, "f:ghi:k:lm:?")) != -1) {
 		switch (ch) {
 			case 'f':
 				/* log file (intrusion detection mode) */
@@ -277,6 +307,9 @@ main (argc, argv)
 					err(1, optarg); 
 				}
 				break;
+			case 'l':
+				hlf = 1;
+				break;
 			case 'm':
 				/* hash method */
 				if ( (method = gethash(optarg)) < 0) {
@@ -285,6 +318,7 @@ main (argc, argv)
 				}
 				break;
 			case 'h':
+			case '?':
 			default:
 				release();
 				usage();
@@ -324,8 +358,17 @@ main (argc, argv)
 		strcat(key0file, "0");
 	}
 
+	/* create hashed log file */
+	if (hlf) {
+		if ( (hashedlogfile = (char*)calloc(1, strlen(keyfile)+4)) == NULL) {
+		release();
+		err(1, "hashedlogfile");
+		}
+		strcpy(hashedlogfile, keyfile);
+		strcat(hashedlogfile, ".msg");
+	}
 
-	/* check logfile */
+	/* check integrity */
 	if (action == 0)
 		check();
 	/* generate new key */
