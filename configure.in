@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.107 2001/03/23 18:06:41 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.108 2001/03/26 14:43:40 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -138,6 +138,7 @@ elif test "$UNAME" = "SunOS" ; then
 	DCCFLAGS="-fPIC"
 elif test "$UNAME" = "Irix" ; then
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
+	AC_DEFINE(_SGIAPI)dnl
 	SHARED_PARAMS="-G"
 	DCCFLAGS="-fPIC"
 elif test "$UNAME" = "AIX" ; then
@@ -377,7 +378,8 @@ AC_ARG_WITH(regex,
 
 AC_CACHE_SAVE
 
-AC_HAVE_TYPES(socklen_t uint32_t uint64_t u_int32_t u_int64_t CODE)dnl
+AC_HAVE_TYPES(socklen_t uint32_t uint64_t u_int32_t u_int64_t \
+	__uint32_t __uint64_t CODE)dnl
 
 dnl check CODE structure typedef
 dnl AC_CHECK_CODE_TYPE()dnl 
@@ -391,10 +393,6 @@ AC_SUBST(MLIBNAME)dnl
 AC_SUBST(MANPAGES)dnl
 AC_SUBST(HASH_SRCS)dnl
 AC_SUBST(HAVE_SOCKLEN_T)dnl
-AC_SUBST(HAVE_UINT32_T)dnl
-AC_SUBST(HAVE_UINT64_T)dnl
-AC_SUBST(HAVE_U_INT32_T)dnl
-AC_SUBST(HAVE_U_INT64_T)dnl
 
 dnl AC_SUBST(SYMBOL_PREFIX)dnl
 

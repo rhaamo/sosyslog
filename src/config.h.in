@@ -112,7 +112,9 @@
 #undef HAVE_UINT32_T
 #undef HAVE_UINT64_T
 #undef HAVE_U_INT32_T
+#undef HAVE___UINT32_T
 #undef HAVE_U_INT64_T
+#undef HAVE___UINT64_T
 
 #undef HAVE_CODE
 
@@ -139,3 +141,5 @@
 #undef HAVE_SYS_CONTEXT_H
 
 #undef NEEDS_DLOPEN_NULL
+
+#undef _SGIAPI
