@@ -1,4 +1,4 @@
-dnl	$CoreSDI: aclocal.m4,v 1.3 2000/07/08 01:08:47 claudio Exp $
+dnl	$CoreSDI: aclocal.m4,v 1.5 2000/07/10 21:41:37 claudio Exp $
 
 dnl
 dnl MSYSLOG_GREP patt file comm
@@ -20,6 +20,10 @@ dnl Configure MYSQL includedir and libdir
 dnl if mysql is not installed exits
 dnl
 AC_DEFUN(MSYSLOG_CHECK_MYSQL, [
+AC_ARG_WITH(mysql-lib,
+	[--with-mysql-lib=DIR        specify mysql library dir],
+	[CPPFLAGS="$CPPFLAGS -L$withval"],
+	[
 for i in /usr/local/lib /usr/local/lib/mysql /usr/lib/mysql /usr/lib no
 do
 	if test "$i" = "no"
@@ -32,10 +36,16 @@ do
 	fi
 done
 CPPFLAGS="$CPPFLAGS -L$i"
+	])
+
 AC_CHECK_LIB(mysqlclient, mysql_real_connect,, [
 	     echo "Need mysqlclient library to enable mysql module"
 	     exit ])
 
+AC_ARG_WITH(mysql-inc,
+	    [--with-mysql-inc=DIR        specify mysql include dir],
+	    [CPPFLAGS="$CPPFLAGS -I$withval"],
+	    [
 for i in /usr/local/include/mysql /usr/local/mysql/include \
 	 /usr/local/include /usr/include/mysql /usr/include no
 do
@@ -50,6 +60,7 @@ then
 	exit
 fi
 CPPFLAGS="$CPPFLAGS -I$i"
+	    ])
 ])
 
 
@@ -58,6 +69,10 @@ dnl Configure PGSQL includedir and libdir
 dnl if pgsql is not installed exits
 dnl
 AC_DEFUN(MSYSLOG_CHECK_PGSQL, [
+AC_ARG_WITH(pgsql-lib,
+	    [--with-pgsql-lib=DIR        specify pgsql library dir],
+	    [CPPFLAGS="$CPPFLAGS -L$withval"],
+	    [
 for i in /usr/local/pgsql/lib /usr/local/lib/pgsql /usr/lib/pgsql /usr/lib no
 do
 	if test "$i" = "no"
@@ -70,10 +85,16 @@ do
 	fi
 done
 CPPFLAGS="$CPPFLAGS -L$i"
+	    ])
+
 AC_CHECK_LIB(pq, PQsetdbLogin,, [
 	     echo "Need pq library to enable pgsql module"
 	     exit ])
 
+AC_ARG_WITH(pgsql-inc,
+	    [--with-pgsql-inc=DIR        specify pgsql include dir],
+	    [CPPFLAGS="$CPPFLAGS -I$withval"],
+	    [
 for i in /usr/local/pgsql/include /usr/local/include/pgsql \
 	 /usr/local/include /usr/include/pgsql /usr/include no
 do
@@ -88,6 +109,7 @@ then
 	exit
 fi
 CPPFLAGS="$CPPFLAGS -I$i"
+	    ])
 ])
 
 
