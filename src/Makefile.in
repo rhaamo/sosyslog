@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.4 2000/06/07 23:00:44 fgsch Exp $
+# $CoreSDI: Makefile.in,v 1.5 2000/06/08 00:45:17 fgsch Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -28,51 +28,35 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-CC = @CC@
-CFLAGS = @CFLAGS@
-LDFLAGS = @LDFLAGS@
-LIBS = @LIBS@
+CC=		@CC@
+CFLAGS=		@CFLAGS@
+LDFLAGS=	@LDFLAGS@
+LIBS=		@LIBS@
 
-CEFLAGS = @CEFLAGS@
-LDEFLAGS = @LDEFLAGS@
+PROG=		syslogd
+SRCS=		modules.c syslogd.c ttymsg.c \
+		modules/im_bsd.c modules/im_udp.c modules/im_unix.c \
+		modules/om_classic.c modules/om_regex.c modules/om_peo.c \
+		peo/hash.c
+LINUX_SRCS=	modules/im_linux.c
+SQL_SRCS=	modules/sql_misc.c
+MYSQL_SRCS=	modules/om_mysql.c 
+PGSQL_SRCS=	modules/om_pgsql.c
+SRCS+=		@EXTRA_SRCS@
+OBJS=		${SRCS:.c=.o}
 
-EXTRAOBJ = @EXTRAOBJ@
-
-OBJS = modules.o syslogd.o ttymsg.o
-MODOBJS = modules/im_bsd.o modules/im_udp.o modules/im_unix.o \
-	  modules/om_classic.o modules/om_regex.o modules/om_peo.o
-PEOBJS = peo/hash.o
-
-INSTALL_PROGRAM = @INSTALL_PROGRAM@
-INSTALL_DATA = @INSTALL_DATA@
-INSTALL = @INSTALL@
-
-SUBDIRS = modules peo man
-
-all: all-recursive all-local
-
-all-recursive install-recursive clean-recursive distclean-recursive:
-	@target=`echo $@ | sed s/-recursive//`; \
-	list='$(SUBDIRS)'; \
-	for subdir in $$list; do \
-		(cd $$subdir && exec $(MAKE) $$target) \
-	done
+all: $(PROG)
 
 .c.o:
-	$(CC) $(CFLAGS) $(CEFLAGS) -I. -c $<
+	$(CC) $(CFLAGS) -I. -c $< -o $@
 
-all-local: $(OBJS)
-	$(CC) $(OBJS) $(PEOBJS) $(MODOBJS) -o syslogd $(LIBS) $(LDEFLAGS)
-
-install: install-recursive install-local
+$(PROG): $(OBJS)
+	$(CC) -o $@ $(OBJS) $(LDFLAGS) $(LIBS)
 
 .PHONY: clean distclean
-distclean: distclean-recursive distclean-local
-clean: clean-recursive clean-local
+clean:
+	-rm -f $(OBJS) core *.core $(PROG)
 
-clean-local:
-	-rm -f tags *.o core *.core syslogd
-
-distclean-local: clean-local
+distclean: clean
 	-rm -f Makefile config.h
 

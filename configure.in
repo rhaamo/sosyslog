@@ -7,28 +7,22 @@ test -z "$LDFLAGS" && LDFLAGS= AC_SUBST(LDFLAGS)
 AC_PROG_CC
 AC_PROG_INSTALL
 
-AC_SUBST(CEFLAGS)
-AC_SUBST(LDEFLAGS)
-
 AC_CHECK_HEADERS(paths.h)
 
-AC_MSG_CHECKING(for optreset)
+AC_MSG_CHECKING(wheter optreset is needed)
 AC_TRY_LINK([#include <unistd.h>],
 	[extern int optreset; optreset = 1;],
 	[AC_DEFINE(HAVE_OPTRESET) AC_MSG_RESULT(yes)],
 	AC_MSG_RESULT(no))
 
 AC_CHECK_FUNC(MD5Init, AC_DEFINE(HAVE_MD5),
-	EXTRAOBJ="$EXTRAOBJ md5c.o")
+	EXTRA_SRCS="$EXTRA_SRCS peo/md5c.c")
 
 AC_CHECK_FUNC(SHA1Init, AC_DEFINE(HAVE_SHA1),
-	EXTRAOBJ="$EXTRAOBJ sha1.o")
+	EXTRA_SRCS="$EXTRA_SRCS peo/sha1.c")
 
 AC_CHECK_FUNC(RMD160Init, AC_DEFINE(HAVE_RMD160),
-	EXTRAOBJ="$EXTRAOBJ rmd160.o")
-
-AC_SUBST(EXTRASRC)
-AC_SUBST(EXTRAOBJ)
+	EXTRA_SRCS="$EXTRA_SRCS peo/rmd160.c")
 
 for dir in "/var/run" "/etc"
 do
@@ -67,9 +61,9 @@ then
 		with_mysql="/usr/local/mysql"	
 	fi
 	echo "Enabling MySQL support in $with_mysql"
-	EXTRAOBJ="$EXTRAOBJ om_mysql.o"
-	CEFLAGS="$CEFLAGS -I$with_mysql/include"
-	LDEFLAGS="$LDEFLAGS -L$with_mysql/lib"
+	EXTRA_SRCS="EXTRA_SRCS \$(MYSQL_SRCS)"
+	CFLAGS="$CFLAGS -I$with_mysql/include"
+	LDFLAGS="$LDFLAGS -L$with_mysql/lib"
 	LIBS="$LIBS -lmysql"
 	AC_DEFINE(MYSQL_ENABLE)
 else
@@ -79,7 +73,9 @@ fi
 if test `uname` = "Linux"
 then
 	echo "Enabling Linux input module..."
-	EXTRAOBJ="$EXTRAOBJ im_linux.o"
+	EXTRA_SRCS="$EXTRA_SRCS \$(LINUX_SRCS)"
 fi
 
-AC_OUTPUT([Makefile src/Makefile src/modules/Makefile src/peo/Makefile src/man/Makefile])
+AC_SUBST(EXTRA_SRCS)
+
+AC_OUTPUT([Makefile src/Makefile])
