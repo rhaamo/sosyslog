@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.27 2001/09/20 01:07:09 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.28 2001/09/20 01:21:13 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -272,10 +272,10 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		}
 
 		free(con);
-		return (0);
-	}
 
-	if (n < 0 && errno != EINTR) {
+		return (0);
+
+	} else if (n < 0 && errno != EINTR) {
 		dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: conetion from %s"
 		    " closed with error [%s]\n", con->name, strerror(errno));
 		logerror("im_tcp_read");
