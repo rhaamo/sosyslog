@@ -1,15 +1,18 @@
-/*	$CoreSDI: TODO,v 1.34 2000/09/18 18:58:29 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.35 2000/09/18 19:35:42 alejo Exp $	*/
 
 Things to do:
 
+- solaris port
 - do not generate coredumps (via resource limits)
-- check pager stuff formats
-- check M$ MAPI
+- warn the when ignoring a line
+- tell about -i linux in syslogd(8)
 - thinker about wall mesages
 - abstract a *net.c fileall networking code ?
 - debug levels
 - redo line format while keeping "<" and ">" usage (prevent new syslog proto)
 - minimize global variables even more
+- check pager stuff formats
+- check M$ MAPI
 - CHECK LIBC and GLIBC's way to work
 
 FOR FUTURE WORKING
