@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.113 2000/07/21 21:26:49 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.114 2000/07/26 21:00:37 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -64,6 +64,8 @@ static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $"
  * Author: Eric Allman
  * extensive changes by Ralph Campbell
  * more extensive changes by Eric Allman (again)
+ * more extensive changes by Alejo Sanchez for Core-SDI
+ *
  */
 
 #include "config.h"
@@ -164,7 +166,9 @@ int	Initialized = 0;	/* set when we have initialized ourselves */
 int	MarkInterval = 20 * 60;	/* interval between marks in seconds */
 int	MarkSeq = 0;		/* mark sequence number */
 char	*ConfFile = _PATH_LOGCONF;	/* configuration file */
+#define MAX_PIDFILE_LOCK_TRIES 5
 char pidfile[PATH_MAX];
+FILE *pidfd;
 
 void    cfline(char *, struct filed *, char *);
 int     decode(const char *, CODE *);
@@ -190,7 +194,6 @@ struct	i_module Inputs;
 int
 main(int argc, char **argv) {
 	int ch;
-	FILE *fp;
 	char *p;
 	struct timeval timeout, tnow, nextcall;
 
@@ -303,10 +306,77 @@ main(int argc, char **argv) {
 
 	/* took my process id away */
 	if (!sglobals->Debug) {
-		fp = fopen(pidfile, "w");
-		if (fp != NULL) {
-			fprintf(fp, "%d\n", getpid());
-			(void) fclose(fp);
+		struct flock fl;
+		int lfd, tries, status;
+		char buf[1024];
+
+		fl.l_type   = F_WRLCK;
+		fl.l_whence = SEEK_SET; /* relative to bof */
+		fl.l_start  = 0L; /* from offset zero */
+		fl.l_len    = 0L; /* lock to eof */
+
+		/* no truncating before lock checking */
+		pidfd = fopen(pidfile, "a+");
+		if (pidfd != NULL) {
+			lfd = fileno(pidfd);
+			for (tries = 0; tries < MAX_PIDFILE_LOCK_TRIES; tries++) {
+				errno = 0;
+				status = fcntl(lfd, F_SETLK, &fl);
+				if (status == -1) {
+					if (errno == EACCES || errno == EAGAIN) {
+						sleep(1);
+						continue;
+					} else {
+						snprintf(buf, sizeof(buf), "fcntl lock error "
+								"status %d on %s %d %s", status,
+								pidfile, lfd, sys_errlist[errno]);
+						logerror(buf);
+						die(0);
+					}
+				}
+				/* successful lock */
+				break;
+			}
+
+			if (errno != 0) {
+				snprintf(buf, sizeof(buf), "Cannot lock %s fd %d "
+						"in %d tries %s", pidfile, lfd,
+						tries+1, sys_errlist[errno]);
+				logerror(buf);
+
+				/* who is hogging this lock */
+				fl.l_type   = F_WRLCK;
+				fl.l_whence = SEEK_SET; /* relative to bof */
+				fl.l_start  = 0L; /* from offset zero */
+				fl.l_len    = 0L; /* lock to eof */
+#ifdef HAS_FLOCK_SYSID
+				fl.l_sysid  = 0L;
+#endif
+				fl.l_pid    = 0;
+
+				status = fcntl(lfd, F_GETLK, &fl);
+				if ((status == -1) || (fl.l_type == F_UNLCK)) {
+					snprintf(buf, sizeof(buf), "Cannot determine "
+							"%s lockholder status=%d type=%d",
+							pidfile, status, fl.l_type);
+					logerror(buf);
+					return(0);
+				}
+
+				snprintf(buf, sizeof(buf), "Lock on %s is being "
+						"held by sys=%u pid=%d", pidfile,
+#ifdef HAS_FLOCK_SYSID
+						fl.l_sysid,
+#else
+						-1,
+#endif
+						fl.l_pid);
+				logerror(buf);
+				die(0);
+			}
+
+			fprintf(pidfd, "%d\n", getpid());
+			(void) fflush(pidfd);
 		}
 	}
 
@@ -715,8 +785,21 @@ die(int signo) {
 		else if (im->im_fd)
 			close(im->im_fd);
 
-	if (unlink(pidfile) < 0)
-		logerror("error deleting pidfile");
+	if (!sglobals->Debug) {
+		struct flock fl;
+		int lfd;
+
+		lfd = fileno(pidfd);
+		fl.l_type   = F_UNLCK;
+		fl.l_whence = SEEK_SET; /* relative to bof */
+		fl.l_start  = 0L; /* from offset zero */
+		fl.l_len    = 0L; /* lock to eof */
+
+		fcntl(lfd, F_SETLK, &fl);
+		(void) fclose(pidfd);
+		if (unlink(pidfile) < 0)
+			logerror("error deleting pidfile");
+	}
 
 	exit(0);
 }
