@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_filter.c,v 1.5 2000/06/06 00:14:05 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.6 2000/06/07 21:27:38 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -30,7 +30,7 @@
  */
 
 /*
- * om_filter -- some explanation for this baby
+ * om_regex -- some explanation for this baby
  *
  * Author: Alejo Sanchez for Core-SDI SA
  *
@@ -55,7 +55,7 @@
 /* current time from syslogd */
 extern time_t now;
 
-struct om_filter_ctx {
+struct om_regex_ctx {
 	short		 flags;
 	int		 size;
 	regex_t		*exp;
@@ -69,31 +69,31 @@ struct om_filter_ctx {
 
 
 /*
- *  INIT -- Initialize om_filter
+ *  INIT -- Initialize om_regex
  *
  */
 int
-om_filter_init(argc, argv, f, prog, c)
+om_regex_init(argc, argv, f, prog, c)
 	int argc;		/* argumemt count */
 	char **argv;		/* argumemt array, like main() */
 	struct filed *f;	/* our filed structure */
 	char *prog;		/* program name doing this log */
 	struct om_hdr_ctx **c; /* our context */
 {
-	struct om_filter_ctx *ctx;
+	struct om_regex_ctx *ctx;
 	int ch;
 
 	/* for debugging purposes */
-	dprintf("om_filter init\n");
+	dprintf("om_regex init\n");
 
 
 	if (argc < 2 || argv == NULL || argv[1] == NULL) {
-		dprintf("om_filter: error on initialization\n");
+		dprintf("om_regex: error on initialization\n");
 		return(-1);
 	}
 
 	if (! (*c = (struct om_hdr_ctx *)
-			calloc(1, sizeof(struct om_filter_ctx))))
+			calloc(1, sizeof(struct om_regex_ctx))))
 		return (-1);
 
 	/*
@@ -129,19 +129,19 @@ om_filter_init(argc, argv, f, prog, c)
 				ctx->filters |= OM_FILTER_TIME;
 				break;
 			default:
-				dprintf("om_filter: unknown parameter [%c]\n", ch);
+				dprintf("om_regex: unknown parameter [%c]\n", ch);
 				return(-1);
 				break;
 		}
 	}
 
 
-	ctx = (struct om_filter_ctx *) *c;
-	ctx->size = sizeof(struct om_filter_ctx);
+	ctx = (struct om_regex_ctx *) *c;
+	ctx->size = sizeof(struct om_regex_ctx);
 	ctx->exp = (regex_t *) calloc(1, sizeof(regex_t));
 	ch = REG_EXTENDED;
 	if (regcomp(ctx->exp, argv[argc - 1], ch) != 0) {
-		dprintf("om_filter: error compiling  regular expression [%s]\n",
+		dprintf("om_regex: error compiling  regular expression [%s]\n",
 				argv[argc - 1]);
 		return(-1);
 	}
@@ -150,20 +150,20 @@ om_filter_init(argc, argv, f, prog, c)
 }
 
 int
-om_filter_doLog(f, flags, msg, context)
+om_regex_doLog(f, flags, msg, context)
 	struct filed	*f;
 	int		 flags;
 	char		*msg;
 	struct om_hdr_ctx *context; /* our context */
 {
-	struct om_filter_ctx *ctx;
+	struct om_regex_ctx *ctx;
 	int ret1, ret2, ret3;
 	char *host, *date, *time;
 
-	ctx = (struct om_filter_ctx *) context;
+	ctx = (struct om_regex_ctx *) context;
 
 	if (msg == NULL || !strcmp(msg, "")) {
-		logerror("om_filter_doLog: no message!");
+		logerror("om_regex_doLog: no message!");
 		return(-1);
 	}
 
@@ -199,13 +199,13 @@ catched:
 
 
 int
-om_filter_close(f, ctx)
+om_regex_close(f, ctx)
 	struct filed *f;
 	struct om_hdr_ctx *ctx;
 {
-	struct om_filter_ctx *c;
+	struct om_regex_ctx *c;
 
-	c = (struct om_filter_ctx *) ctx;
+	c = (struct om_regex_ctx *) ctx;
 
 	if (c->exp)
 		free(c->exp);
@@ -214,7 +214,7 @@ om_filter_close(f, ctx)
 }
 
 int
-om_filter_flush(f, context)
+om_regex_flush(f, context)
 	struct filed *f;
 	struct om_hdr_ctx *context;
 {
