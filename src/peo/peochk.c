@@ -1,4 +1,4 @@
-/*      $Id: peochk.c,v 1.9 2000/04/27 19:31:15 claudio Exp $
+/*      $Id: peochk.c,v 1.10 2000/04/27 20:03:25 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
@@ -119,16 +119,13 @@ int readline (fd, buf, len)
 	while (len) {
 		if ( (r = read(fd, buf, 1)) == -1)
 			return (-1);
-		if (!r)
+		if (!r || *buf == '\n')
 			break;
+		buf++;
 		readed++;
 		len--;
-		buf++;
-		if (*(buf-1) == '\n') {
-			*(buf-1) = '\0';
-			return readed-1;
-		}
 	}
+	*buf = '\0';
 	return readed;
 }
 
@@ -154,7 +151,7 @@ check()
 			err(1, "standard input");
 	}
 	else if ( (input = open(logfile, O_RDONLY, 0)) == -1)
-		err(1, keyfile);
+		err(1, logfile);
 
 	/* read initial key */
 	if ( (i = open(key0file, O_RDONLY, 0)) == -1)
@@ -188,9 +185,9 @@ check()
 		errx(1, "error reading logs form %s", (use_stdin) ? "standard input" : logfile);
 
 	if (strcmp(lastkey, key)) 
-		errx (1, "%s file corrupted\n", logfile);
+		errx(1, "%s file corrupted\n", logfile);
 
-	fprintf (stderr, "%s file is ok\n", logfile);
+	fprintf(stderr, "%s file is ok\n", logfile);
 }
 
 
@@ -220,8 +217,8 @@ generate()
 	}
 
 	/* write key 0 */
-	write (fkey, newkey, len);
-	write (fkey0, newkey, len);
+	write(fkey, newkey, len);
+	write(fkey0, newkey, len);
 	close(fkey);
 	close(fkey0);
 }
@@ -288,9 +285,9 @@ main (argc, argv)
 				if (strcasecmp("md5", optarg) == 0)
 					method = MD5;
 				else if (strcasecmp("rmd160", optarg) == 0)
-						method = RMD160;
+					method = RMD160;
 				else if (strcasecmp("sha1", optarg) == 0)
-						method = SHA1;
+					method = SHA1;
 				else {
 					release();
 					usage();
