@@ -1,4 +1,4 @@
-$Id: INSTALL,v 1.3 2000/07/11 00:44:23 claudio Exp $
+$Id: INSTALL,v 1.4 2000/07/11 01:21:07 claudio Exp $
 ==============================================================================
                          Modular Syslog package
                              INSTALL file
@@ -69,8 +69,16 @@ specific modules, or to save memory on systems with more than one
 msyslog daemon running; if you won't a module, just leave it without
 asignment.
 
-  Then, you must run the script "configure" to prepare the compilation headers
-and Makefiles for your system.
+  Then, you must run the script "configure" to prepare the compilation
+headers and Makefiles for your system. You can also specify the include
+and lib paths for mysql and pgsql modules (run "configure --help" for
+more information).
+
+  The standard distribution will be installed on /usr/local directory,
+to change this, you may specify prefix when running configure (ie.:
+"configure --prefix=/usr".
+
+  You must run "configure" each time you modify modules.conf file.
 
   NOTE: If you are compiling on a new OS you may want to start a new
 configuration file, using the autoconf package available at
@@ -99,8 +107,9 @@ official distribution (see note on contacting us below).
 2.a Linux
 
   Under Linux you need to have 'LINUX' module activated (either static or
-  dynamic) to log kernel messages; this module replaces the deprecated
-  klogd daemon so, you should kill that before run msyslog.
+  dynamic) to log kernel messages; this module acts like klogd daemon so,
+  if you have it installed on your system, you should kill it before
+  running msyslog, otherwise im_linux will conflict with it.
   The 'BSD' module is the kernel logguer on bsd-like system, you should
   not to activate it on Linux.
 
