@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.99 2001/03/14 22:20:40 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.100 2001/03/14 22:26:00 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -107,6 +107,19 @@ if grep _USE_IRS /usr/include/netdb.h >/dev/null ;then
 else
 	AC_MSG_RESULT(no)
 fi
+
+AC_MSG_CHECKING(if sigaltstack uses stack_t structure)
+AC_EGREP_HEADER(yes, [
+#include <signal.h>
+#ifdef stack_t
+yes
+endif
+],[
+	AC_DEFINE(SIGALTSTACK_WITH_STACK_T)
+	AC_MSG_RESULT(yes)
+], [
+	AC_MSG_RESULT(no)
+])dnl
 
 
 UNAME=`uname`

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.180 2001/03/10 00:34:16 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.181 2001/03/14 22:14:21 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.180 2001/03/10 00:34:16 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.181 2001/03/14 22:14:21 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -101,6 +101,9 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.180 2001/03/10 00:34:16 alejo Exp
 #endif
 #include <sys/socket.h>
 #include <limits.h>
+#if defined(SIGALTSTACK_WITH_STACK_T) && defined(HAVE_SYS_CONTEXT_H)
+# include <sys/context.h>
+#endif
 
 #include <ctype.h>
 #include <errno.h>
@@ -214,7 +217,11 @@ main(int argc, char **argv)
 	int		   ch;
 	char		  *p;
 	struct im_msg	   log;
+#ifndef SIGALTSTACK_WITH_STACK_T
 	struct sigaltstack alt_stack;
+#else
+	stack_t alt_stack;
+#endif
 	struct sigaction   sa;
 
 	Inputs.im_next = NULL;
