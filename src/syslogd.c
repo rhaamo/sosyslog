@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.29 2000/04/17 22:22:07 alejo Exp $
+/*	$Id: syslogd.c,v 1.30 2000/04/17 23:26:01 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -144,8 +144,11 @@ main(argc, argv)
 	FILE *fp;
 	char *p, line[MSG_BSIZE + 1];
 	struct	i_module *Inputs;
+	int	inputBSD, inputSYSV;
 
-	while ((ch = getopt(argc, argv, "duf:m:p:a:")) != -1)
+	inputBSD = 0; inputSYSV = 0;
+
+	while ((ch = getopt(argc, argv, "dubSf:m:p:a:")) != -1)
 		switch (ch) {
 		case 'd':		/* debug */
 			Debug++;
@@ -161,6 +164,14 @@ main(argc, argv)
 			break;
 		case 'u':		/* allow udp input port */
 			SecureMode = 0;
+			break;
+		case 'i':		/* BSD-like input (AF_LOCAL socket) */
+			if (!strncmp(optarg, "bsd", 3)) {
+				inputBSD++;
+			} else if (!strncmp(optarg, "sysv", 4)) {
+				inputSYSV++;
+			} else
+				usage();
 			break;
 		case 'a':		/* additional AF_UNIX socket name */
 			if (nfunix < MAXFUNIX)
