@@ -1,4 +1,4 @@
-/* $Id: syslogd.c,v 1.237 2003/04/04 18:21:57 alejo Exp $	 */
+/* $Id: syslogd.c,v 1.238 2003/04/04 20:04:28 alejo Exp $	 */
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char     copyright[] =
 
 #ifndef lint
 /* static char sccsid[] = "@(#)syslogd.c  8.3 (Berkeley) 4/4/94"; */
-static char     rcsid[] = "$Id: syslogd.c,v 1.237 2003/04/04 18:21:57 alejo Exp $";
+static char     rcsid[] = "$Id: syslogd.c,v 1.238 2003/04/04 20:04:28 alejo Exp $";
 #endif				/* not lint */
 
 /*
@@ -1275,7 +1275,10 @@ init(int signo)
          *  Foreach line in the conf table, open that file.
          */
 	f = NULL;
+
 	strncpy(prog, "*", 2);
+	prog[sizeof (prog) - 1] = '\0';
+
 	while (fgets(cline, sizeof(cline), cf) != NULL) {
 		int             clen;
 
@@ -1310,6 +1313,7 @@ init(int signo)
 				p++;
 			if (!*p) {
 				strncpy(prog, "*", 2);
+				prog[sizeof (prog) - 1] = '\0';
 				continue;
 			}
 			for (i = 0; i < NAME_MAX; i++) {
