@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.63 2001/09/19 09:45:04 alejo Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.64 2001/09/19 11:50:19 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -166,7 +166,7 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 
 	c = (struct im_udp_ctx *) I->im_ctx;
 
-	port = "514";
+	port = "syslog";
 	host = "0.0.0.0";
 
 	/* parse command line */

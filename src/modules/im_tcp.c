@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.22 2001/09/19 09:45:04 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.23 2001/09/19 11:50:19 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -123,7 +123,7 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 	c = (struct im_tcp_ctx *) I->im_ctx;
 
 	host = "0.0.0.0";
-	port = "514";
+	port = "syslog";
 
 	/* parse command line */
 	optind = 1;
