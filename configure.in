@@ -35,6 +35,8 @@ done
 AC_MSG_RESULT(root-mode pid file will go in $dir)
 AC_DEFINE_UNQUOTED(PID_DIR, "$dir")
 
+AC_DEFINE(STATIC_MODULES, "IMUNIX IMTCP IMUDP")
+
 AC_ARG_WITH(mysql,
 	[  --with-mysql=DIR        enable MySQL support using libraries in DIR],
 	[with_mysql=$withval],

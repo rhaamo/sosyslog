@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.14 2000/06/22 00:19:38 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.15 2000/06/23 00:41:55 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -30,7 +30,6 @@
 
 CC=		@CC@
 CFLAGS=		@CFLAGS@
-SCFLAGS=	@SCFLAGS@
 LDFLAGS=	@LDFLAGS@
 OMMYSQL_LIBS=	@OMMYSQL_LIBS@
 OMPEO_EXTRA=	@OMPEO_EXTRA@
@@ -55,7 +54,7 @@ OMMYSQL_SRCS=	modules/om_mysql.c $(SQL_SRCS)
 OMPGSQL_SRCS=	modules/om_pgsql.c $(SQL_SRCS)
 OMPEO_SRCS=	modules/om_peo.c peo/hash.c $(PEO_EXTRA)
 OMREGEX_SRCS=	modules/om_regex.c
-STATIC_MODULES_OBJS=	${STATIC_MODULES:=.o}
+SOBJS=		${STATIC_MODULES:=.o}
 OBJS=		${SRCS:.c=.o}
 OBJS+=		$(STATIC_MODULES_OBJS)
 
@@ -66,9 +65,9 @@ all: $(PROG)
 
 modules.o: config.h
 
-$(PROG): $(OBJS)
+$(PROG): $(OBJS) $(SOBJS)
 	$(SH) static_modules.sh < ../modules.conf
-	$(CC) -o $@ $(OBJS) $(LDFLAGS) $(LIBS) modules/*.o
+	$(CC) -o $@ $(OBJS) $(SOBJS) $(LDFLAGS) $(LIBS) modules/*.o
 
 .PHONY: clean distclean
 clean:
