@@ -88,25 +88,25 @@ prepare_module_libs(const char *modname, void **ret) {
 	int i;
 	char buf[LIB_PATH_MAX];
 
-	dprintf(MSYSLOG_INFORMATIVE, "prepare_module_libs: called for "
+	m_dprintf(MSYSLOG_INFORMATIVE, "prepare_module_libs: called for "
 	    "module:%s\n", modname);
 
 	snprintf(buf, sizeof(buf), "%s/" MLIBNAME_STR,
 	    libdir ? libdir : INSTALL_LIBDIR);
 
-	dprintf(MSYSLOG_INFORMATIVE, "prepare_module_libs: Going to open %s\n",
+	m_dprintf(MSYSLOG_INFORMATIVE, "prepare_module_libs: Going to open %s\n",
 	    buf);
 
 	/* Try ./ if debugging. We don't care if it is not open */
 	if ( Debug && ((*ret = dlopen(buf, DLOPEN_FLAGS)) == NULL) ) {
 		snprintf(buf, sizeof(buf), "./" MLIBNAME_STR);
-		dprintf(MSYSLOG_INFORMATIVE, "prepare_module_libs: Going"
+		m_dprintf(MSYSLOG_INFORMATIVE, "prepare_module_libs: Going"
 		    " to open %s\n", buf);
 		*ret = dlopen(buf, DLOPEN_FLAGS);
 	}
 
 
-	dprintf(MSYSLOG_INFORMATIVE, "prepare_module_libs: lib %s was "
+	m_dprintf(MSYSLOG_INFORMATIVE, "prepare_module_libs: lib %s was "
 	    "%sopened\n", buf, *ret == NULL?  "not " : "");
 
 #endif
@@ -134,14 +134,14 @@ get_symbol(const char *modname, const char *funcname, void *h, void **ret) {
 	if (main_lib == NULL || ( (*ret = dlsym(main_lib, buf)) == NULL &&
 	    (*ret = dlsym(main_lib, buf +  1)) == NULL ) ) {
 
-		dprintf(MSYSLOG_INFORMATIVE, "get_symbol: func %s not found "
+		m_dprintf(MSYSLOG_INFORMATIVE, "get_symbol: func %s not found "
 		    "on main lib \n", buf);
 
 	}
 
 	if (*ret == NULL && h && ( (*ret = dlsym(h, buf)) == NULL &&
 	    (*ret = dlsym(h, buf + 1)) == NULL) ) {
-	   	dprintf(MSYSLOG_SERIOUS, "get_symbol: error linking function "
+	   	m_dprintf(MSYSLOG_SERIOUS, "get_symbol: error linking function "
 		    "%s, %s\n", buf, dlerror());
 	   	return(-1);
 	}
@@ -170,7 +170,7 @@ imodule_create(struct i_module *I, char *line)
 
 	/* create initial node for Inputs list */
 	if (I == NULL) {
-	    dprintf(MSYSLOG_SERIOUS, "imodule_create: Error from caller\n");
+	    m_dprintf(MSYSLOG_SERIOUS, "imodule_create: Error from caller\n");
 	    return (-1);
 	}
 
@@ -182,7 +182,7 @@ imodule_create(struct i_module *I, char *line)
 	} else {
 		if((im_prev->im_next = (struct i_module *) calloc(1,
 		    sizeof(struct i_module))) == NULL) {
-			dprintf(MSYSLOG_SERIOUS, "No memory available for "
+			m_dprintf(MSYSLOG_SERIOUS, "No memory available for "
 			    "calloc\n");
 			return (-1);
 		}
@@ -309,7 +309,7 @@ omodule_create(char *c, struct filed *f, char *prog)
 					}
 				}
 
-				dprintf(MSYSLOG_INFORMATIVE, "omodule_create: "
+				m_dprintf(MSYSLOG_INFORMATIVE, "omodule_create: "
 				    "got output module %s\n", argv[0]);
 
 				/* build argv and argc, modifies input p */
@@ -345,7 +345,7 @@ omodule_create(char *c, struct filed *f, char *prog)
 						p++;
 				}
 
-				dprintf(MSYSLOG_INFORMATIVE, "omodule_create:"
+				m_dprintf(MSYSLOG_INFORMATIVE, "omodule_create:"
 				    " successfully made output module "
 				    "%s's argv[]\n", argv[0]);
 
@@ -389,7 +389,7 @@ omodule_create(char *c, struct filed *f, char *prog)
 		}
 	}
 
-	dprintf(MSYSLOG_INFORMATIVE, "omodule_create: all done for output "
+	m_dprintf(MSYSLOG_INFORMATIVE, "omodule_create: all done for output "
 	    "module %s\n", argv[0]);
 
 	free(line);
@@ -398,7 +398,7 @@ omodule_create(char *c, struct filed *f, char *prog)
 
 omodule_create_bad:
 
-	dprintf(MSYSLOG_SERIOUS, err_buf);
+	m_dprintf(MSYSLOG_SERIOUS, err_buf);
 
 	if (line)
 		free(line);
@@ -508,7 +508,7 @@ addImodule(char *name)
 
 		free(im);
 
-		dprintf(MSYSLOG_SERIOUS, "addImodule: couldn't config %s input"
+		m_dprintf(MSYSLOG_SERIOUS, "addImodule: couldn't config %s input"
 		    " module\n", buf);
 		return(NULL);
 	}
@@ -518,7 +518,7 @@ addImodule(char *name)
 
 	im->im_name = strdup(name);
 
-	dprintf(MSYSLOG_INFORMATIVE, "addImodule: successfully configured %s "
+	m_dprintf(MSYSLOG_INFORMATIVE, "addImodule: successfully configured %s "
 	    "input module\n", buf);
 
 	return (im);
@@ -568,7 +568,7 @@ addOmodule(char *name)
 	get_symbol(buf, "close", om->h, (void *) &om->om_close); 
 	get_symbol(buf, "flush", om->h, (void *) &om->om_flush); 
 
-	dprintf(MSYSLOG_INFORMATIVE, "addOmodule: successfully configured %s "
+	m_dprintf(MSYSLOG_INFORMATIVE, "addOmodule: successfully configured %s "
 	    "output module\n", buf);
 
 
@@ -584,7 +584,7 @@ omoduleDestroy(struct omodule *om)
 		return (-1);
 
 	if (om->h && dlclose(om->h) < 0) {
-	   	dprintf(MSYSLOG_SERIOUS, "Error [%s]\n", dlerror());
+	   	m_dprintf(MSYSLOG_SERIOUS, "Error [%s]\n", dlerror());
 		return (-1);
 	}
 

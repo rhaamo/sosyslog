@@ -104,10 +104,10 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	int	ch;
 	char	statbuf[1024];
 
-	dprintf(MSYSLOG_INFORMATIVE, "om_tcp init: Entering\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_tcp init: Entering\n");
 
 	if ((*ctx = (void *) calloc(1, sizeof(struct om_tcp_ctx))) == NULL) {
-		dprintf(MSYSLOG_CRITICAL, "om_tcp_init: couldn't allocate"
+		m_dprintf(MSYSLOG_CRITICAL, "om_tcp_init: couldn't allocate"
 		    " context\n");
 		return (-1);
 	}
@@ -141,7 +141,7 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 			c->flags |= M_ADDHOST;
 			break;
 		default:
-			dprintf(MSYSLOG_SERIOUS, "om_tcp_init: parsing error"
+			m_dprintf(MSYSLOG_SERIOUS, "om_tcp_init: parsing error"
 			    " [%c]\n", ch);
 			if (c->host)
 				free(c->host);
@@ -153,7 +153,7 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	}
 
 	if ( !c->host || !c->port ) {
-		dprintf(MSYSLOG_SERIOUS, "om_tcp_init: parsing\n");
+		m_dprintf(MSYSLOG_SERIOUS, "om_tcp_init: parsing\n");
 		om_tcp_close(NULL, c);
 		return (-1);
 	}
@@ -205,7 +205,7 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 		    f->f_prevpri, time_buf, msg);
 	}
 
-	dprintf(MSYSLOG_INFORMATIVE, "om_tcp_write: sending to %s, %s",
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_tcp_write: sending to %s, %s",
 	    c->host, line);
 
 	/* Ignore sigpipes so broken connections won't bother */
@@ -231,13 +231,13 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 			s = c->msec - (c->msec / c->inc);
 			n -= s;
 
-			dprintf(MSYSLOG_INFORMATIVE, "om_tcp_write: should "
+			m_dprintf(MSYSLOG_INFORMATIVE, "om_tcp_write: should "
 			    "I retry? (now %u, lasttime %u, sleep %u,"
 			    " next %u)...", (unsigned int) t,
 			    (unsigned int) c->savet, s, n);
 
 			if (n < c->savet) {
-				dprintf(MSYSLOG_INFORMATIVE, "no!\n");
+				m_dprintf(MSYSLOG_INFORMATIVE, "no!\n");
 				if (c->saved && l < (c->savesize - c->savelen
 				    - 1)) {
 					strncat(c->saved, line, c->savesize
@@ -247,11 +247,11 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 				return(0);
 			}
 
-			dprintf(MSYSLOG_INFORMATIVE, "yes!\n");
+			m_dprintf(MSYSLOG_INFORMATIVE, "yes!\n");
 
 		}
 			
-		dprintf(MSYSLOG_SERIOUS, "om_tcp_write: no connection "
+		m_dprintf(MSYSLOG_SERIOUS, "om_tcp_write: no connection "
 		    "to remote host %s, port %s. retry %i...  ", c->host,
 		    c->port, c->inc - 1);
 
@@ -262,7 +262,7 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 	 	    (c->savelen && (write(c->fd, c->saved, c->savelen)
 		    != c->savelen)) || (write(c->fd, line, l) != l) ) {
 
-			dprintf(MSYSLOG_SERIOUS, "still down! next retry "
+			m_dprintf(MSYSLOG_SERIOUS, "still down! next retry "
 			    "in %i seconds\n", c->msec - (c->msec / c->inc));
 
 			c->inc++;
@@ -283,7 +283,7 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 			return(0);
 
 		} else {
-			dprintf(MSYSLOG_SERIOUS, "reconnected!\n");
+			m_dprintf(MSYSLOG_SERIOUS, "reconnected!\n");
 			c->inc = 2;
 			c->savet = 0;
 			if (c->savelen) {

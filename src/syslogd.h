@@ -69,11 +69,7 @@
  *
  */
 
-#ifdef dprintf
-#undef dprintf
-#endif
-
-int dprintf(int, char const *, ...); /* level, format, ... */
+int m_dprintf(int, char const *, ...); /* level, format, ... */
 
 #define MSYSLOG_CRITICAL	 10
 #define MSYSLOG_SERIOUS		 20

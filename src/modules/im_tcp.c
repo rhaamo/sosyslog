@@ -115,10 +115,10 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 	char			*host, *port;
 	int			ch, optind_s;
 
-	dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: entering\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: entering\n");
 
 	if ( (I->im_ctx = calloc(1, sizeof(struct im_tcp_ctx))) == NULL) {
-		dprintf(MSYSLOG_SERIOUS, "om_tcp_init: cant alloc memory");
+		m_dprintf(MSYSLOG_SERIOUS, "om_tcp_init: cant alloc memory");
 		return (-1);
 	}
 
@@ -151,7 +151,7 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 			c->flags |= M_NOTFQDN;
 			break;
 		default:
-			dprintf(MSYSLOG_SERIOUS, "om_tcp_init: parsing error"
+			m_dprintf(MSYSLOG_SERIOUS, "om_tcp_init: parsing error"
 			    " [%c]\n", ch);
 			free(c);
 			return (-1);
@@ -161,7 +161,7 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 	optind = optind_s;	/* restore main's optind */
 
 	if ( (I->im_fd = listen_tcp(host, port, &c->addrlen)) < 0) {
-		dprintf(MSYSLOG_SERIOUS, "im_tcp_init: error with listen_tcp() %s\n",
+		m_dprintf(MSYSLOG_SERIOUS, "im_tcp_init: error with listen_tcp() %s\n",
 		    strerror(errno));
 		free(c);
 		return (-1);
@@ -171,7 +171,7 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 
 	add_fd_input(I->im_fd , I);
 
-	dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: running\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: running\n");
 
 	return (1);
 }
@@ -190,13 +190,13 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 	int n;
 
 	if (im == NULL || ret == NULL) {
-		dprintf(MSYSLOG_SERIOUS, "im_tcp_read: arg %s%s is null\n",
+		m_dprintf(MSYSLOG_SERIOUS, "im_tcp_read: arg %s%s is null\n",
 		    ret? "ret":"", im? "im" : "");
 		return (-1);
 	}
 
 	if ((c = (struct im_tcp_ctx *) im->im_ctx) == NULL) {
-		dprintf(MSYSLOG_SERIOUS, "im_tcp_read: null context\n");
+		m_dprintf(MSYSLOG_SERIOUS, "im_tcp_read: null context\n");
 		return (-1);
 	}
 
@@ -205,7 +205,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		/* create a new connection */
 		if ((con = (struct tcp_conn *) calloc(1, sizeof(*con)))
 		    == NULL) {
-			dprintf(MSYSLOG_SERIOUS, "im_tcp_read: "
+			m_dprintf(MSYSLOG_SERIOUS, "im_tcp_read: "
 			    "error allocating conn struct\n");
 			return (-1);
 		}
@@ -213,7 +213,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		/* accept it and add to queue */
 		if ((con->fd = accept_tcp(infd, c->addrlen, con->name,
 		    sizeof(con->name), con->port, sizeof(con->port))) < 0) {
-			dprintf(MSYSLOG_SERIOUS, "im_tcp_read: couldn't accept\n");
+			m_dprintf(MSYSLOG_SERIOUS, "im_tcp_read: couldn't accept\n");
 			free (con);
 			return (-1);
 		}
@@ -227,7 +227,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		c->last = con;
 
 
-		dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: new conection from"
+		m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: new conection from"
 		    " %s with fd %d\n", con->name, con->fd);
 
 		/* add to inputs list */
@@ -239,14 +239,14 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 
 	/* read connected socket */
 
-	dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: reading connection fd %d\n",
+	m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: reading connection fd %d\n",
 	    infd);
 
 	/* find connection */
 	for (con = c->first; con && con->fd != infd; con = con->next);
 
 	if (con == NULL || con->fd != infd) {
-		dprintf(MSYSLOG_SERIOUS, "im_tcp_read: no such connection "
+		m_dprintf(MSYSLOG_SERIOUS, "im_tcp_read: no such connection "
 		    "fd %d !\n", infd);
 		remove_fd_input(infd);
 		return (-1);
@@ -256,7 +256,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 	if (n == 0) {
 		struct tcp_conn *prev;
 
-		dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: conetion from %s"
+		m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: conetion from %s"
 		    " closed\n", con->name);
 
 		remove_fd_input(con->fd);
@@ -279,7 +279,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		return (0);
 
 	} else if (n < 0 && errno != EINTR) {
-		dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: conetion from %s"
+		m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: conetion from %s"
 		    " closed with error [%s]\n", con->name, strerror(errno));
 		logerror("im_tcp_read");
 		con->fd = -1;
@@ -325,7 +325,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 				    sscanf(p, "%n%89s %n", &n1,
 				    host, &n2) != 1)
 				    || im->im_buf[n2] == '\0') {
-					dprintf(MSYSLOG_INFORMATIVE,
+					m_dprintf(MSYSLOG_INFORMATIVE,
 					    "im_tcp_read: ignoring invalid "
 					    "message [%s]\n", p);
 					if (nextline != NULL) {

@@ -90,7 +90,7 @@ om_peo_write(struct filed *f, int flags, char *msg, void *ctx)
 	unsigned char		 m[MAXBUF], newkey[41];
 	char			 time_buf[16];
 
-	dprintf(MSYSLOG_INFORMATIVE, "om_peo_write: Entering\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_peo_write: Entering\n");
 	
 	if (f == NULL || ctx == NULL)
 		return (-1);
@@ -102,19 +102,19 @@ om_peo_write(struct filed *f, int flags, char *msg, void *ctx)
 	len = snprintf((char *) m, MAXBUF, "%s %s %s\n", time_buf,
 	    f->f_prevhost, msg ? msg : f->f_prevline) - 1;
 
-	dprintf(MSYSLOG_INFORMATIVE, "om_peo_write: len = %i, msg = %s\n ",
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_peo_write: len = %i, msg = %s\n ",
 	    len, m);
 
 	/* Open keyfile and read last key */
 	if ( (fd = open(c->keyfile, O_RDWR, 0)) < 0) {
-		dprintf(MSYSLOG_SERIOUS, "om_peo_write: opening keyfile: %s:"
+		m_dprintf(MSYSLOG_SERIOUS, "om_peo_write: opening keyfile: %s:"
 		    " %s\n", c->keyfile, strerror(errno));
 		return (-1);
 	}
 	bzero(key, sizeof(key));
 	if ( (keylen = read(fd, key, 40)) < 0) {
 		close(fd);
-		dprintf(MSYSLOG_SERIOUS, "om_peo_write: reading form: %s:"
+		m_dprintf(MSYSLOG_SERIOUS, "om_peo_write: reading form: %s:"
 		    " %s\n", c->keyfile, strerror(errno));
 		return (-1);
 	}
@@ -123,14 +123,14 @@ om_peo_write(struct filed *f, int flags, char *msg, void *ctx)
 	if (c->macfile) {
 		if ( (mfd = open(c->macfile, O_WRONLY, 0)) < 0) {
 			close(fd);
-			dprintf(MSYSLOG_SERIOUS, "om_peo_write: opening "
+			m_dprintf(MSYSLOG_SERIOUS, "om_peo_write: opening "
 			    "macfile: %s: %s\n", c->macfile,
 			    strerror(errno));
 			return (-1);
 		}
 		lseek(mfd, (off_t) 0, SEEK_END);
 		write(mfd, mkey, mac2(key, keylen, m, len, mkey));
-		dprintf(MSYSLOG_INFORMATIVE, "om_peo_write: write to macfile"
+		m_dprintf(MSYSLOG_INFORMATIVE, "om_peo_write: write to macfile"
 		    " ok\n");
 		close(mfd);
 	}
@@ -141,7 +141,7 @@ om_peo_write(struct filed *f, int flags, char *msg, void *ctx)
 	newkeylen = mac(c->hash_method, key, keylen, m, len, newkey);
 	if (newkeylen == -1) {
 		close(fd);
-		dprintf(MSYSLOG_INFORMATIVE, "om_peo_write: generating "
+		m_dprintf(MSYSLOG_INFORMATIVE, "om_peo_write: generating "
 		    "key[i+1]: keylen = %i: %s\n", newkeylen,
 		    strerror(errno));
 		return (-1);
@@ -184,7 +184,7 @@ om_peo_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	int			 mfd;
 	char			 statbuf[2048];
 
-	dprintf(MSYSLOG_INFORMATIVE, "om_peo_init: Entering, called by %s\n",
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_peo_init: Entering, called by %s\n",
 	    prog);
 	
 	if (argv == NULL || *argv == NULL || argc == 0 || f == NULL ||
@@ -272,7 +272,7 @@ om_peo_close(struct filed *f, void *ctx)
 	struct om_peo_ctx *c;
 
 	c = (struct om_peo_ctx *) ctx;
-	dprintf(MSYSLOG_INFORMATIVE, "om_peo_close\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_peo_close\n");
 
 	if (c->keyfile != default_keyfile)
 		free(c->keyfile);

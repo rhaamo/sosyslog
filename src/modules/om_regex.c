@@ -99,10 +99,10 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	p = NULL;
 
 	/* for debugging purposes */
-	dprintf(MSYSLOG_INFORMATIVE, "om_regex init\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_regex init\n");
 
 	if (argc < 2 || argv == NULL || argv[1] == NULL) {
-		dprintf(MSYSLOG_SERIOUS, "om_regex: error on "
+		m_dprintf(MSYSLOG_SERIOUS, "om_regex: error on "
 		    "initialization\n");
 		return (-1);
 	}
@@ -165,14 +165,14 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 			break;
 
 		default:
-			dprintf(MSYSLOG_SERIOUS, "om_regex: unknown parameter"
+			m_dprintf(MSYSLOG_SERIOUS, "om_regex: unknown parameter"
 			    " [%c]\n", ch);
 			free(*ctx);
 			return (-1);
 		}
 
 		if (regcomp(creg, optarg, REG_EXTENDED | REG_NOSUB) != 0) {
-			dprintf(MSYSLOG_SERIOUS, "om_regex: error compiling "
+			m_dprintf(MSYSLOG_SERIOUS, "om_regex: error compiling "
 			    "regular expression [%s] for message\n", optarg);
 			free(*ctx);
 			return (-1);

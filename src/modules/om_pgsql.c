@@ -119,13 +119,13 @@ om_pgsql_write(struct filed *f, int flags, char *msg, void *ctx)
 	int	err, i;
 	char    query[MAX_QUERY], err_buf[512];
 
-	dprintf(MSYSLOG_INFORMATIVE, "om_pgsql_write: entering [%s] [%s]\n",
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_pgsql_write: entering [%s] [%s]\n",
 	    msg, f->f_prevline);
 
 	c = (struct om_pgsql_ctx *) ctx;
 
 	if ((c->h) == NULL) {
-		dprintf(MSYSLOG_SERIOUS, "om_pgsql_write: error, no "
+		m_dprintf(MSYSLOG_SERIOUS, "om_pgsql_write: error, no "
 		    "connection\n");
 		return (-1);
 	}
@@ -180,12 +180,12 @@ om_pgsql_write(struct filed *f, int flags, char *msg, void *ctx)
 		else
 			query[sizeof(query) - 1] = '\0';
 
-		dprintf(MSYSLOG_INFORMATIVE2, "om_pgsql_write: query [%s]\n",
+		m_dprintf(MSYSLOG_INFORMATIVE2, "om_pgsql_write: query [%s]\n",
 		    query);
 
 		r = (c->PQexec(c->h, query));
 		if ((c->PQresultStatus(r)) != PGRES_COMMAND_OK) {
-			dprintf(MSYSLOG_SERIOUS, "om_pgsql_write: %s\n",
+			m_dprintf(MSYSLOG_SERIOUS, "om_pgsql_write: %s\n",
 			    (c->PQresultErrorMessage(r)));
 			return (-1);
 		}
@@ -203,12 +203,12 @@ om_pgsql_write(struct filed *f, int flags, char *msg, void *ctx)
 	else
 		query[sizeof(query) - 1] = '\0';
 
-	dprintf(MSYSLOG_INFORMATIVE2, "om_pgsql_write: query [%s]\n", query);
+	m_dprintf(MSYSLOG_INFORMATIVE2, "om_pgsql_write: query [%s]\n", query);
 
 	err = 1;
 	r = (c->PQexec(c->h, query));
 	if ((c->PQresultStatus(r)) != PGRES_COMMAND_OK) {
-		dprintf(MSYSLOG_INFORMATIVE, "%s\n",
+		m_dprintf(MSYSLOG_INFORMATIVE, "%s\n",
 		    (c->PQresultErrorMessage(r)));
 		err = -1;
 	}
@@ -242,7 +242,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	char	statbuf[1024];
 	int	ch = 0;
 
-	dprintf(MSYSLOG_INFORMATIVE, "om_pgsql_init: entering "
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_pgsql_init: entering "
 	    "initialization\n");
 
 	if (argv == NULL || *argv == NULL || argc < 2 || f == NULL ||
@@ -258,7 +258,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	ctx = (struct om_pgsql_ctx *) *c;
 
 	if ((ctx->lib = dlopen("libpq.so", DLOPEN_FLAGS)) == NULL) {
-		dprintf(MSYSLOG_SERIOUS, "om_pgsql_init: Error loading"
+		m_dprintf(MSYSLOG_SERIOUS, "om_pgsql_init: Error loading"
 		    " api library, %s\n", dlerror());
 		free(ctx);
 		return (-1);
@@ -282,7 +282,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	    "PQsetdbLogin"))   
 	    || !(ctx->PQfinish = (void (*)(void *)) dlsym(ctx->lib,
 	    SYMBOL_PREFIX "PQfinish"))) {
-		dprintf(MSYSLOG_SERIOUS, "om_pgsql_init: Error resolving"
+		m_dprintf(MSYSLOG_SERIOUS, "om_pgsql_init: Error resolving"
 		    " api symbols, %s\n", dlerror());
 		free(ctx);
 		return (-1);
@@ -320,18 +320,18 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 			table = optarg;
 			break;
 		case 'c':
-			dprintf(MSYSLOG_INFORMATIVE, "(om_pgsql_init: "
+			m_dprintf(MSYSLOG_INFORMATIVE, "(om_pgsql_init: "
 			    "ignoring 'c')\n");
 			break;
 		default:
-			dprintf(MSYSLOG_INFORMATIVE, "(om_pgsql_init: "
+			m_dprintf(MSYSLOG_INFORMATIVE, "(om_pgsql_init: "
 			    "error on parameter '%c')\n", ch);
 			return (-1);
 		}
 	}
 
 	if (user == NULL || db == NULL || table == NULL) {
-		dprintf(MSYSLOG_SERIOUS, "om_pgsql_init: Error missing "
+		m_dprintf(MSYSLOG_SERIOUS, "om_pgsql_init: Error missing "
 		    "params!\n");
 		dlclose(ctx->lib);
 		free(ctx);
@@ -344,7 +344,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 
 	/* check to see that the backend connection was successfully made */
 	if ((ctx->PQstatus)(h) == CONNECTION_BAD) {
-		dprintf(MSYSLOG_SERIOUS, "om_pgsql_init: Error connecting "
+		m_dprintf(MSYSLOG_SERIOUS, "om_pgsql_init: Error connecting "
 		    "to db server [%s:%s] user [%s] db [%s]\n",
 		    host?host:"(unix socket)", port?port:"(none)", user, db);
 		(ctx->PQfinish)(h); 

@@ -1,4 +1,4 @@
-$Id: INSTALL,v 1.15 2001/10/18 20:48:15 alejo Exp $
+$Id: INSTALL,v 1.16 2002/08/13 17:25:10 phreed Exp $
 ==============================================================================
                          Modular Syslog package
                              INSTALL file
@@ -118,23 +118,27 @@ corresponding directory on the shell variable LD_PATH.
 4. HOW TO CONTACT US AND RELATED MAILING LISTS
 ==============================================
 
-  There are two mailing lists for msyslog:
+  There are several mailing lists for msyslog:
 
-    msyslog-usr 
+    msyslog-usr@core-sdi.com
         This mailing list is for general discussions about the
         modular syslog system.
 
-    msyslog-dev 
+    msyslog-dev@core-sdi.com
         This mailing list is for technical discussions about
         the modular syslog system.  It's intended for
         developers or any other person interested in the inner
         working parts of msyslog.
 
-  Send a message to majordomo@corest.com with the text:
+    Send a message to majordomo@corest.com with the in the message body,
+    replacing list-name by the name of the choosen list.
+    e.g.  subscribe <msyslog-usr>
 
-subscribe list-name
 
-in the message body, replacing list-name by the name of the
-choosen list. You can also send an email to  the developers only
-at core.devel.alat@corest.com.
+   msyslog-users@lists.sourceforge.net
+        This mailing list is for general discussions about the
+        modular syslog system.
+        This list should be used for reporting all bugs.
+
+   <http://lists.sourceforge.net/lists/listinfo/msyslog-users>
 

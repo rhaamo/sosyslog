@@ -90,7 +90,7 @@ im_streams_read (struct i_module *im, int infd, struct im_msg *ret)
 	r = getmsg (im->im_fd, &ctl, &dat, &flags);
 
 	if (r & MORECTL) {
-		dprintf(MSYSLOG_SERIOUS, "im_streams_read: getmsg() "
+		m_dprintf(MSYSLOG_SERIOUS, "im_streams_read: getmsg() "
 		    "returned too much control information\n");
 		logerror("im_streams_read: getmsg() returned too much"
 		    " control information");
@@ -100,7 +100,7 @@ im_streams_read (struct i_module *im, int infd, struct im_msg *ret)
 	do {
 		if (r & MOREDATA) {
 			/* message is too long for im_msg */
-			dprintf(MSYSLOG_INFORMATIVE, "im_streams_read: "
+			m_dprintf(MSYSLOG_INFORMATIVE, "im_streams_read: "
 			    "STREAMS device offered too much data (remainder "
 			    "to come) ...\n");
 		}
@@ -117,7 +117,7 @@ im_streams_read (struct i_module *im, int infd, struct im_msg *ret)
 			logmsg (ret->im_pri, ret->im_msg,
 			    LocalHostName, ret->im_flags);
 		} else {
-			dprintf(MSYSLOG_INFORMATIVE, "im_streams_read: "
+			m_dprintf(MSYSLOG_INFORMATIVE, "im_streams_read: "
 			    "STREAMS device offered no data?\n");
 			logerror("im_streams_read: STREAMS device offered"
 			    " no data?");
@@ -137,10 +137,10 @@ im_streams_init (struct i_module *I, char **argv, int argc)
 {
 	char *streams_logpath;
 
-	dprintf(MSYSLOG_INFORMATIVE, "im_streams_init: Entering\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "im_streams_init: Entering\n");
 
 	if (I == NULL || argv == NULL || argc < 1 || argc > 2) {
-		dprintf(MSYSLOG_SERIOUS, "usage: -i streams[:path]\n\n");
+		m_dprintf(MSYSLOG_SERIOUS, "usage: -i streams[:path]\n\n");
 		return(-1);
 	}
 
@@ -149,7 +149,7 @@ im_streams_init (struct i_module *I, char **argv, int argc)
 	} else {
 		streams_logpath = strdup(DEFAULT_LOGGER);
 	}
-	dprintf(MSYSLOG_INFORMATIVE, "streams_logpath = %s\n",
+	m_dprintf(MSYSLOG_INFORMATIVE, "streams_logpath = %s\n",
 	    streams_logpath);
 
 	I->im_path = streams_logpath;
@@ -180,7 +180,7 @@ int do_streams_init (I)
 	I->im_fd = open (I->im_path, O_RDONLY|O_NOCTTY|O_NONBLOCK);
 
 	if (I->im_fd == -1) {
-		dprintf(MSYSLOG_SERIOUS, "couldn't open %s: %s\n", I->im_path,
+		m_dprintf(MSYSLOG_SERIOUS, "couldn't open %s: %s\n", I->im_path,
 		    strerror (errno));
 		return (-1);
 	} else {
@@ -190,7 +190,7 @@ int do_streams_init (I)
 
 		ioctbuf.ic_cmd = I_CONSLOG; /* why I_CONSLOG? */
 		if (ioctl (I->im_fd, I_STR, &ioctbuf) == -1) {
-			dprintf(MSYSLOG_SERIOUS, "ioctl(%s): %s\n",
+			m_dprintf(MSYSLOG_SERIOUS, "ioctl(%s): %s\n",
 			    I->im_path, strerror (errno));
 			close (I->im_fd);
 			return (-1);

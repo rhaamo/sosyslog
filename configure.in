@@ -189,7 +189,7 @@ elif test "$UNAME" = "AIX" ; then
 	SHARED_PARAMS="-lc -bI:libmsyslog.imp -bexpall -bnoentry -brtl"
 	cat > src/modules/libmsyslog.imp <<-EOF
 		#! .
-		dprintf
+		m_dprintf
 		finet
 		logerror
 		DaemonFlags
