@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.159 2001/01/03 22:57:09 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.160 2001/01/04 20:17:37 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.159 2001/01/03 22:57:09 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.160 2001/01/04 20:17:37 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -175,7 +175,8 @@ char *libdir = NULL;
 
 void    cfline(char *, struct filed *, char *);
 int     decode(const char *, CODE *);
-void    domark(int);
+RETSIGTYPE   domark(int);
+void    markit(void);
 void    doLog(struct filed *, int, char *);
 void    init(int);
 void    printline(char *, char *, size_t, int);
@@ -202,6 +203,8 @@ main(int argc, char **argv) {
 	int ch;
 	char *p;
 	struct im_msg log;
+	fd_set *fdsr = NULL;
+	int fdsrmax = 0;
 
 	Inputs.im_next = NULL;
 	Inputs.im_fd = -1;
@@ -442,35 +445,63 @@ main(int argc, char **argv) {
 	log.im_msg = malloc(log.im_mlen);
 
 	for (;;) {
-		fd_set readfds;
 		int nfds = 0;
 		struct i_module *im;
 
-		FD_ZERO(&readfds);
+		/*
+		 * first find the max fd and stor it on nfds
+		 */
 
-		for (im = &Inputs; im ; im = im->im_next) {
-			if (im->im_fd != -1) {
-				FD_SET(im->im_fd, &readfds);
-				if (im->im_fd > nfds)
-					nfds = im->im_fd;
+		/* this may not be on inputs */
+		if (finet != -1 && finet > nfds)
+			nfds = finet;
+
+		for (im = &Inputs; im ; im = im->im_next)
+			if (im->im_fd != -1 && im->im_fd > nfds)
+				nfds = im->im_fd;
+
+		if (fdsrmax < nfds) {
+			if (fdsr) 
+				free(fdsr);
+
+			fdsr = (fd_set *)calloc(howmany(nfds+1, NFDBITS),
+			    sizeof(fd_mask));
+
+			if (fdsr == NULL) {
+				dprintf(DPRINTF_CRITICAL)("calloc fd_set");
+				exit(1);
 			}
+
+			fdsrmax = nfds;
+		} else
+			bzero(fdsr, howmany(fdsrmax+1, NFDBITS) *
+			    sizeof(fd_mask));
+
+		/* this may not be on inputs */
+		if (finet != -1)
+			FD_SET(finet, fdsr);
+
+		for (im = &Inputs; im ; im = im->im_next)
+			if (im->im_fd != -1)
+				FD_SET(im->im_fd, fdsr);
+
+		switch (select(nfds+1, fdsr, (fd_set *)NULL,
+			(fd_set *)NULL, (struct timeval *)NULL)) {
+
+			case 0:
+				continue;
+
+			case -1:
+				if (errno != EINTR)
+					logerror("select");
+				continue;
 		}
 
-		if (finet > 0 && !(DaemonFlags & SYSLOGD_INET_READ))
-			FD_SET(finet, &readfds);
-
-		nfds = select(nfds+1, &readfds, (fd_set *)NULL,
-			(fd_set *)NULL, (struct timeval *)NULL);
-		if (nfds == 0)
-			continue;
-		if (nfds < 0) {
-			if (errno != EINTR)
-				logerror("select");
-			continue;
-		}
+		if (DaemonFlags && SYSLOGD_MARK)
+			markit();
 
 		for (im = &Inputs; im ; im = im->im_next) {
-			if (im->im_fd != -1 && FD_ISSET(im->im_fd, &readfds)) {
+			if (im->im_fd != -1 && FD_ISSET(im->im_fd, fdsr)) {
 				int i = 0;
 
 				log.im_pid = 0;
@@ -495,7 +526,7 @@ main(int argc, char **argv) {
 
 			/* silently DROP what comes */
 			if ((finet > 0) && !(DaemonFlags & SYSLOGD_INET_READ) &&
-					(FD_ISSET(finet, &readfds))) {
+					(FD_ISSET(finet, fdsr))) {
 				struct sockaddr_in frominet;
 				int len = sizeof(frominet);
 				char line[MAXLINE];
@@ -506,6 +537,8 @@ main(int argc, char **argv) {
 
 		}
 	}
+	if (fdsr)
+		free(fdsr);
 
 }
 
@@ -737,8 +770,8 @@ doLog(struct filed *f, int flags, char *message) {
 		msg = message;
 	} else if (f->f_prevcount > 1) {
 		msg = repbuf;
-		snprintf(repbuf, 80, "last message repeated %d times",
-		    f->f_prevcount);
+		snprintf(repbuf, sizeof(repbuf), "last message repeated %d"
+		    " times", f->f_prevcount);
 	} else {
 		msg = f->f_prevline;
 	}
@@ -777,11 +810,18 @@ reapchild(int signo) {
 
 RETSIGTYPE
 domark(int signo) {
+	DaemonFlags |= SYSLOGD_MARK;
+}
+
+void
+markit(void) {
 	struct filed *f;
 	time_t now;
 
-	time(&now);
+	now = time((time_t *) NULL);
+
 	MarkSeq += TIMERINTVL;
+
 	if (MarkSeq >= MarkInterval) {
 		logmsg(LOG_INFO, "-- MARK --", LocalHostName, ADDDATE|MARK);
 		MarkSeq = 0;
@@ -796,6 +836,8 @@ domark(int signo) {
 			BACKOFF(f);
 		}
 	}
+
+	DaemonFlags &= ~SYSLOGD_MARK;
 
 	signal(SIGALRM, domark);
 
@@ -894,6 +936,8 @@ init(int signo)
 		close_modules++;
 
 	Initialized = 0;
+
+	alarm(0);
 
 	for (f = Files; f != NULL; f = next) {
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.86 2000/12/14 00:16:44 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.87 2000/12/19 21:25:06 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -137,6 +137,7 @@ extern int	DaemonFlags;		/* running daemon flags */
 #define SYSLOGD_LOCKED_PIDFILE  0x01    /* pidfile is locked */
 #define SYSLOGD_INET_IN_USE	0x02    /* INET sockets are open */
 #define SYSLOGD_INET_READ	0x04    /* we read */
+#define SYSLOGD_MARK		0x08    /* call domark() */
 
 void logerror(char *);
 void logmsg(int, char *, char *, int);
