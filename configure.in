@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.135 2001/06/13 20:27:59 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.136 2001/07/10 23:59:20 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -21,8 +21,9 @@ dnl AC_HEADER_STDC
 
 AC_HEADER_SYS_WAIT
 
-AC_CHECK_HEADERS(fcntl.h limits.h paths.h strings.h sys/ioctl.h \
-    sys/time.h syslog.h unistd.h sysctl.h err.h sys/context.h )dnl
+AC_CHECK_HEADERS(fcntl.h limits.h paths.h strings.h inttypes.h sys/ioctl.h \
+    sys/types.h sys/time.h machine/endian.h syslog.h unistd.h sysctl.h \
+    err.h sys/context.h )dnl
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -38,7 +39,7 @@ AC_TYPE_SIGNAL
 dnl It should have strftime!
 dnl AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS(gethostname inet_ntop getaddrinfo regcomp poll select\
+AC_CHECK_FUNCS(gethostname inet_ntop inet_ntohs getaddrinfo regcomp poll select\
  socket strdup strerror strstr strtoul )dnl
 
 dnl Check endianness

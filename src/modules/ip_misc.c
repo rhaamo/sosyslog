@@ -1,4 +1,4 @@
-/*	$CoreSDI: ip_misc.c,v 1.15 2001/06/14 01:24:09 alejo Exp $	*/
+/*	$CoreSDI: ip_misc.c,v 1.16 2001/07/10 21:34:15 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -52,6 +52,13 @@
 #include <sys/uio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
+#ifdef HAVE_MACHINE_ENDIAN_H
+# include <machine/endian.h>
+#endif
+#ifdef HAVE_INTTYPES_H
+# include <inttypes.h>
+#endif
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -100,14 +107,49 @@ resolv_addr(struct sockaddr *addr, socklen_t addrlen, char *host, int hlen,
 	if (hp) {
 		strncpy(host, hp->h_name, (unsigned) hlen - 1);
 		host[hlen] = '\0';
+# ifdef HAVE_INET_NTOHS
 		if (port)
-			snprintf(port, (unsigned) plen, "%u", sin4->sin_port);
+			snprintf(port, (unsigned) plen, "%u", ntohs(sin4->sin_port));
+# endif /* HAVE_INET_NTOHS */
 		return (1);
 	}
 
 #endif /* HAVE_GETNAMEINFO */
 
-	dprintf(MSYSLOG_INFORMATIVE, "ip_misc: error resolving "
+#ifdef HAVE_INET_NTOP
+	switch (addr->sa_family) {
+	case AF_INET: {
+		struct sockaddr_in *caddr;
+
+		caddr = (struct sockaddr_in *) addr;
+		if (inet_ntop(AF_INET, &caddr->sin_addr, host, hlen) != NULL) {
+# ifdef HAVE_INET_NTOHS
+			if (ntohs(caddr->sin_port)) != 0)
+				snprintf(port, (unsigned) plen, "%u",
+				    ntohs(caddr->sin_port));
+# endif /* HAVE_INET_NTOHS */
+			return (1);
+		}
+		}
+	case AF_INET6: {
+		struct sockaddr_in6 *caddr;
+
+		caddr = (struct sockaddr_in6 *) addr;
+		if (inet_ntop(AF_INET6, &caddr->sin6_addr, host, hlen) != NULL) {
+# ifdef HAVE_INET_NTOHS
+			if (ntohs(caddr->sin6_port)) != 0)
+				snprintf(port, (unsigned) plen, "%u",
+				    ntohs(caddr->sin6_port));
+# endif /* HAVE_INET_NTOHS */
+			return (1);
+		}
+		}
+	default:
+		return (-1);
+	}
+#endif /* HAVE_INET_NTOP */
+
+	dprintf(MSYSLOG_INFORMATIVE, "resolv_addr: error resolving "
 	     "remote host name!\n");
 	if (host)
 		host[0] = '\0';
