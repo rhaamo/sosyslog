@@ -1,4 +1,4 @@
-/*	$Id: ip_misc.c,v 1.25 2002/09/17 05:20:28 alejo Exp $	*/
+/*	$Id: ip_misc.c,v 1.26 2002/09/25 22:50:16 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -80,6 +80,7 @@
 #define TCP_KEEPALIVE 30	/* seconds to probe TCP connection */
 #define MSYSLOG_MAX_TCP_CLIENTS 100
 #define LISTENQ 35
+#define M_NODNS		0x01
 
 /*
  * resolv_addr: get a  host name from a generic sockaddr structure
@@ -156,6 +157,45 @@ resolv_addr(struct sockaddr *addr, socklen_t addrlen, char *host, int hlen,
 		port[0] = '\0';
 
 	return (-1);
+}
+
+/*
+ * resolv_addr_nodns: get a host name from a generic sockaddr struct
+ *                    without resolving
+ */
+
+int
+resolv_addr_nodns(struct sockaddr *addr, socklen_t addrlen,
+    char *host, int hlen, char *port, int plen)
+{
+	struct sockaddr_in	*sin4;
+#ifdef AF_INET6
+	struct sockaddr_in6	*sin6;
+#endif
+
+	switch (addr->sa_family) {
+	case AF_INET:
+		inet_ntop(AF_INET, addr, host, hlen);
+		sin4 = (struct sockaddr_in *) addr;
+		snprintf(port, (unsigned) plen, "%u",
+		    ntohs(sin4->sin_port));
+		break;
+#ifdef AF_INET6
+	case AF_INET6:
+		inet_ntop(AF_INET6, addr, host, hlen);
+		sin6 = (struct sockaddr_in6 *) addr;
+		snprintf(port, (unsigned) plen, "%u",
+		    ntohs(sin6->sin6_port));
+		break;
+#endif
+	default:
+		return (-1);
+	}
+
+	host[hlen - 1] = '\0';
+	port[plen - 1] = '\0';
+
+	return (1);
 }
 
 
@@ -400,15 +440,18 @@ int
 sock_udp(char *host, char *port, void **addr, int *addrlen)
 {
 	struct sockaddr	*sa;
+	socklen_t	 salen;
 
-	if (addr == NULL || addrlen == NULL)
+	if ((sa = resolv_name(host, port, "udp", &salen)) == NULL)
 		return (-1);
 
-	if ( (sa = resolv_name(host, port, "udp", (socklen_t *) addrlen))
-	    == NULL)
-		return (-1);
-
-	*addr = sa;
+	/* pass struct sockaddr if requested */
+	if (addrlen != NULL)
+		*addrlen = salen;
+	if (addr != NULL)
+		*addr = sa;
+	else
+		free(sa);
 
 	return (socket(sa->sa_family, SOCK_DGRAM, 0));
 }
@@ -421,6 +464,47 @@ int
 udp_send(int fd, char *msg, int mlen, void *addr, int addrlen)
 {
 	return (sendto(fd, msg, mlen, 0, (struct sockaddr *) addr, addrlen));
+}
+
+
+/*
+ * udp_recv:	receive an UDP packet
+ */
+
+int
+udp_recv(int fd, char *msg, int mlen, char *host, int hlen,
+    char *port, int plen, int flags)
+{
+	struct sockaddr *sa;
+	socklen_t	 salen;
+	int		 rlen;
+
+	salen = sizeof (struct
+#ifdef AF_INET6
+	    sockaddr_in6
+#else
+	    sockaddr_in
+#endif
+	    );
+
+	if ((sa = (struct sockaddr *) malloc(salen)) == NULL) 
+		return (-1);
+
+	if ((rlen = recvfrom(fd, msg, mlen - 1, 0, sa, &salen)) < 1) {
+
+		free(sa);
+		return (-1);
+	}
+
+	msg[rlen] = '\0';
+
+	if (flags & M_NODNS)
+		resolv_addr_nodns(sa, salen, host, hlen, port, plen);
+	else
+		resolv_addr(sa, salen, host, hlen, port, plen);
+
+	free(sa);
+	return (rlen);
 }
 
 /*
@@ -442,3 +526,18 @@ resolv_domain(char *buf, int buflen, char *host)
 
 	return (1);
 }
+
+#if 0
+int
+resolv_addr_cached(struct name_cache *cache, char *host, char *port,
+    char *proto, socklen_t *salen)
+{
+	/* walk through the cache */
+	/* if found, return pointer to cache */
+	/* else, resolv */
+	/* if cache full, remove first entry(ies) (as many as needed)
+	 * move forwards others (since this name could be longer than one)
+	 * and add this name at the end */
+	return (-1);
+}
+#endif

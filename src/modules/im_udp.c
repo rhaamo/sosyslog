@@ -1,4 +1,4 @@
- /*	$Id: im_udp.c,v 1.78 2002/09/25 07:25:52 alejo Exp $	*/
+ /*	$Id: im_udp.c,v 1.79 2002/09/25 22:50:16 alejo Exp $	*/
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
  * All rights reserved
@@ -38,17 +38,11 @@
 
 #include "config.h"
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/uio.h>
-#include <sys/un.h>
 #include <sys/param.h>
 
-#include <netinet/in.h>
 #include <ctype.h>
 #include <errno.h>
 #include <syslog.h>
-#include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -76,9 +70,13 @@ struct im_udp_ctx {
 #define M_NOTFQDN		0x02
 #define M_CACHENAMES		0x04
 #define M_REPLACENONPRINT	0x08
+#define M_DONTRESOLV		0x10
 
 /* prototypes */
 struct sockaddr *resolv_name(char *, char *, char *, socklen_t *);
+int sock_udp(char *, char *, void **, int *);
+int udp_recv(int, char *, int, char *, int, char *, int, int);
+#define M_NODNS			0x01	/* same as ip_misc.c */
 
 /*
  * initialize udp input
@@ -91,8 +89,8 @@ int
 im_udp_init(struct i_module *I, char **argv, int argc)
 {
 	struct im_udp_ctx	*c;
-	char   *host, *port;
-	int    ch, argcnt;
+	char   			*host, *port;
+	int			ch, argcnt;
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "im_udp_init: entering\n");
 
@@ -108,8 +106,8 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 
 	/* parse args (skip module name) */
 	for (argcnt = 1; (ch = getxopt(argc, argv, "h!host: p!port: "
-	    "a!addhost q!nofqdn c!cachenames r!replacechar: n!noresolv",
-	    &argcnt)) != -1; argcnt++) {
+	    "a!addhost q!nofqdn c!cachenames r!replacechar: "
+	    "n!noresolv", &argcnt)) != -1; argcnt++) {
 
 		switch (ch) {
 		case 'h':
@@ -136,37 +134,30 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 			c->flags |= M_REPLACENONPRINT;
 			c->subst = *argv[argcnt];
 			break;
+		case 'n':
+			/* don't resolv hostnames */
+			c->flags |= M_DONTRESOLV;
+			break;
 		default:
-			m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: parsing error [%c]\n", ch);
+			m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: parsing error"
+			    " [%c]\n", ch);
 			free(c);
-return (-1);
+			return (-1);
 		}
 	}
 
-  { /* get the udp socket */
-	  struct sockaddr		*sa;
-  	socklen_t		salen;
+	if ((I->im_fd = sock_udp(host, port, NULL, NULL)) == -1) {
 
-  	I->im_fd = socket(AF_INET, SOCK_DGRAM, 0);
-
-  	if ((sa = resolv_name(host, port, "udp", &salen)) == NULL) {
-  		m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: error resolving host"
-  		    "[%s] and port [%s]", host, port);
+  		m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: error creating "
+		    "input socket for host [%s] and port [%s]", host, port);
   		free(c);
-return (-1);
+		return (-1);
   	}
-
-  	if (bind(I->im_fd, sa, salen) < 0) {
-  		m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: error binding to host"
-  		    "[%s] and port [%s]", host, port);
-  		free(c);
-return (-1);
-  	}
- 	}
 
 	watch_fd_input('p', I->im_fd , I);
 	m_dprintf(MSYSLOG_INFORMATIVE, "im_udp: running\n");
-return (1);
+
+	return (1);
 }
 
 
@@ -181,9 +172,7 @@ int
 im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 {
 	struct im_udp_ctx	*c;
-	struct sockaddr_in	 frominet;
-	char   *p;
-	int    slen;
+	char			*p;
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "im_udp_read: entering...\n");
 
@@ -196,18 +185,16 @@ im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 	ret->im_pri = -1;
 	ret->im_flags = 0;
 
-	slen = sizeof(frominet);
-	if ((ret->im_len = recvfrom(im->im_fd, ret->im_msg,
-	    sizeof(ret->im_msg) - 1, 0, (struct sockaddr *)&frominet,
-	    (socklen_t *)&slen)) < 1) {
-		if (ret->im_len < 0 && errno != EINTR)
-			logerror("recvfrom inet");
+	c = (struct im_udp_ctx *) im->im_ctx;
+
+	if ((ret->im_len = udp_recv(im->im_fd, ret->im_msg,
+	    sizeof (ret->im_msg), ret->im_host, sizeof (ret->im_host),
+	    ret->im_port, sizeof (ret->im_port),
+	    c->flags & M_DONTRESOLV? M_NODNS : 0)) == -1) {
+
+		logerror("im_udp_read: reading from net");
 		return (1);
 	}
-
-	ret->im_msg[ret->im_len] = '\0';
-
-	c = (struct im_udp_ctx *) im->im_ctx;
 
 	/* change non printable chars to c->subst, just in case */
 	if (c->flags & M_REPLACENONPRINT)
@@ -215,27 +202,28 @@ im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 			if (!isprint((unsigned int) *p) && *p != '\n')
 				*p = c->subst;
 
+	/* extract hostname from message */
+	/* XXX: THIS SHOULD BE DONE OUTSIDE THE MODULES */
 	if (c->flags & M_USEMSGHOST) {
-		/* extract hostname from message */
 		char  host[90];
 		int   n1 = 0;
 		int   n2 = 0;
 
-		if ((sscanf(ret->im_msg, "<%*d>%*3s %*i %*i:%*i:%*i %n%89s %n%*s",
-                &n1, host, &n2) != 1 &&
-		     sscanf(ret->im_msg, "%*3s %*i %*i:%*i:%*i %n%89s %n%*s",
-		            &n1, host, &n2) != 1 &&
-		     sscanf(ret->im_msg, "%n%89s %n%*s", &n1, host, &n2) != 1)
-       ||
-		    ret->im_msg[n2] == '\0')
-    {
+		if ((sscanf(ret->im_msg, "<%*d>%*3s %*i %*i:%*i:%*i %n%89s "
+		    "%n%*s", &n1, host, &n2) != 1
+		    && sscanf(ret->im_msg, "%*3s %*i %*i:%*i:%*i %n%89s %n%*s",
+		    &n1, host, &n2) != 1
+		    && sscanf(ret->im_msg, "%n%89s %n%*s", &n1, host, &n2) != 1)
+		    || ret->im_msg[n2] == '\0') {
+
 			m_dprintf(MSYSLOG_INFORMATIVE, "im_udp_read: skipped"
 			    " invalid message [%s]\n", ret->im_msg);
-return (0);
+
+			return (0);
 		}
 
 		if (ret->im_msg[n2] == '\0')
-return (0);
+			return (0);
 
 		/* remove host from message */
 		while (ret->im_msg[n2] != '\0')
@@ -243,41 +231,8 @@ return (0);
 		ret->im_msg[n1] = '\0';
 
 		strncat(ret->im_host, host, sizeof(ret->im_host));
-
-    /* strip domain from hostname */
-    /* XXX: what is this?
-     * There is no assurance that the hostname is not an ip address
-     * in which case stripping off the domain would be inappropriate.
-     *
-     */
-	} else {
-		struct hostent *hent;
-
-		/*
-		 * extract host ip address from ip header
-		 * and attempt to look up the name
-		 */
-
-		hent = gethostbyaddr((char *) &frominet.sin_addr,
-		    sizeof(frominet.sin_addr), frominet.sin_family);
-
-		if (hent) {
-
-			strncpy(ret->im_host, hent->h_name, sizeof(ret->im_host));
-
-			/* strip domain from hostname */
-			if (c->flags & M_NOTFQDN) { 
-				char   *dot;
-
-				if ((dot = strchr(ret->im_host, '.')) != NULL)
-					*dot = '\0';
-			}
-		} else
-			strncpy(ret->im_host, inet_ntoa(frominet.sin_addr),
-			    sizeof(ret->im_host) - 1);
+		ret->im_host[sizeof (ret->im_host) - 1] = '\0';
 	}
-
-	ret->im_host[sizeof(ret->im_host) - 1] = '\0';
 
 	return (1);
 }
@@ -288,5 +243,5 @@ im_udp_close(struct i_module *im)
 
 	close(im->im_fd);
 
-return (0);
+	return (0);
 }

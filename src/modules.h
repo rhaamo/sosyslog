@@ -1,4 +1,4 @@
-/*	$Id: modules.h,v 1.50 2002/09/17 05:20:26 alejo Exp $	*/
+/*	$Id: modules.h,v 1.51 2002/09/25 22:50:16 alejo Exp $	*/
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
  * All rights reserved
@@ -87,6 +87,7 @@ struct im_msg {
 	char	im_msg[MAXLINE + 1];
 	int	im_len; /* size of contents of im_msg buffer */
 	char	im_host[MAXHOSTNAMELEN + 1];
+	char	im_port[50]; /* this should be something sane */
 };
 
 #endif
