@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.8 2001/02/26 22:37:25 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.9 2001/02/28 23:47:42 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -508,7 +508,7 @@ listen_tcp(const char *host, const char *port, socklen_t *addrlenp) {
 #ifdef HAVE_GETADDRINFO
 		*addrlenp = res->ai_addrlen;
 #else
-		*addrlenp = sizeof(servaddr)
+		*addrlenp = sizeof(servaddr);
 #endif
 
 	return (fd);
