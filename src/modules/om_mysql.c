@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.76 2001/08/06 20:22:39 claudio Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.77 2001/10/18 19:39:45 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -79,7 +79,6 @@ struct om_mysql_ctx {
 	char	*db;
 	void	*lib;
 	int	flags;
-#define	OM_MYSQL_DELAYED_INSERTS	0x2
 	int	(*mysql_ping)(void *);
 	void *	(*mysql_init)(void *);
 	void *	(*mysql_real_connect)(void *, char *, char *, char *,
@@ -88,6 +87,9 @@ struct om_mysql_ctx {
 	void	(*mysql_close)(void *);
 	char *	(*mysql_error)(void *);
 };
+#define	OM_MYSQL_DELAYED_INSERTS	0x2
+#define	OM_MYSQL_FACILITY		0x4
+#define	OM_MYSQL_PRIORITY		0x8
 
 int om_mysql_close(struct filed *, void *);
 
@@ -99,15 +101,15 @@ int om_mysql_close(struct filed *, void *);
 
 
 int
-om_mysql_write(struct filed *f, int flags, char *msg, void *ctx)
+om_mysql_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 {
 	struct om_mysql_ctx *c;
-	char	query[MAX_QUERY], err_buf[100];
+	char	query[MAX_QUERY], err_buf[100], facility[5], priority[5];
 	int i;
 	RETSIGTYPE (*sigsave)(int);
 
 	dprintf(MSYSLOG_INFORMATIVE, "om_mysql_write: entering [%s] [%s]\n",
-	    msg, f->f_prevline);
+	    m->msg, f->f_prevline);
 
 	c = (struct om_mysql_ctx *) ctx;
 
@@ -139,10 +141,22 @@ om_mysql_write(struct filed *f, int flags, char *msg, void *ctx)
 	/* restore previous SIGPIPE handler */
 	place_signal(SIGPIPE, sigsave);
 
+	/*
+	 * NOTE: could use prioritynames[] and facilitynames[]
+	 */
+	if (c->flags & OM_MYSQL_FACILITY)
+		snprintf(facility, sizeof(facility), "%d,", m->fac);
+	if (c->flags & OM_MYSQL_PRIORITY)
+		snprintf(priority, sizeof(priority), "%d,", m->pri);
+
 	/* table, yyyy-mm-dd, hh:mm:ss, host, msg  */ 
-	i = snprintf(query, sizeof(query), "INSERT %sINTO %s (date, time, "
-	    "host, message) VALUES('%.4d-%.2d-%.2d', '%.2d:%.2d:%.2d', '%s', '",
+	i = snprintf(query, sizeof(query), "INSERT %sINTO %s (%s%s date, time, "
+	    "host, message) VALUES(%s%s '%.4d-%.2d-%.2d', '%.2d:%.2d:%.2d', '%s', '",
 	    (c->flags & OM_MYSQL_DELAYED_INSERTS)? "DELAYED " : "", c->table,
+	    (c->flags & OM_MYSQL_FACILITY)? "facility, " : "",
+	    (c->flags & OM_MYSQL_PRIORITY)? "priority, " : "",
+	    (c->flags & OM_MYSQL_FACILITY)? facility : "",
+	    (c->flags & OM_MYSQL_PRIORITY)? priority : "",
 	    f->f_tm.tm_year + 1900, f->f_tm.tm_mon + 1, f->f_tm.tm_mday,
 	    f->f_tm.tm_hour, f->f_tm.tm_min, f->f_tm.tm_sec, f->f_prevhost);
 
@@ -180,7 +194,7 @@ om_mysql_write(struct filed *f, int flags, char *msg, void *ctx)
 	}
 
 	/* put message escaping special SQL characters */
-	i += to_sql(query + i, msg, sizeof(query) - i);
+	i += to_sql(query + i, m->msg, sizeof(query) - i);
 
 	/* finish it with "')" */
 	query[i++] =  '\'';
@@ -220,6 +234,8 @@ om_mysql_write(struct filed *f, int flags, char *msg, void *ctx)
  *         -p <password>
  *         -b <database_name>
  *         -t <table_name>
+ *         -P
+ *         -F
  *
  */
 
@@ -274,7 +290,7 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 #ifdef HAVE_OPTRESET
 	optreset = 1;
 #endif
-	while ((ch = getopt(argc, argv, "s:u:p:d:t:D")) != -1) {
+	while ((ch = getopt(argc, argv, "s:u:p:d:t:DPF")) != -1) {
 		switch (ch) {
 		case 's':
 			/* get database host name and port */
@@ -300,6 +316,12 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 			break;
 		case 'D':
 			ctx->flags |= OM_MYSQL_DELAYED_INSERTS;
+			break;
+		case 'P':
+			ctx->flags |= OM_MYSQL_FACILITY;
+			break;
+		case 'F':
+			ctx->flags |= OM_MYSQL_PRIORITY;
 			break;
 		default:
 			goto om_mysql_init_bad;

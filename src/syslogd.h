@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.100 2001/04/04 16:55:16 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.101 2001/09/19 10:52:06 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -101,6 +101,19 @@ int dprintf(int, char const *, ...); /* level, format, ... */
 #endif
 
 /*
+ * This structure has the message and facility
+ * of it. It is the struct to pass to om_write
+ */
+
+struct m_msg {
+	int	fac;	/* facility */
+	int	pri;	/* priority level */
+	int	mlen;	/* length of message */
+	int	flags;	/* flags of message */
+	char	*msg;	/* message */
+};
+
+/*
  * This structure represents the files that will have log
  * copies printed.
  */
@@ -143,7 +156,7 @@ struct omodule {
 	char	*om_name;
 	int	(*om_init) (int, char **, struct filed *, char *, void **,
 	    char **);
-	int	(*om_write) (struct filed *, int, char *, void *);
+	int	(*om_write) (struct filed *, int, struct m_msg *, void *);
 	int	(*om_flush) (struct filed *, void *);
 	int	(*om_close) (struct filed *, void *);
 	void	*h;  /* handle to open dynamic library */

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.209 2001/09/21 06:48:47 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.210 2001/09/21 11:22:12 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.209 2001/09/21 06:48:47 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.210 2001/09/21 11:22:12 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -193,7 +193,7 @@ void	die(int);
 void	cfline(char *, struct filed *, char *);
 int	decode(const char *, CODE *);
 void	markit(void);
-void	doLog(struct filed *, int, char *);
+void	doLog(struct filed *, int, char *, int, int);
 void	printline(char *, char *, size_t, int);
 void	usage(void);
 int	imodule_create(struct i_module *, char *);
@@ -779,7 +779,7 @@ logmsg(int pri, char *msg, char *from, int flags)
 	if (!Initialized) {
 		if (UseConsole && ctty && omodule_create(ctty, &consfile,
 		    NULL) != -1) {
-			doLog(&consfile, flags, msg);
+			doLog(&consfile, flags, msg, prilev, fac);
 			if (consfile.f_omod && consfile.f_omod->om_func
 			    && consfile.f_omod->om_func->om_close != NULL)
 				(*consfile.f_omod->om_func->om_close)
@@ -836,7 +836,7 @@ logmsg(int pri, char *msg, char *from, int flags)
 			 * in the future.
 			 */
 			if (now > REPEATTIME(f)) {
-				doLog(f, flags, NULL);
+				doLog(f, flags, NULL, prilev, fac);
 				BACKOFF(f);
 			}
 		} else {
@@ -844,7 +844,7 @@ logmsg(int pri, char *msg, char *from, int flags)
 
 			/* flush previous line */
 			if (f->f_prevcount)
-				doLog(f, 0, NULL);
+				doLog(f, 0, NULL, prilev, fac);
 
 			/*
 			 * Start counting again, save host data etc.
@@ -861,11 +861,11 @@ logmsg(int pri, char *msg, char *from, int flags)
 				strncpy(f->f_prevline, msg,
 				    sizeof(f->f_prevline) - 1);
 				f->f_prevline[sizeof(f->f_prevline) - 1] = '\0';
-				doLog(f, flags, NULL);
+				doLog(f, flags, NULL, prilev, fac);
 			} else {
 				f->f_prevlen = 0;
 				f->f_prevline[0] = 0;
-				doLog(f, flags, msg);
+				doLog(f, flags, msg, prilev, fac);
 			}
 		}
 	}
@@ -873,20 +873,23 @@ logmsg(int pri, char *msg, char *from, int flags)
 }
 
 void
-doLog(struct filed *f, int flags, char *message)
+doLog(struct filed *f, int flags, char *message, int prilev, int fac)
 {
 	struct o_module *om;
-	char	repbuf[80], *msg;
+	char	repbuf[80];
+	struct m_msg m;
 	int	ret;
 
+	m.pri = prilev;
+	m.fac = fac;
 	if (message) {
-		msg = message;
+		m.msg = message;
 	} else if (f->f_prevcount > 1) {
-		msg = repbuf;
+		m.msg = repbuf;
 		snprintf(repbuf, sizeof(repbuf), "last message repeated %d"
 		    " times", f->f_prevcount);
 	} else {
-		msg = f->f_prevline;
+		m.msg = f->f_prevline;
 	}
 
 	time(&f->f_time);
@@ -894,16 +897,16 @@ doLog(struct filed *f, int flags, char *message)
 		if (!om->om_func || !om->om_func->om_write) {
 			dprintf(MSYSLOG_SERIOUS, "doLog: error, no write "
 			    "function in output module [%s], message [%s]\n",
-			    om->om_func->om_name, msg);
+			    om->om_func->om_name, m.msg);
 			continue;
 		}
 
 		/* call this module write */
-		ret = (*(om->om_func->om_write))(f,flags,msg,om->ctx);
+		ret = (*(om->om_func->om_write))(f, flags, &m, om->ctx);
 		if (ret < 0) {
 			dprintf(MSYSLOG_SERIOUS, "doLog: error with output "
 			    "module [%s] for message [%s]\n",
-			    om->om_func->om_name, msg);
+			    om->om_func->om_name, m.msg);
 		} else if (ret == 0)
 			/* stop going on */
 			break;
@@ -955,7 +958,7 @@ markit(void)
 			dprintf(MSYSLOG_INFORMATIVE, "flush: repeated %d "
 			    "times, %d sec.\n", f->f_prevcount,
 			    repeatinterval[f->f_repeatcount]);
-			doLog(f, 0, (char *)NULL);
+			doLog(f, 0, NULL, 0, 0);
 			BACKOFF(f);
 		}
 	}
@@ -998,7 +1001,7 @@ die(int signo) {
 	for (f = Files; f != NULL; f = f->f_next) {
 		/* flush any pending output */
 		if (f->f_prevcount)
-			doLog(f, 0, (char *)NULL);
+			doLog(f, 0, NULL, 0, 0);
 	}
 
 	Initialized = was_initialized;
@@ -1065,7 +1068,7 @@ init(int signo)
 
 		/* flush any pending output */
 		if (f->f_prevcount)
-			doLog(f, 0, (char *)NULL);
+			doLog(f, 0, NULL, 0, 0);
 
 		for (om = f->f_omod; om; om = om_next) {
 			/* flush any pending output */

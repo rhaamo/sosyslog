@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.81 2001/09/07 07:26:26 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.82 2001/09/19 11:43:16 alejo Exp $	*/
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
@@ -120,7 +120,7 @@ struct sockaddr	*resolv_name(char *, char *, char *, size_t *);
  */
 
 int
-om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
+om_classic_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 {
 	struct iovec iov[6];
 	struct iovec *v;
@@ -129,7 +129,7 @@ om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
 	char line[MAXLINE + 1], greetings[500], time_buf[16];
 	time_t now;
 
-	if (msg == NULL || !strcmp(msg, "")) {
+	if (m == NULL || m->msg == NULL || !strcmp(m->msg, "")) {
 		logerror("om_classic_write: no message!");
 		return (-1);
 	}
@@ -165,8 +165,8 @@ om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
 	v->iov_len = 1;
 	v++;
 
-	v->iov_base = msg;
-	v->iov_len = strlen(msg);
+	v->iov_base = m->msg;
+	v->iov_len = strlen(m->msg);
 	v++;
 
 	dprintf(MSYSLOG_INFORMATIVE, "Logging to %s", TypeNames[c->f_type]);
@@ -464,10 +464,9 @@ om_classic_flush(struct filed *f, void *ctx)
 {
 	/* flush any pending output */
 	if (f->f_prevcount)
-		om_classic_write(f, 0, (char *)NULL, NULL);
+		om_classic_write(f, 0, NULL, NULL);
 
 	return (1);
-
 }
 
 /*
