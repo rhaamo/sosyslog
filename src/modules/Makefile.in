@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.67 2001/04/05 19:09:26 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.68 2001/04/09 18:01:15 alejo Exp $
 #
 # Copyright (c) 2001, Core SDI S.A., Argentina
 # All rights reserved
@@ -49,10 +49,10 @@ SHARED_PARAMS=	@SHARED_PARAMS@
 $(MSRCS) $(HASH_SRCS): ../config.h
 
 $(HASH_OBJS): $(HASH_SRCS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(DCCFLAGS) -c $(HASH_SRCS) -o $@
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(DCCFLAGS) -c $(HASH_SRCS)
 
 $(MOBJS): $(MSRCS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(DCCFLAGS) -c $(MSRCS) -o $@
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(DCCFLAGS) -c $(MSRCS)
 
 $(MLIBNAME):  $(MOBJS) $(HASH_OBJS)
 	$(LD) $(SHARED_PARAMS) -o $(MLIBNAME) $(MOBJS) $(HASH_OBJS)
