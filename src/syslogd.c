@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.205 2001/09/19 00:49:19 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.206 2001/09/19 10:52:06 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.205 2001/09/19 00:49:19 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.206 2001/09/19 10:52:06 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -567,15 +567,20 @@ main(int argc, char **argv)
 
 		for (i = 0, done = 0; done < count; i++) {
 			if (fd_inputs[i].revents & POLLIN) {
+				char	*mname;
+				int	fd;
 				int val = -1;
 
 				log.im_pid = 0;
 				log.im_pri = 0;
 				log.im_flags = 0;
 
+				mname = fd_inputs_mod[i]->im_func->im_name;
+				fd = fd_inputs[i].fd;
+
 				if (!fd_inputs_mod[i]) {
 					/* silently DROP what comes */
-					if (fd_inputs[i].fd == finet) {
+					if (fd == finet) {
 						struct sockaddr_in frominet;
 						socklen_t len;
 						char line[MAXLINE];
@@ -592,9 +597,7 @@ main(int argc, char **argv)
 				    &log)) < 0) {
 					dprintf(MSYSLOG_SERIOUS, "syslogd: "
 					    "Error calling input module %s, "
-					    "for fd %i\n",
-					    fd_inputs_mod[i]->im_func->im_name,
-					    fd_inputs[i].fd);
+					    "for fd %i\n", mname, fd);
 
 				} else if (val == 1)    /* log it */
 					printline(log.im_host, log.im_msg,
