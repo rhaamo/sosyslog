@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_tcp.c,v 1.19 2001/09/19 07:04:53 alejo Exp $	*/
+/*	$CoreSDI: om_tcp.c,v 1.20 2001/09/19 09:45:04 alejo Exp $	*/
 /*
      Copyright (c) 2001, Core SDI S.A., Argentina
      All rights reserved
@@ -78,7 +78,7 @@ struct om_tcp_ctx {
 
 #define M_ADDHOST	0x01
 
-int connect_tcp(const char *, const char *);
+int connect_tcp(char *, char *);
 int om_tcp_close(struct filed *, void *);
 
 /*
