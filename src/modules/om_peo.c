@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.14 2000/05/10 20:36:49 claudio Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.15 2000/05/11 20:07:00 claudio Exp $";
 #endif /* not lint */
 
 /*
@@ -201,7 +201,10 @@ om_peo_init(argc, argv, f, prog, context)
 	mfd = 0;
 
 	/* parse command line */
-	optreset = 1; optind = PEO_ALONE;
+	#ifndef HAVE_LINUX
+		optreset = 1;
+	#endif
+	optind = PEO_ALONE;
 	while ((ch = getopt(argc, argv, "k:lm:")) != -1) {
 		switch(ch) {
 			case 'k':
