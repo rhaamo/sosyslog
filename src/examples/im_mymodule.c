@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_mymodule.c,v 1.7 2000/06/05 22:16:58 fgsch Exp $	*/
+/*	$CoreSDI: im_mymodule.c,v 1.8 2000/06/05 23:14:26 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
