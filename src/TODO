@@ -1,4 +1,4 @@
-/*	$CoreSDI: TODO,v 1.21 2000/07/11 01:02:14 claudio Exp $	*/
+/*	$CoreSDI: TODO,v 1.22 2000/08/05 01:10:25 alejo Exp $	*/
 
 Things to do:
 
@@ -37,3 +37,12 @@ Check for buffer overflows, as we now may get things from the outside world.
   keep alive
 - optimize peochk (readline)
 - make dynamic libraries work with new config
+
+
+
+BUGS TO FIX
+
+- check permissions on syslogd.conf and all other files
+- thinker a bit more about mysql and pgsql passwords
+- repeats on doLog and not other places
+
