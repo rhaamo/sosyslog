@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.179 2001/03/06 23:11:18 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.180 2001/03/10 00:34:16 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.179 2001/03/06 23:11:18 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.180 2001/03/10 00:34:16 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -567,7 +567,7 @@ main(int argc, char **argv)
 				    &log)) < 0) {
 					dprintf(DPRINTF_SERIOUS)("syslogd: "
 					    "Error calling input module %s, "
-					    "for fd %d\n",
+					    "for fd %i\n",
 					    fd_inputs_mod[i]->im_func->im_name,
 					    fd_inputs[i].fd);
 
