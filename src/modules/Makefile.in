@@ -1,4 +1,4 @@
-# $CoreSDI$
+# $CoreSDI: Makefile.in,v 1.1 2000/06/02 22:27:18 fgsch Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -32,7 +32,7 @@ CC = @CC@
 CFLAGS = @CFLAGS@
 CEFLAGS = @CEFLAGS@
 
-OBJS = im_bsd.o im_udp.o im_unix.o om_classic.o om_peo.o
+OBJS = im_bsd.o im_udp.o im_unix.o om_classic.o om_filter.o om_peo.o
 
 all: $(OBJS)
 

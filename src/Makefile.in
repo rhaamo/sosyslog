@@ -1,4 +1,4 @@
-# $CoreSDI$
+# $CoreSDI: Makefile.in,v 1.1 2000/06/02 22:27:16 fgsch Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -40,7 +40,7 @@ EXTRAOBJ = @EXTRAOBJ@
 
 OBJS = modules.o syslogd.o ttymsg.o
 MODOBJS = modules/im_bsd.o modules/im_udp.o modules/im_unix.o \
-	  modules/om_classic.o modules/om_peo.o
+	  modules/om_classic.o modules/om_filter.o modules/om_peo.o
 PEOBJS = peo/hash.o
 
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
