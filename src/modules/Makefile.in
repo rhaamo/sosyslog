@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.54 2000/11/10 01:44:23 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.55 2000/11/10 23:17:43 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -39,10 +39,7 @@ CPPFLAGS +=	@CPPFLAGS@
 LDCONFIG_FLAGS=	@LDCONFIG_FLAGS@
 
 INSTALL=	@INSTALL@
-prefix=		@prefix@
-exec_prefix=	@exec_prefix@
-INSTALL_LIBDIR=	@libdir@/alat
-UNAME=		@UNAME@
+INSTALL_LIBDIR=	@prefix@/lib/alat
 
 SSRCS=		@SSRCS@
 SOBJS=		$(SSRCS:.c=.o)
@@ -181,15 +178,15 @@ distclean: clean
 install:
 	@echo "installing shared libraries..."
 	@if [ ! -d "$(INSTALL_LIBDIR)" ]; then echo "creating directory $(INSTALL_LIBDIR)" && mkdir -p -m 755 "$(INSTALL_LIBDIR)" ; fi 
-	@if [ "$(DUNIX)" -a -f "$(DUNIX)" ]; then $(INSTALL) $(DUNIX) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DUNIX) $(INSTALL_LIBDIR)/$(DUNIX_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DUNIX)" ; fi
-	@if [ "$(DUDP)" -a -f "$(DUDP)" ]; then $(INSTALL) $(DUDP) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DUDP) $(INSTALL_LIBDIR)/$(DUDP_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DUDP)" ; fi
-	@if [ "$(DBSD)" -a -f "$(DBSD)" ]; then $(INSTALL) $(DBSD) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DBSD) $(INSTALL_LIBDIR)/$(DBSD_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DBSD)" ; fi
-	@if [ "$(DLINUX)" -a -f "$(DLINUX)" ]; then $(INSTALL) $(DLINUX) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DLINUX) $(INSTALL_LIBDIR)/$(DLINUX_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DLINUX)" ; fi
-	@if [ "$(DCLASSIC)" -a -f "$(DCLASSIC)" ]; then $(INSTALL) $(DCLASSIC) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DCLASSIC) $(INSTALL_LIBDIR)/$(DCLASSIC_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DCLASSIC)" ; fi
-	@if [ "$(DPEO)" -a -f "$(DPEO)" ]; then $(INSTALL) $(DPEO) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DPEO) $(INSTALL_LIBDIR)/$(DPEO_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DPEO)" ; fi
-	@if [ "$(DMYSQL)" -a -f "$(DMYSQL)" ]; then $(INSTALL) $(DMYSQL) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DMYSQL) $(INSTALL_LIBDIR)/$(DMYSQL_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DMYSQL)" ; fi
-	@if [ "$(DPGSQL)" -a -f "$(DPGSQL)" ]; then $(INSTALL) $(DPGSQL) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DPGSQL) $(INSTALL_LIBDIR)/$(DPGSQL_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DPGSQL)" ; fi
-	@if [ "$(DREGEX)" -a -f "$(DREGEX)" ]; then $(INSTALL) $(DREGEX) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DREGEX) $(INSTALL_LIBDIR)/$(DREGEX_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DREGEX)" ; fi
-	@if [ "$(DSTREAMS)" -a -f "$(DSTREAMS)" ]; then $(INSTALL) $(DSTREAMS) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DSTREAMS) $(INSTALL_LIBDIR)/$(DSTREAMS_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DSTREAMS)" ; fi
-	@if [ "$(DDOORS)" -a -f "$(DDOORS)" ]; then $(INSTALL) $(DDOORS) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DDOORS) $(INSTALL_LIBDIR)/$(DDOORS_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DDOORS)" ; fi
+	@if [ "$(DUNIX)" -a -f "$(DUNIX)" ]; then $(INSTALL) $(DUNIX) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DUNIX)" ; fi
+	@if [ "$(DUDP)" -a -f "$(DUDP)" ]; then $(INSTALL) $(DUDP) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DUDP)" ; fi
+	@if [ "$(DBSD)" -a -f "$(DBSD)" ]; then $(INSTALL) $(DBSD) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DBSD)" ; fi
+	@if [ "$(DLINUX)" -a -f "$(DLINUX)" ]; then $(INSTALL) $(DLINUX) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DLINUX)" ; fi
+	@if [ "$(DCLASSIC)" -a -f "$(DCLASSIC)" ]; then $(INSTALL) $(DCLASSIC) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DCLASSIC)" ; fi
+	@if [ "$(DPEO)" -a -f "$(DPEO)" ]; then $(INSTALL) $(DPEO) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DPEO)" ; fi
+	@if [ "$(DMYSQL)" -a -f "$(DMYSQL)" ]; then $(INSTALL) $(DMYSQL) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DMYSQL)" ; fi
+	@if [ "$(DPGSQL)" -a -f "$(DPGSQL)" ]; then $(INSTALL) $(DPGSQL) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DPGSQL)" ; fi
+	@if [ "$(DREGEX)" -a -f "$(DREGEX)" ]; then $(INSTALL) $(DREGEX) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DREGEX)" ; fi
+	@if [ "$(DSTREAMS)" -a -f "$(DSTREAMS)" ]; then $(INSTALL) $(DSTREAMS) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DSTREAMS)" ; fi
+	@if [ "$(DDOORS)" -a -f "$(DDOORS)" ]; then $(INSTALL) $(DDOORS) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(DDOORS)" ; fi
 

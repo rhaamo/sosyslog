@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.67 2000/11/09 23:39:13 alejo Exp $
+dnl	$CoreSDI: configure.in,v 1.68 2000/11/10 01:44:22 alejo Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -16,9 +16,6 @@ LDDFLAGS=
 DCCFLAGS="-fPIC"
 LDCONFIG_FLAGS="-m"
 UNAME=`uname`
-
-alatlibdir="${prefix}/lib/alat"
-AC_DEFINE_UNQUOTED(INSTALL_LIBDIR, "$alatlibdir")
 
 dnl
 dnl Check needed libs (Mostly for Solaris)
@@ -194,7 +191,6 @@ AC_SUBST(PGSQL_CPPFLAGS)
 AC_SUBST(PGSQL_LIBS)
 AC_SUBST(MSYSLOG_VERSION)
 AC_SUBST(MANPAGES)
-AC_SUBST(INSTALL_LIBDIR)
 
 AC_OUTPUT([Makefile
 	   src/Makefile src/static_modules.h src/static_modules.c

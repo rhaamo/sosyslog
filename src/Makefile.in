@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.35 2000/11/09 19:50:36 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.36 2000/11/10 01:44:22 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -37,9 +37,7 @@ CPPFLAGS +=	-I.
 LIBS=		@LIBS@
 
 INSTALL=	@INSTALL@
-prefix=         @prefix@
-exec_prefix=    @exec_prefix@
-INSTALL_DIR=    @sbindir@
+INSTALL_DIR=    @prefix@/lib/alat
 
 PROG=		syslogd
 SRCS=		modules.c syslogd.c ttymsg.c static_modules.c
@@ -48,6 +46,8 @@ SSRCS=		@SSRCS@
 SOBJS=		$(SSRCS:.c=.o)
 SHASH_SRCS=	@SHASH_SRCS@
 SHASH_OBJS=	$(SHASH_SRCS:.c=.o)
+
+INSTALL_LIBDIR = @prefix@/lib/alat
 
 all: $(PROG)
 
@@ -60,7 +60,7 @@ $(OBJS): $(SRCS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDDFLAGS) $(LDFLAGS) $(LIBS) -c $(SRCS)
 
 $(PROG): $(OBJS) $(SOBJS:%=modules/%) $(SHASH_OBJS:%=modules/%)
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDDFLAGS) $(LDFLAGS) $(LIBS) \
+	$(CC) -DINSTALL_LIBDIR $(CFLAGS) $(CPPFLAGS) $(LDDFLAGS) $(LDFLAGS) $(LIBS) \
       	      $(OBJS) $(SOBJS:%=modules/%) $(SHASH_OBJS:%=modules/%) -o $@
 
 $(SOBJS:%=modules/%) $(SHASH_OBJS:%=modules/%):
