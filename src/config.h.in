@@ -146,3 +146,5 @@
 #undef INET6
 
 #undef WORDS_BIGENDIAN
+
+#undef __USE_XOPEN
