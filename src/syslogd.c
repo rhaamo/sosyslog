@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.115 2000/08/03 01:18:12 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.116 2000/08/22 18:38:57 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.107 2000/07/11 19:38:14 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.116 2000/08/22 18:38:57 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -400,48 +400,52 @@ main(int argc, char **argv) {
 			}
 		}
 
+		/* get current time */
 		gettimeofday(&tnow, NULL);
-		timeout.tv_sec = nextcall.tv_sec - tnow.tv_sec;
-		timeout.tv_usec = nextcall.tv_usec - tnow.tv_usec;
-		dprintf("\t** syslogd: nextcall es %li\t%li\n"
-				"\t** syslogd: timeout  es %li\t%li\n"
-				"\t** syslogd:    tnow es %li\t%li\n",
-				nextcall.tv_sec, nextcall.tv_usec,
-				timeout.tv_sec, timeout.tv_usec,
-				tnow.tv_sec, tnow.tv_usec);
 
-		if ((timeout.tv_sec < 1 && (timeout.tv_usec < SYSLOG_TIMEOUT_MINUSEC ||
-				timeout.tv_usec < -1)) ||
-				timeout.tv_sec > SYSLOG_TIMEOUT_MAXSEC) {
+		if ((nextcall.tv_sec = tnow.tv_sec) &&
+				(nextcall.tv_usec > tnow.tv_usec)) {
+			timeout.tv_sec = 0L;
+			timeout.tv_sec = nextcall.tv_sec - tnow.tv_sec;
+			if (timeout.tv_usec < SYSLOG_TIMEOUT_MINUSEC)
+				timeout.tv_usec = SYSLOG_TIMEOUT_MINUSEC;
+		} else if (nextcall.tv_sec > tnow.tv_sec) {
+			timeout.tv_sec = nextcall.tv_sec - tnow.tv_sec;
+			if (timeout.tv_sec > SYSLOG_TIMEOUT_MAXSEC)
+				timeout.tv_sec = SYSLOG_TIMEOUT_MAXSEC;
+			if (nextcall.tv_usec > tnow.tv_usec) {
+				timeout.tv_usec = nextcall.tv_usec - tnow.tv_usec;
+			} else {
+				timeout.tv_usec = 0L;
+			}
+		} else {
 			timeout.tv_sec = SYSLOG_TIMEOUT_SEC;
 			timeout.tv_usec = SYSLOG_TIMEOUT_USEC;
 		}
 
 		/* dprintf("readfds = %#x\n", readfds); */
+		dprintf("Entering select and waiting %li secs and %li usecs\n",
+				timeout.tv_sec, timeout.tv_usec);
 		nfds = select(nfds+1, &readfds, (fd_set *)NULL,
 			(fd_set *)NULL, &timeout);
 
-		usleep(1000000);
 		if (nfds < 0) {
 			if (errno != EINTR)
 				logerror("select");
 			continue;
 		}
 
-		dprintf("\t** syslogd: sali del select %i\n", nfds);
-		dprintf("\t** %li sec \n", timeout.tv_sec);
 		gettimeofday(&nextcall, NULL);
-		nextcall.tv_sec += SYSLOG_TIMEOUT_SEC;
-		nextcall.tv_usec += SYSLOG_TIMEOUT_USEC;
+		nextcall.tv_sec += SYSLOG_TIMEOUT_MAXSEC;
+		nextcall.tv_usec = 0L;
 
 		/* dprintf("got a message (%d, %#x)\n", nfds, readfds); */
+		/* call requested im_timer()  and read inputs */
 		for (im = &Inputs; im ; im = im->im_next) {
 
 			/* get current time each pass */
 			gettimeofday(&tnow, NULL);
 
-			dprintf("\t** going to try %s \t  %p \n", im->im_name,
-					im->im_func->im_timer);
 			if (im->im_func->im_timer &&
 					im->im_nextcall.tv_sec < tnow.tv_sec &&
 					im->im_nextcall.tv_usec < tnow.tv_usec) {
@@ -450,9 +454,11 @@ main(int argc, char **argv) {
 				if ((*im->im_func->im_timer)(im, &log, sglobals) < 0) {
 					dprintf("Error calling timer for [%s]\n", im->im_name);
 				}
-				if (nextcall.tv_sec > im->im_nextcall.tv_sec ||
-						(nextcall.tv_sec == im->im_nextcall.tv_sec &&
-						nextcall.tv_usec > im->im_nextcall.tv_usec)) {
+
+				if ((nextcall.tv_sec = im->im_nextcall.tv_sec) &&
+						(nextcall.tv_usec > im->im_nextcall.tv_usec)) {
+					nextcall.tv_usec = im->im_nextcall.tv_usec;
+				} else if (nextcall.tv_sec > im->im_nextcall.tv_sec) {
 					nextcall.tv_sec = im->im_nextcall.tv_sec;
 					nextcall.tv_usec = im->im_nextcall.tv_usec;
 				}
