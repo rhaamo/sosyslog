@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.5 2000/04/25 17:33:00 claudio Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.6 2000/04/25 17:45:14 claudio Exp $";
 #endif /* not lint */
 
 /*
@@ -215,12 +215,17 @@ om_peo_init(argc, argv, f, prog, context)
 				else
 					if (strcasecmp(optarg, "md5") == NULL)
 						hash_method = MD5; 
-				else
+				else {
+					if (keyfile != default_keyfile)
+						free(keyfile);
+					errno = EINVAL;
 					return (-1);
+				}
 				break;
 			default:
 				if (keyfile != default_keyfile)
 					free(keyfile);
+				errno = EINVAL;
 				return (-1);
 		}
 	}
