@@ -1,4 +1,4 @@
-dnl $Id: configure.in,v 1.155 2002/09/27 22:28:29 alejo Exp $
+dnl $Id: configure.in,v 1.156 2002/11/25 17:03:56 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)
 AC_CONFIG_HEADER(src/config.h)
@@ -455,23 +455,23 @@ if test $PEO = "yes" ; then
 	MSRCS="$MSRCS om_peo.c"
 	MANPAGES="$MANPAGES om_peo.8 peochk.8"
 
-	HASH_SRCS="hash.c";
+	HASH_SRCS="../peo/hash.c";
 	HASH_SRCS_MODULES="../peo/hash.c";
 	HASH_OBJS_MODULES="../peo/hash.o";
 	AC_CHECK_FUNC(MD5Init, AC_DEFINE(HAVE_MD5),
-	        HASH_SRCS="$HASH_SRCS md5c.c";
+	        HASH_SRCS="$HASH_SRCS ../peo/md5c.c";
 	        HASH_SRCS_MODULES="$HASH_SRCS_MODULES ../peo/md5c.c";
-		HASH_OBJS_MODULES="$HASH_OBJS_MODULES md5c.o";
+		HASH_OBJS_MODULES="$HASH_OBJS_MODULES ../peo/md5c.o";
 	)
 	AC_CHECK_FUNC(SHA1Init, AC_DEFINE(HAVE_SHA1),
-	        HASH_SRCS="$HASH_SRCS sha1.c";
+	        HASH_SRCS="$HASH_SRCS ../peo/sha1.c";
 	        HASH_SRCS_MODULES="$HASH_SRCS_MODULES ../peo/sha1.c";
-		HASH_OBJS_MODULES="$HASH_OBJS_MODULES sha1.o";
+		HASH_OBJS_MODULES="$HASH_OBJS_MODULES ../peo/sha1.o";
 	)
 	AC_CHECK_FUNC(RMD160Init, AC_DEFINE(HAVE_RMD160),
-	        HASH_SRCS="$HASH_SRCS rmd160.c";
+	        HASH_SRCS="$HASH_SRCS ../peo/rmd160.c";
 	        HASH_SRCS_MODULES="$HASH_SRCS_MODULES ../peo/rmd160.c";
-		HASH_OBJS_MODULES="$HASH_OBJS_MODULES rmd160.o";
+		HASH_OBJS_MODULES="$HASH_OBJS_MODULES ../peo/rmd160.o";
 	)
 	if test -r /dev/srandom ; then
 		AC_DEFINE(HAVE_SRANDOM)
