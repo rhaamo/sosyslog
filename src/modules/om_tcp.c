@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_tcp.c,v 1.1 2001/02/08 18:01:53 alejo Exp $	*/
+/*	$CoreSDI: om_tcp.c,v 1.2 2001/02/16 00:34:52 alejo Exp $	*/
 /*
      Copyright (c) 2000, Core SDI S.A., Argentina
      All rights reserved
@@ -84,25 +84,66 @@ int connect_tcp(const char *host, const char *port);
 int
 om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 {
-	struct om_tcp_ctx *c;
+	struct	om_tcp_ctx *c;
+	int	ch;
 
-	if (argv == NULL || argc != 3)
+	if (argv == NULL || argc != 5) {
+		dprintf(DPRINTF_INFORMATIVE)("om_tcp_init: wrong param count"
+		    " %d, should be 5\n", argc);
 		return (-1);
+	}
 
 	dprintf(DPRINTF_INFORMATIVE)("om_tcp init: Entering\n");
 
-	if ((*ctx = (void *) calloc(1, sizeof(struct om_tcp_ctx))) == NULL)
+	if ((*ctx = (void *) calloc(1, sizeof(struct om_tcp_ctx))) == NULL) {
+		dprintf(DPRINTF_INFORMATIVE)("om_tcp_init: couldn't allocate"
+		    " context\n");
 		return (-1);
+	}
 	c = (struct om_tcp_ctx *) *ctx;
 
-	strncpy(c->host, argv[1], sizeof(c->host));
-	c->host[sizeof(c->host) - 1] = '\0';
-	strncpy(c->port, argv[2], sizeof(c->port));
-	c->port[sizeof(c->port) - 1] = '\0';
+	/* parse line */
+	optind = 1;
+#ifdef HAVE_OPTRESET
+	optreset = 1;
+#endif
+	while ((ch = getopt(argc, argv, "h:p:")) != -1) {
+		switch (ch) {
+		case 'h':
+			/* get remote host name/addr */
+			strncpy(c->host, optarg, sizeof(c->host));
+			c->host[sizeof(c->host) - 1] = '\0';
+			break;
+		case 'p':
+			/* get remote host port */
+			strncpy(c->port, optarg, sizeof(c->port));
+			c->port[sizeof(c->port) - 1] = '\0';
+			break;
+		default:
+			dprintf(DPRINTF_SERIOUS)("om_tcp_init: parsing error"
+			    " [%c]\n", ch);
+			free(*ctx);
+			*ctx = NULL;
+			return (-1);
+		}
+	}
+
+	if ( (c->host[0] == '\0') || (c->port[0] == '\0') ) {
+
+		dprintf(DPRINTF_SERIOUS)("om_tcp_init: parsing\n");
+		free(*ctx);
+		*ctx = NULL;
+
+		return (-1);
+	}
 
 	if ( (f->f_file = connect_tcp(c->host, c->port)) < 0) {
-		dprintf(DPRINTF_INFORMATIVE)("om_tcp_init: error connecting "
+
+		dprintf(DPRINTF_SERIOUS)("om_tcp_init: error connecting "
 		    "to remote host %s, %s\n", c->host, c->port);
+		free(*ctx);
+		*ctx = NULL;
+
 		return (-1);
 	}
 
@@ -189,9 +230,12 @@ connect_tcp(const char *host, const char *port) {
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
+	dprintf(DPRINTF_INFORMATIVE)("connect_tcp: called for host %s , "
+	    "port %s\n", host, port);
+
 	if ( (n = getaddrinfo(host, port, &hints, &res)) != 0) {
 
-		dprintf(DPRINTF_INFORMATIVE)("om_tcp_init: error on address "
+		dprintf(DPRINTF_INFORMATIVE)("connect_tcp: error on address "
 		    "of remote host %s, %s: %s\n", host, port,
 		    gai_strerror(n));
 
@@ -221,7 +265,7 @@ connect_tcp(const char *host, const char *port) {
 	};
 
 	if (res == NULL) {
-		dprintf(DPRINTF_INFORMATIVE)("om_tcp_init: error connecting "
+		dprintf(DPRINTF_INFORMATIVE)("connect_tcp: error connecting "
 		    "to remote host %s, %s\n", host, port);
 		freeaddrinfo(ressave);
 		return (-1);

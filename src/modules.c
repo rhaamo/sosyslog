@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.145 2001/01/31 19:48:44 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.146 2001/02/16 00:34:52 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -245,7 +245,7 @@ get_symbol(const char *modname, const char *funcname, void *h, void **ret) {
 	}
 
 	dprintf(DPRINTF_INFORMATIVE)("get_symbol: func %s%s found %p\n", buf,
-	     *ret ? "":"not ", *ret);
+	     *ret ? "":" not", *ret);
 
 	if (*ret == NULL && h && ( (*ret = dlsym(h, buf)) == NULL &&
 	    (*ret = dlsym(h, buf + 1)) == NULL) ) {
@@ -632,8 +632,6 @@ addImodule(char *name)
 
 	/* this is not mandatory */
 	get_symbol(buf, "close", im->h, (void *) &im->im_close); 
-	get_symbol(buf, "set", im->h, (void *) &im->im_set); 
-	get_symbol(buf, "check", im->h, (void *) &im->im_check); 
 
 	im->im_name = strdup(name);
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.90 2001/02/08 18:01:52 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.91 2001/02/16 00:34:52 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -154,8 +154,6 @@ struct imodule {
 	int	(*im_init) (struct i_module *, char **, int);
 	int	(*im_read) (struct i_module *, int, struct im_msg *);
 	int	(*im_close) (struct i_module *); /* close input, optional */
-	int	(*im_set) (struct i_module *, fd_set *); /* extra fds, opt */
-	int	(*im_check) (struct i_module *, fd_set *); /* extra fds, opt */
 	void	*h;  /* handle to open dynamic library */
 };
 
