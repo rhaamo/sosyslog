@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.36 2000/06/06 00:32:39 fgsch Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.37 2000/06/06 00:35:14 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -108,7 +108,8 @@ om_peo_doLog(f, flags, msg, ctx)
 		    strerror(errno));
 		return (-1);
 	}
-	bzero(key, 41);
+
+	bzero(key, sizeof(key));
 	if ( (keylen = read(fd, key, 40)) == -1) {
 		close(fd);
 		dprintf ("reading form: %s: %s\n", c->keyfile, strerror(errno));
