@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.61 2000/05/15 20:57:00 alejo Exp $
+/*	$Id: syslogd.c,v 1.62 2000/05/15 21:08:44 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -127,7 +127,7 @@ void    doLog __P((struct filed *, int, char *));
 void    init __P((int));
 void    logerror __P((char *));
 void    logmsg __P((int, char *, char *, int));
-void    printline __P((char *, char *));
+void    printline __P((char *, char *, int));
 void    reapchild __P((int));
 void    usage __P((void));
 
@@ -323,9 +323,11 @@ printline(hname, msg, flags)
 	if (pri &~ (LOG_FACMASK|LOG_PRIMASK))
 		pri = DEFUPRI;
 
+#ifndef INSECURE_KERNEL_INPUT
 	/* don't allow users to log kernel messages */
 	if (LOG_FAC(pri) == LOG_KERN && !(flags & IMODULE_FLAG_KERN))
 		pri = LOG_MAKEPRI(LOG_USER, LOG_PRI(pri));
+#endif
 
 	q = line;
 
