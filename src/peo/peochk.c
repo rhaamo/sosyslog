@@ -1,4 +1,5 @@
-/*
+/*      $Id: peochk.c,v 1.7 2000/04/27 00:50:46 claudio Exp $
+ *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
  *
