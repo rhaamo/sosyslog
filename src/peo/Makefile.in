@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.21 2001/04/06 18:01:31 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.22 2001/04/28 01:52:18 alejo Exp $
 #
 # Copyright (c) 2001, Core SDI S.A., Argentina
 # All rights reserved
@@ -55,5 +55,8 @@ distclean: clean
 	-rm -f Makefile
 
 install:
+	@if [ ! -d $(INSTALL_DIR) ]; then \
+		$(INSTALL) -d $(INSTALL_DIR); \
+	fi
 	-$(INSTALL) ${PROG} $(INSTALL_DIR)
 
