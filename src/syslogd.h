@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.47 2000/05/26 18:38:12 fgsch Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.48 2000/05/29 19:11:44 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -69,6 +69,9 @@
 #define	dprintf		if (Debug) printf
 
 #define MAXUNAMES	20	/* maximum number of user names */
+
+extern int	finet;		/* Internet datagram socket */
+extern int	LogPort;	/* port number for INET connections */
 
 /*
  * Flags to logmsg().

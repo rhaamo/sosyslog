@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.26 2000/05/26 22:00:58 fgsch Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.27 2000/05/27 02:04:00 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -58,9 +58,6 @@ void	wallmsg __P((struct filed *, struct iovec *));
 char   *ttymsg __P((struct iovec *, int, char *, int));
 
 extern time_t now;
-extern int      finet;                  /* Internet datagram socket */
-extern int      LogPort;                /* port number for INET connections */
-
 
 int
 om_classic_doLog(f, flags, msg, context)

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_mymodule.c,v 1.1 2000/05/27 02:03:59 alejo Exp $	*/
+/*	$CoreSDI: im_mymodule.c,v 1.2 2000/05/29 19:11:42 fgsch Exp $	*/
 
 /*
  * im_mymodule -- Give some description
@@ -14,10 +14,6 @@
 #include <syslog.h>
 #include "modules.h"
 #include "syslogd.h"
-
-extern int      finet;         /* Internet datagram socket */
-extern int      LogPort;       /* port number for INET connections */
-
 
 /* standard input module header variables in context */
 struct im_udp_ctx {

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.28 2000/05/27 02:04:00 alejo Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.29 2000/05/29 19:11:42 fgsch Exp $	*/
 
 /*
  * im_udp -- input from INET using UDP
@@ -22,10 +22,6 @@
 #include <unistd.h>
 #include "modules.h"
 #include "syslogd.h"
-
-extern int      finet;                  /* Internet datagram socket */
-extern int      LogPort;                /* port number for INET connections */
-
 
 /* standard input module header variables in context */
 struct im_udp_ctx {

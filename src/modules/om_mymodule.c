@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mymodule.c, alejo Exp $	*/
+/*	$CoreSDI: om_mymodule.c,v 1.1 2000/05/27 02:04:01 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -56,11 +56,6 @@
 
 /* current time from syslogd */
 extern time_t now;
-/* finet is the udp socket */
-extern int      finet;                  /* Internet datagram socket */
-/* LogPort is the udp port number, default is 514 */
-extern int      LogPort;                /* port number for INET connections */
-
 
 int
 om_mymodule_doLog(f, flags, msg, context)
