@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.32 2000/08/25 22:37:51 alejo Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.33 2000/09/04 23:43:45 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -54,7 +54,7 @@
 #include <syslog.h>
 #include <unistd.h>
 
-#include "syslogd.h"
+#include "../syslogd.h"
 
 
 #define	KSYM_TRANSLATE		0x01

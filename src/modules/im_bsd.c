@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.63 2000/08/25 22:37:51 alejo Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.64 2000/09/04 23:43:45 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -52,7 +52,7 @@
 #include <syslog.h>
 #include <unistd.h>
 
-#include "syslogd.h"
+#include "../syslogd.h"
 
 /*
  * initialize BSD input

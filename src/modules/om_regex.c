@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.17 2000/09/04 21:23:10 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.18 2000/09/04 23:43:45 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -51,8 +51,8 @@
 #include <unistd.h>
 #include <regex.h>
 
-#include "syslogd.h"
-#include "modules.h"
+#include "../syslogd.h"
+#include "../modules.h"
 
 /* current time from syslogd */
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.31 2000/07/04 18:56:39 alejo Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.32 2000/08/25 22:37:51 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -51,8 +51,8 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <syslog.h>
-#include "modules.h"
-#include "syslogd.h"
+#include "../modules.h"
+#include "../syslogd.h"
 
 /*
  * get message

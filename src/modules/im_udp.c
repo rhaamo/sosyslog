@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.40 2000/07/04 18:56:38 alejo Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.41 2000/08/25 22:37:51 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -52,8 +52,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "modules.h"
-#include "syslogd.h"
+#include "../modules.h"
+#include "../syslogd.h"
 
 /* standard input module header variables in context */
 struct im_udp_ctx {

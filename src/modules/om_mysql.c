@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.37 2000/08/25 22:37:51 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.38 2000/09/04 23:43:45 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -49,8 +49,8 @@
 #include <unistd.h>
 #include <mysql.h>
 #include "../config.h"
-#include "modules.h"
-#include "syslogd.h"
+#include "../modules.h"
+#include "../syslogd.h"
 #include "sql_misc.h"
 
 #define MAX_QUERY	8192
