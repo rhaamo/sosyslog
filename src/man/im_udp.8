@@ -1,4 +1,4 @@
-.\"	$CoreSDI: im_linux.8,v 1.11.2.1.4.3 2001/02/20 23:39:28 fgsch Exp $
+.\"	$CoreSDI: im_udp.8,v 1.1 2001/04/09 20:23:40 alejo Exp $
 .\"
 .\" Copyright (c) 2000, 2001
 .\"	Core-SDI SA. All rights reserved.
@@ -37,18 +37,13 @@
 input module for UDP network logging
 .Sh SYNOPSIS
 .Nm udp
-.Op Ar port
+.Op Fl a
+.Op Fl h Ar host
+.Op Fl p Ar port
 .Sh DESCRIPTION
 Listens on an UDP port for incoming log messages for the
 .Xr syslogd 8
-daemon. The options are:
-.Bl -tag -width Ds
-.It Ar port
-On which port to listen. Per default
-.Nm im_udp
-uses whatever getservbyname("syslog", "udp")
-returns, which in turn usually looks this up in
-.Pa /etc/services .
+daemon.
 .Sh EXAMPLES
 .Bl -bullet
 .It
@@ -59,7 +54,15 @@ daemon and logs UDP logging information coming in on the default port only:
 .Dl syslogd -i udp
 .Pp
 .It
-This does the same as above, but listens on port 1777 instead:
+This does the same as above, but listens on address local.example.com
+port 1777 instead:
+.Pp
+.Dl syslogd -h local.example.com -i udp:1777
+.El
+.Pp
+.Bl -bullet
+.It
+This does the same as above, but gets host name from message:
 .Pp
 .Dl syslogd -i udp:1777
 .El
@@ -67,6 +70,9 @@ This does the same as above, but listens on port 1777 instead:
 .Sh SEE ALSO
 .Xr syslog 2 ,
 .Xr syslog.conf 5 ,
+.Xr syslogd 8 ,
+.Xr im_tcp 8 ,
+.Xr om_udp 8 ,
 .Xr syslogd 8 ,
 .Xr services 5
 .Sh BUGS

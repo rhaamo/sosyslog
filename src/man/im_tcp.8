@@ -1,4 +1,4 @@
-.\"	$CoreSDI: im_tcp.8,v 1.4 2001/05/23 23:18:46 alejo Exp $
+.\"	$CoreSDI: im_tcp.8,v 1.5 2001/06/13 22:32:54 alejo Exp $
 .\"
 .\" Copyright (c) 2001
 .\"	Core-SDI SA. All rights reserved.
@@ -37,8 +37,9 @@
 input module used to receive from tcp connections
 .Sh SYNOPSIS
 .Nm tcp
-.Op Ar <host>
-.Op Ar port
+.Op Fl a
+.Op Fl h Ar host
+.Op Fl p Ar port
 .Sh DESCRIPTION
 .Nm tcp input module 
 allows
@@ -63,6 +64,12 @@ addresses port 3210:
 .Pp
 .Dl syslogd -i 'tcp 3210'
 .El
+.Bl -bullet
+.It
+The following is the same as the previous, but extracts the host name
+from the message:
+.Pp
+.Dl syslogd -a -i 'tcp machinename.somedomainexample.com 3210'
 .Pp
 .Sh BUGS
 .Bl -bullet

@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_tcp.8,v 1.2 2001/03/07 21:35:13 alejo Exp $
+.\"	$CoreSDI: om_tcp.8,v 1.3 2001/04/24 15:21:04 alejo Exp $
 .\"
 .\" Copyright (c) 2001
 .\"	Core-SDI SA. All rights reserved.
@@ -38,21 +38,22 @@ output module
 output module used to forward messages to remote hosts through TCP
 .Sh SYNOPSIS
 .Nm tcp
+.Op Fl a
 .Op Fl h Ar host
 .Op Fl p Ar port
 .Op Fl m Ar seconds
 .Op Fl s Ar buffer_size
 .Sh DESCRIPTION
 .Nm tcp
-output module forwards messages to remote hosts trhoug a TCP connection
-.Ar exp
-matches given field of a log.
+output module forwards messages to remote hosts trhoug a TCP connection.
 .Sh EXAMPLES
 .Bd -literal
 # Send all logs to host loghost.somedomainexample.com port 3210
 # with a maximum retry limit of 30 seconds and a buffer for lost
 # messages of 8192 characters
 *.* %tcp -h loghost.somedomainexample.com -p 3210  -m 30 -s 8192
+# Same, but add host to message string (with -a)
+*.* %tcp -a -h loghost.somedomainexample.com -p 3210  -m 30 -s 8192
 .Ed
 .Sh BUGS
 .Bl -bullet
