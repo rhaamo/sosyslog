@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.59 2000/05/12 22:23:43 alejo Exp $
+/*	$Id: syslogd.c,v 1.60 2000/05/12 23:49:54 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -281,7 +281,6 @@ main(argc, argv)
 		       printline(log->host, log->msg);
 		       if (log->host != NULL) free(log->host);
 		       if (log->msg != NULL) free(log->msg);
-		       free(log->msg);
 		   }
 		}
 
