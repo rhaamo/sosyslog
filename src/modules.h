@@ -66,8 +66,9 @@ struct i_module {
 	struct	i_module *im_next;
 	short	im_type;
 	int	fd;	/*  for use with select() */
+	char	*im_name;
+	char	*im_arg;
 	struct  im_header_ctx	*context;
-	char	* im_name;
 };
 
 /*

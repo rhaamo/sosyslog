@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.43 2000/04/28 23:17:35 alejo Exp $
+/*	$Id: modules.c,v 1.44 2000/05/03 18:30:13 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -116,18 +116,26 @@ modules_load()
 
 /* assign module functions to generic pointer */
 int
-modules_init (I, inputs)
+modules_init (I, args)
 	struct i_module **I;
-	int		inputs;
+	char	*arg
 {
 	/* create initial node for Inputs list */
 	*I = (struct i_module *) calloc(sizeof(struct i_module), 1);
 	(*I)->fd = -1;
 
 	*I = (struct i_module *) calloc(1, sizeof(struct i_module));
-	if (inputs & IM_BSD)
-	    if (im_bsd_init(*I) < 0)
-	if (inputs & IM_UNIX)
+	if (strncmp(args, "bsd", 3) {
+	    if (im_bsd_init(*I, argv, argc) < 0)
+	        die(0);
+	}
+
+	if (strncmp(args, "unix", 4) {
+	    if (im_unix_init(*I, argv, argc) < 0)
+	        die(0);
+	}
+
+	if (inputs & IM_UNIX_INIT)
 	    if (im_unix_init(*I) < 0) {
 	        die(0);
        	    }

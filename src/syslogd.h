@@ -1,4 +1,4 @@
-/*	$Id: syslogd.h,v 1.34 2000/04/28 23:17:36 alejo Exp $
+/*	$Id: syslogd.h,v 1.35 2000/05/03 18:30:14 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -173,6 +173,13 @@ int imodule_create(char *c, struct filed *, char *);
 #define IM_PIPE		3
 #define IM_UDP		4
 #define IM_TCP		5
+
+#define IM_BSD_INIT	 1
+#define IM_SYSV_INIT	 2
+#define IM_UNIX_INIT	 4
+#define IM_PIPE_INIT	 8
+#define IM_UDP_INIT	16
+#define IM_TCP_INIT	32
 
 /* values for integrity facilities */
 #define I_NONE		0

@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.54 2000/04/29 01:18:57 alejo Exp $
+/*	$Id: syslogd.c,v 1.55 2000/05/03 18:30:13 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -162,23 +162,21 @@ main(argc, argv)
 		case 'u':		/* allow udp input port */
 			SecureMode = 0;
 			break;
-		case 'i':		/* BSD-like input (AF_LOCAL socket) */
-			if (strstr(optarg, "bsd") != NULL) 
-				inputs |= IM_BSD;
-			if (strstr(optarg, "unix") != NULL) 
-				inputs |= IM_UNIX;
-#if 0
-			if (ststr(optarg, "sysv") != NULL)
-				inputs |= IM_SYSV;
-#endif
-			break;
+		case 'i':		/* non AF_UNIX/pipe inputs */
+			if (modules_init(&Inputs, optarg) < 0)
+				exit(-1);
 		case 'a':		/* additional AF_UNIX socket name */
-			if (nfunix < MAXFUNIX)
-				funixn[nfunix++] = optarg;
-			else
+			if (optarg != NULL) {
+			    char buf[512];
+
+			    snprintf(buf, 512, "unix %s", optarg); 
+			    if (modules_init(&Inputs, buf) < 0) {
 				fprintf(stderr,
 				    "syslogd: out of descriptors, ignoring %s\n",
 				    optarg);
+			        exit(-1);
+			    }
+			}
 			break;
 		case '?':
 		default:
@@ -195,10 +193,6 @@ main(argc, argv)
 	/* assign functions and init input */
 	if (modules_load() < 0) {
 		dprintf("Error loading modules\n");
-		exit(-1);
-	}
-	if (modules_init(&Inputs, inputs) < 0) {
-		dprintf("Error initializing modules\n");
 		exit(-1);
 	}
 

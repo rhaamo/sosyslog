@@ -1,4 +1,4 @@
-/*      $Id: im_unix.c,v 1.8 2000/04/28 00:12:23 alejo Exp $
+/*      $Id: im_unix.c,v 1.9 2000/05/03 18:30:12 alejo Exp $
  *  im_unix -- classic behaviour module for BDS like systems
  *      
  * Author: Alejo Sanchez for Core-SDI SA
@@ -27,10 +27,6 @@
 char   *cvthname __P((struct sockaddr_in *));
 void    logerror __P((char *));
 
-
-extern int nfunix;
-extern char *funixn[];
-extern int funix[];
 
 /*
  * get messge
@@ -79,33 +75,34 @@ im_unix_getLog(im, ret)
 
 
 int
-im_unix_init(I)
+im_unix_init(I, arg)
 	struct i_module *I;
+	char *arg;
 {
 	int i;
 	char line[MAXLINE + 1];
 	struct sockaddr_un sunx;
 
+	if (I == NULL)
+	    return(-1);
+
 #ifndef SUN_LEN
 #define SUN_LEN(unp) (strlen((unp)->sun_path) + 2)
 #endif
-	for (i = 0; i < nfunix; i++) {
-		(void)unlink(funixn[i]);
+	(void) unlink(I->fd);
 
-		memset(&sunx, 0, sizeof(sunx));
-		sunx.sun_family = AF_UNIX;
-		(void)strncpy(sunx.sun_path, funixn[i], sizeof(sunx.sun_path));
-		funix[i] = socket(AF_UNIX, SOCK_DGRAM, 0);
-		if (funix[i] < 0 ||
-		    bind(funix[i], (struct sockaddr *)&sunx, SUN_LEN(&sunx)) < 0 ||
-		    chmod(funixn[i], 0666) < 0) {
-			(void) snprintf(line, sizeof line, "cannot create %s",
-			    funixn[i]);
-			logerror(line);
-			dprintf("cannot create %s (%d)\n", funixn[i], errno);
-			if (i == 0)
-				return (-1);
-		}
+	memset(&sunx, 0, sizeof(sunx));
+	sunx.sun_family = AF_UNIX;
+	(void)strncpy(sunx.sun_path, arg, sizeof(sunx.sun_path));
+	I->fd = socket(AF_UNIX, SOCK_DGRAM, 0);
+	if (I->fd < 0 ||
+	    bind(I->fd, (struct sockaddr *)&sunx, SUN_LEN(&sunx)) < 0 ||
+	    chmod(I->fd, 0666) < 0) {
+		(void) snprintf(line, sizeof line, "cannot create %s",
+		    I->fd);
+		logerror(line);
+		dprintf("cannot create %s (%d)\n", I->fd, errno);
+		return (-1);
 	}
 	return(1);
 }
