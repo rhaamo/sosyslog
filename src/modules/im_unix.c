@@ -1,4 +1,4 @@
-/*
+/*      $Id: im_unix.c,v 1.7 2000/04/27 19:05:26 alejo Exp $
  *  im_unix -- classic behaviour module for BDS like systems
  *      
  * Author: Alejo Sanchez for Core-SDI SA
@@ -98,36 +98,9 @@ im_unix_init(I)
 
 
 
-/*
- * Return a printable representation of a host address.
- */
-char *
-cvthname(f)
-	struct sockaddr_in *f;
+int
+im_unix_close(im)
+	struct i_module *im;
 {
-	struct hostent *hp;
-	sigset_t omask, nmask;
-	char *p;
-
-	dprintf("cvthname(%s)\n", inet_ntoa(f->sin_addr));
-
-	if (f->sin_family != AF_INET) {
-		dprintf("Malformed from address\n");
-		return ("???");
-	}
-	sigemptyset(&nmask);
-	sigaddset(&nmask, SIGHUP);
-	sigprocmask(SIG_BLOCK, &nmask, &omask);
-	hp = gethostbyaddr((char *)&f->sin_addr,
-	    sizeof(struct in_addr), f->sin_family);
-	sigprocmask(SIG_SETMASK, &omask, NULL);
-	if (hp == 0) {
-		dprintf("Host name for your address (%s) unknown\n",
-			inet_ntoa(f->sin_addr));
-		return (inet_ntoa(f->sin_addr));
-	}
-	if ((p = strchr(hp->h_name, '.')) && strcmp(p + 1, LocalDomain) == 0)
-		*p = '\0';
-	return (hp->h_name);
+	return(close(im->fd));
 }
-

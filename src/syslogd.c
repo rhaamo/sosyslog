@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.48 2000/04/27 17:27:00 gera Exp $
+/*	$Id: syslogd.c,v 1.49 2000/04/27 19:05:27 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -870,3 +870,4 @@ decode(name, codetab)
 
 	return (-1);
 }
+
