@@ -30,3 +30,4 @@ Libraries
 
 You must specify all needed libraries in "src/modules_libs.c".
 
+For more information join our developer list (see INSTALL).
