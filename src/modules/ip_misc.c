@@ -1,4 +1,4 @@
-/*	$CoreSDI: ip_misc.c,v 1.5 2001/03/14 21:37:38 alejo Exp $	*/
+/*	$CoreSDI: ip_misc.c,v 1.6 2001/03/15 16:15:35 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -258,19 +258,22 @@ connect_tcp(const char *host, const char *port) {
 
 int
 listen_tcp(const char *host, const char *port, socklen_t *addrlenp) {
-	int fd, n;
+	int fd, n, r;
 	struct sockaddr *sa;
 
 	if ( (sa = resolv_name(host, port, addrlenp)) == NULL)
 		return (-1);
 
 	n = TCP_KEEPALIVE;
+	r = 1;
 
 	if ( (fd = socket(sa->sa_family, SOCK_STREAM, 0)) > -1 )
 
 		if ( (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &n,
-		    sizeof(n)) != 0) || (bind(fd, sa, *addrlenp) != 0)
-		    || (listen(fd, LISTENQ) != 0) ) {
+		    sizeof(n)) != 0) || (setsockopt(fd, SOL_SOCKET,
+		    SO_REUSEADDR, &r, sizeof(r)) != 0) ||
+		    (bind(fd, sa, *addrlenp) != 0) ||
+		    (listen(fd, LISTENQ) != 0) ) {
 			close(fd); /* couldn't set option or connect */
 			fd = -1;
 		}
