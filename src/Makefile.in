@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.29 2000/08/31 21:51:02 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.30 2000/08/31 23:00:47 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -78,7 +78,7 @@ install-prog:
 	@if [ -f "$(INSTALL_DIR)/$(PROG)" ]; then \
 		mv "$(INSTALL_DIR)/$(PROG)" "$(INSTALL_DIR)/$(PROG).old"; \
 	fi
-	$(INSTALL) $(PROG) $(INSTALL_DIR) ;
+	$(INSTALL) -s $(PROG) $(INSTALL_DIR) ;
 
 install: install-prog
 	@echo -e \
