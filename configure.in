@@ -1,4 +1,4 @@
-dnl $Id: configure.in,v 1.156 2002/11/25 17:03:56 alejo Exp $
+dnl $Id: configure.in,v 1.157 2003/04/04 18:37:27 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)
 AC_CONFIG_HEADER(src/config.h)
@@ -431,10 +431,12 @@ AC_ARG_WITH(queue,
 		MSRCS="$MSRCS om_queue.c om_directory.c"
 		MANPAGES="$MANPAGES om_directory.8"
 	fi
-],[
-		MSRCS="$MSRCS om_queue.c om_directory.c"
-		MANPAGES="$MANPAGES om_directory.8"
-])
+]
+dnl ,[
+dnl		MSRCS="$MSRCS om_queue.c om_directory.c"
+dnl		MANPAGES="$MANPAGES om_directory.8"
+dnl ]
+)
 
 AC_ARG_WITH(refract,
 [  --without-refract
