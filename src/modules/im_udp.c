@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.46 2000/10/31 19:42:14 alejo Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.47 2000/11/01 18:18:03 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -45,15 +45,15 @@
 
 #include <netinet/in.h>
 #include <errno.h>
-#include <netdb.h>
 #include <syslog.h>
+#include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-#include "../modules.h"
 #include "../syslogd.h"
+#include "../modules.h"
 
 
 /*

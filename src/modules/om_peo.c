@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.52 2000/10/31 19:42:14 alejo Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.53 2000/11/01 18:18:03 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -44,7 +44,9 @@
 #include <sys/param.h>
 
 #include <ctype.h>
+#if !((__sysvr4__ && __sun__) || sgi)
 #include <err.h>
+#endif
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -52,6 +54,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <syslog.h>
+#include <strings.h>
 
 #include "../syslogd.h"
 #include "../modules.h"
