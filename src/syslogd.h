@@ -94,6 +94,7 @@ struct im_header {
 #define M_FLAG_INITIALIZED 0x1
 #define M_FLAG_ERROR 0x2
 	int	size;
+	int	fd;	/*  for use with select() */
 };
 
 /*
@@ -148,8 +149,7 @@ struct	OModules {
 struct IModules {
 	char	*im_name;
 	short	im_type;
-	int	fd;      			/*  for use with select() */
-	int	(*im_getmsg) (char *, int); 	/* buf, bufsize */ 
+	int	(*im_getmsg) (char *, int, struct im_header); 	/* buf, bufsize */ 
 	int	(*im_init) (int, char **, struct im_header **);
 	int	(*im_close) (struct im_header *);
 } IModules[MAX_N_IMODULES];
