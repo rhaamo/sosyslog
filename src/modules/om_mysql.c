@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.73 2001/07/31 09:08:05 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.74 2001/08/01 04:16:18 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -356,8 +356,6 @@ om_mysql_close(struct filed *f, void *ctx)
 
 	(c->mysql_close)(c->h);
 
-	if (c->table)
-		free(c->table);
 	if (c->table)
 		free(c->table);
 	if (c->host)
