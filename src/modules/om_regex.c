@@ -1,4 +1,4 @@
-/*  $Id: om_regex.c,v 1.49 2002/10/01 19:37:39 alejo Exp $	*/
+/*  $Id: om_regex.c,v 1.50 2003/04/04 18:38:26 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -468,13 +468,16 @@ return (0);
 
           int ix;
 
+#warning FIX THIS
           strncpy(new_string, *non_subst++, MAXLINE+1);
 
           for(ix = 0 ; ix < no_subst ; ++ix) {
             char length = pmatch[*subexp_no].rm_eo - pmatch[*subexp_no].rm_so;
             char *start = string + pmatch[*subexp_no++].rm_so;
 
+#warning FIX THIS
             strncat(  new_string,  start,  min( length, MAXLINE+1 - strlen(new_string) )  );
+#warning FIX THIS
             strncat( new_string, *non_subst++, MAXLINE+1 - strlen(new_string) );
           }
 
@@ -487,6 +490,7 @@ return (0);
 
             case OM_FILTER_HOST:
               memset(f->f_prevhost, '\0', MAXHOSTNAMELEN);
+#warning FIX THIS
               strncpy(f->f_prevhost, new_string, MAXHOSTNAMELEN - 1);
           break;
           }
