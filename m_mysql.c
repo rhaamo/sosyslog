@@ -170,6 +170,7 @@ m_mysql_init(argc, argv, f, prog, c)
 			case 's':
 				/* get database host name and port */
 				if ((p = strstr(optarg, ":")) == NULL)
+#error Que es esto? atoi("MYSQL_PORT")==0, o no?
 					port = atoi("MYSQL_PORT");
 				else
 					port = atoi(++p);

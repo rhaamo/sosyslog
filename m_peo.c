@@ -39,14 +39,13 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: m_peo.c,v 1.4 2000/04/03 16:40:31 gera Exp $";
+static char rcsid[] = "$Id: m_peo.c,v 1.5 2000/04/03 16:44:18 gera Exp $";
 #endif /* not lint */
 
 /*
  *  m_peo -- peo autentication
  *
  * Author: Alejo Sanchez for Core-SDI SA
- *         form syslogd.c Eric Allman  and Ralph Campbell
  *
  */
 
