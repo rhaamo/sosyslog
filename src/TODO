@@ -1,4 +1,4 @@
-/*	$CoreSDI: TODO,v 1.18 2000/06/06 17:11:11 fgsch Exp $	*/
+/*	$CoreSDI: TODO,v 1.19 2000/06/06 18:12:48 gera Exp $	*/
 
 Things to do:
 
@@ -49,7 +49,9 @@ Check for buffer overflows, as we now may get things from the outside world.
   a signal should be used to stop this block
 - A script to generate a static_modules.h and set an array of structs there for
   each static module.
-- Improve om_filter so it can rewrite messages. maybe resend to input.
-  im_filter?
+- Improve om_filter so it can rewrite messages and resend to input.
 - Reconfiguing input modules on the fly (syslog -i "unix /dev/kklog" when
   syslog is already running)
+- Keep alive [remote] saying how many messages have been sent from the previous
+  keep alive
+- optimizar el peochk (readline)
