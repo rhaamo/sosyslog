@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_mysql.8,v 1.18 2001/10/18 20:32:35 alejo Exp $
+.\"	$CoreSDI: om_mysql.8,v 1.19 2001/10/18 21:19:12 alejo Exp $
 .\"
 .\" Copyright (c) 2001
 .\"	Core-SDI SA. All rights reserved.
@@ -43,6 +43,8 @@ output module used to log on MySQL servers
 .Op Fl p Ar password
 .Op Fl d Ar database
 .Op Fl t Ar table
+.Op Fl F
+.Op Fl P
 .Sh DESCRIPTION
 .Nm MySQL output module 
 receives a message as an ascii string and logs it on a MySQL server. For
@@ -64,16 +66,22 @@ The database name to use on the specified MySQL server.
 The table name to use on the specified MySQL database.
 .It Fl D
 Do DELAYED inserts. See your MySQL documentation.
+.It Fl F
+Insert the facility level on the table on a field named "facility"
+.It Fl P
+Insert the priority level on the table on a field named "priority"
 .Sh EXAMPLES
 The table should have a format like this:
 .Pp
 .Bd -literal
   CREATE TABLE syslogTB (
+    facility tinyint default 0,    # OPTIONAL field for facility
+    priority tinyint default 0,    # OPTIONAL field for priority
     date date,           # date of this log message
     time time,           # time of this message
     host varchar(128),   # host logging
     message  text,        # message
-    seq  bigint auto_increment primary key # optional sequence number
+    seq  int unsigned auto_increment primary key # optional sequence number
   ); 
 .Ed
 .Pp
