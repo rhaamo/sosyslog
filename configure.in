@@ -418,18 +418,31 @@ if test $PEO = "yes" ; then
 	fi
 fi
 
+AC_ARG_WITH(queue,
+[  --without-queue
+	Use directory output module. Activated by default.
+],[
+	if test $with_queue = "yes" ; then
+		MSRCS="$MSRCS om_directory.c om_queue.c"
+		MANPAGES="$MANPAGES om_directory.8"
+	fi
+],[
+	MSRCS="$MSRCS om_directory.c om_queue.c"
+	MANPAGES="$MANPAGES om_directory.8"
+])
+
 AC_ARG_WITH(regex,
 [  --without-regex
 	Use regex pattern matching output module. Activated by default.
 ],[
 	if test $with_regex = "yes" ; then
-		MSRCS="$MSRCS om_regex.c"
-		MANPAGES="$MANPAGES om_regex.8"
+		MSRCS="$MSRCS om_regex.c om_refract.c"
+		MANPAGES="$MANPAGES om_regex.8 om_refract.8"
 	fi
 ],[
 	AC_CHECK_HEADER(regex.h, [
-		MSRCS="$MSRCS om_regex.c"
-		MANPAGES="$MANPAGES om_regex.8"
+		MSRCS="$MSRCS om_regex.c om_refract.c"
+		MANPAGES="$MANPAGES om_regex.8 om_refract.8"
 	])dnl
 ])
 

@@ -1,4 +1,4 @@
-$Id: AUTHORS,v 1.2 2001/10/18 20:32:35 alejo Exp $
+$Id: AUTHORS,v 1.3 2002/08/13 20:15:05 phreed Exp $
 
 We are probably omiting some authors. If you know about them, please notify
 developers by mail at core.devel.alat@corest.com
@@ -15,6 +15,6 @@ Claudio Castiglia (claudio@corest.com) did makefile work
 The Core-SDI consulting project did security audit for msyslog 1.0
 
 Current ALAT project (msyslog, auditd, etc.) coordinator is Federico Schwindt,
-msyslog mantainer is Alejo Sanchez, and audit mantainer/developer is
-Claudio Castiglia.
+msyslog maintainer is Alejo Sanchez, and audit maintainer/developer is Claudio Castiglia.
+Fredrick Paul Eisele (phreed@netarx.com) added modules refract, directory, and maintenance.
 
