@@ -90,24 +90,41 @@ m_mysql_doLog(f, flags, msg, context)
 	struct m_header *context;
 {
 	struct m_mysql_ctx *c;
+	char	*dummy, *y, *m, *d, *h;
+
+	if (f == NULL)
+		return (-1);
+
+	/* this module doesn't cache */
+	if (msg == NULL)
+		return(0);
 
 	c = (struct m_mysql_ctx *) context;
 	memset(c->query, 0, MAX_QUERY);
-	msgbuf = (char *) calloc(1, strlen(msg + 1));
 
-	/* get args names */
+	/* get date and time */
 
-	if (snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s VALUES('%s', '%s',
+	/* mysql needs 2000-01-25 like format */
+	dummy = strdup(f->f_lasttime);
+	*(dummy + 3)  = '\0'; *(dummy + 6)  = '\0';
+	*(dummy + 15) = '\0'; *(dummy + 20) = '\0';
+	m = dummy;
+	d = dummy + 4;
+	h = dummy + 7;
+	y = dummy + 16;
+
+	/* table, YYYY-Mmm-dd, hh:mm:ss, host, programname,  msg  */ 
+	if (snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s VALUES('%s-%s-%s', '%s',
 			'%s', '%s', '%s', '%s",
-			c->table, date, time, host, progname, pid, msg) == MAX_QUERY - 2 ) {
+			c->table, y, m, d, h, f->f_prevhost, msg) == MAX_QUERY - 2 ) {
 		/* force termination if msg filled the buffer */
 		c->query[MAX_QUERY - 2] = '\'';
 		c->query[MAX_QUERY - 1] = ')';
 		c->query[MAX_QUERY]     = '\0';
 	}
 
+	free(dummy);
 	return (mysql_query(c->h, c->query));
-
 }
 
 
@@ -142,7 +159,7 @@ m_mysql_init(argc, argv, f, prog, c)
 	struct m_mysql_ctx	*context;
 	int	i;
 
-	if (argv == NULL || *argv == NULL || argc == 0 || f == NULL ||
+	if (argv == NULL || *argv == NULL || argc < 2 || f == NULL ||
 			prog == NULL || c == NULL)
 		return (-1);
 
@@ -279,6 +296,7 @@ m_mysql_flush(f, context)
 	struct filed *f;
 	void *context;
 {
-	return (-1);
+	/* this module doesn't need to "flush" data */
+	return (0);
 }
 
