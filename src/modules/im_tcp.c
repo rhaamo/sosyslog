@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.26 2001/09/19 17:54:51 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.27 2001/09/20 01:07:09 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -92,6 +92,8 @@ struct im_tcp_ctx {
 };
 
 #define	M_USEMSGHOST	0x01
+#define	M_NOTFQDN	0x02
+
 
 void printline(char *, char *, size_t, int);
 int listen_tcp(char *host, char *port, socklen_t *);
@@ -130,7 +132,7 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 #ifdef HAVE_OPTRESET
 	optreset = 1;
 #endif
-	while ((ch = getopt(argc, argv, "h:p:a")) != -1) {
+	while ((ch = getopt(argc, argv, "h:p:aq")) != -1) {
 		switch (ch) {
 		case 'h':
 			/* get addr to bind */
@@ -142,6 +144,10 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 			break;
 		case 'a':
 			c->flags |= M_USEMSGHOST;
+			break;
+		case 'q':
+			/* don't use domain in hostname (FQDN) */
+			c->flags |= M_NOTFQDN;
 			break;
 		default:
 			dprintf(MSYSLOG_SERIOUS, "om_tcp_init: parsing error"
@@ -341,6 +347,13 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 				strncpy(ret->im_host, con->name,
 				    sizeof(ret->im_host) - 1);
 				ret->im_host[sizeof(ret->im_host) - 1] = '\0';
+			}
+
+			if (c->flags & M_NOTFQDN) {
+				char	*dot;
+
+				if ((dot = strchr(ret->im_host, '.')) != NULL)
+					*dot = '\0';
 			}
 
 			printline(ret->im_host, p,  strlen(p),  0);

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.66 2001/09/19 16:02:55 alejo Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.67 2001/09/20 01:11:42 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -68,6 +68,7 @@ struct im_udp_ctx {
 };
 
 #define M_USEMSGHOST	0x01
+#define M_NOTFQDN	0x02
 
 /* prototypes */
 struct sockaddr *resolv_name(char *, char *, char *, socklen_t *);
@@ -152,6 +153,13 @@ im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 
 	ret->im_host[sizeof(ret->im_host) - 1] = '\0';
 
+	if (c->flags & M_NOTFQDN) {
+		char     *dot;
+
+		if ((dot = strchr(ret->im_host, '.')) != NULL)
+			*dot = '\0';
+	}
+
 	return (1);
 }
 
@@ -182,7 +190,7 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 #ifdef HAVE_OPTRESET
 	optreset = 1;
 #endif
-	while ((ch = getopt(argc, argv, "h:p:a")) != -1) {
+	while ((ch = getopt(argc, argv, "h:p:aq")) != -1) {
 		switch (ch) {
 		case 'h':
 			/* get addr to bind */
@@ -194,6 +202,10 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 			break;
 		case 'a':
 			c->flags |= M_USEMSGHOST;
+			break;
+		case 'q':
+			/* dont use domain in hostname (FQDN) */
+			c->flags |= M_NOTFQDN;
 			break;
 		default:
 			dprintf(MSYSLOG_SERIOUS, "om_udp_init: parsing error"
