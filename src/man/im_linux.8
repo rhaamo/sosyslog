@@ -1,4 +1,4 @@
-.\"	$CoreSDI: im_linux.8,v 1.1 2000/06/09 21:30:04 claudio Exp $
+.\"	$CoreSDI: im_linux.8,v 1.2 2000/06/12 18:25:14 claudio Exp $
 .\"
 .\" Copyright (c) 2000
 .\"	Core-SDI SA. All rights reserved.
@@ -81,6 +81,9 @@ from modules installed after syslogd(8) being a daemon are not
 recognized.
 .It
 \fBs\fP option is not supported yet.
+.It
+If you specify a kernel symbol table file other than /proc/ksyms,
+module symbols translation are not done.
 .It
 If you found bugs, please report them to syslog-bugs@core-sdi.com
 .El
