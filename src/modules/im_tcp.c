@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.4 2001/02/16 20:12:29 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.5 2001/02/19 22:08:01 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -195,6 +195,7 @@ im_tcp_read(struct i_module *im, int index, struct im_msg *ret)
 		con->fd  = fd;
 		con->cliaddr  = cliaddrp;
 		con->addrlen  = slen;
+		con->index    = count + 1;
 
 		if (getnameinfo((struct sockaddr *) con->cliaddr, con->addrlen,
 		    con->name, sizeof(con->name) - 1, NULL, 0, 0) != 0) {
@@ -210,7 +211,7 @@ im_tcp_read(struct i_module *im, int index, struct im_msg *ret)
 		    " %s with fd %d\n", con->name, con->fd);
 
 		/* add to inputs list */
-		add_fd_input(con->fd , im, ++count);
+		add_fd_input(con->fd , im, con->index);
 
 		return (0); /* 0 because there is no line to log */
 
@@ -218,13 +219,14 @@ im_tcp_read(struct i_module *im, int index, struct im_msg *ret)
 
 	/* read connected socket */
 
-	dprintf(DPRINTF_INFORMATIVE)("im_tcp: readding connection index %d\n",
+	dprintf(DPRINTF_INFORMATIVE)("im_tcp_read: readding connection index %d\n",
 	    index);
 
 	/* find connection */
-	for (con = &c->conns; con && con->index != index; con = con->next);
+	for (con = &c->conns; con && con->index != index; con = con->next)
+printf("* skipped %d %d %p %p %d %s *\n", con->fd, con->index, con->next, con->cliaddr, con->addrlen, con->name);
 	if (con == NULL || con->index != index) {
-		dprintf(DPRINTF_SERIOUS)("im_tcp: no such connection "
+		dprintf(DPRINTF_SERIOUS)("im_tcp_read: no such connection "
 		    "index %d !\n", index);
 		return (-1);
 	}

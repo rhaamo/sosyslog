@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_tcp.c,v 1.2 2001/02/16 00:34:52 alejo Exp $	*/
+/*	$CoreSDI: om_tcp.c,v 1.3 2001/02/19 21:29:56 alejo Exp $	*/
 /*
      Copyright (c) 2000, Core SDI S.A., Argentina
      All rights reserved
@@ -175,20 +175,19 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 
 	/* if not connected, reconnect ! */
 	if ( !f->f_file && (f->f_file = connect_tcp(c->host, c->port)) < 0) {
-		dprintf(DPRINTF_CRITICAL)("om_tcp_init: "
-		    "error connecting to remote host %s, "
+		dprintf(DPRINTF_CRITICAL)("om_tcp_write: "
+		    "error re-connecting to remote host %s, "
 		    "%s\n", c->host, c->port);
 		return (-1);
 	}
 
 	strftime(time_buf, sizeof(time_buf), "%b %d %H:%M:%S", &f->f_tm);
-	dprintf(DPRINTF_INFORMATIVE)(" %s\n", c->host);
 
 	/* we give a newline termination, unlike UDP, to difference lines */
 	l = snprintf(line, sizeof(line), "<%d>%.15s %s\n", f->f_prevpri,
 	    time_buf, msg);
 
-	dprintf(DPRINTF_INFORMATIVE)("om_tcp_write: sending to %s, %s]",
+	dprintf(DPRINTF_INFORMATIVE)("om_tcp_write: sending to %s, %s\n",
 	    c->host, line);
 
 	if (write(f->f_file, line, l) != l) {

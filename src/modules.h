@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.39 2001/01/27 01:04:18 alejo Exp $	*/
+/*	$CoreSDI: modules.h,v 1.40 2001/02/08 18:01:52 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -59,7 +59,6 @@ struct i_module {
 	int	 im_flags;  /* 1 to 8 are reserved */
 #define IMODULE_FLAG_KERN	0x01
 #define IMODULE_FLAG_CONN	0x02
-	char	*im_name;
 	char	*im_path;
 	char	 im_buf[MAXLINE + 1];
 	void	*im_ctx;

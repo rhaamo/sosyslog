@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.146 2001/02/16 00:34:52 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.147 2001/02/19 21:29:56 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -103,6 +103,7 @@ modules_start() {
 	 * Load required libs
 	 */
 	for (i = 0; mlibs[i].mname; i++) {
+
 		if ((mlibs[i].h = dlopen(mlibs[i].libname, DLOPEN_FLAGS))
 		    == NULL) {
 			dprintf(DPRINTF_INFORMATIVE)("Error [%s] on file [%s],"
@@ -311,7 +312,7 @@ imodule_create(struct i_module *I, char *line)
 		    !strcmp(argv[0] + 3, mlibs[i].mname + 3) && !mlibs[i].h) {
 			dprintf(DPRINTF_SERIOUS)("imodule_create: library"
 			    " needed for module %s %s not loaded!\n",
-			    I->im_name, mlibs[i].mname);
+			    argv[0], mlibs[i].mname);
 			ret = -1;
 			goto imodule_create_bad;
 		}

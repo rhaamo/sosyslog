@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.91 2001/02/16 00:34:52 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.92 2001/02/19 21:29:56 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -150,7 +150,7 @@ struct omodule {
 
 struct imodule {
 	struct	imodule *im_next;
-	char   *im_name;
+	char	*im_name;
 	int	(*im_init) (struct i_module *, char **, int);
 	int	(*im_read) (struct i_module *, int, struct im_msg *);
 	int	(*im_close) (struct i_module *); /* close input, optional */

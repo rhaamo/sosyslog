@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.168 2001/02/17 01:14:20 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.169 2001/02/19 22:08:00 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.168 2001/02/17 01:14:20 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.169 2001/02/19 22:08:00 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -211,6 +211,8 @@ main(int argc, char **argv)
 	struct im_msg	   log;
 	struct sigaltstack alt_stack;
 	struct sigaction   sa;
+
+setbuf(stdout,NULL);
 
 	Inputs.im_next = NULL;
 	Inputs.im_fd = -1;
@@ -536,7 +538,7 @@ main(int argc, char **argv)
 					dprintf(DPRINTF_SERIOUS)("syslogd: "
 					    "Error calling input module %s, "
 					    "for fd %d\n",
-					    fd_inputs_mod[i]->im_name,
+					    fd_inputs_mod[i]->im_func->im_name,
 					    fd_inputs[i].fd);
 
 				} else if (val == 1)    /* log it */
@@ -1280,8 +1282,9 @@ add_fd_input(int fd, struct i_module *im, int index)
 		return (-1);
 	}
 
-	dprintf(DPRINTF_INFORMATIVE)("add_fd_input: adding %d for module"
-	    " %s\n", fd, im->im_name? im->im_name : "unknown");
+	dprintf(DPRINTF_INFORMATIVE)("add_fd_input: adding fd %d index %d "
+	    "for module %s\n", fd, index, im->im_func->im_name ?
+	    im->im_func->im_name : "unknown");
 
 	/* do we need bigger arrays? */
 	if (!fd_inputs || fd_in_count % 50 == 0) {
