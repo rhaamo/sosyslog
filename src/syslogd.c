@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.53 2000/04/28 23:17:35 alejo Exp $
+/*	$Id: syslogd.c,v 1.54 2000/04/29 01:18:57 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -163,18 +163,14 @@ main(argc, argv)
 			SecureMode = 0;
 			break;
 		case 'i':		/* BSD-like input (AF_LOCAL socket) */
-			if (!strstr(optarg, "bsd")) 
+			if (strstr(optarg, "bsd") != NULL) 
 				inputs |= IM_BSD;
-			if (!strstr(optarg, "unix")) 
+			if (strstr(optarg, "unix") != NULL) 
 				inputs |= IM_UNIX;
 #if 0
-			if (!ststr(optarg, "sysv"))
+			if (ststr(optarg, "sysv") != NULL)
 				inputs |= IM_SYSV;
 #endif
-			else {
-				dprintf("Wrong input params [%s]\n", optarg);
-				usage();
-			}
 			break;
 		case 'a':		/* additional AF_UNIX socket name */
 			if (nfunix < MAXFUNIX)
