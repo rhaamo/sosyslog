@@ -64,13 +64,13 @@ im_bsd_getLog(im, ret)
 	(void)strncat(ret->im_msg, ": ", 2);
 	lp = ret->im_msg + strlen(ret->im_msg);
 
-#error   CHECKEA cuando hay que usar im_buf y cuando im_msg
-#error   segun wari esto no funciona
+#error   im_len no queda con la longitud de im_msg total, queda con
+#error   los bytes que leyo del socket. Para que se usa im_len
 	i = read(im->im_fd, im->im_buf, sizeof(im->im_buf) - 1);
 	if (i > 0) {
 		(ret->im_buf)[i] = '\0';
 		ret->im_len = i;
-		for (p = ret->im_msg; *p != '\0'; ) {
+		for (p = ret->im_buf; *p != '\0'; ) {
 			/* fsync file after write */
 			ret->im_flags = SYNC_FILE | ADDDATE;
 			ret->im_pri = DEFSPRI;
@@ -88,7 +88,7 @@ im_bsd_getLog(im, ret)
 				ret->im_pri = DEFSPRI;
 			q = lp;
 			while (*p != '\0' && (c = *p++) != '\n' &&
-					q < &(ret->im_msg)[MAXLINE])
+					q < (ret->im_msg+sizeof ret->im_msg))
 				*q++ = c;
 			*q = '\0';
 			strncat(ret->im_host, LocalHostName, sizeof(ret->im_host) - 1);
