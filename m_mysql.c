@@ -152,56 +152,50 @@ m_mysql_init(argc, argv, f, prog, c)
 	struct m_header **c;
 {
 	MYSQL *h;
-	char	*host, *user, *passwd, *db, *ux_sock;
-	char	*table;
-	int	port, client_flag, createTable;
 	struct m_mysql_ctx	*context;
+	char	*host, *user, *passwd, *db, *table, *p;
+	int	port, client_flag, createTable;
 	int	ch, i;
 
 	if (argv == NULL || *argv == NULL || argc < 2 || f == NULL ||
 			prog == NULL || c == NULL)
 		return (-1);
 
-	p = *argv;
-	host = NULL; user = NULL; passwd = NULL;
-	db = NULL; ux_sock = NULL; port = 0;
 	client_flag = 0; createTable = 0;
 
 	/* parse line */
-	while ((ch = getopt(argc, argv, "s:u:p:b:t:c")) != -1)
-
-	switch (*p) {
-		case 's':
-			/* get database host name and port */
-			if ((c = strstr(optarg, ":") == NULL)
-				port = MYSQL_PORT;
-			else
-				port = atoi(++c);
-			host = strdup(optarg);
-			break;
-		case 'u':
-			user = strdup(optarg);
-			break;
+	while ((ch = getopt(argc, argv, "s:u:p:b:t:c")) != -1) {
+		switch (ch) {
+			case 's':
+				/* get database host name and port */
+				if ((p = strstr(optarg, ":")) == NULL)
+					port = atoi("MYSQL_PORT");
+				else
+					port = atoi(++p);
+				host = strdup(optarg);
 				break;
-		case 'p':
-			passwd = strdup(optarg);
-			break;
-		case 'b':
-			db = strdup(optarg);
-			break;
-		case 't':
-			table = strdup(optarg);
-			break;
-		case 'c':
-			createTable++;
-			break;
-		default:
-			return(-1);
+			case 'u':
+				user = strdup(optarg);
+				break;
+					break;
+			case 'p':
+				passwd = strdup(optarg);
+				break;
+			case 'b':
+				db = strdup(optarg);
+				break;
+			case 't':
+				table = strdup(optarg);
+				break;
+			case 'c':
+				createTable++;
+				break;
+			default:
+				return(-1);
 		}
 	}
 
-	if ( user == NULL || passwd == NULL || *db == NULL || 
-			ux_sock == NULL || port == 0)
+	if ( user == NULL || passwd == NULL || db == NULL || port == 0)
 		return (-3);
 
 	/* clean up the mess */
