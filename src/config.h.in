@@ -148,3 +148,6 @@
 #undef WORDS_BIGENDIAN
 
 #undef _GNU_SOURCE
+
+/* for Solaris */
+#undef _REENTRANT

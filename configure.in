@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.134 2001/05/23 23:13:54 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.135 2001/06/13 20:27:59 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -162,6 +162,7 @@ elif test "$UNAME" = "Linux" ; then
 	AC_DEFINE(_GNU_SOURCE, 1)
 elif test "$UNAME" = "SunOS" ; then
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
+	AC_DEFINE(_REENTRANT)dnl
 	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")dnl
 	SHARED_PARAMS="-G"
 	DCCFLAGS="-fPIC"
