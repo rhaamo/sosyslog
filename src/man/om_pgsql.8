@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_pgsql.8,v 1.3 2001/03/07 21:35:13 alejo Exp $
+.\"	$CoreSDI: om_pgsql.8,v 1.4 2001/07/27 19:09:00 alejo Exp $
 .\"
 .\" Copyright (c) 2001
 .\"	Core-SDI SA. All rights reserved.
@@ -79,18 +79,18 @@ The table should have a format like this:
 .Pp
 .Bd -literal
   CREATE TABLE syslogTB (
-    sdate date,           # date of this log message
-    stime time,           # time of this message
-    shost varchar(128),   # host logging
-    smsg  text            # message
+    date date,           # date of this log message
+    time time,           # time of this message
+    host varchar(128),   # host logging
+    msg  text            # message
 .Pp
   );
 .Ed
 .Pp
-The field names can be whatever you like. The type of fields
-.Va shost
+The field names should be resected. The type of fields
+.Va host
 and
-.Va smsg
+.Va msg
 can be any text format smaller than 128 and 1024 chars respectively.
 .Sh SEE ALSO
 .Xr syslogd 8 ,

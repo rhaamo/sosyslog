@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.42 2001/05/29 22:13:59 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.43 2001/05/29 23:59:04 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -148,10 +148,11 @@ om_pgsql_write(struct filed *f, int flags, char *msg, void *ctx)
 	}
 
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
-	i = snprintf(query, sizeof(query), "INSERT INTO %s"
-	    " VALUES('%.4d-%.2d-%.2d', '%.2d:%.2d:%.2d', '%s', '", c->table,
-	    f->f_tm.tm_year + 1900, f->f_tm.tm_mon + 1, f->f_tm.tm_mday,
-	    f->f_tm.tm_hour, f->f_tm.tm_min, f->f_tm.tm_sec, f->f_prevhost);
+        i = snprintf(query, sizeof(query), "INSERT %sINTO %s (date, time, "
+            "host, msg) VALUES('%.4d-%.2d-%.2d', '%.2d:%.2d:%.2d', '%s', '",
+            c->table, f->f_tm.tm_year + 1900, f->f_tm.tm_mon + 1,
+	    f->f_tm.tm_mday, f->f_tm.tm_hour, f->f_tm.tm_min, f->f_tm.tm_sec,
+	    f->f_prevhost);
 
 	if (c->lost) {
 		int pos = i;
