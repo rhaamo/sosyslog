@@ -1,4 +1,4 @@
-$Id: INSTALL,v 1.5 2000/08/22 19:43:38 alejo Exp $
+$Id: INSTALL,v 1.6 2000/08/24 20:23:10 alejo Exp $
 ==============================================================================
                          Modular Syslog package
                              INSTALL file
@@ -8,19 +8,14 @@ $Id: INSTALL,v 1.5 2000/08/22 19:43:38 alejo Exp $
 
   This file describes how to compile and install modular syslog.
 
-
-         ------- WARNING: THIS IS A PRE-RELEASE VERSION ---------
-
-  Altought this system has been tested for a while on several platforms,
-it still considered to be on a beta stage. If you are seriously considering
-using it on a exposed enviroment, wait for a release version.
-
-		
   Msyslog has been tested on the following platforms:
 
 	- OpenBSD 2.6, 2.7
 	- Linux RedHat 6.2
 	- Caldera OpenLinux 2.2
+
+  Arthur Korn made a package for Debian users. You can contact him by mail
+at: arthur@korn.ch.
 
 
 1. Compiling
@@ -46,6 +41,9 @@ need also the GNU gunzip command in order to decompress it.
   The words msyslog-X.XX.tar.gz and msyslog-X.XX.tar should be replaced
 with full pathnames, if necesary.
 
+  This will create a directory named msyslog-X.XX where all the sources
+are placed. All other steps assume you are on that directory.
+
 
 1.c. Configuring 
 
@@ -65,8 +63,8 @@ following example:
   When you want a specific module, you have to put the word 'static'
 or 'dynamic' on it's value. Dynamic modules are useful for vendor
 specific modules, or to save memory on systems with more than one
-msyslog daemon running; if you won't a module, just leave it without
-asignment.
+msyslog daemon running; if you don't want a module, just leave it
+without asignment.
 
 NOTE FOR LINUX USERS: set the input module LINUX to log kernel messages!
 
@@ -113,25 +111,31 @@ official distribution (see note on contacting us below).
   The 'BSD' module is the kernel logguer on bsd-like system, you should
   not to activate it on Linux.
 
+  Before starting msyslog, first stop running the old syslogd and also
+stop running klogd.
+
 
 3. MODULE SPECIFIC NOTES
 ===========================
 
 3.a PEO
 
-  See manpage details for proper setup instructions.
+  See "om_peo", "peochk" and "syslog.conf" manpages for details and
+proper setup instructions.
 
 3.b MySQL
 
   If your libmysqlclient library isn't in your linker path, you must
 add the corresponding directory on the shell variable LD_PATH.
-  See manpage details for proper setup instructions.
+
+  See "om_mysql" manpage for details and proper setup instructions.
 
 3.c PostgreSQL
 
   If your libpq library isn't in your linker path, you must add the
 corresponding directory on the shell variable LD_PATH.
-  See manpage details for proper setup instructions.
+
+  See "om_pgsql" manpage for details and proper setup instructions.
 
 
 4. HOW TO CONTACT US AND RELATED MAILING LISTS
@@ -149,8 +153,7 @@ corresponding directory on the shell variable LD_PATH.
         developers or any other person interested in the inner
         working parts of msyslog.
 
-To subscribe to any of this lists click on the choosen list above
-or send a message to majordomo@core-sdi.com with the text:
+Send a message to majordomo@core-sdi.com with the text:
 
 subscribe list-name
 
