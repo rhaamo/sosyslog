@@ -244,7 +244,7 @@ om_mysql_init(argc, argv, f, prog, c)
 	context->table = table;
 	context->query = query;
 
-	return (0);
+	return (1);
 }
 
 void

@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.18 2000/05/13 01:41:49 claudio Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.19 2000/05/15 19:44:03 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -262,7 +262,7 @@ om_peo_init(argc, argv, f, prog, context)
 
 	dprintf ("method: %d\nkeyfile: %s\nmacfile: %s\n", hash_method, keyfile, macfile);
 
-	return (0);
+	return (1);
 }
 
 

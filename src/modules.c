@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.55 2000/05/11 17:47:43 claudio Exp $
+/*	$Id: modules.c,v 1.56 2000/05/15 19:44:01 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -184,14 +184,11 @@ int omodule_create(c, f, prog)
 	struct filed *f;
 	char *prog;
 {
-	char	*line, *p;
-	char	*argv[20];
-	int	argc;
+	char	*line, *p, quotes, *argv[20];
+	int	argc, i;
 	struct o_module	*m, *prev;
-	char quotes=0;
-	int	i;
 
-	line = strdup(c);
+	line = strdup(c); quotes = 0;
 	p = line; prev = NULL;
 
 	/* create context and initialize module for logging */

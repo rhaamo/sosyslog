@@ -271,7 +271,7 @@ om_classic_init(argc, argv, f, prog, context)
 		break;
 	}
 
-	return(0);
+	return(1);
 }
 
 int
