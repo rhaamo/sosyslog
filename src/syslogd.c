@@ -1,4 +1,4 @@
-/*
+/*	$Id: syslogd.c,v 1.9 2000/03/29 20:08:56 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -924,8 +924,6 @@ cfline(line, f, prog)
 	int i, pri;
 	char *bp, *p, *q;
 	char buf[MAXLINE], ebuf[100];
-	int argc;
-	char **argv;
 
 	dprintf("cfline(\"%s\", f, \"%s\")\n", line, prog);
 
@@ -1010,7 +1008,7 @@ cfline(line, f, prog)
 	while (*p == '\t')
 		p++;
 
-	if (modules_create(argc, argv, f, NULL) == -1) {
+	if (modules_create(p, f, NULL) == -1) {
 		dprintf("Error initializing modules!\n");
 	}
 }
