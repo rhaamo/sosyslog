@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.41 2000/08/25 22:37:51 alejo Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.42 2000/09/09 00:42:13 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -113,22 +113,19 @@ im_udp_init(struct i_module *I, char **argv, int argc) {
 	struct sockaddr_in sin;
 	struct servent *sp;
 
-        if (argc == 2 && (argv == NULL || argv[1] == NULL)) {
+        if ((argc < 1 || argc > 2) || (argc == 2 &&
+			(argv == NULL || argv[1] == NULL))) {
         	dprintf("im_udp: error on params!\n");
         	return(-1);
         }
 
-        if (finet > -1) {
-		dprintf("im_udp_init: already opened!\n");
-		return(-1);
-        }
-        finet = socket(AF_INET, SOCK_DGRAM, 0);
+	I->im_fd = socket(AF_INET, SOCK_DGRAM, 0);
 
 	sp = getservbyname("syslog", "udp");
 	if (sp == NULL) {
 		errno = 0;
 		logerror("syslog/udp: unknown service");
-		die(0);
+		return(-1);
 	}
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;
@@ -137,15 +134,19 @@ im_udp_init(struct i_module *I, char **argv, int argc) {
 	else
 		sin.sin_port = LogPort = sp->s_port;
 
-	if (bind(finet, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
-		logerror("bind");
-		if (!Debug)
-		die(0);
-	} else {
-		InetInuse = 1;
+	if (bind(I->im_fd, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+		logerror("im_udp_init: bind");
+		return(-1);
 	}
 
         I->im_path = NULL;
-        I->im_fd   = finet;
+        if (finet < 0) {
+		/* finet not in use */
+		finet = I->im_fd;
+		DaemonFlags |= SYSLOGD_INET_IN_USE;
+		DaemonFlags |= SYSLOGD_FINET_READ;
+        }
+
+	dprintf("im_udp_init: running.\n");
         return(1);
 }
