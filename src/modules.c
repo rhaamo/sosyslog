@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.136 2000/11/24 21:55:24 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.137 2000/12/04 23:25:27 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -184,25 +184,25 @@ prepare_module_libs(const char *modname, void **ret) {
 	}
 #endif
 
-	snprintf(buf, sizeof(buf), "%s/libmsyslog_%s.so." MSYSLOG_VERSION_STR,
-	    libdir ? libdir : INSTALL_LIBDIR, modname);
+	snprintf(buf, sizeof(buf), "%s/" MLIBNAME_STR,
+	    libdir ? libdir : INSTALL_LIBDIR);
 
 	dprintf("prepare_module_libs: Going to open %s\n", buf);
 
 	/* We don't care if it is not open */
 	*ret = dlopen(buf, DLOPEN_FLAGS);
 
-	dprintf("prepare_module_libs: lib %s was %s opened\n", buf, *ret == NULL?
-	    "not" : "");
+	dprintf("prepare_module_libs: lib %s was %sopened\n", buf, *ret == NULL?
+	    "not " : "");
 
 	return (1);
 }
 
 /*
  * This function gets function name from
- * the main libmsyslog.so.X.X library or
+ * the main libalat.so.X.X library or
  * if not there try to open this module
- * library.
+ * library. (main libname is MLIBNAME_STR !
  */
 
 int
@@ -231,7 +231,7 @@ get_symbol(const char *modname, const char *funcname, void *h, void **ret) {
 		}
 	}
 
-	dprintf("get_symbol: func %s %s found %p\n", buf, *ret ? "":"not", *ret);
+	dprintf("get_symbol: func %s%s found %p\n", buf, *ret ? "":"not ", *ret);
 
 	if (*ret == NULL && h && (*ret = dlsym(h, buf)) == NULL) {
 	   	dprintf("get_symbol: error linking function %s, %s\n", buf,

@@ -1728,7 +1728,7 @@ cat >> confdefs.h <<EOF
 EOF
 echo msyslog version... $MSYSLOG_VERSION
 
-MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
+MLIBNAME="libalat.so.$MSYSLOG_VERSION" ;
 cat >> confdefs.h <<EOF
 #define MLIBNAME_STR "$MLIBNAME"
 EOF
