@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.27 2000/06/09 19:59:42 gera Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.28 2000/06/09 20:09:56 gera Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -67,7 +67,6 @@ struct om_mysql_ctx {
 	char	*query;		/* speed hack: this is a buffer for querys */
 };
 
-
 int
 om_mysql_doLog(f, flags, msg, ctx)
 	struct filed *f;
@@ -77,7 +76,6 @@ om_mysql_doLog(f, flags, msg, ctx)
 {
 	struct om_mysql_ctx *c;
 	char	*dummy, *y, *m, *d, *h, *host;
-	int	mn;
 	time_t now;
 
 	dprintf("MySQL doLog: entering [%s] [%s]\n", msg, f->f_prevline);
@@ -90,7 +88,7 @@ om_mysql_doLog(f, flags, msg, ctx)
 	host = f->f_prevhost;
 
 	/* mysql needs 2000-01-25 like format */
-	dummy = strdup(f->f_lasttime);
+	if (NULL==(dummy = strdup(f->f_lasttime))) return -1;
 	*(dummy + 3)  = '\0'; *(dummy + 6)  = '\0';
 	*(dummy + 15) = '\0';
 	m = dummy;
@@ -99,24 +97,30 @@ om_mysql_doLog(f, flags, msg, ctx)
 
 
 	(void) time(&now);
-	y = strdup(ctime(&now) + 20);
+	if (NULL==(y = strdup(ctime(&now) + 20))) {
+		free(dummy);
+		return -1;
+	}
 
 	*(y + 4) = '\0';
 	if (*d == ' ')
 		*d = '0';
+	free(dummy);
 
+	if (NULL==(dummy=to_sql(msg))) {
+		free(y);
+		return -1;
+	}
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
-
 	snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s"
 			" VALUES('%s-%.2d-%s', '%s', '%s', '%s')",
-			c->table, y, month_number(m), d, h, host, msg);
+			c->table, y, month_number(m), d, h, host, dummy);
 
 	free(dummy);
 	free(y);
 
 	return (mysql_query(c->h, c->query) < 0? -1 : 1);
 }
-
 
 /*
  *  INIT -- Initialize om_mysql
@@ -178,18 +182,23 @@ om_mysql_init(argc, argv, f, prog, c)
 					port = atoi(++p);
 				}
 				host = strdup(optarg);
+				if (!host) return -1;
 				break;
 			case 'u':
 				user = strdup(optarg);
+				if (!user) return -1;
 				break;
 			case 'p':
 				passwd = strdup(optarg);
+				if (!passwd) return -1;
 				break;
 			case 'd':
 				db = strdup(optarg);
+				if (!db) return -1;
 				break;
 			case 't':
 				table = strdup(optarg);
+				if (!table) return -1;
 				break;
 			case 'c':
 				createTable++;
