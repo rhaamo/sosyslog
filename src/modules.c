@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.109 2000/07/04 19:02:32 claudio Exp $	*/
+/*	$CoreSDI: modules.c,v 1.110 2000/07/04 19:37:37 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -156,7 +156,7 @@ omodule_create(char *c, struct filed *f, char *prog) {
 
 				/* find for matching module */
 				if ((om->om_func = getOmodule(argv[0])) == NULL) {
-					if ((om->om_func = addOmodule(argv[0])) != NULL) {
+					if ((om->om_func = addOmodule(argv[0])) == NULL) {
 				   		dprintf("Error loading dynamic output module "
 								"%s [%s]\n", argv[0], line);
 						die(0);
