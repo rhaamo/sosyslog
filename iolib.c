@@ -1,4 +1,4 @@
-/*	$CoreSDI: iolib.c,v 1.6 2000/05/23 21:47:04 fgsch Exp $	*/
+/*	$CoreSDI: iolib.c,v 1.7 2000/05/26 16:53:36 fgsch Exp $	*/
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -110,8 +110,8 @@ cvthname(f)
         sigemptyset(&nmask);
         sigaddset(&nmask, SIGHUP);
         sigprocmask(SIG_BLOCK, &nmask, &omask);
-        hp = gethostbyaddr((char *)&f->sin_addr,
-            sizeof(struct in_addr), f->sin_family);
+        hp = gethostbyaddr((char *)&f->sin_addr, sizeof(struct in_addr),
+	    f->sin_family);
         sigprocmask(SIG_SETMASK, &omask, NULL);
         if (hp == 0) {
                 dprintf("Host name for your address (%s) unknown\n",
