@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.123 2000/09/13 19:37:45 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.124 2000/09/13 23:51:41 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.123 2000/09/13 19:37:45 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.124 2000/09/13 23:51:41 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -127,7 +127,6 @@ typedef struct _code {
 } CODE;
 #endif
  
-#if 0
 #ifndef HAVE_PRIORITYNAMES
 CODE prioritynames[] = {
         { "alert",      LOG_ALERT },
@@ -146,7 +145,6 @@ CODE prioritynames[] = {
 };
 #warning defined prioritynames
 #endif /* prioritynames */
-#endif
 
 
 /*
@@ -166,17 +164,17 @@ int	MarkSeq = 0;		/* mark sequence number */
 char	*ConfFile = _PATH_LOGCONF;	/* configuration file */
 #define MAX_PIDFILE_LOCK_TRIES 5
 char pidfile[PATH_MAX];
-FILE *pidf;
+FILE *pidf = NULL;
 
 char *ctty = _PATH_CONSOLE;
 char *TypeNames[] = { "UNUSED", "FILE", "TTY", "CONSOLE", "FORW",
 	"USERS", "WALL", "MODULE", NULL };
+char  LocalHostName[MAXHOSTNAMELEN];  /* our hostname */
 char *LocalDomain = NULL;
 int finet = -1;
 int LogPort = -1;
 int Debug = 0;
-int InetInuse = 0;
-char  LocalHostName[MAXHOSTNAMELEN];  /* our hostname */
+int DaemonFlags = 0; /* running daemon flags */
 
 char *libdir = NULL;
 
@@ -368,6 +366,7 @@ main(int argc, char **argv) {
 				die(0);
 			}
 
+			DaemonFlags |= SYSLOGD_LOCKED_PIDFILE;
 			if (ftruncate(lfd,0) < 0) {
 				snprintf(buf, sizeof(buf), "Error truncating pidfile, %s",
 						strerror(errno));
@@ -394,6 +393,7 @@ main(int argc, char **argv) {
 		struct im_msg log;
 
 		FD_ZERO(&readfds);
+
 		for (im = &Inputs; im ; im = im->im_next) {
 			if (im->im_fd != -1) {
 				FD_SET(im->im_fd, &readfds);
@@ -404,6 +404,8 @@ main(int argc, char **argv) {
 
 		/* get current time */
 		gettimeofday(&tnow, NULL);
+		if (finet > 0 && !(DaemonFlags & SYSLOGD_INET_READ))
+			FD_SET(finet, &readfds);
 
 		if (nextcall.tv_sec == tnow.tv_sec &&
 				nextcall.tv_usec > tnow.tv_usec) {
@@ -483,15 +485,15 @@ main(int argc, char **argv) {
 		}
 	}
 
-	return(1);
 }
 
 void
 usage(void) {
 
 	(void)fprintf(stderr,
-	    "usage: syslogd [-d] [-u] [-f conffile] [-m markinterval] \\\n"
-	    " [-p logpath] [-a logpath] -i input1 [-i input2] [-i inputn]\n");
+			"usage: syslogd [-d] [-u] [-f conffile] [-m markinterval] \\\n"
+			" [-p logpath] [-a logpath] -i input1 [-i input2] [-i inputn] \\\n"
+			" [-l libdir]");
 	exit(1);
 }
 
@@ -531,7 +533,7 @@ printline(char *hname, char *msg, int flags) {
 				*q++ = ' ';
 			} else if (c == '\t') {
 				*q++ = '\t';
-			} else  if (q < &line[sizeof(line) - 2]) {
+			} else if (q < &line[sizeof(line) - 2]) {
 				*q++ = '^';
 				*q++ = c ^ 0100;
 			} /* else we can't pass this control */
@@ -703,7 +705,7 @@ doLog(struct filed *f, int flags, char *message) {
 		/* call this module doLog */
 		ret = (*(om->om_func->om_doLog))(f,flags,msg,om->ctx);
 		if (ret < 0) {
-			dprintf("doLog: error with module module [%s] "
+			dprintf("doLog: error with output module [%s] "
 				"for message [%s]\n", om->om_func->om_name, msg);
 		} else if (ret == 0)
 			/* stop going on */
@@ -792,7 +794,7 @@ die(int signo) {
 		else if (im->im_fd)
 			close(im->im_fd);
 
-	if (!Debug) {
+	if (!Debug && (DaemonFlags & SYSLOGD_LOCKED_PIDFILE)) {
 		struct flock fl;
 		int lfd;
 
@@ -803,7 +805,9 @@ die(int signo) {
 		fl.l_len    = 0L; /* lock to eof */
 
 		fcntl(lfd, F_SETLK, &fl);
-		(void) fclose(pidf);
+
+		if (pidf != NULL)
+			(void) fclose(pidf);
 		if (unlink(pidfile) < 0)
 			logerror("error deleting pidfile");
 	}
