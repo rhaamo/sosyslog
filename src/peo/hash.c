@@ -1,4 +1,4 @@
-/*	$CoreSDI: hash.c,v 1.39 2001/03/07 21:35:15 alejo Exp $	*/
+/*	$CoreSDI: hash.c,v 1.40 2001/03/14 22:11:56 alejo Exp $	*/
  
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -46,15 +46,23 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <unistd.h>
-#ifdef __OpenBSD__	/* Change this */
+
+#ifdef HAVE_MD5_H
 #include <md5.h>
-#include <rmd160.h>
-#include <sha1.h>
 #else
 #include "md5.h"
+#endif
+#ifdef HAVE_RMD160_H
+#include <rmd160.h>
+#else
 #include "rmd160.h"
+#endif
+#ifdef HAVE_SHA1_H
+#include <sha1.h>
+#else
 #include "sha1.h"
 #endif
+
 #include "hash.h"
 
 #ifdef HAVE_SRANDOM
