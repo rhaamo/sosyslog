@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.60 2000/07/26 21:00:38 alejo Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.61 2000/08/22 18:38:57 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -72,7 +72,7 @@ im_bsd_init(struct i_module *I, char **argv, int argc,
 	I->im_path = _PATH_KLOG;
 	I->im_flags |= IMODULE_FLAG_KERN;
 	gettimeofday(&I->im_nextcall, NULL);
-	I->im_nextcall.tv_sec += 5;
+	I->im_nextcall.tv_sec += 11;
 	return(I->im_fd);
 }
 

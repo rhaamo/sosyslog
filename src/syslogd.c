@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.117 2000/08/23 00:52:52 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.118 2000/08/23 20:58:33 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.117 2000/08/23 00:52:52 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.118 2000/08/23 20:58:33 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -392,6 +392,8 @@ main(int argc, char **argv) {
 	init(0);
 	(void)signal(SIGHUP, init);
 
+	nextcall.tv_sec = 0;
+	nextcall.tv_usec = 0;
 	for (;;) {
 		fd_set readfds;
 		int nfds = 0;
@@ -410,10 +412,10 @@ main(int argc, char **argv) {
 		/* get current time */
 		gettimeofday(&tnow, NULL);
 
-		if ((nextcall.tv_sec = tnow.tv_sec) &&
-				(nextcall.tv_usec > tnow.tv_usec)) {
+		if (nextcall.tv_sec == tnow.tv_sec &&
+				nextcall.tv_usec > tnow.tv_usec) {
 			timeout.tv_sec = 0L;
-			timeout.tv_sec = nextcall.tv_sec - tnow.tv_sec;
+			timeout.tv_usec = nextcall.tv_usec - tnow.tv_usec;
 			if (timeout.tv_usec < SYSLOG_TIMEOUT_MINUSEC)
 				timeout.tv_usec = SYSLOG_TIMEOUT_MINUSEC;
 		} else if (nextcall.tv_sec > tnow.tv_sec) {
@@ -444,7 +446,6 @@ main(int argc, char **argv) {
 
 		gettimeofday(&nextcall, NULL);
 		nextcall.tv_sec += SYSLOG_TIMEOUT_MAXSEC;
-		nextcall.tv_usec = 0L;
 
 		/* dprintf("got a message (%d, %#x)\n", nfds, readfds); */
 		/* call requested im_timer()  and read inputs */
