@@ -41,13 +41,17 @@ static char sccsid[] = "@(#)ttymsg.c	8.2 (Berkeley) 11/16/93";
 static char rcsid[] = "$OpenBSD: ttymsg.c,v 1.3 1996/10/25 06:06:30 downsj Exp $";
 #endif /* not lint */
 
+#include "config.h"
+
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <signal.h>
 #include <fcntl.h>
 #include <dirent.h>
 #include <errno.h>
+#ifdef HAVE_PATHS_H
 #include <paths.h>
+#endif /* HAVE_PATHS_H */
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>

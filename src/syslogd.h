@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.42 2000/05/23 21:47:06 fgsch Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.43 2000/05/24 17:58:51 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -45,7 +45,9 @@
 #define MAX_N_OMODULES	20		/* maximum types of out modules */
 #define MAX_N_IMODULES	10		/* maximum types of in  modules */
 
+#ifdef HAVE_PATHS_H
 #include <paths.h>
+#endif /* HAVE_PATHS_H */
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/uio.h>

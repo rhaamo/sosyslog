@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.21 2000/05/23 21:47:03 fgsch Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.22 2000/05/24 17:58:50 fgsch Exp $	*/
 
 /*
  *  im_udp -- classic behaviour module for BDS like systems
@@ -9,9 +9,6 @@
  */
 
 #include <syslog.h>
-#include "modules.h"
-#include "syslogd.h"
-
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -23,6 +20,10 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <netdb.h>
+
+#include "modules.h"
+#include "syslogd.h"
+
 
 void    logerror __P((char *));
 void    die __P((int));

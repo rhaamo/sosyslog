@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.65 2000/05/24 21:30:22 fgsch Exp $	*/
+/*	$CoreSDI: modules.c,v 1.66 2000/05/24 23:04:17 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -47,8 +47,6 @@
 #include <stdio.h>
 #include "syslogd.h"
 #include "modules.h"
-
-#include "config.h"
 
 int om_peo_doLog(struct filed *, int, char *, struct om_hdr_ctx *);
 int om_peo_init(int, char **, struct filed *, char *, struct om_hdr_ctx **);

@@ -35,14 +35,16 @@ AC_MSG_RESULT(root-mode pid file will go in $dir)
 AC_DEFINE_UNQUOTED(PID_DIR, "$dir")
 
 AC_ARG_WITH(mysql,
-	[  --with-mysql=DIR        enable mysql support using libraries in DIR],
+	[  --with-mysql=DIR        enable MySQL support using libraries in DIR],
 	[with_mysql=$withval],
 	[with_mysql=no])
 test "$with_mysql" = "yes" && AC_DEFINE(MYSQL_ENABLE)
 
 if test "$with_mysql" = "yes"
 then
-	for ac_dir in 
+	for ac_dir in \
+	/usr/local/mysql \
+	/usr/local/lib
 	do
 		if test -f "$ac_dir/"
 		then
@@ -55,15 +57,15 @@ if test -n "$with_mysql" -a "$with_mysql" != "no"
 then
 	if test "$with_mysql" = "yes"
 	then
-		with_mysql=""	
+		with_mysql="/usr/local/mysql"	
 	fi
-	echo "Enabling mysql support in $with_mysql"
+	echo "Enabling MySQL support in $with_mysql"
 	EXTRAOBJ="$EXTRAOBJ om_mysql.o"
 	LIBS="$LIBS -lmysql"
 	CEFLAGS="$CEFLAGS -I"
 	AC_DEFINE(MYSQL_ENABLE)
 else
-	echo 'Disabling mysql support...'
+	echo "Disabling MySQL support..."
 fi
 
 AC_OUTPUT(Makefile)

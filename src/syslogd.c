@@ -1,4 +1,4 @@
-/*	$CoreSDI$	*/
+/*	$CoreSDI: syslogd.c,v 1.73 2000/05/23 21:47:06 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -85,6 +85,7 @@ static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $"
 
 #define SYSLOG_NAMES
 #include <sys/syslog.h>
+#include "config.h"
 #include "syslogd.h"
 
 char	*ConfFile = _PATH_LOGCONF;
