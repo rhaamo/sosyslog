@@ -357,8 +357,9 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		p++;
 	case '|':  /* from sysklogd */
 	case '/':
-		strncpy(c->f_un.f_fname, p, sizeof c->f_un.f_fname);
+		strncpy(c->f_un.f_fname, p, sizeof (c->f_un.f_fname) - 1);
 		c->f_un.f_fname[sizeof (c->f_un.f_fname) - 1] = 0;
+
 		if ( *p == '|' ) {
 			c->fd = open(++p, O_RDWR|O_NONBLOCK);
 			c->f_type = F_PIPE;
@@ -479,8 +480,8 @@ wallmsg( struct filed *f, struct iovec *iov, struct om_classic_ctx *c)
 #endif
 			continue;
 
-		strncpy(line, ut.ut_line, sizeof(ut.ut_line));
-		line[sizeof(ut.ut_line)] = '\0';
+		strncpy(line, ut.ut_line, sizeof(line) - 1);
+		line[sizeof(line) - 1] = '\0';
 		if (c->f_type == F_WALL) {
 			if ((p = ttymsg(iov, 6, line, TTYMSGTIME)) != NULL) {
 				errno = 0;	/* already in msg */

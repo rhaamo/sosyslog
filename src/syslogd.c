@@ -1163,7 +1163,9 @@ init(int signo)
 	 *  Foreach line in the conf table, open that file.
 	 */
 	f = NULL;
-	strncpy(prog, "*", 2);
+	strncpy(prog, "*", sizeof (prog) - 1);
+	prog[sizeof (prog) - 1] = '\0';
+
 	while (fgets(cline, sizeof(cline), cf) != NULL) {
 		int	clen;
 
@@ -1197,7 +1199,8 @@ init(int signo)
 			while (isspace((int)*p))
 				p++;
 			if (!*p) {
-				strncpy(prog, "*", 2);
+				strncpy(prog, "*", sizeof (prog) - 1);
+				prog[sizeof (prog) - 1] = '\0';
 				continue;
 			}
 			for (i = 0; i < NAME_MAX; i++) {

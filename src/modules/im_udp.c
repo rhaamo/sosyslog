@@ -142,7 +142,7 @@ im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 			ret->im_msg[n1++] = ret->im_msg[n2++];
 		ret->im_msg[n1] = '\0';
 
-		strncat(ret->im_host, host, sizeof(ret->im_host));
+		strncpy(ret->im_host, host, sizeof(ret->im_host) - 1);
 		ret->im_host[sizeof(ret->im_host) - 1] = '\0';
 
 	} else {
@@ -152,10 +152,10 @@ im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 		    sizeof(frominet.sin_addr), frominet.sin_family);
 		if (hent) {
 			strncpy(ret->im_host, hent->h_name,
-			    sizeof(ret->im_host));
+			    sizeof(ret->im_host) - 1);
 		} else {
 			strncpy(ret->im_host, inet_ntoa(frominet.sin_addr),
-			    sizeof(ret->im_host));
+			    sizeof(ret->im_host) - 1);
 		}
 	}
 

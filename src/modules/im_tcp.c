@@ -322,8 +322,8 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 			} else {
 				/* save this partial line and return */
 				strncat(con->saveline, p,
-				    sizeof(con->saveline) - 1);
-				con->saveline[sizeof(con->saveline) - 1] = '\0';
+				    sizeof(con->saveline) - 1
+				    - strlen(con->saveline));
 			}
 
 			/* remove trailing carriage returns */
@@ -344,9 +344,8 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 
 				if (con->saveline[0] != '\0') {
 					strncat(con->saveline, p,
-					    sizeof(con->saveline) - 1);
-					con->saveline[sizeof(con->saveline) - 1]
-					    = '\0';
+					    sizeof(con->saveline) - 1
+					    - strlen(con->saveline));
 					msg = con->saveline;
 				} else {
 					msg = p;

@@ -128,7 +128,10 @@ im_unix_init(struct i_module *I, char **argv, int argc)
 
 	memset(&sunx, 0, sizeof(sunx));
 	sunx.sun_family = AF_UNIX;
-	(void)strncpy(sunx.sun_path, logger, sizeof(sunx.sun_path));
+
+	strncpy(sunx.sun_path, logger, sizeof (sunx.sun_path) - 1);
+	sunx.sun_path[sizeof (sunx.sun_path) - 1] = '\0';
+
 	I->im_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
 	if (I->im_fd < 0 ||
 	    bind(I->im_fd, (struct sockaddr *)&sunx, SUN_LEN(&sunx)) < 0 ||

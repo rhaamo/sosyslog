@@ -207,10 +207,11 @@ im_file_read(struct i_module *im, int infd, struct im_msg  *ret)
 					++p;
 			}
 
-			strncat(ret->im_msg, im->im_path, strlen(ret->im_msg)
-			    - sizeof(ret->im_msg) - 1);
-			strncat(ret->im_msg, ":", strlen(ret->im_msg)
-			    - sizeof(ret->im_msg) - 1);
+			strncat(ret->im_msg, im->im_path, sizeof (ret->im_msg) - 1
+			    - strlen(ret->im_msg));
+			strncat(ret->im_msg, ":", sizeof (ret->im_msg) - 1
+			    - strlen(ret->im_msg));
+
 			dprintf(MSYSLOG_INFORMATIVE, "im_file_read: Entering "
 			    "with header %s\n", ret->im_msg);
 

@@ -107,7 +107,7 @@ resolv_addr(struct sockaddr *addr, socklen_t addrlen, char *host, int hlen,
 
 	if (hp) {
 		strncpy(host, hp->h_name, (unsigned) hlen - 1);
-		host[hlen] = '\0';
+		host[hlen - 1] = '\0';
 		if (port)
 			snprintf(port, (unsigned) plen, "%u", ntohs(sin4->sin_port));
 		return (1);
