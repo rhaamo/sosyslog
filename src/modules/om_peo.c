@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.35 2000/06/06 00:07:01 fgsch Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.36 2000/06/06 00:32:39 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -122,15 +122,15 @@ om_peo_doLog(f, flags, msg, ctx)
 			dprintf ("opening macfile: %s: %s\n", c->macfile, strerror(errno));
 			return (-1);
 		}
-		lseek(mfd, 0, SEEK_END);
+		lseek(mfd, (off_t)0, SEEK_END);
 		write(mfd, mkey, mac2(key, keylen, m, len, mkey));
 		dprintf ("write to macfile ok\n");
 		close(mfd);
 	}
 
 	/* generate new key and save it on keyfile */
-	lseek(fd, 0, SEEK_SET);
-	ftruncate(fd, 0);
+	lseek(fd, (off_t)0, SEEK_SET);
+	ftruncate(fd, (off_t)0);
 	if ( (newkeylen = mac(c->hash_method, key, keylen, m, len, newkey)) == -1) {
 		close(fd);
 		dprintf ("generating key[i+1]: keylen = %i: %s\n", newkeylen, strerror(errno));
@@ -268,7 +268,7 @@ om_peo_init(argc, argv, f, prog, ctx)
 int
 om_peo_close(f, ctx)
 	struct filed *f;
-	struct om_header_ctx *ctx;
+	struct om_hdr_ctx *ctx;
 {
 	struct om_peo_ctx *c;
 
