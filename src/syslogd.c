@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.104 2000/07/04 18:56:35 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.105 2000/07/10 21:04:41 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -489,8 +489,7 @@ logmsg(int pri, char *msg, char *from, int flags)
 }
 
 void
-doLog(struct filed *f, int flags, char *message)
-{
+doLog(struct filed *f, int flags, char *message) {
 	struct	o_module *om;
 	char	repbuf[80], *msg;
 	int	len, ret;
@@ -508,15 +507,14 @@ doLog(struct filed *f, int flags, char *message)
 	}
 
 	for (om = f->f_omod; om; om = om->om_next) {
-		if(!om || !om->om_func || !om->om_func->om_doLog) {
+		if(!om->om_func || !om->om_func->om_doLog) {
 			dprintf("doLog: error, no doLog function in output "
 				"module [%s], message [%s]\n", om->om_func->om_name, msg);
 			continue;
 		};
 
 		/* call this module doLog */
-		ret = om->om_func->om_doLog?
-			(*(om->om_func->om_doLog))(f,flags,msg,om->ctx, sglobals): -1;
+		ret = (*(om->om_func->om_doLog))(f,flags,msg,om->ctx, sglobals);
 		if (ret < 0) {
 			dprintf("doLog: error with module module [%s] "
 				"for message [%s]\n", om->om_func->om_name, msg);

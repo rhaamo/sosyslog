@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.32 2000/06/09 21:03:14 gera Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.33 2000/07/04 16:44:07 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -74,6 +74,11 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *ctx,
 	struct om_mysql_ctx *c;
 	char	*dummy, *y, *m, *d, *h, *host, *msg_q;
 	time_t now;
+
+	if (!ctx) {
+		dprintf("MySQL doLog: error, no context\n");
+		return(-1);
+	}
 
 	dprintf("MySQL doLog: entering [%s] [%s]\n", msg, f->f_prevline);
 	if (f == NULL)
