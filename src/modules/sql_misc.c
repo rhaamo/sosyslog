@@ -1,4 +1,4 @@
-/*	$CoreSDI: sql_misc.c,v 1.3 2000/06/09 20:38:44 gera Exp $	*/
+/*	$CoreSDI: sql_misc.c,v 1.4 2000/09/14 21:35:26 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -57,7 +57,7 @@ to_sql(s)
 
 	p=b; 
 	for(;*s; s++) {
-		if(*s=='\'') *p++='\'';
+		if(*s=='\'') *p++='\\';
 		*p++=*s;
 	}
 	*p=0;
