@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.60 2000/05/12 23:49:54 alejo Exp $
+/*	$Id: syslogd.c,v 1.61 2000/05/15 20:57:00 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -271,14 +271,14 @@ main(argc, argv)
 		       		continue;
 		       }
 
-		       if ((*(IModules[i].im_getLog))(im, log) == -1) {
+		       if ((*(IModules[i].im_getLog))(im, log) < 0) {
 		       	dprintf("Syslogd: error calling input module"
 		       		" %s, for fd %d\n", im->im_name,
 		       		im->fd);
 		       }
 
 		       /* log it */
-		       printline(log->host, log->msg);
+		       printline(log->host, log->msg, im->flags);
 		       if (log->host != NULL) free(log->host);
 		       if (log->msg != NULL) free(log->msg);
 		   }
@@ -302,9 +302,10 @@ usage()
  * on the appropriate log files.
  */
 void
-printline(hname, msg)
+printline(hname, msg, flags)
 	char *hname;
 	char *msg;
+	int   flags;
 {
 	int c, pri;
 	char *p, *q, line[MAXLINE + 1];
@@ -323,7 +324,7 @@ printline(hname, msg)
 		pri = DEFUPRI;
 
 	/* don't allow users to log kernel messages */
-	if (LOG_FAC(pri) == LOG_KERN)
+	if (LOG_FAC(pri) == LOG_KERN && !(flags & IMODULE_FLAG_KERN))
 		pri = LOG_MAKEPRI(LOG_USER, LOG_PRI(pri));
 
 	q = line;

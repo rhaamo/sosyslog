@@ -79,6 +79,8 @@ struct i_module {
 	struct	i_module *im_next;
 	short	im_type;
 	int	fd;	/*  for use with select() */
+	int	flags;  /* input module should initialize this */
+#define IMODULE_FLAG_KERN	0x01
 	char	*im_name;
 	struct  im_header_ctx	*context;
 };

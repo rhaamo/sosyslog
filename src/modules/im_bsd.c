@@ -41,6 +41,7 @@ im_bsd_init(I, argv, argc)
         I->im_type = IM_BSD;
         I->im_name = "bsd";
         I->context = NULL;  
+        I->flags  ^= IMODULE_FLAG_KERN;
         return(I->fd);
 }
 
