@@ -148,7 +148,7 @@ return (-1);
   	}
  	}
 
-	add_fd_input(I->im_fd , I);
+	watch_fd_input('p', I->im_fd , I);
 	m_dprintf(MSYSLOG_INFORMATIVE, "im_udp: running\n");
 return (1);
 }

@@ -283,7 +283,7 @@ return (-1);
         I->im_flags |= IMODULE_FLAG_KERN;
 	saveline[0] = '\0';	/* yes, globals are zeroed, but... */
 	savelen = 0;
-	add_fd_input(I->im_fd , I);
+	watch_fd_input('p', I->im_fd , I);
 return (I->im_fd);
 }
 

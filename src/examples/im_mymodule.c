@@ -77,7 +77,7 @@ im_mymodule_init (struct i_module *I, char **argv, int argc)
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_init: Leaving\n");
 
-	add_fd_input(I->im_fd , I, 0);
+	watch_fd_input('p', I->im_fd , I, 0);
 
         return (1);
 }

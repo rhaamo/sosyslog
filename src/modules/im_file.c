@@ -148,8 +148,8 @@ return (-1);
 
   /* ramdom access files are not pollable and should not 
    * be added to the pollfd array.
-   * i.e. do not call  "add_fd_input(I->im_fd , im); "
    */
+  watch_fd_input('u', I->im_fd , I);
 
  	m_dprintf(MSYSLOG_INFORMATIVE, "im_file_init: completed\n");
 return (1);

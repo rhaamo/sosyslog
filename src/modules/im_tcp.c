@@ -166,7 +166,7 @@ return (-1);
 return (-1);
 	}
 
-	add_fd_input(I->im_fd , I);
+	watch_fd_input('p', I->im_fd , I);
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: running\n");
 return (1);
@@ -235,7 +235,7 @@ return (-1);
 		    " %s with fd %d\n", con->name, con->fd);
 
 		/* add to inputs list */
-		add_fd_input(con->fd , im);
+		watch_fd_input('p', con->fd , im);
 
 return (0); /* 0 because there is no line to log */
 	}
@@ -250,7 +250,7 @@ return (0); /* 0 because there is no line to log */
 	if (con == NULL || con->fd != infd) {
 		m_dprintf(MSYSLOG_SERIOUS, "im_tcp_read: no such connection "
 		    "fd %d !\n", infd);
-		remove_fd_input(infd);
+		unwatch_fd_input('p', infd);
 return (-1);
 	}
 
@@ -261,7 +261,7 @@ return (-1);
 
 		m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: connection from %s closed\n", con->name);
 
-		remove_fd_input(con->fd);
+		unwatch_fd_input('p', con->fd);
 
 		/* connection closed, remove its tcp_con struct */
 		close (con->fd);
@@ -291,7 +291,7 @@ return (0);
 		    " closed with error [%s]\n", con->name, strerror(errno));
 		logerror("im_tcp_read");
 		con->fd = -1;
-		remove_fd_input(con->fd);
+		unwatch_fd_input('p', con->fd);
 return (0);
 	}
  

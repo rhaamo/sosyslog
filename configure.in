@@ -189,9 +189,9 @@ elif test "$UNAME" = "AIX" ; then
 		#! .
 		m_dprintf
 		logerror
-		add_fd_input
+		watch_fd_input
 		place_signal
-		remove_fd_input
+		unwatch_fd_input
 		printline
 		EOF
 

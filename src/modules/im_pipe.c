@@ -142,7 +142,7 @@ return (-1);
 
 	if (c->name == NULL) c->name = c->path;	/* no name specified */
 
-	add_fd_input(im->im_fd , im);
+	watch_fd_input('p', im->im_fd , im);
 
  	m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_init: completed\n");
 return (1);

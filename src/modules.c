@@ -535,11 +535,6 @@ return(NULL);
 
 	im->im_name = strdup(name);
 
-  /* assume an input file descriptor is pollable,
-   * unless it is explicitly turned off
-   */
-	im->im_flags = IM_NULL;
-
 	m_dprintf(MSYSLOG_INFORMATIVE, "addImodule: successfully configured %s "
 	    "input module\n", buf);
 

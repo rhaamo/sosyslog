@@ -64,19 +64,19 @@ struct o_module {
 struct i_module {
 	struct	 i_module *im_next;
 	struct	 imodule *im_func; /* where are this puppy's functions? */
-	int	 im_fd;	/*  for use with select() */
-	int	 im_flags;  /* 1 to 8 are reserved */
+	int	     im_fd;	    /*  the main file descriptor */
+	int	     im_flags;  /* 1 to 8 are reserved */
 #define IMODULE_FLAG_KERN	0x10
 #define IMODULE_FLAG_CONN	0x20
 	char	im_buf[MAXLINE + 1];
 	void	*im_ctx;
 };
 
-int	add_fd_input(int , struct i_module *); /* add this fd to array */
-void	remove_fd_input(int); /* remove this fd from poll arrays */
+int	watch_fd_input(char, int , struct i_module *); /* add this fd to poll array */
+void	unwatch_fd_input(char, int); /* remove this fd from poll arrays */
 
 /*
- * This structure represents the return of the input modules
+ * This structure is returned by each input module
  */
 
 struct im_msg {
