@@ -1,4 +1,4 @@
-.\"	$CoreSDI: syslogd.8,v 1.18 2001/10/18 21:19:12 alejo Exp $
+.\"	$CoreSDI: syslogd.8,v 1.19 2001/10/24 02:52:39 alejo Exp $
 .\"
 .\" Copyright (c) 1983, 1986, 1991, 1993
 .\"	The Regents of the University of California.  All rights reserved.
@@ -79,6 +79,8 @@ accept input from the UDP port as specified in
 .Pa /etc/services .
 Some software wants this, but you can be subjected to a variety of
 attacks over the network, including attackers remotely filling logs.
+.It Fl P Ar pidfile   
+Specify an alternate pidfile.
 .It Fl p Ar log_socket
 Specify the pathname of an alternate log socket to be used instead;
 the default is

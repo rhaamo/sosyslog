@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.212 2001/10/23 20:23:20 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.213 2001/10/24 02:52:39 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.212 2001/10/23 20:23:20 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.213 2001/10/24 02:52:39 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -258,7 +258,7 @@ main(int argc, char **argv)
 	/* use ':' at start to allow -d to be used without argument */
 	opterr = 0;
 
-	while ( (ch = getopt(argc, argv, ":d:f:m:ui:p:a:hcn")) != -1) {
+	while ( (ch = getopt(argc, argv, ":d:f:m:ui:p:a:P:hcn")) != -1) {
 		char buf[512];
 
 		switch (ch) {
@@ -306,6 +306,9 @@ main(int argc, char **argv)
 			break;
 		case 'n':	/* don't start default modules */
 			default_inputs = 0;
+			break;
+		case 'P':	/* alternate pidfile */
+			pidfile = optarg;
 			break;
 		case 'h':
 		default:
@@ -630,9 +633,9 @@ usage(void)
 	fprintf(stderr,
 	    "Modular Syslog vesion " MSYSLOG_VERSION_STR "\n\n"
 	    "usage: syslogd [-d <debug_level>] [-u] [-f conffile] "
-	    "[-n] [-m markinterval] \\\n [-p logpath] [-a logpath] -i "
-	    "input1 [-i input2] [-i inputn]\n %s\n%s\n\n", copyright,
-	    rcsid);
+	    "[-P pidfile] [-n] [-m markinterval] \\\n [-p logpath] "
+	    "[-a logpath] -i input1 [-i input2] [-i inputn]\n %s\n"
+	    "%s\n\n", copyright, rcsid);
 	exit(1);
 }
 
