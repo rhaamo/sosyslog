@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_peo.8,v 1.13 2000/10/31 19:42:13 alejo Exp $
+.\"	$CoreSDI: om_peo.8,v 1.14 2001/02/15 19:24:45 alejo Exp $
 .\"
 .\" Copyright (c) 2000
 .\"	Core-SDI SA. All rights reserved.
@@ -41,13 +41,17 @@ output module used to protect log files
 .Op Fl l
 .Op Fl m Ar hash_method
 .Sh DESCRIPTION
-.Nm peo output module 
-receives a message as an ascii string and calculates its 
+.Nm peo
+output module receives a message as an ascii string and calculates its 
 .Em hash
 key based on the last one generated for the previous message; the
 module removes the last key and writes the new one into
-.Ar keyfile.
-The options are as follows:
+.Ar keyfile
+. NOTE: it needs a random device (/dev/srandom or /dev/random); if your
+operating system lacks both, you should use some random number generator
+device such as "prngd" or some extra package from your os vendor.
+.Pp
+This module's options are as follows:
 .Bl -tag -width Ds
 .It Fl k Ar keyfile
 Specify the key file pathname; the default is
