@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.10 2000/06/16 20:11:45 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.11 2000/06/16 22:22:05 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -61,11 +61,9 @@ all: $(PROG)
 
 modules.o: config.h
 
-$(PROG): 
+$(PROG): $(OBJS) $(SOBJS)
 	$(SH) static_headers_create.sh imodules.c im $(STATICSI)
 	$(SH) static_headers_create.sh omodules.c om $(STATICSO)
-	$(OBJS)
-	$(SOBJS)
 	$(CC) -o $@ $(OBJS) $(LDFLAGS) $(LIBS)
 
 .PHONY: clean distclean
