@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.126 2000/09/14 19:53:21 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.127 2000/09/15 21:33:27 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -182,7 +182,7 @@ omodule_create(char *c, struct filed *f, char *prog) {
 								"loading dynamic output module "
 								"%s [%s]\n", argv[0], line);
 						logerror(err_buf);
-						return(-1);
+						goto om_error;
 					}
 				}
 
@@ -230,7 +230,7 @@ omodule_create(char *c, struct filed *f, char *prog) {
 								"loading dynamic output module "
 								"%s [%s]\n", argv[0], line);
 						logerror(err_buf);
-						return(-1);
+						goto om_error;
 					}
 				}
 
@@ -242,13 +242,18 @@ omodule_create(char *c, struct filed *f, char *prog) {
 					"dynamic output module %s [%s]\n",
 					argv[0], line);
 			logerror(err_buf);
-			return(-1);
+			goto om_error;
 		}
 	}
 	free(line);
 	if (f->f_type == F_UNUSED)
 		f->f_type = F_MODULE;
 	return(1);
+
+om_error:
+	free(line);
+	return(-1);
+
 }
 
 /*
