@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.24 2000/06/06 00:14:04 alejo Exp $	*/
+/*	$CoreSDI: modules.h,v 1.25 2000/06/06 15:52:10 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -51,19 +51,11 @@
 
 extern int	Debug;			/* debug flag */
 extern char	LocalHostName[];	/* our hostname */
-extern char	*LocalDomain;		/* our local domain name */
 extern int	InetInuse;		/* non-zero if INET sockets are
 					   being used */
-extern int	MarkInterval;		/* interval between marks in seconds */
-extern int	MarkSeq;		/* mark sequence number */
-
 extern char	*TypeNames[];		/* names for f_types */
 
-extern char	*ConfFile;
 extern char	ctty[];
-
-extern int	repeatinterval[];
-
 
 /* this MUST be the same value as syslogd.h */
 #define MAXLINE 1024
