@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_peo.8,v 1.7.2.1.2.1 2000/09/11 23:08:36 alejo Exp $
+.\"	$CoreSDI: om_peo.8,v 1.13 2000/10/31 19:42:13 alejo Exp $
 .\"
 .\" Copyright (c) 2000
 .\"	Core-SDI SA. All rights reserved.
@@ -86,9 +86,10 @@ file (see
 .Pp
 .Dl auth.info	%peo -l -k /var/ssyslog/.var.log.authlog.key %classic /var/log/authlog
 .Pp
-When you want to check the protected file integrity you should use the
+You should generate the initial key with
 .Xr peochk 8
-command.
+program, then rotate the logfile(s) and restart msyslog. Afterwards
+you can check the logfile integrity with the same program.
 .Sh SEE ALSO
 .Li Vcr and Peo Revised documentation - http://www.core-sdi.com/papers/peo.ps
 .Xr peochk 8 ,
