@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.15 2000/06/08 21:08:01 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.16 2000/06/08 21:27:09 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -86,7 +86,7 @@ Symbol	*ksym_current = NULL;
 
 int	 ksym_init();
 void	 ksym_close();
-int	 ksym_snprintf (char*, int, char*, int);
+int	 ksym_snprintf (char*, int, char*);
 Symbol	*ksym_lookup (Symbol*, char*);
 int	 ksym_getSymbol (Symbol*);
 int	 ksym_parseLine (char*, Symbol*);
@@ -116,7 +116,9 @@ im_linux_usage()
 
 
 /*
- * getLine
+ * getLine:
+ * Search for a line on a string buffer
+ * returns a pointer to the line or NULL if the buffer is empty
  */
 char*
 getLine (buf, i)
@@ -151,7 +153,7 @@ im_linux_init(I, argv, argc)
 	dprintf ("\nim_linux_init...\n");
 
 	/* parse command line */
-	current_optind = optind;	/* syslogd calls im_linux_int when parsing command line
+	current_optind = optind;	/* syslogd calls im_linux_init when parsing command line
 					 * This should be changed
 					 */
 	flags = KSYM_TRANSLATE;
@@ -170,12 +172,14 @@ im_linux_init(I, argv, argc)
 			case 'r': /* force to read symbol table and keep it in memory */
 				flags |= KSYM_READ_TABLE;
 				break;
-/* not supported yet */
+
+/* not supported yet, we need to talk about somethings */
 #if 0
 			case 's': /* force to use syscall instead of _PATH_KLOG */
 				flags |= KLOG_USE_SYSCALL;
 				break;
 #endif
+
 			case 'x': /* do not translate kernel symbols */
 				flags &= ~KSYM_TRANSLATE;
 				break;
@@ -193,15 +197,28 @@ im_linux_init(I, argv, argc)
 	if (flags & ~KLOG_USE_SYSCALL) {
 		if ( (I->im_fd = open(_PATH_KLOG, O_RDONLY, 0)) >= 0)
 			I->im_path = _PATH_KLOG;
+
+/* if /proc not mounted.. sorry: syscall not supported yet */
+#if 0
 		else if (errno != ENOENT) {
 			warn("%s: %s: %s\n", linux_input_module, _PATH_KLOG, strerror(errno));
 			return(-1);
+		} else
+			/* /proc not mounted, use syscall */
+			I->im_fd = 0;
+#endif
+#if 1
+		else {
+			warn("%s: %s: %s\n", linux_input_module, _PATH_KLOG, strerror(errno));
+			return(-1);
 		}
+#endif
+
 	}
 
 	/* open/read symbol table file */
-	if (flags & KSYM_TRANSLATE)
-		ksym_init();
+	if ((flags & KSYM_TRANSLATE) && ksym_init() < 0)
+		return(-1);
 
         I->im_type = IM_LINUX;
         I->im_name = "linux";
@@ -258,14 +275,13 @@ im_linux_getLog(im, ret)
 
 			/* parse kernel/module symbols */
 			if (flags & KSYM_TRANSLATE)
-				/* ;;; 
-				ret->im_len = ksym_snprintf(ret->im_msg, sizeof(ret->im_msg), ptr, strlen(ptr));
-				*/
-				ret->im_len = snprintf(ret->im_msg, sizeof(ret->im_msg), "kernel: %s", ptr);
+				ret->im_len = ksym_snprintf(ret->im_msg, sizeof(ret->im_msg), ptr);
 			else
 				ret->im_len = snprintf(ret->im_msg, sizeof(ret->im_msg), "kernel: %s", ptr);
 
 			/* log msg */
+			if (ret->im_len < 0)
+				ret->im_len = sizeof(ret->im_msg);
 			strncpy(ret->im_host, LocalHostName, sizeof(ret->im_host));
 			ret->im_host[sizeof(ret->im_host)-1] = '\0';
 			logmsg(ret->im_pri, ret->im_msg, ret->im_host, ret->im_flags);
@@ -402,46 +418,53 @@ ksym_close()
 
 
 /*
- * ksym_printf
- *
+ * ksym_snprintf
  */
 int
-ksym_snprintf (buf, bufsize, raw, rawsize)
+ksym_snprintf (buf, bufsize, raw)
 	char *buf;
 	int   bufsize;
 	char *raw;
-	int   rawsize;
 {
 	int     i;
+	int	printed;
 	char   *p1;
 	char   *p2;
 	Symbol  sym;
 
-	/* search for a possible kernel symbol: "[< addr >]" */
-	if ( (p1 = strstr(raw, "[<")) != NULL && ( p2 = strstr(p1, ">]")) != NULL) {
-		p1 += 2;
-		*(p2 - 1) = '\0';
-
-		/* "addr" should be an hexadecimal number */
-		for (i = 0; p1 + i < p2 && isxdigit(p1[i]); i++);
-		if (p1 + i < p2) {
-
-			/* search kernel symbol */
-			if (ksym_lookup(&sym, p1) != NULL) {
-			}
-			else 
-				while (raw < p1 - 2) {
-					*buf = *raw;
-					raw++;
-					buf++;
+	if ( (printed = snprintf(buf, bufsize, "kernel: ")) < 0)
+		return(-1);
+	
+	while (bufsize && *raw != '\0') {
+		if ( (p1 = strstr(raw, "[<")) != NULL && (p2 = strstr(p1, ">]")) != NULL) {
+			for (i = 2; p1+i < p2 && isxdigit(p1[i]); i++);
+			if (p1+i == p2) {
+				*p2 = '\0';
+				if (ksym_lookup(&sym, p1+2) != NULL) {
+					*p1 = '\0';
+					if ( (printed += snprintf(buf, bufsize-printed, "%s [<%s> %s.%s ]",
+							   	  raw, sym.addr, sym.mname, sym.name)) < 0)
+						return(-1);
+					*p1 = '[';	/* we need to solve some things
+					*p2 = '>';	 * about buf and msg params on
+							 * im_xxxxx_getLog.
+							 * so, i think that is better
+							 * not to change raw data ;;;
+							 */
+					raw = p2+2;
+					continue;
 				}
-
-			/* HACER BIEN ESTA PORQUERIA */
-			
-
-		}
+				*p2 = '>';
+			} 
+		} 
+		break;
 	}
-	return(snprintf(buf, bufsize, "kernel: %s", raw));
+
+	if (*raw)
+		/* kernel message without symbols */
+		return(snprintf(buf, bufsize, "%s", raw));
+	else
+		return(printed);
 }
 
 
@@ -449,14 +472,14 @@ ksym_snprintf (buf, bufsize, raw, rawsize)
  * Lookup symbol:
  * search for a symbol on internal table/file that
  * matches an address.
- * If the symbol do not exists it returns NULL
+ * If the symbol does not exists it returns NULL
  */
 Symbol*
 ksym_lookup (sym, addr)
 	Symbol *sym;
 	char *addr;
 {
-	/* reset symbol table/file */
+	/* reset symbol table/file pointer */
 	if (ksym_fd == NULL)
 		ksym_current = ksym_first;
 	else
@@ -472,7 +495,7 @@ ksym_lookup (sym, addr)
 
 
 /*
- * Get a symbol from file or table
+ * Get a symbol from table/file
  * returns 0 on success and -1 on end of file/table
  */
 int
@@ -483,7 +506,7 @@ ksym_getSymbol (sym)
 
 	if (ksym_fd == NULL) {
 		if (ksym_current != NULL) {
-			sym = ksym_current;
+			*sym = *ksym_current;
 			ksym_current = ksym_current->next;
 			return(0);
 		}
@@ -506,6 +529,8 @@ ksym_parseLine (p, sym)
 {
 	if (sym == NULL || p == NULL || p[0] == '\0')
 		return(-1);
+
+	sym->addr[0] = sym->name[0] = sym->mname[0] = '\0';
 
 	/* copy address */
 	QUIT_BLANK(p);
