@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_tcp.c,v 1.17 2001/05/01 01:13:02 alejo Exp $	*/
+/*	$CoreSDI: om_tcp.c,v 1.18 2001/09/07 07:26:26 alejo Exp $	*/
 /*
      Copyright (c) 2001, Core SDI S.A., Argentina
      All rights reserved
@@ -73,7 +73,10 @@ struct om_tcp_ctx {
 	unsigned int	msec;	/* maximum seconds to wait until connection retry */
 	unsigned int	inc;	/* increase save */
 	time_t	savet;		/* saved time of last failed reconnect */
+	int	flags;
 };
+
+#define M_ADDHOST	0x01
 
 int connect_tcp(const char *, const char *);
 int om_tcp_close(struct filed *, void *);
@@ -134,6 +137,9 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 			c->savesize = strtol(optarg, NULL, 10);
 			c->saved = (char *) malloc(c->savesize);
 			break;
+		case 'a':
+			c->flags &= M_ADDHOST;
+			break;
 		default:
 			dprintf(MSYSLOG_SERIOUS, "om_tcp_init: parsing error"
 			    " [%c]\n", ch);
@@ -191,8 +197,13 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 	strftime(time_buf, sizeof(time_buf), "%b %e %H:%M:%S", &f->f_tm);
 
 	/* we give a newline termination to difference lines, unlike UDP */
-	l = snprintf(line, sizeof(line), "<%d>%.15s %s\n", f->f_prevpri,
-	    time_buf, msg);
+	if (c->flags & M_ADDHOST) {
+		l = snprintf(line, sizeof(line), "<%d>%.15s %s %s\n",
+		    f->f_prevpri, time_buf, f->f_prevhost, msg);
+	} else {
+		l = snprintf(line, sizeof(line), "<%d>%.15s %s\n",
+		    f->f_prevpri, time_buf, msg);
+	}
 
 	dprintf(MSYSLOG_INFORMATIVE, "om_tcp_write: sending to %s, %s",
 	    c->host, line);

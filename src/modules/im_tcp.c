@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.19 2001/06/28 15:13:15 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.20 2001/09/07 07:24:10 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -88,7 +88,10 @@ struct im_tcp_ctx {
 	socklen_t	 addrlen;
 	struct tcp_conn	*first;
 	struct tcp_conn	*last;
+	int		flags;
 };
+
+#define	M_USEMSGHOST	0x01
 
 void printline(char *, char *, size_t, int);
 char * resolve_addr(struct sockaddr *addr, socklen_t addrlen);
@@ -245,59 +248,65 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		return (0);
 	}
 
-	/* Remove trailing newlines. Newlines in the middle are ok
-	   as line separators */
-	if (n == 1) {
-		if (im->im_buf[0] == '\r' || im->im_buf[0] == '\n')
-			return (0); /* nothing to log */
-	} else if (n > 1) {
-		if (im->im_buf[n - 2] == '\r' && im->im_buf[n - 1] == '\n') {
-			im->im_buf[n - 2] = '\0';
-			n -= 2;
-		} else if (im->im_buf[n - 1] == '\n') {
-			im->im_buf[n - 1] = '\0';
-			n -= 1;
-		}
-	}
-
 	if (n == 0) {
 		return (0); /* nothing to log */
  	} else if (n < 0 && errno != EINTR) {
 		logerror("im_tcp_read");
 		con->fd = -1;
         } else {
-		char *p, *q, *lp;
-		int ch;
+		char	*p, *nextline, *cr;
 
+		/* terminate it */
 		(im->im_buf)[n] = '\0';
 
-		lp = ret->im_msg;
+		p = im->im_buf;
 
-		for (p = im->im_buf; *p != '\0'; ) {
+		do {
 
-			q = lp;
-			ch = '\0';
+			/* multiple lines ? */
+			if((nextline = strchr(p, '\n')) != NULL) {
+				/* terminate this line and advance */
+				*nextline++ = '\0';
+			}
 
-			/* copy line */
-			while (*p != '\0' && (ch = *p++) != '\r' &&
-			    ch != '\n' && q < (ret->im_msg + ret->im_mlen))
-	 			*q++ = ch;
-			*q = '\0';
+			/* remove trailing carriage returns */
+			if ((cr = strchr(p, '\r')) != NULL)
+				*cr = '\0';
 
-			/* get rid of \r\n too */
-			if (ch == '\r' && *p == '\n')
-				p++;
+			if (*p == '\0') {
+				if (nextline == NULL)
+					break;
+				continue;
+			}
 
-			strncpy(ret->im_host, con->name,
-			    sizeof(ret->im_host) - 1);
-			ret->im_host[sizeof(ret->im_host) - 1] = '\0';
+			if (c->flags & M_USEMSGHOST) {
+				int	n1, n2;
 
-			ret->im_len = strlen(ret->im_msg);
+				/* extract hostname from message */
+#if SIZEOF_MAXHOSTNAMELEN < 90
+#error  Change here buffer reads to match HOSTSIZE
+#endif
+				if (sscanf(p, "<%*d>%*15c %n%90s %n", &n1,
+				    ret->im_host, &n2) != 3)
+					continue;	/* invalid line */
 
-			printline(ret->im_host, ret->im_msg,
-			    (unsigned) ret->im_len, ret->im_flags);
-		}
+				/* remove host from message */
+				while (im->im_buf[n2] != '\0')
+					im->im_buf[n1++] = im->im_buf[n2++];
 
+			} else {
+
+				/* get hostname from originating addr */
+				strncpy(ret->im_host, con->name,
+				    sizeof(ret->im_host) - 1);
+				ret->im_host[sizeof(ret->im_host) - 1] = '\0';
+			}
+
+			printline(ret->im_host, im->im_buf, strlen(im->im_buf), 0);
+
+			p = nextline;
+
+		} while (nextline != NULL);
 	}
 
 	return (0); /* we already logged the lines */
