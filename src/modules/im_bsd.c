@@ -68,9 +68,9 @@ im_bsd_getLog(im, ret)
 #error   los bytes que leyo del socket. Para que se usa im_len
 	i = read(im->im_fd, im->im_buf, sizeof(im->im_buf) - 1);
 	if (i > 0) {
-		(ret->im_buf)[i] = '\0';
+		(im->im_buf)[i] = '\0';
 		ret->im_len = i;
-		for (p = ret->im_buf; *p != '\0'; ) {
+		for (p = im->im_buf; *p != '\0'; ) {
 			/* fsync file after write */
 			ret->im_flags = SYNC_FILE | ADDDATE;
 			ret->im_pri = DEFSPRI;

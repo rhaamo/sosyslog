@@ -1,4 +1,4 @@
-/*	$Id: im_udp.c,v 1.15 2000/05/17 23:08:43 gera Exp $
+/*	$Id: im_udp.c,v 1.16 2000/05/19 22:46:39 gera Exp $
  *  im_udp -- classic behaviour module for BDS like systems
  *      
  * Author: Alejo Sanchez for Core-SDI SA
@@ -71,7 +71,8 @@ im_udp_getLog(im, ret)
 			ret->im_msg[ret->im_len] = '\0';
 			hent = gethostbyaddr((char *) &frominet.sin_addr, sizeof frominet.sin_addr,
 					frominet.sin_family);
-			strncpy(ret->im_host, hent->h_name, sizeof(ret->im_host));
+			if (hent!=NULL) strncpy(ret->im_host, hent->h_name, sizeof ret->im_host);
+				else strncpy(ret->im_host,inet_ntoa(frominet.sin_addr),sizeof ret->im_host);
 		} else if (ret->im_len < 0 && errno != EINTR)
 			logerror("recvfrom inet");
 	}
