@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.114 2000/07/26 21:00:37 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.115 2000/08/05 00:40:30 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -46,9 +46,16 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <dlfcn.h>
+#include <limits.h>
 #include "syslogd.h"
 #include "modules.h"
 #include "modules_libs.h"
+
+#ifdef _POSIX_PATH_MAX
+#define LIB_PATH_MAX _POSIX_PATH_MAX
+#else
+#define LIB_PATH_MAX 254
+#endif
 
 int     modules_load(void);
 int     imodule_init(struct i_module *, char *);
@@ -269,7 +276,7 @@ parseParams(char ***ret, char *c) {
 struct imodule *
 addImodule(char *name) {
 	struct imodule *im;
-	char buf[128];
+	char buf[LIB_PATH_MAX], *r;
 	int i;
 
 	if (name == NULL)
@@ -284,7 +291,18 @@ addImodule(char *name) {
 		im = im->im_next;
 	}
 
-	snprintf(buf, 127, "libmsyslog_im_%s.so", name);
+	for(i = 0; mlibs[i].name; i++) {
+		for(r = *mlibs[i].req; r; r++) {
+			dprintf("addImodule: going to open library %s for module "
+					"%s\n", name, r);
+			if (dlopen(r, RTLD_LAZY) == NULL) {
+			   	dprintf("Error [%s] on file [%s]\n", dlerror(), r);
+			   	return(NULL);
+			}
+		}
+	}
+
+	snprintf(buf, LIB_PATH_MAX, "libmsyslog_im_%s.so", name);
 
 	if ((im->h = dlopen(buf, RTLD_LAZY)) == NULL) {
 	   	dprintf("Error [%s] on file [%s]\n", dlerror(), buf);
