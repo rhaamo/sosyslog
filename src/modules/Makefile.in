@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.36 2000/08/22 19:43:38 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.37 2000/08/28 22:07:00 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -153,18 +153,21 @@ distclean: clean
 
 install:
 	@echo installing shared libraries...
-	@-if [ "$(DUNIX)" -a -f "$(DUNIX)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DUNIX) $(INSTALL_LIBDIR)/$(DUNIX:.$(MSYSLOG_VERSION)=); fi
-	@-if [ "$(DUDP)" -a -f "$(DUDP)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DUDP) $(INSTALL_LIBDIR)/$(DUDP:.$(MSYSLOG_VERSION)=); fi
-	@-if [ "$(DBSD)" -a -f "$(DBSD)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DBSD) $(INSTALL_LIBDIR)/$(DBSD:.$(MSYSLOG_VERSION)=); fi
-	@-if [ "$(DLINUX)" -a -f "$(DLINUX)*" ]; then ln -fs $(INSTALL_LIBDIR)/$(DLINUX) $(INSTALL_LIBDIR)/$(DLINUX:.$(MSYSLOG_VERSION)=); fi
-	@-if [ "$(DCLASSIC)" -a -f "$(DCLASSIC)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DCLASSIC) $(INSTALL_LIBDIR)/$(DCLASSIC:.$(MSYSLOG_VERSION)=); fi
-	@-if [ "$(DPEO)" -a -f "$(DPEO)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DPEO) $(INSTALL_LIBDIR)/$(DPEO:.$(MSYSLOG_VERSION)=); fi
-	@-if [ "$(DMYSQL)" -a -f "$(DMYSQL)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DMYSQL) $(INSTALL_LIBDIR)/$(DMYSQL:.$(MSYSLOG_VERSION)=); fi
-	@-if [ "$(DPGSQL)" -a -f "$(DPGSQL)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DPGSQL) $(INSTALL LIBDIR)/$(DPGSQL:.$(MSYSLOG_VERSION)=); fi
-	@-if [ "$(DREGEX)" -a -f "$(DREGEX)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DREGEX) $(INSTALL_LIBDIR)/$(DREGEX:.$(MSYSLOG_VERSION)=); fi
-	$(INSTALL) libmsyslog_*.so.* $(INSTALL_LIBDIR)
+	@if [ "$(DUNIX)" -a -f "$(DUNIX)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DUNIX) $(INSTALL_LIBDIR)/$(DUNIX:.$(MSYSLOG_VERSION)=); fi
+	@if [ "$(DUDP)" -a -f "$(DUDP)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DUDP) $(INSTALL_LIBDIR)/$(DUDP:.$(MSYSLOG_VERSION)=); fi
+	@if [ "$(DBSD)" -a -f "$(DBSD)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DBSD) $(INSTALL_LIBDIR)/$(DBSD:.$(MSYSLOG_VERSION)=); fi
+	@if [ "$(DLINUX)" -a -f "$(DLINUX)*" ]; then ln -fs $(INSTALL_LIBDIR)/$(DLINUX) $(INSTALL_LIBDIR)/$(DLINUX:.$(MSYSLOG_VERSION)=); fi
+	@if [ "$(DCLASSIC)" -a -f "$(DCLASSIC)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DCLASSIC) $(INSTALL_LIBDIR)/$(DCLASSIC:.$(MSYSLOG_VERSION)=); fi
+	@if [ "$(DPEO)" -a -f "$(DPEO)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DPEO) $(INSTALL_LIBDIR)/$(DPEO:.$(MSYSLOG_VERSION)=); fi
+	@if [ "$(DMYSQL)" -a -f "$(DMYSQL)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DMYSQL) $(INSTALL_LIBDIR)/$(DMYSQL:.$(MSYSLOG_VERSION)=); fi
+	@if [ "$(DPGSQL)" -a -f "$(DPGSQL)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DPGSQL) $(INSTALL LIBDIR)/$(DPGSQL:.$(MSYSLOG_VERSION)=); fi
+	@if [ "$(DREGEX)" -a -f "$(DREGEX)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DREGEX) $(INSTALL_LIBDIR)/$(DREGEX:.$(MSYSLOG_VERSION)=); fi
+	@if test -f libmsyslog_*.so.* ; \
+	then \
+		$(INSTALL) libmsyslog_*.so.* $(INSTALL_LIBDIR) ; \
+	fi
 	@echo updating run-time link database...
-	@-if test "$(UNAME)" = "Linux"; \
+	@if test "$(UNAME)" = "Linux"; \
 	then \
 		if test -z "`grep $(INSTALL_LIBDIR) /etc/ld.so.conf`"; \
 		then \
