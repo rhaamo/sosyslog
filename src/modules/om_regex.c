@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_filter.c,v 1.2 2000/06/05 15:42:20 alejo Exp $	*/
+/*	$CoreSDI: om_filter.c,v 1.3 2000/06/05 21:35:46 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -30,14 +30,12 @@
  */
 
 /*
- *  om_filter -- some explanation for this baby
+ * om_filter -- some explanation for this baby
  *
  * Author: Alejo Sanchez for Core-SDI SA
  *
- *
  */
 
-/* check what include you need !!! */
 #include <sys/time.h>
 #include <ctype.h>
 #include <errno.h>
@@ -47,7 +45,7 @@
 #include <string.h>
 #include <syslog.h>
 #include <unistd.h>
-#include <regexp.h>
+#include <regex.h>
 #include "syslogd.h"
 #include "modules.h"
 
