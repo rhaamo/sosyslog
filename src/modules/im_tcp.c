@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.23 2001/09/19 11:50:19 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.24 2001/09/19 11:55:11 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -294,9 +294,11 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 				*cr = '\0';
 
 			if (*p == '\0') {
-				if (nextline == NULL)
-					break;
-				continue;
+				if (nextline != NULL) {
+					p = nextline;
+					continue;
+				} else
+					return (0);
 			}
 
 			if (c->flags & M_USEMSGHOST) {
@@ -306,17 +308,21 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 #if SIZEOF_MAXHOSTNAMELEN < 89
 #error  Change here buffer reads to match HOSTSIZE
 #endif
-				if (sscanf(p, "<%*d>%*15c %n%90s %n", &n1,
-				    ret->im_host, &n2) != 1 &&
-				    sscanf(p, "%*15c %n%90s %n", &n1,
-				    ret->im_host, &n2) != 1 &&
+				if ((sscanf(p, "<%*d>%*3s %*i %*i:%*i:%*i %n%90s"
+				    " %n", &n1, ret->im_host, &n2) != 1 &&
+				    sscanf(p, "%*3s %*i %*i:%*i:%*i %n%90s %n",
+				    &n1, ret->im_host, &n2) != 1 &&
 				    sscanf(p, "%n%90s %n", &n1,
-				    ret->im_host, &n2) != 1) {
+				    ret->im_host, &n2) != 1)
+				    || im->im_buf[n2] == '\0') {
         				dprintf(MSYSLOG_INFORMATIVE,
 					    "im_tcp_read: ignoring message [%s]"
 					    "because it is invalid\n", p);
-					p = strchr(p, '\0');
-					continue;
+					if (nextline != NULL) {
+						p = nextline;
+						continue;
+					} else
+						return (0);
 				}
 
 				/* remove host from message */
