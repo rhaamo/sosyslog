@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.79 2001/06/11 17:25:46 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.80 2001/06/13 20:45:21 alejo Exp $	*/
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
@@ -150,7 +150,7 @@ om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
 		v->iov_len = 0;
 		v++;
 	} else {
-		strftime(time_buf, sizeof(time_buf), "%b %d %H:%M:%S", &f->f_tm);
+		strftime(time_buf, sizeof(time_buf), "%b %e %H:%M:%S", &f->f_tm);
 		v->iov_base = time_buf;
 		v->iov_len = 15;
 		v++;

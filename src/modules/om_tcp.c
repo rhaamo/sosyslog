@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_tcp.c,v 1.16 2001/04/28 02:12:51 alejo Exp $	*/
+/*	$CoreSDI: om_tcp.c,v 1.17 2001/05/01 01:13:02 alejo Exp $	*/
 /*
      Copyright (c) 2001, Core SDI S.A., Argentina
      All rights reserved
@@ -188,7 +188,7 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 
 	c = (struct om_tcp_ctx *) ctx;
 
-	strftime(time_buf, sizeof(time_buf), "%b %d %H:%M:%S", &f->f_tm);
+	strftime(time_buf, sizeof(time_buf), "%b %e %H:%M:%S", &f->f_tm);
 
 	/* we give a newline termination to difference lines, unlike UDP */
 	l = snprintf(line, sizeof(line), "<%d>%.15s %s\n", f->f_prevpri,

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.35 2001/04/24 12:54:08 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.36 2001/04/24 12:55:40 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -215,7 +215,7 @@ om_regex_write(struct filed *f, int flags, char *msg, void *ctx)
 
 	/* Split date and time if filters are present. */
 	if ((c->filters & OM_FILTER_DATE) || (c->filters & OM_FILTER_TIME)) {
-		strftime(time_buf, sizeof(time_buf), "%b %d %H:%M:%S",
+		strftime(time_buf, sizeof(time_buf), "%b %e %H:%M:%S",
 		    &f->f_tm);   
 
 		time_buf[6] = 0;
