@@ -1,11 +1,4 @@
-/*	$Log: syslogd.c,v $
-/*	Revision 1.78  2000/05/29 23:40:11  gera
-/*	some test
-/*	
-/*	Revision 1.78  2000/05/29 23:40:11  gera
-/*	some test
-/*		*/
-/*	$CoreSDI: syslogd.c,v 1.77 2000/05/29 19:11:43 fgsch Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.78 2000/05/29 23:40:11 gera Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
