@@ -1,16 +1,23 @@
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
 
-test -z "$CFLAGS" && CFLAGS=-O AC_SUBST(CFLAGS)
-test -z "$LDFLAGS" && LDFLAGS= AC_SUBST(LDFLAGS)
+MSYSLOG_VERSION=`awk '/#define VERSION/ { print $3 }' src/syslogd.h`
+echo msyslog version... $MSYSLOG_VERSION
+
+CFLAGS="-O -ggdb"
+LDFLAGS=
 
 AC_PROG_CC
 AC_PROG_INSTALL
 
-if test `uname` = "OpenBSD"
+UNAME=`uname`
+if test "$UNAME" = "OpenBSD"
 then
 	AC_DEFINE(HAVE_OPENBSD)
 	AC_MSG_RESULT(OpenBSD system detected)
+elif test "$UNAME" = "Linux"
+then
+	LIBS="$LIBS -ldl"
 fi
 
 AC_CHECK_HEADERS(paths.h)
@@ -83,20 +90,7 @@ AC_SUBST(INSTALL_DIR)
 #	LDFLAGS="$LDFLAGS -L$with_mysql/lib/mysql"
 #	OMMYSQL_LIBS="$OMMYSQL_LIBS -lmysqlclient"
 #	AC_DEFINE(ENABLE_MYSQL)
-#else
-#	echo "Disabling MySQL support..."
 #fi
-
-VERSION=`grep VERSION src/syslogd.h | sed '/#define VERSION /s///'`
-
-HASH_SRCS="hash.c"
-AC_CHECK_FUNC(MD5Init, AC_DEFINE(HAVE_MD5),
-	HASH_SRCS="$HASH_SRCS md5c.c")
-AC_CHECK_FUNC(SHA1Init, AC_DEFINE(HAVE_SHA1),
-	HASH_SRCS="$HASH_SRCS sha1.c")
-AC_CHECK_FUNC(RMD160Init, AC_DEFINE(HAVE_RMD160),
-	HASH_SRCS="$HASH_SRCS rmd160.c")
-AC_SUBST(HASH_SRCS)
 
 AC_DEFUN(GREP, [
 if test -e "$2"
@@ -107,7 +101,31 @@ then
 	fi
 fi
 ])
-	
+
+
+HASH_SRCS="hash.c"
+AC_CHECK_FUNC(MD5Init, AC_DEFINE(HAVE_MD5),
+	HASH_SRCS="$HASH_SRCS md5c.c")
+AC_CHECK_FUNC(SHA1Init, AC_DEFINE(HAVE_SHA1),
+	HASH_SRCS="$HASH_SRCS sha1.c")
+AC_CHECK_FUNC(RMD160Init, AC_DEFINE(HAVE_RMD160),
+	HASH_SRCS="$HASH_SRCS rmd160.c")
+AC_SUBST(HASH_SRCS)
+
+AC_DEFUN(CONF_MYSQL, [
+for ac_dir in /usr/local/lib/mysql /usr/local/mysql
+do
+	with_mysql="$ac_dir"
+	if test -d "$ac_dir"
+	then
+		break
+	fi
+done
+
+CFLAGS="$CFLAGS -I$with_mysql/include/mysql"
+LDFLAGS="$LDFLAGS -L$with_mysql/lib/mysql"
+LIBS="$LIBS -lmysqlclient"
+])
 
 AC_DEFUN(BEGIN_MODULES_CONF, [
 STATIC_MODULES="src/static_modules"
@@ -135,7 +153,8 @@ eval `cat ./modules.conf`
 
 AC_DEFUN(END_MODULES_CONF, [
 AC_SUBST(SSRCS)
-printf "\treturn(0);\n}\n" >> $STATIC_MODULES.c ])
+printf "\treturn(0);\n}\n" >> $STATIC_MODULES.c
+])
 
 AC_DEFUN(add_om, [ 
 printf "\
@@ -213,7 +232,7 @@ then
 elif test "x$2" = "xdynamic"
 then
 	D$1_SRC="$3"
-	D$1="lib$4_$1.so"
+	D$1="lib$4_$1.so.$MSYSLOG_VERSION"
 	AC_SUBST(D$1)
 	AC_SUBST(D$1_SRC)
 	AC_MSG_RESULT([dynamic]);
@@ -229,12 +248,17 @@ CHECK_MODULE(bsd, $bsd, im_bsd.c, im)
 CHECK_MODULE(linux, $linux, im_linux.c, im)
 CHECK_MODULE(classic, $classic, om_classic.c, om)
 CHECK_MODULE(peo, $peo, om_peo.c, om)
-CHECK_MODULE(mysql, $mysql, om_mysql.c, om)
-CHECK_MODULE(pgsql, $pgsql, om_pgsql.c, om)
+CHECK_MODULE(mysql, $mysql, om_mysql.c sql_misc.c, om)
+if test "x$mysql" = "xstatic" -o "x$mysql" = "xdynamic"
+then
+	CONF_MYSQL()
+fi
+CHECK_MODULE(pgsql, $pgsql, om_pgsql.c sql_misc.c, om)
 CHECK_MODULE(regex, $regex, om_regex.c, om)
 END_MODULES_CONF()
 
-LIBS="$LIBS -ldl"
 AC_SUBST(LIBS)
+AC_SUBST(CFLAGS)
+AC_SUBST(LDFLAGS)
 
 AC_OUTPUT([Makefile src/Makefile src/modules/Makefile src/peo/Makefile])
