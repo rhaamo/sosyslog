@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.79 2000/05/29 23:40:45 gera Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.80 2000/05/30 00:08:59 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -484,7 +484,7 @@ doLog(f, flags, message)
 {
 	struct	o_module *m;
 	char	repbuf[80], *msg;
-	int	len;
+	int	len, ret;
 
 	if (message) {
 		msg = message;
@@ -506,11 +506,13 @@ doLog(f, flags, message)
 		};
 
 		/* call this module doLog */
-		if((*(OModules[m->om_type].om_doLog))(f,flags,msg,m->ctx) != 0) {
+		ret = (*(OModules[m->om_type].om_doLog))(f,flags,msg,m->ctx);
+		if( ret < 0) {
 			dprintf("doLog error with module type [%i] "
-				"for message [%s]\n",
-				m->om_type, msg);
-		}
+				"for message [%s]\n", m->om_type, msg);
+		} else if (ret == 0)
+			/* stop going on */
+			break;
 	}
 }
 
