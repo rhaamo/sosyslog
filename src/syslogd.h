@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.80 2000/10/31 19:42:12 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.81 2000/11/03 21:36:35 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -88,7 +88,6 @@
 /* if UT_NAMESIZE doesn't exist, define it as 32 */
 #ifndef UT_NAMESIZE
 #define UT_NAMESIZE 32
-#warning Using 32 for UT_NAMESIZE
 #endif
 
 /*
