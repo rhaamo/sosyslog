@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.1 2000/06/02 22:27:16 fgsch Exp $
+# $CoreSDI: Makefile.in,v 1.2 2000/06/02 22:59:54 fgsch Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -71,7 +71,7 @@ distclean: distclean-recursive distclean-local
 clean: clean-recursive clean-local
 
 clean-local:
-	-rm -f *.o core *.core syslogd
+	-rm -f tags *.o core *.core syslogd
 
 distclean-local: clean-local
 	-rm -f Makefile config.h

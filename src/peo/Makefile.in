@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.1 2000/06/02 22:27:18 fgsch Exp $
+# $CoreSDI: Makefile.in,v 1.2 2000/06/05 21:31:20 fgsch Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -41,7 +41,7 @@ all: $(OBJS)
 
 .PHONY: clean distclean
 clean:
-	-rm -f *.o core *.core
+	-rm -f tags *.o core *.core
 
 distclean: clean
 	-rm -f Makefile
