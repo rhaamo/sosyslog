@@ -20,6 +20,10 @@
 
 char   *cvthname __P((struct sockaddr_in *));
 
+extern int nfunix;
+extern char *funixn[];
+extern int *funix[];
+
 
 /* standard input module header variables in context */
 struct im_unix_ctx {
@@ -79,7 +83,7 @@ im_unix_init(I)
 	struct im_unix_ctx *ctx;
 	int i;
 	char line[MAXLINE + 1];
-	struct sockaddr_un sunx;
+	struct sockaddr_un frominet;
 
 	ctx = (struct im_unix_ctx *) calloc(1, sizeof(struct im_unix_ctx));
 

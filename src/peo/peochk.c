@@ -81,13 +81,13 @@ usage()
 	"hash_method options:\n"
 	"\tmd5, sha1, rmd160\n\n"
 	"When no logfile is specified or it is without the -f switch "
-	"the data is readed\n"
+	"the data is read\n"
 	"from the standard input.\n"
  	"If logfile is specified using both -f switch and without"
 	"it, the -f argument\n"
 	"is used and data is not read from the standard input.\n"
-	"If the logfile is specified but not the keyfile, this will "
-	"be /var/ssyslog/xxx\n"
+	"If the logfile is specified but not the keyfile, the default key "
+	"file is /var/ssyslog/xxx\n"
 	"where xxx is the logfile with all '.' replaced by ','\n\n"
 	"Default values:\n"
 	"\tlogfile    : /var/log/messages\n"
@@ -119,7 +119,7 @@ check()
 void
 generate()
 {
-	char	*newkey[41];
+	char	 newkey[41];
 	int	 len;
 	int	 fkey;
 	int	 fkey0;
