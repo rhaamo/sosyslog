@@ -1,0 +1,85 @@
+$Id: QUICK_INSTALL,v 1.1 2002/08/14 14:32:19 phreed Exp $
+==============================================================================
+                         Modular Syslog package
+                             QUICK_INSTALL file
+								
+                 (C)2000, 2001 Core-SDI. Buenos Aires, Argentina.
+==============================================================================
+
+  This file is a basic guide for installing modular syslog.
+
+
+SPECIAL NOTE
+------------
+
+Most of the documentation and examples are on the manual pages provided.
+They are meant to be the ultimate reference. See im_bsd.8, im_linux.8
+im_udp.8, om_mysql.8, om_regex.8, peochk.8 im_doors.8, im_streams.8
+im_unix.8, om_peo.8, om_tcp.8, syslog.conf.5, im_file.8, im_tcp.8
+om_classic.8, om_pgsql.8, om_udp.8, and syslogd.8.
+
+
+0. Compile
+==========
+
+# tar xzvf msyslog-vXX.tgz
+or
+# gunzip -c msyslog-vXX.tgz | tar xvf -
+
+and
+
+# cd msyslog-vXX
+
+then
+
+# ./configure
+
+for /usr/local installs, or for /usr (i.e. Solaris, BSDs)
+
+# ./configure -prefix=/usr
+
+or the following for / installs (i.e. Linux)
+
+# ./configure -prefix=/usr
+
+Now compile and install
+
+# make install
+
+1. Configuring
+==============
+
+- read syslog.conf manpage, and understand the '%' usage
+  (it is easy, checkout the examples)
+- on Solaris, remove all those LOG macros on /etc/syslog.conf.
+- see peochk and om_peo manpages' examples for hash protection
+- checkout all modules you may like withe their manpages.
+  they ALL have examples
+	- om_regex
+	- om_mysql, om_pgsql
+	- om_tcp, im_tcp, om_udp, im_udp
+
+2. Running
+==========
+
+Fisrt stop and kill running syslogd (and klogd in linux).
+
+Linux
+
+YOU DON'T NEED klogd.
+
+# /sbin/syslogd -i linux -i unix
+
+Solaris
+
+# /usr/sbin/syslogd -i streams
+
+BSDs
+
+# /usr/sbin/syslogd -i bsd -i unix
+
+
+If you want to receive on address 'myname' through TCP on port 4321,
+ad to that -i tcp '-h myname -p 4321', or  for UDP
+-i tcp '-h myname -p 4321'.
+
