@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.87 2001/02/26 22:43:34 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.88 2001/02/28 23:47:41 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(config.h)dnl
@@ -257,9 +257,11 @@ AC_ARG_WITH(tcp,
 ],[
 	if test $with_tcp = "yes" ; then
 		MSRCS="$MSRCS om_tcp.c im_tcp.c"
+		MANPAGES="$MANPAGES om_tcp.8 im_tcp.8"
 	fi
 ],[
 	MSRCS="$MSRCS om_tcp.c im_tcp.c"
+	MANPAGES="$MANPAGES om_tcp.8 im_tcp.8"
 ])
 
 AC_ARG_WITH(mysql,

@@ -1,0 +1,70 @@
+.\"	$CoreSDI: im_tcp.8,v 1.1 2000/11/03 23:25:47 alejo Exp $
+.\"
+.\" Copyright (c) 2000
+.\"	Core-SDI SA. All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. Neither the name of Core-SDI SA nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.Dd Feb 28, 2001
+.Dt IM_TCP 8
+.Os Core-SDI
+.Sh NAME
+.Nm tcp input module
+.Nd
+.Xr syslogd 8
+input module used to receive from tcp connections
+.Sh SYNOPSIS
+.Nm tcp
+.Op Fl h Ar host
+.Op Fl p Ar port
+.Sh DESCRIPTION
+.Nm tcp input module 
+allows
+.Xr syslogd 8
+daemon to use tcp IPC.
+.Sh EXAMPLES
+.Bl -bullet
+.It
+The following command installs
+.Xr syslogd 8
+daemon and activates tcp system accepting remote connections on local
+addres machinename.somedomainexample.com port 3210:
+.Pp
+.Dl syslogd -i 'tcp -h machinename.somedomainexample.com -p 3210
+.El
+.Pp
+.Sh BUGS
+.Bl -bullet
+.It
+We are sending everything not encrypted! You may want to use a tunnel
+such as SSL.
+.It
+If you have found bugs, please report them to syslog-bugs@core-sdi.com
+.El
+.Sh SEE ALSO
+.Xr syslog 2 ,
+.Xr syslog.conf 5 ,
+.Xr om_tcp 8 ,
+.Xr syslogd 8 
