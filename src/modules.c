@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.84 2000/06/05 22:40:55 fgsch Exp $	*/
+/*	$CoreSDI: modules.c,v 1.85 2000/06/05 23:14:24 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -76,13 +76,13 @@ int	om_mysql_close __P((struct filed*, struct om_hdr_ctx *));
 
 int	im_bsd_init __P((struct i_module *, char **, int));
 int	im_bsd_getLog __P((struct i_module *, struct im_msg *));
-int	im_bsd_close __P((struct i_module *));
+
 int	im_unix_init __P((struct i_module *, char **, int));
 int	im_unix_getLog __P((struct i_module *, struct im_msg *));
-int	im_unix_close __P((struct i_module *));
+int	im_unix_close __P((struct i_module *, struct im_msg *));
+
 int	im_udp_init __P((struct i_module *, char **, int));
 int	im_udp_getLog __P((struct i_module *, struct im_msg *));
-int	im_udp_close __P((struct i_module *));
 
 #ifdef HAVE_LINUX
 int	im_linux_init __P((struct i_module *, char **, int));
@@ -158,7 +158,7 @@ modules_load()
 	IModules[IM_BSD].im_type		= IM_BSD;
 	IModules[IM_BSD].im_init		= im_bsd_init;
 	IModules[IM_BSD].im_getLog		= im_bsd_getLog;
-  	IModules[IM_BSD].im_close		= im_bsd_close;
+  	IModules[IM_BSD].im_close		= NULL;
 
 	/* unix standard input module */
 	IModules[IM_UNIX].im_name		= "unix";
@@ -172,7 +172,7 @@ modules_load()
 	IModules[IM_UDP].im_type		= IM_UDP;
 	IModules[IM_UDP].im_init		= im_udp_init;
 	IModules[IM_UDP].im_getLog		= im_udp_getLog;
-  	IModules[IM_UDP].im_close		= im_udp_close;
+  	IModules[IM_UDP].im_close		= NULL;
 
 #ifdef HAVE_LINUX
 	/* linux kernel input module */

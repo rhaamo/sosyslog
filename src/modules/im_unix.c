@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.24 2000/06/01 22:33:42 claudio Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.25 2000/06/05 22:59:24 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -127,14 +127,14 @@ im_unix_init(I, argv, argc)
 	return(1);
 }
 
-
-
 int
 im_unix_close(im)
 	struct i_module *im;
 {
+	close(im->im_fd);
+
 	if (im->im_path)
-		return(unlink(im->im_path));
+		unlink(im->im_path);
 
 	return(0);
 }

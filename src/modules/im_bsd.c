@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.48 2000/06/05 22:32:55 fgsch Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.49 2000/06/05 22:59:22 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -130,11 +130,4 @@ im_bsd_getLog(im, ret)
 
 	/* if ok return (2) wich means already logged */
 	return(im->im_fd == -1 ? -1: 2);
-}
-
-int
-im_bsd_close(im)
-	struct i_module *im;
-{
-	return(close(im->im_fd));
 }
