@@ -16,13 +16,12 @@
  *
 \********************************************************************/
 
-
-#include <sys/types.h>
+/* header files */
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-
-#include "rmd160.h"
+#include <string.h>
+#include <sys/types.h>
+#include <rmd160.h>
 
 /********************************************************************/
 
@@ -100,7 +99,8 @@
 
 /********************************************************************/
 
-void RMD160Init(context)
+void
+RMD160Init(context)
 	RMD160_CTX *context;
 {
 
@@ -116,7 +116,8 @@ void RMD160Init(context)
 
 /********************************************************************/
 
-void RMD160Transform(state, block)
+void
+RMD160Transform(state, block)
 	u_int32_t state[5];
 	const u_int32_t block[16];
 {
@@ -316,7 +317,8 @@ void RMD160Transform(state, block)
 
 /********************************************************************/
 
-void RMD160Update(context, data, nbytes)
+void
+RMD160Update(context, data, nbytes)
 	RMD160_CTX *context;
 	const u_char *data;
 	u_int32_t nbytes;
@@ -375,7 +377,8 @@ void RMD160Update(context, data, nbytes)
 
 /********************************************************************/
 
-void RMD160Final(digest, context)
+void
+RMD160Final(digest, context)
 	u_char digest[20];
 	RMD160_CTX *context;
 {
@@ -417,22 +420,6 @@ void RMD160Final(digest, context)
 			digest[i + 3] = (context->state[i>>2] >> 24);
 		}
 	}
-}
-
-/********************************************************************/
-
-char *RMD160End (context, buf)
-		RMD160_CTX *context;
-		char *buf;
-{
-	u_char	digest[20];
-	int	i;
-
-	RMD160Final(digest, context);
-	for (i = 0; i < 20; i++)
-		sprintf (buf, "%02x", digest[i]);
-	*(buf+40) = 0;
-	return buf;
 }
 
 /************************ end of file rmd160.c **********************/

@@ -1,4 +1,4 @@
-/*      $Id: hash.c,v 1.3 2000/04/28 17:59:48 claudio Exp $
+/*      $Id: hash.c,v 1.4 2000/04/28 21:50:53 claudio Exp $
  *
  * hash -- few things used by both peo output module and peochk 
  *
@@ -6,11 +6,16 @@
  *
  */
 
+#include "../config.h"
 #include <sys/types.h>
-#include <md5.h>
-#include <sha1.h>
 #include <string.h>
-
+#ifdef HAVE_OPENBSD
+	#include <md5.h>
+	#include <sha1.h>
+#else
+	#include "md5.h"
+	#include "sha1.h"
+#endif
 #include "rmd160.h"
 #include "hash.h"
 
@@ -83,7 +88,7 @@ return len;
 /*
  * gethash:
  *	Converts method string to method number.
- *	The string should be one of: "md5", "rmd160", or "sha1",
+ *	The string should be one of those specified in hmstr declaration.
  *	if not -1 is returned instead.
  *	Case is ignored
  */
@@ -110,12 +115,12 @@ char *
 strkey(logfile)
 	char *logfile;
 {
+	char *b;
 	char *keyfile;
-	char *i;
 
-	if ( (i = keyfile = strdup(logfile)) != NULL)
-		while ( (i = strchr(i, '/')) != NULL)
-			*i = '.';
+	if ( (b = keyfile = strdup(logfile)) != NULL)
+		while ( (b = strchr(b, '/')) != NULL)
+			*b = '.';
 
 	return keyfile;
 }

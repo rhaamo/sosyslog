@@ -1,0 +1,11 @@
+
+PROG=	peochk
+SRCS=	hash.c rmd160.c om_peo.c peochk.c
+OBJS=	hash.o md5.o rmd160.o sha1.o om_peo.o
+DEBUG=	-ggdb -Wall
+
+
+peo: $(OBJS)
+
+clean:
+	rm -f *.o peochk
