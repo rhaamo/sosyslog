@@ -1,4 +1,4 @@
-/*  $Id: om_regex.c,v 1.47 2002/09/17 05:20:28 alejo Exp $	*/
+/*  $Id: om_regex.c,v 1.48 2002/09/26 18:46:07 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -355,7 +355,11 @@ static void parse_subst(const regex_t *regex_comp, const char *argv, int *no_sub
       *non_subst = realloc( *non_subst, current_bound * sizeof(char *) );
       *subexp_no = realloc( *subexp_no, current_bound * sizeof(int) );
     }
-    (*non_subst)[current_element] = unbackslash( strndup(start, pmatch[3].rm_so) );
+    (*non_subst)[current_element] = malloc(pmatch[3].rm_so);
+    strncpy((*non_subst)[current_element], start, pmatch[3].rm_so - 1);
+    (*non_subst)[current_element][pmatch[3].rm_so - 1] = '\0';
+    unbackslash((*non_subst)[current_element]);
+
     (*subexp_no)[current_element] = atoi(&start[ pmatch[3].rm_so + 1 ]); 
     ++current_element;
 
@@ -522,11 +526,14 @@ int om_regex_close(struct filed *f, void *ctx) {
   }
   if (c->msg_subexp_no) free(c->msg_subexp_no);
 
+#warning FIX THIS
   if (c->host_non_subst) {
+#if 0
     int ix;
     char *string;
     for(ix = c->host_no_subst ; ix >= 0 ; --ix)
       free(string);
+#endif
     free(c->host_non_subst);
   }
   if (c->host_subexp_no) free(c->host_subexp_no);

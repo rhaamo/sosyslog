@@ -442,7 +442,7 @@ return(-1);
   if (ctx->semaphore >= 0) break;
     if (ix > 5) {
       snprintf(statbuf, sizeof(statbuf), "om_queue: "
-            "semaphore set for key (0x%x) NOT created", semkey);
+            "semaphore set for key (0x%lx) NOT created", semkey);
       m_dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
       *status = strdup(statbuf);
 return (-1);
