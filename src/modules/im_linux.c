@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.16 2000/06/08 21:27:09 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.17 2000/06/09 20:03:11 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -290,51 +290,6 @@ im_linux_getLog(im, ret)
 		}
 	}
 	return(0);
-
-//	char *p, *q, *lp;
-//	int i, c;
-//
-//	(void)strncpy(ret->im_msg, _PATH_UNIX, sizeof(ret->im_msg) - 3);
-//	(void)strncat(ret->im_msg, ": ", 2);
-//	lp = ret->im_msg + strlen(ret->im_msg);
-//
-//	i = read(im->im_fd, im->im_buf, sizeof(im->im_buf) - 1);
-//	if (i > 0) {
-//		(im->im_buf)[i] = '\0';
-//		for (p = im->im_buf; *p != '\0'; ) {
-//			/* fsync file after write */
-//			ret->im_flags = SYNC_FILE | ADDDATE;
-//			ret->im_pri = DEFSPRI;
-//			if (*p == '<') {
-//				ret->im_pri = 0;
-//				while (isdigit(*++p))
-//				    ret->im_pri = 10 * ret->im_pri + (*p - '0');
-//				if (*p == '>')
-//				        ++p;
-//			} else {
-//				/* kernel printf's come out on console */
-//				ret->im_flags |= IGN_CONS;
-//			}
-//			if (ret->im_pri &~ (LOG_FACMASK|LOG_PRIMASK))
-//				ret->im_pri = DEFSPRI;
-//			q = lp;
-//			while (*p != '\0' && (c = *p++) != '\n' &&
-//					q < (ret->im_msg+sizeof ret->im_msg))
-//				*q++ = c;
-//			*q = '\0';
-//			strncat(ret->im_host, LocalHostName, sizeof(ret->im_host) - 1);
-//			ret->im_len = strlen(ret->im_msg);
-//			logmsg(ret->im_pri, ret->im_msg, ret->im_host, ret->im_flags);
-//		}
-//
-//	} else if (i < 0 && errno != EINTR) {
-//		logerror("im_bsd_getLog");   
-//		im->im_fd = -1;
-//	}
-//
-//	/* if ok return (2) wich means already logged */
-//	return(im->im_fd == -1 ? -1: 2);
-//	return(-1);
 }
 
 
@@ -434,7 +389,8 @@ ksym_snprintf (buf, bufsize, raw)
 
 	if ( (printed = snprintf(buf, bufsize, "kernel: ")) < 0)
 		return(-1);
-	
+	bufsize -= printed;
+
 	while (bufsize && *raw != '\0') {
 		if ( (p1 = strstr(raw, "[<")) != NULL && (p2 = strstr(p1, ">]")) != NULL) {
 			for (i = 2; p1+i < p2 && isxdigit(p1[i]); i++);
@@ -442,9 +398,10 @@ ksym_snprintf (buf, bufsize, raw)
 				*p2 = '\0';
 				if (ksym_lookup(&sym, p1+2) != NULL) {
 					*p1 = '\0';
-					if ( (printed += snprintf(buf, bufsize-printed, "%s [<%s> %s.%s ]",
+					if ( (printed += snprintf(buf+printed, bufsize, "%s [<%s> %s.%s ]",
 							   	  raw, sym.addr, sym.mname, sym.name)) < 0)
 						return(-1);
+					bufsize -= printed;
 					*p1 = '[';	/* we need to solve some things
 					*p2 = '>';	 * about buf and msg params on
 							 * im_xxxxx_getLog.
@@ -460,11 +417,13 @@ ksym_snprintf (buf, bufsize, raw)
 		break;
 	}
 
-	if (*raw)
+	if (*raw )
 		/* kernel message without symbols */
-		return(snprintf(buf, bufsize, "%s", raw));
-	else
-		return(printed);
+		if ( (i = snprintf(buf+printed, bufsize, "%s", raw)) < 0)
+			return(-1);
+		else
+			printed += i;
+	return(printed);
 }
 
 
