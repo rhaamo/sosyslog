@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.37 2000/11/01 18:18:03 alejo Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.38 2000/11/06 23:11:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -99,7 +99,7 @@ char	*ksym_copyword (char*, char*, int);
 void
 im_linux_usage()
 {
-	fprintf(stderr,
+	dprintf(stderr,
 		"linux input module options:\n"
 		"   [ -k file ]    Use the specified file as source of kernel\n"
 		"                  symbol information instead of %s.\n"
