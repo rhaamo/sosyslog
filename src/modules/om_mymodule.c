@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mymodule.c,v 1.5 2000/05/29 23:34:59 gera Exp $	*/
+/*	$CoreSDI: om_mymodule.c,v 1.6 2000/05/30 00:08:59 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -37,7 +37,6 @@
  *
  */
 
-/* check what include you need !!! */
 #include <sys/time.h>
 #include <ctype.h>
 #include <errno.h>

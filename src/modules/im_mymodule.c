@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_mymodule.c,v 1.5 2000/05/29 23:36:18 alejo Exp $	*/
+/*	$CoreSDI: im_mymodule.c,v 1.6 2000/06/01 22:55:58 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -36,7 +36,6 @@
  *    
  */
 
-/* include all you need, no more ;) */
 #include <sys/types.h>
 #include <errno.h>
 #include <syslog.h>
