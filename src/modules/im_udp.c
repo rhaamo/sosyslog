@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.33 2000/06/02 22:59:36 fgsch Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.34 2000/06/05 21:58:04 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -150,8 +150,8 @@ im_udp_init(I, argv, argc)
 	}
 
         I->im_type = IM_UDP;
-        I->im_name = strdup("udp");
-        I->im_path = "";
+        I->im_name = "udp";
+        I->im_path = NULL;
         I->im_fd   = finet;
         return(1);
 }
@@ -160,11 +160,5 @@ int
 im_udp_close(im) 
         struct i_module *im;
 {
-        if (im->im_path)
-		free(im->im_path);
-
-        if (im->im_name)
-		free(im->im_name);
-
         return(close(im->im_fd));
 }

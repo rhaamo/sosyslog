@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.5 2000/05/30 22:29:47 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.6 2000/06/03 01:02:20 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -68,7 +68,7 @@ im_linux_init(I, argv, argc)
 {
 	dprintf ("im_linux_init...\n");
 	if ((I->im_fd = open(_PATH_KLOG, O_RDONLY, 0)) >= 0)
-        	I->im_path = strdup(_PATH_KLOG);
+        	I->im_path = _PATH_KLOG;
 	else if (errno == ENOENT) {
 		I->im_path = NULL;
 		I->im_fd = 0;
@@ -76,7 +76,7 @@ im_linux_init(I, argv, argc)
 		dprintf("can't open %s (%d)\n", _PATH_KLOG, errno);
 
         I->im_type = IM_LINUX;
-        I->im_name = strdup("linux");
+        I->im_name = "linux";
         I->im_flags |= IMODULE_FLAG_KERN;
         return(I->im_fd);
 }
@@ -191,13 +191,8 @@ int
 im_linux_close(im)
 	struct i_module *im;
 {
-	if (im->im_name != NULL)
-		free(im->im_name);
-
-	if (im->im_path != NULL) {
-		free(im->im_path);
+	if (im->im_path != NULL) 
 		return(close(im->im_fd));
-	}
 
 	return(0);
 }
