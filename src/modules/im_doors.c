@@ -1,4 +1,4 @@
-/*      $CoreSDI: im_doors.c,v 1.0 2000/11/03 22:18:49 alejo Exp $   */
+/*      $CoreSDI: im_doors.c,v 1.1 2000/11/03 23:25:50 alejo Exp $   */
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -76,61 +76,54 @@ im_doors_getLog(struct i_module *im, struct im_msg *ret)
 int
 im_doors_init(struct i_module *I, char **argv, int argc)
 {
-	char *door_path;
+	char *door_path = DEFAULT_DOOR;
 	int fd;
 
 	dprintf ("\nim_doors_init\n");
 
 	if (argc < 1 || argc > 2) {
-		dprintf (stderr, "doors usage: -i doors[:path]\n\n");
+		dprintf("doors usage: -i doors[:path]\n\n");
 		return (-1);
 	}
 
 	if (argc == 2) {
-		door_path = strdup(argv[1]);
-	} else {
-		door_path = strdup(DEFAULT_DOOR);
+		door_path = argv[1];
 	}
 
 	if (unlink (door_path) == -1) {
 		if (errno != ENOENT) {
 			dprintf ("im_doors: unlink(%s): %s\n", door_path,
 					strerror (errno));
-			goto init_bad;
+			return (-1);
 		}
 		dprintf ("%s didn't exist; it will be created\n", door_path);
 	}
 
 	if ((fd = open (door_path, O_CREAT | O_RDWR, 00644)) == -1) {
-		dprintf (stderr, "im_doors: open(%s): %s\n", door_path,
+		dprintf("im_doors: open(%s): %s\n", door_path,
 				strerror (errno));
-		goto init_bad;
+		return (-1);
 	}
 	if (close(fd) == -1) {
 		/* if close() fails here, there's probably an fs error */
-		dprintf (stderr, "im_doors: close(%s): %s\n", door_path,
+		dprintf("im_doors: close(%s): %s\n", door_path,
 				strerror (errno));
-		goto init_bad;
+		return (-1);
 	}
 
 	if ((fd = door_create (im_door_func, NULL, 0)) == -1) {
-		dprintf (stderr, "im_doors: door_create: %s\n",
+		dprintf("im_doors: door_create: %s\n",
 				strerror (errno));
 		return (-1);
 	}
 
 	if (fattach (fd, door_path) == -1) {
-		dprintf (stderr, "im_doors: fattach(%s): %s\n", door_path,
+		dprintf("im_doors: fattach(%s): %s\n", door_path,
 				strerror (errno));
-		goto init_bad;
+		return (-1);
 	}
 
         return(1);
-
-init_bad:
-	if (door_path)
-		free(door_path);
-	return (-1);
 }
 
 
