@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.30 2000/05/29 19:24:33 fgsch Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.31 2000/05/29 21:10:31 fgsch Exp $	*/
 
 /*
  * im_udp -- input from INET using UDP
@@ -13,6 +13,7 @@
 #include <sys/uio.h>
 #include <sys/un.h>
 #include <netinet/in.h>
+#include <machine/endian.h>
 #include <errno.h>
 #include <netdb.h>
 #include <syslog.h>
@@ -88,6 +89,11 @@ im_udp_init(I, argv, argc)
 	struct sockaddr_in sin;
 	struct servent *sp;
 
+        if (argc == 2 && (argv == NULL || argv[1] == NULL)) {
+        	dprintf("im_udp: error on params!\n");
+        	return(-1);
+        }
+
         if (finet > -1) {
 		dprintf("im_udp_init: already opened!\n");
 		return(-1);
@@ -102,7 +108,11 @@ im_udp_init(I, argv, argc)
 	}
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;
-	sin.sin_port = LogPort = sp->s_port;
+	if (argc == 2  && argv[1])
+		sin.sin_port = htons(atoi(argv[1]));
+	else
+		sin.sin_port = LogPort = sp->s_port;
+
 	if (bind(finet, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
 		logerror("bind");
 		if (!Debug)

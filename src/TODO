@@ -62,7 +62,7 @@ function
 7- Linux input module to eliminate klogd on that system
 8- Allow not only one module type on each configuration line
 9- Add linux extensions on selector field on configuration file
-10- Add support to log on linux pseudo terminals (pts/x)
+10- Add support to log on linux pseudo terminals (pts/x) (UPDATE: not really good)
 
 29-May-2000
 
@@ -73,3 +73,7 @@ function
    a signal should be used to stop this block
 
 
+31-May-2000
+
+1- A script to generate a static_modules.h and set an array of structs there for
+   each static module.
