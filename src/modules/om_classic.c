@@ -31,6 +31,8 @@
  * SUCH DAMAGE.
  */
 
+#include "config.h"
+
 #ifndef lint
 static char copyright[] =
 "@(#) Copyright (c) 1983, 1988, 1993, 1994\n\
@@ -39,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_classic.c,v 1.3 2000/04/13 18:27:38 alejo Exp $";
+static char rcsid[] = "$Id: om_classic.c,v 1.4 2000/04/18 21:34:34 gera Exp $";
 #endif /* not lint */
 
 /*
