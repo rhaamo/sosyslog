@@ -1,26 +1,30 @@
-/*	$CoreSDI: TODO,v 1.81 2001/04/24 12:06:57 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.82 2001/04/25 19:22:30 alejo Exp $	*/
 
-Things to do:
+FOR THIS RELEASE
+
+- More docs on source code
+- unify documentation
+
+FOR NEXT RELEASE
 
 - finish log structure stuff, including some queue handling
 	- after that, improve om_regex, and join reduntant code.
 	- have in mind new standards
 - Move buffer of lost messages out of modules, so all om can use it.
-- Use one function per module, with action as a parameter.
 - Check "" errors on solaris / support spaces intead the tabs on configfile
 - Change strcpy and strncpy to strlcpy (same w/ strlcat)
 - define STYLE for names (ie. underscore or caps, indentation)
-- Check linux kernel 2.4 potential header problems
 - redo parsing functions
 - CHECK LIBC and GLIBC's way to work
-- More docs on source code
-- unify documentation
 - use more cache on autoconf
 - %subst module
 - Make source compile on non gcc systems.
 - Makefiles should let compile a single module as a .so
 
-FOR FUTURE WORKING
+FOR UNKNOWN FUTURE
+
+- Use one function per module, with action as a parameter.
+- Check linux kernel 2.4 potential header problems
 
 For handling errors logging in a particular module, create a om_onerror
 function to do proper reinit or whatever (and after that the module should
