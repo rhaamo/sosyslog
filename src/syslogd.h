@@ -102,7 +102,6 @@ struct im_header_ctx {
 #define M_FLAG_INITIALIZED 0x1
 #define M_FLAG_ERROR 0x2
 	int	size;
-	int	fd;	/*  for use with select() */
 };
 
 /*
@@ -113,6 +112,31 @@ struct o_module {
 	struct	o_module *om_next;
 	short	om_type;
 	struct  om_header_ctx	*context;
+};
+
+/*
+ * This structure represents main details for the input modules
+ */
+
+struct i_module {
+	struct	i_module *im_next;
+	short	im_type;
+	int	fd;	/*  for use with select() */
+	struct  om_header_ctx	*context;
+};
+
+/*
+ * This structure represents the return of the input modules
+ */
+
+struct im_ret {
+	int	level;
+	int	pid;
+	int	flags;
+#define  SYSLOG_IM_PID_CHECKED	0x01
+#define  SYSLOG_IM_HOST_CHECKED	0x02
+	char	*msg;
+	char	*host;
 };
 
 /*

@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.20 2000/04/07 22:57:56 alejo Exp $
+/*	$Id: modules.c,v 1.21 2000/04/13 21:55:37 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -52,7 +52,8 @@ static char copyright[] =
 #include "modules.h"
 
 /* assign module functions to generic pointer */
-int modules_init ()
+int modules_init (I)
+	struct i_modules *I;
 {
 	/* initialize module function assignations */
 	memset(OModules, 0, sizeof(OModules));

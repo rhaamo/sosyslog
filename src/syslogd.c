@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.18 2000/04/13 18:59:30 alejo Exp $
+/*	$Id: syslogd.c,v 1.19 2000/04/13 21:55:37 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -139,11 +139,12 @@ main(argc, argv)
 	int argc;
 	char *argv[];
 {
-	int ch, i, len;
+	int ch, klog, i, len;
 	struct sockaddr_un sunx, fromunix;
 	struct sockaddr_in sin, frominet;
 	FILE *fp;
 	char *p, line[MSG_BSIZE + 1];
+	struct	i_module *Inputs;
 
 	while ((ch = getopt(argc, argv, "duf:m:p:a:")) != -1)
 		switch (ch) {
@@ -182,8 +183,8 @@ main(argc, argv)
 	else
 		setlinebuf(stdout);
 
-	/* assign functions and other module settings */
-	modules_init();
+	/* assign functions and init input */
+	modules_init(&Inputs);
 
 	consfile.f_type = F_CONSOLE;
         /* this should get into Files and be way nicer */
@@ -221,6 +222,7 @@ main(argc, argv)
 	for (;;) {
 		fd_set readfds;
 		int nfds = 0;
+		struct i_module *im;
 
 		FD_ZERO(&readfds);
 		if (fklog != -1) {
@@ -252,42 +254,20 @@ main(argc, argv)
 			continue;
 		}
 		/*dprintf("got a message (%d, %#x)\n", nfds, readfds);*/
-		if (fklog != -1 && FD_ISSET(fklog, &readfds)) {
-			i = read(fklog, line, sizeof(line) - 1);
-			if (i > 0) {
-				line[i] = '\0';
-				printsys(line);
-			} else if (i < 0 && errno != EINTR) {
-				logerror("klog");
-				fklog = -1;
+		from (im = Inputs; i ; i++) {
+			if (i->fd != -1 && FD_ISSET(im->fd, &readfds)) {
+				struct im_ret log;
+
+				memset(log, 0, sizeof(struct im_ret));
+				if (*(IModules[im->im_type].im_getLog)() == -1) {
+					dprintf("Syslogd: error calling input module"
+						" %s, for fd %d\n", im->im_name,
+						im->fd);
+				}
+				/* log it */
 			}
 		}
-		if (finet != -1 && FD_ISSET(finet, &readfds)) {
-			len = sizeof(frominet);
-			i = recvfrom(finet, line, MAXLINE, 0,
-			    (struct sockaddr *)&frominet, &len);
-			if (SecureMode) {
-				/* silently drop it */
-			} else {
-				if (i > 0) {
-					line[i] = '\0';
-					printline(cvthname(&frominet), line);
-				} else if (i < 0 && errno != EINTR)
-					logerror("recvfrom inet");
-			}
-		} 
-		for (i = 0; i < nfunix; i++) {
-			if (funix[i] != -1 && FD_ISSET(funix[i], &readfds)) {
-				len = sizeof(fromunix);
-				len = recvfrom(funix[i], line, MAXLINE, 0,
-				    (struct sockaddr *)&fromunix, &len);
-				if (len > 0) {
-					line[len] = '\0';
-					printline(LocalHostName, line);
-				} else if (len < 0 && errno != EINTR)
-					logerror("recvfrom unix");
-			}
-		}
+
 	}
 }
 
