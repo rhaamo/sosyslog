@@ -43,6 +43,7 @@
 #include <sys/uio.h>
 #include <sys/param.h>
 
+#include <assert.h>
 #include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
@@ -94,8 +95,7 @@ im_bsd_read(struct i_module *im, int infd, struct im_msg *ret)
 	int i, c;
 
 	/* ret->im_mlen is the size of ret->im_msg */
-	if (ret->im_mlen < 10)
-		return (-1);
+	assert(ret->im_mlen > (strlen(_PATH_UNIX) + 5));
 
 	strncpy(ret->im_msg, _PATH_UNIX, ret->im_mlen - 3);
 	ret->im_msg[ret->im_mlen - 1] = '\0';
