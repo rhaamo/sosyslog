@@ -1,4 +1,4 @@
-dnl	$CoreSDI: aclocal.m4,v 1.12 2000/08/25 22:37:51 alejo Exp $
+dnl	$CoreSDI: aclocal.m4,v 1.13 2000/08/25 22:41:24 alejo Exp $
 
 dnl
 dnl MSYSLOG_GREP patt file comm
@@ -14,6 +14,16 @@ then
 fi
 ])
 
+
+dnl
+dnl Check given library install directory
+dnl
+AC_DEFUN(MSYSLOG_CHECK_MSYSLOG_LIBDIR, [
+AC_ARG_WITH(msyslog-libdir,
+	[--with-msyslog-libdir=DIR        specify msyslog library dir],
+	[MSYSLOG_LIBDIR="$withval"],
+	[MSYSLOG_LIBDIR="/var/ssyslog"]
+)])
 
 dnl
 dnl Configure MYSQL includedir and libdir

@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.56 2000/08/04 01:55:10 alejo Exp $
+dnl	$CoreSDI: configure.in,v 1.57 2000/08/22 19:43:38 alejo Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -16,6 +16,9 @@ LDDFLAGS=
 DCCFLAGS="-fPIC"
 LDCONFIG_FLAGS="-m"
 UNAME=`uname`
+
+
+MSYSLOG_CHECK_MSYSLOG_LIBDIR()
 
 AC_CHECK_HEADERS(paths.h)
 AC_MSG_CHECKING(wheter optreset is needed)
@@ -65,7 +68,6 @@ then
 	LDDFLAGS="-Xlinker -E"
 	AC_DEFINE(HAVE_LINUX)
 fi
-
 
 MSYSLOG_BEGIN_MODULES_CONF()
 MSYSLOG_CHECK_MODULE(unix, $UNIX, im, im_unix.c)
@@ -118,6 +120,8 @@ MSYSLOG_CHECK_MODULE(regex, $REGEX, om, om_regex.c)
 MSYSLOG_END_MODULES_CONF()
 
 AC_CHECK_TYPE_HDR()
+
+AC_SUBST(MSYSLOG_LIBDIR)
 AC_SUBST(HASH_SRCS)
 AC_SUBST(SHASH_SRCS)
 AC_SUBST(DHASH_SRCS)
