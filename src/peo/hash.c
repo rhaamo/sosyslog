@@ -1,4 +1,4 @@
-/*	$CoreSDI: hash.c,v 1.40 2001/03/14 22:11:56 alejo Exp $	*/
+/*	$CoreSDI: hash.c,v 1.41 2001/03/14 22:58:30 alejo Exp $	*/
  
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -44,7 +44,8 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <strings.h>   /* some OSs have strcasecmp here */
+#include <string.h>
 #include <unistd.h>
 
 #ifdef HAVE_MD5_H
