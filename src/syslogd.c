@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.34 2000/04/18 20:08:06 gera Exp $
+/*	$Id: syslogd.c,v 1.35 2000/04/18 20:14:47 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -140,7 +140,7 @@ main(argc, argv)
 	int argc;
 	char *argv[];
 {
-	int ch, klog, i, len;
+	int ch, i, len;
 	struct sockaddr_un sunx, fromunix;
 	struct sockaddr_in sin, frominet;
 	FILE *fp;
