@@ -1,4 +1,4 @@
-/*
+/*	$Id: om_classic.c,v 1.16 2000/05/17 16:23:25 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
