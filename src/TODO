@@ -1,8 +1,7 @@
-/*	$CoreSDI: TODO,v 1.71 2001/03/06 18:21:05 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.72 2001/03/06 23:11:17 alejo Exp $	*/
 
 Things to do:
 
-- AIX port
 - DB2 output module
 - Check "" errors on solaris / support spaces intead the tabs on configfile
 - Change strcpy and strncpy to strlcpy (same w/ strlcat)
@@ -44,7 +43,6 @@ Check for buffer overflows, as we now may get things from the outside world.
 - optimize peochk (readline)
 - Create a module configuration file outside /etc/syslog.conf
 - threads per output module
-- Debug levels. A better macro. No need of newlines.
 - Create a message structure to be pased from ins to outs
 - Make a dbm/ndbm output module. talk w/ audit for that
 - Check why messages to console take a while to pop up
