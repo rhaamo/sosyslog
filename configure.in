@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.142 2001/09/19 10:52:06 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.143 2001/09/19 15:58:44 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -58,7 +58,7 @@ dnl
 
 if test "x$GCC" = "xyes"
 then
-	CFLAGS="$CFLAGS -Wall -pedantic"
+	CFLAGS="$CFLAGS -Wall"
 fi
 
 MSYSLOG_VERSION="1.08"

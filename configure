@@ -2040,7 +2040,7 @@ fi
 
 if test "x$GCC" = "xyes"
 then
-	CFLAGS="$CFLAGS -Wall -pedantic"
+	CFLAGS="$CFLAGS -Wall"
 fi
 
 MSYSLOG_VERSION="1.08"
