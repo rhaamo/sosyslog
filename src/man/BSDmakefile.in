@@ -1,4 +1,4 @@
-# $CoreSDI: BSDmakefile.in,v 1.2 2000/08/28 22:08:28 alejo Exp $
+# $CoreSDI: BSDmakefile.in,v 1.1.2.3 2000/08/30 21:06:40 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -28,12 +28,11 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-MAN=	im_linux.8 om_peo.8 om_mysql.8 peochk.8 syslogd.8 syslog.conf.5
+MAN=	im_linux.8 om_peo.8 om_mysql.8 om_regex.8 peochk.8 syslogd.8 syslog.conf.5
 
 install: maninstall
 
-clean:
-	-rm -f *.cat*
+clean:	cleandir
 
 distclean: clean
 	-rm -f BSDmakefile
