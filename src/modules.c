@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.82 2000/06/05 22:38:17 fgsch Exp $	*/
+/*	$CoreSDI: modules.c,v 1.83 2000/06/05 22:39:06 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -72,7 +72,6 @@ int	om_mysql_doLog __P((struct filed *, int , char *,
 int	om_mysql_init __P((int, char **, struct filed *, char *,
 	    struct om_hdr_ctx **));
 int	om_mysql_close __P((struct filed*, struct om_hdr_ctx *));
-int	om_mysql_flush __P((struct filed*, struct om_hdr_ctx *));
 #endif /* ENABLE_MYSQL */
 
 int	im_bsd_init __P((struct i_module *, char **, int));
@@ -96,7 +95,6 @@ int	om_pgsql_doLog(struct filed *, int , char *, struct om_hdr_ctx *);
 int	om_pgsql_init(int, char **, struct filed *, char *,
 	    struct om_hdr_ctx **);
 int	om_pgsql_close(struct filed*, struct om_hdr_ctx *);
-int	om_pgsql_flush(struct filed*, struct om_hdr_ctx *);
 #endif
 
 int	parseParams __P((char ***, char *));
@@ -134,7 +132,7 @@ modules_load()
 	OModules[OM_MYSQL].om_doLog	 	= om_mysql_doLog;
 	OModules[OM_MYSQL].om_init 		= om_mysql_init;
 	OModules[OM_MYSQL].om_close 		= om_mysql_close;
-	OModules[OM_MYSQL].om_flush 		= om_mysql_flush;
+	OModules[OM_MYSQL].om_flush 		= NULL;
 #endif /* ENABLE_MYSQL */
 
 #ifdef ENABLE_PGSQL
@@ -144,10 +142,9 @@ modules_load()
 	OModules[OM_PGSQL].om_doLog             = om_pgsql_doLog;
 	OModules[OM_PGSQL].om_init              = om_pgsql_init;
 	OModules[OM_PGSQL].om_close             = om_pgsql_close;
-	OModules[OM_PGSQL].om_flush             = om_pgsql_flush;
+	OModules[OM_PGSQL].om_flush             = NULL;
 #endif
 
-  
 	/* peo module */
 	OModules[OM_PEO].om_name		= "peo";
 	OModules[OM_PEO].om_type		= OM_PEO;

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.20 2000/05/29 23:35:06 fgsch Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.21 2000/05/30 23:43:12 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -270,13 +270,3 @@ om_mysql_close(f, ctx)
 
 	return (-1);
 }
-
-int
-om_mysql_flush(f, ctx)
-	struct filed *f;
-	struct om_hdr_ctx *ctx;
-{
-	/* this module doesn't need to "flush" data */
-	return (0);
-}
-
