@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.55 2000/11/10 23:17:43 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.56 2000/11/14 01:29:02 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -110,7 +110,7 @@ DREGEX_SRCS=	@Dregex_SRCS@
 DREGEX_OBJS=	$(DREGEX_SRCS:.c=.o)
 
 DCC=	$(CC) $(CFLAGS) $(CPPFLAGS) $(DCCFLAGS) -c
-LDK=	$(LD) -Bshareable
+LDK=	$(LD) @SHARED_PARAMS@
 
 
 all: $(SOBJS) DYNAMIC

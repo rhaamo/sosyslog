@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.69 2000/11/14 01:29:01 alejo Exp $
+dnl	$CoreSDI: configure.in,v 1.70 2000/11/14 01:37:41 alejo Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -65,6 +65,7 @@ if test "$UNAME" = "OpenBSD"
 then
 	echo Configuring for OpenBSD system
 	AC_DEFINE(HAVE_OPENBSD)
+	SHARED_PARAMS="-B shareable"
 elif test "$UNAME" = "Linux"
 then
 	echo Configuring for Linux system
@@ -72,6 +73,11 @@ then
 	DCCFLAGS=
 	LDDFLAGS="-Xlinker -E"
 	AC_DEFINE(HAVE_LINUX)
+	SHARED_PARAMS="-B shareable"
+elif test "$UNAME" = "SunOS"
+then
+	AC_DEFINE(HAVE_SOLARIS)
+	SHARED_PARAMS="-G"
 fi
 
 MSYSLOG_BEGIN_MODULES_CONF()
@@ -191,6 +197,7 @@ AC_SUBST(PGSQL_CPPFLAGS)
 AC_SUBST(PGSQL_LIBS)
 AC_SUBST(MSYSLOG_VERSION)
 AC_SUBST(MANPAGES)
+AC_SUBST(SHARED_PARAMS)
 
 AC_OUTPUT([Makefile
 	   src/Makefile src/static_modules.h src/static_modules.c

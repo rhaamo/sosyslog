@@ -1321,6 +1321,7 @@ then
 #define HAVE_OPENBSD 1
 EOF
 
+	SHARED_PARAMS="-B shareable"
 elif test "$UNAME" = "Linux"
 then
 	echo Configuring for Linux system
@@ -1331,6 +1332,14 @@ then
 #define HAVE_LINUX 1
 EOF
 
+	SHARED_PARAMS="-B shareable"
+elif test "$UNAME" = "SunOS"
+then
+	cat >> confdefs.h <<\EOF
+#define HAVE_SOLARIS 1
+EOF
+
+	SHARED_PARAMS="-G"
 fi
 
 
@@ -1357,7 +1366,7 @@ eval `cat ./modules.conf`
 
 
 echo $ac_n "checking configuration for unix module""... $ac_c" 1>&6
-echo "configure:1361: checking configuration for unix module" >&5
+echo "configure:1370: checking configuration for unix module" >&5
 if test "x$UNIX" = "xstatic"
 then
 	SSRCS="$SSRCS im_unix.c " 
@@ -1430,7 +1439,7 @@ fi
 
 
 echo $ac_n "checking configuration for udp module""... $ac_c" 1>&6
-echo "configure:1434: checking configuration for udp module" >&5
+echo "configure:1443: checking configuration for udp module" >&5
 if test "x$UDP" = "xstatic"
 then
 	SSRCS="$SSRCS im_udp.c " 
@@ -1503,7 +1512,7 @@ fi
 
 
 echo $ac_n "checking configuration for bsd module""... $ac_c" 1>&6
-echo "configure:1507: checking configuration for bsd module" >&5
+echo "configure:1516: checking configuration for bsd module" >&5
 if test "x$BSD" = "xstatic"
 then
 	SSRCS="$SSRCS im_bsd.c " 
@@ -1576,7 +1585,7 @@ fi
 
 
 echo $ac_n "checking configuration for linux module""... $ac_c" 1>&6
-echo "configure:1580: checking configuration for linux module" >&5
+echo "configure:1589: checking configuration for linux module" >&5
 if test "x$LINUX" = "xstatic"
 then
 	SSRCS="$SSRCS im_linux.c " 
@@ -1649,7 +1658,7 @@ fi
 
 
 echo $ac_n "checking configuration for classic module""... $ac_c" 1>&6
-echo "configure:1653: checking configuration for classic module" >&5
+echo "configure:1662: checking configuration for classic module" >&5
 if test "x$CLASSIC" = "xstatic"
 then
 	SSRCS="$SSRCS om_classic.c " 
@@ -1723,7 +1732,7 @@ fi
 
 
 echo $ac_n "checking configuration for peo module""... $ac_c" 1>&6
-echo "configure:1727: checking configuration for peo module" >&5
+echo "configure:1736: checking configuration for peo module" >&5
 if test "x$PEO" = "xstatic"
 then
 	SSRCS="$SSRCS om_peo.c " 
@@ -1798,7 +1807,7 @@ fi
 
 
 echo $ac_n "checking configuration for doors module""... $ac_c" 1>&6
-echo "configure:1802: checking configuration for doors module" >&5
+echo "configure:1811: checking configuration for doors module" >&5
 if test "x$DOORS" = "xstatic"
 then
 	SSRCS="$SSRCS im_doors.c " 
@@ -1871,7 +1880,7 @@ fi
 
 
 echo $ac_n "checking configuration for streams module""... $ac_c" 1>&6
-echo "configure:1875: checking configuration for streams module" >&5
+echo "configure:1884: checking configuration for streams module" >&5
 if test "x$STREAMS" = "xstatic"
 then
 	SSRCS="$SSRCS im_streams.c " 
@@ -1983,7 +1992,7 @@ fi
 CPPFLAGS_save="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS $MYSQL_CPPFLAGS"
 echo $ac_n "checking for mysql_real_connect in -lmysqlclient""... $ac_c" 1>&6
-echo "configure:1987: checking for mysql_real_connect in -lmysqlclient" >&5
+echo "configure:1996: checking for mysql_real_connect in -lmysqlclient" >&5
 ac_lib_var=`echo mysqlclient'_'mysql_real_connect | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1991,7 +2000,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lmysqlclient  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1995 "configure"
+#line 2004 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -2002,7 +2011,7 @@ int main() {
 mysql_real_connect()
 ; return 0; }
 EOF
-if { (eval echo configure:2006: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2015: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2061,7 +2070,7 @@ CPPFLAGS="$CPPFLAGS_save"
 fi
 
 echo $ac_n "checking configuration for mysql module""... $ac_c" 1>&6
-echo "configure:2065: checking configuration for mysql module" >&5
+echo "configure:2074: checking configuration for mysql module" >&5
 if test "x$MYSQL" = "xstatic"
 then
 	SSRCS="$SSRCS om_mysql.c " 
@@ -2168,7 +2177,7 @@ fi
 CPPFLAGS_save="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS $PGSQL_CPPFLAGS"
 echo $ac_n "checking for PQsetdbLogin in -lpq""... $ac_c" 1>&6
-echo "configure:2172: checking for PQsetdbLogin in -lpq" >&5
+echo "configure:2181: checking for PQsetdbLogin in -lpq" >&5
 ac_lib_var=`echo pq'_'PQsetdbLogin | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2176,7 +2185,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lpq  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2180 "configure"
+#line 2189 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -2187,7 +2196,7 @@ int main() {
 PQsetdbLogin()
 ; return 0; }
 EOF
-if { (eval echo configure:2191: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2200: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2252,7 +2261,7 @@ fi
 
 
 echo $ac_n "checking configuration for pgsql module""... $ac_c" 1>&6
-echo "configure:2256: checking configuration for pgsql module" >&5
+echo "configure:2265: checking configuration for pgsql module" >&5
 if test "x$PGSQL" = "xstatic"
 then
 	SSRCS="$SSRCS om_pgsql.c " 
@@ -2333,7 +2342,7 @@ fi
 
 
 echo $ac_n "checking configuration for regex module""... $ac_c" 1>&6
-echo "configure:2337: checking configuration for regex module" >&5
+echo "configure:2346: checking configuration for regex module" >&5
 if test "x$REGEX" = "xstatic"
 then
 	SSRCS="$SSRCS om_regex.c " 
@@ -2412,12 +2421,12 @@ fi
 
 
 echo $ac_n "checking for ANSI C header files""... $ac_c" 1>&6
-echo "configure:2416: checking for ANSI C header files" >&5
+echo "configure:2425: checking for ANSI C header files" >&5
 if eval "test \"`echo '$''{'ac_cv_header_stdc'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2421 "configure"
+#line 2430 "configure"
 #include "confdefs.h"
 #include <stdlib.h>
 #include <stdarg.h>
@@ -2425,7 +2434,7 @@ else
 #include <float.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2429: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2438: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2442,7 +2451,7 @@ rm -f conftest*
 if test $ac_cv_header_stdc = yes; then
   # SunOS 4.x string.h does not declare mem*, contrary to ANSI.
 cat > conftest.$ac_ext <<EOF
-#line 2446 "configure"
+#line 2455 "configure"
 #include "confdefs.h"
 #include <string.h>
 EOF
@@ -2460,7 +2469,7 @@ fi
 if test $ac_cv_header_stdc = yes; then
   # ISC 2.0.2 stdlib.h does not declare free, contrary to ANSI.
 cat > conftest.$ac_ext <<EOF
-#line 2464 "configure"
+#line 2473 "configure"
 #include "confdefs.h"
 #include <stdlib.h>
 EOF
@@ -2481,7 +2490,7 @@ if test "$cross_compiling" = yes; then
   :
 else
   cat > conftest.$ac_ext <<EOF
-#line 2485 "configure"
+#line 2494 "configure"
 #include "confdefs.h"
 #include <ctype.h>
 #define ISLOWER(c) ('a' <= (c) && (c) <= 'z')
@@ -2492,7 +2501,7 @@ if (XOR (islower (i), ISLOWER (i)) || toupper (i) != TOUPPER (i)) exit(2);
 exit (0); }
 
 EOF
-if { (eval echo configure:2496: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:2505: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   :
 else
@@ -2516,12 +2525,12 @@ EOF
 fi
 
 echo $ac_n "checking for CODE""... $ac_c" 1>&6
-echo "configure:2520: checking for CODE" >&5
+echo "configure:2529: checking for CODE" >&5
 if eval "test \"`echo '$''{'ac_cv_type_CODE'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2525 "configure"
+#line 2534 "configure"
 #include "confdefs.h"
 #define SYSLOG_NAMES
 #include <sys/syslog.h>
@@ -2578,6 +2587,7 @@ if test "x$STREAMS" = "xstatic" -o "x$STREAMS" = "xdynamic"
 then
 	MANPAGES="$MANPAGES im_streams.8"
 fi
+
 
 
 
@@ -2794,6 +2804,7 @@ s%@PGSQL_CPPFLAGS@%$PGSQL_CPPFLAGS%g
 s%@PGSQL_LIBS@%$PGSQL_LIBS%g
 s%@MSYSLOG_VERSION@%$MSYSLOG_VERSION%g
 s%@MANPAGES@%$MANPAGES%g
+s%@SHARED_PARAMS@%$SHARED_PARAMS%g
 
 CEOF
 EOF
