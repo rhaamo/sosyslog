@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.30 2000/08/31 23:00:47 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.31 2000/09/01 19:45:08 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -75,7 +75,7 @@ distclean: clean
 	-rm -f Makefile config.h static_modules.c static_modules.h
 
 install-prog:
-	@if [ -f "$(INSTALL_DIR)/$(PROG)" ]; then \
+	-if [ -f "$(INSTALL_DIR)/$(PROG)" ]; then \
 		mv "$(INSTALL_DIR)/$(PROG)" "$(INSTALL_DIR)/$(PROG).old"; \
 	fi
 	$(INSTALL) -s $(PROG) $(INSTALL_DIR) ;
