@@ -1,4 +1,4 @@
-$Id: INSTALL,v 1.9 2000/09/09 00:53:20 alejo Exp $
+$Id: INSTALL,v 1.10 2000/09/14 00:14:10 alejo Exp $
 ==============================================================================
                          Modular Syslog package
                              INSTALL file
@@ -108,7 +108,7 @@ official distribution (see note on contacting us below).
   dynamic) to log kernel messages; this module acts like klogd daemon so,
   if you have it installed on your system, you should kill it before
   running msyslog, otherwise im_linux will conflict with it.
-  The 'BSD' module is the kernel logguer on bsd-like system, you should
+  The 'BSD' module is the kernel logger on bsd-like system, you should
   not to activate it on Linux.
 
   Before starting msyslog, first stop running the old syslogd and also
