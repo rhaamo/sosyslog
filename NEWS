@@ -1,4 +1,26 @@
-/*	$Id: NEWS,v 1.14 2002/09/17 05:20:25 alejo Exp $	*/
+/*	$Id: NEWS,v 1.15 2002/09/27 22:37:05 alejo Exp $	*/
+
+1.09
+ * im_file module updated, introduces non-poll file
+ * im_serial module introduced
+ * im_directory module introduced
+ * im_regex handles substitution
+
+1.03
+ * initial port to AIX
+ * tcp modules
+ * debug levels
+ * reconnect on mysql/pgsql modules
+
+1.02
+ * clean up for Linux
+
+1.01 Release Notes:
+
+ * solaris port
+ * major autoconf cleanup
+ * multiple SQL module support
+ * many bugfixes
 
 1.0 Release Notes:
 
@@ -9,42 +31,3 @@
 * New im_linux for handling linux kernel logging (like klogd)
 * PostgreSQL output module, colaboration from Oliver Teuber
   (ot@penguin-power.de)
-
-1.01 Release Notes:
-
- * solaris port
- * major autoconf cleanup
- * multiple SQL module support
- * many bugfixes
-
-1.02
- * clean up for Linux
-
-1.03
- * initial port to AIX
- * tcp modules
- * debug levels
- * reconnect on mysql/pgsql modules
-
-1.04
- * automatically detect and compile modules
- * major cleanup of code
- * support of sysklogd's extensions
- * lots of bugs squashed
- * port to Irix
- * finished port to AIX
- * improvements on tcp modules
- * pipe (fifo) support
- * ansify code
- * compatibility with other compilers (Irix, Aix)
- * more information (ie filed and module status)
- * IPv6 support
- * better signal handlig with audit[d]
- * poll() instead of select()
-
-1.09
- * im_file module updated, introduces non-poll file
- * im_serial module introduced
- * im_directory module introduced
- * im_regex handles substitution
-
