@@ -20,23 +20,24 @@ dnl Configure MYSQL includedir and libdir
 dnl if mysql is not installed exits
 dnl
 AC_DEFUN(MSYSLOG_CHECK_MYSQL, [
-for i in /usr/local/lib /usr/local/lib/mysql /usr/lib /usr/lib/mysql no
-	do
-		if test "$i" = "no"
-		then
-			echo "Need mysqlclient library to enable mysql module"
-			exit
-		elif test "`ls $i | grep mysqlclient`"
-		then
-			break
-		fi
-	done
+for i in /usr/local/lib /usr/local/lib/mysql /usr/lib/mysql /usr/lib no
+do
+	if test "$i" = "no"
+	then
+		echo "Need mysqlclient library to enable mysql module"
+		exit
+	elif test "`ls $i | grep mysqlclient`"
+	then
+		break
+	fi
+done
 CPPFLAGS="$CPPFLAGS -L$i"
 AC_CHECK_LIB(mysqlclient, mysql_real_connect,, [
 	     echo "Need mysqlclient library to enable mysql module"
 	     exit ])
 
-for i in /usr/local/include/mysql /usr/local/mysql/include /usr/include/mysql no
+for i in /usr/local/include/mysql /usr/local/mysql/include \
+	 /usr/local/include /usr/include/mysql /usr/include no
 do
 	if test -e "$i/mysql.h"
 	then
@@ -57,23 +58,24 @@ dnl Configure PGSQL includedir and libdir
 dnl if pgsql is not installed exits
 dnl
 AC_DEFUN(MSYSLOG_CHECK_PGSQL, [
-for i in /usr/local/pgsql/lib /usr/lib/pgsql no
-	do
-		if test "$i" = "no"
-		then
-			echo "Need pq library to enable pgsql module"
-			exit
-		elif test "`ls $i | grep libpq`"
-		then
-			break
-		fi
+for i in /usr/local/pgsql/lib /usr/local/lib/pgsql /usr/lib/pgsql /usr/lib no
+do
+	if test "$i" = "no"
+	then
+		echo "Need pq library to enable pgsql module"
+		exit
+	elif test "`ls $i | grep libpq`"
+	then
+		break
+	fi
 done
 CPPFLAGS="$CPPFLAGS -L$i"
 AC_CHECK_LIB(pq, PQsetdbLogin,, [
 	     echo "Need pq library to enable pgsql module"
 	     exit ])
 
-for i in /usr/local/pgsql/include /usr/local/include/pgsql /usr/include/pgsql no
+for i in /usr/local/pgsql/include /usr/local/include/pgsql \
+	 /usr/local/include /usr/include/pgsql /usr/include no
 do
 	if test -e "$i/libpq-fe.h"
 	then
