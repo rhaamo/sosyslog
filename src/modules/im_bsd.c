@@ -37,15 +37,6 @@ im_bsd_getmsg(buf, size, c, r)
 	struct 
 }
 
-struct IModules {
-	char	*im_name;
-	short	im_type;
-	int	fd;      			/*  for use with select() */
-	int	(*im_getmsg) (char *, int); 	/* buf, bufsize */ 
-	int	(*im_init) (int, char **, struct im_header_ctx **);
-	int	(*im_close) (struct im_header_ctx *);
-} IModules[MAX_N_IMODULES];
-
 /*
  * get messge
  *
