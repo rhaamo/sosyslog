@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.98 2001/03/14 21:50:55 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.99 2001/03/14 22:20:40 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -99,6 +99,14 @@ AC_DEFINE(SYMBOL_PREFIX, "_")
 dnl	AC_MSG_CHECKING([for symbol prefix in compiled objects])
 
 dnl	AC_REQUIRE([AC_PROG_NM])dnl
+
+AC_MSG_CHECKING(wether netdb.h requires _USE_IRS)
+if grep _USE_IRS /usr/include/netdb.h >/dev/null ;then
+	AC_DEFINE(_USE_IRS)
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
 
 
 UNAME=`uname`
