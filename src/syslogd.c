@@ -657,6 +657,8 @@ printline(char *hname, char *msg, size_t len, int flags)
 	char line[MAXLINE + 2];
 	int pri;
 
+	m_dprintf(MSYSLOG_INFORMATIVE2, "printline: [%s]\n", msg);
+
 	/* test for special codes */
 	pri = DEFUPRI;
 	p = msg;
@@ -669,8 +671,7 @@ printline(char *hname, char *msg, size_t len, int flags)
 			++p;
 	}
 
-	if (pri &~ (LOG_FACMASK|LOG_PRIMASK))
-		pri = DEFUPRI;
+	if (pri &~ (LOG_FACMASK | LOG_PRIMASK)) pri = DEFUPRI;
 
 #ifndef INSECURE_KERNEL_INPUT
 	/* don't allow users to log kernel messages */
@@ -698,6 +699,7 @@ printline(char *hname, char *msg, size_t len, int flags)
 
 	*q = '\0';
 
+	m_dprintf(MSYSLOG_INFORMATIVE2, "printline: [%s]\n", line);
 	logmsg(pri, line, hname, 0);
 }
 
@@ -722,11 +724,11 @@ logmsg(int pri, char *msg, char *from, int flags)
 	msg_nil.pri = 0;
 	msg_nil.fired = 0;
 
-	if (from == NULL || *from == '\0')
-		from = LocalHostName;
+	if (from == NULL || *from == '\0') from = LocalHostName;
 
-	m_dprintf(MSYSLOG_INFORMATIVE2, "logmsg: pri 0%o, flags 0x%x, from %s,"
-	    " msg %s\n", pri, flags, from, msg);
+	m_dprintf(MSYSLOG_INFORMATIVE2,
+     "logmsg: pri 0%o, flags 0x%x, from %s, msg [%s]\n",
+     pri, flags, from, msg);
 
 	sigemptyset(&mask);
 	sigaddset(&mask, SIGALRM);
@@ -1052,8 +1054,7 @@ die(int signo) {
 	Initialized = was_initialized;
 
 	if (signo) {
-		m_dprintf(MSYSLOG_SERIOUS, "syslogd: exiting on signal %d\n",
-		    signo);
+		m_dprintf(MSYSLOG_SERIOUS, "syslogd: exiting on signal %d\n", signo);
 		(void)sprintf(buf, "exiting on signal %d", signo);
 		errno = 0;
 		logerror(buf);

@@ -244,8 +244,7 @@ return (0); /* 0 because there is no line to log */
 
 	/* read connected socket */
 
-	m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: reading connection fd %d\n",
-	    infd);
+	m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: reading connection fd %d\n", infd);
 
 	/* find connection */
 	for (con = c->first; con && con->fd != infd; con = con->next);
@@ -259,11 +258,10 @@ return (-1);
 
 
 	n = read(con->fd, im->im_buf, sizeof(im->im_buf) - 1);
-	if (n == 0) {  /* no data read from this connection */
+	if (n == 0) {
 		struct tcp_conn *prev;
 
-		m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: conetion from %s"
-		    " closed\n", con->name);
+		m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: connection from %s closed\n", con->name);
 
 		remove_fd_input(con->fd);
 
@@ -274,20 +272,23 @@ return (-1);
 			c->first = con->next;
 			if (con == c->last)
 				c->last = NULL;
-		} else {
+		}
+    else {
 			for(prev = c->first; prev->next != con;
 			    prev = prev->next);
 			prev->next = con->next;
 		}
 
+    /* complete and print any previous partial message */
 		if (con->saveline[0] != '\0')
 			printline(ret->im_host, con->saveline, strlen(con->saveline),  0);
 
 		free(con);
 	
 return (0);
+	} 
 
-	} else if (n < 0 && errno != EINTR) {
+  if (n < 0 && errno != EINTR) {
 		m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: connection from %s"
 		    " closed with error [%s]\n", con->name, strerror(errno));
 		logerror("im_tcp_read");
@@ -298,47 +299,28 @@ return (0);
  
   /* 'n' bytes of data were successfully read from socket */
   {
-    char *endmark;
-    char *thisline;
-    char *nextline;
-
-		m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: read: %s [%s]",
-		    con->name, im->im_buf);
+    char *endmark = NULL;
+    char *thisline = NULL;
+    char *nextline = NULL;
 
 		/* mark the end of the data received */
 		endmark = im->im_buf + n;
+		*endmark = '\0';
 
-    for( thisline = im->im_buf; ; thisline = nextline ) {
+		m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: read raw: %s [%s]\n",
+		    con->name, im->im_buf);
 
-      /* seek the end of the current line */
-      for( nextline = thisline; ; nextline++ ) {
+    /* establish the current line */
+    for( thisline = im->im_buf; nextline < endmark; thisline = nextline ) {
+
+      /* seek the end of the current line, a.k.a. the start of the nexline */
+      for( nextline = thisline; nextline < endmark; nextline++ ) {
+
   			/* a new line indicates a complete message */
   		  if (*nextline == '\n')  {
           *nextline = '\0';
           nextline++;
-        if (nextline >= endmark) {
-return (0);
-        }
       break;
-        }
-
-				/* Data not ending with a new line is a partial message. 
-         * Meaning, not all data has yet been received, save it for later.
-         */
-        if (nextline >= endmark) {
-          int position;
-
-          for( position = 0; (thisline + position) >= endmark; position++ ) {
-            con->saveline[position] = thisline[position];
-            if (position >= sizeof(con->saveline)) {
-					    m_dprintf(MSYSLOG_SERIOUS,
-					      "im_tcp_read: partial message too long [%d] [%s]\n",
-					      "message having no embedded host name [%s]\n",
-                sizeof(con->saveline), thisline);
-            }
-          }
-				  con->saveline[sizeof(con->saveline) - 1] = '\0';
-return (0);
         }
 
   			/* a carriage return indicates then end of a message */
@@ -347,6 +329,7 @@ return (0);
           nextline++;
       break;
         }
+
         /* change non printable chars to 'X', as you go */
 			  if (! isprint((unsigned int) *nextline)) {
           *nextline = 'X';
@@ -354,8 +337,40 @@ return (0);
         }
       }
 
+      if ( nextline < endmark ) {
+			  m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: current line: [%s]\n", thisline);
+      }
+      else {
+        if ( *(nextline - 1) == '\0' ) {
+			     m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: end of transmission\n");
+         }
+         else {
+			   /* Preseve any partial message */
+           int position;
+           int save_end = strlen(con->saveline);
+
+			   	 m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: partial message: [%s] [%s]\n",
+                           thisline, con->saveline );
+           for( position = 0; (thisline + position) < endmark; position++ )
+           {
+             con->saveline[save_end + position] = thisline[position];
+             if (save_end + position >= sizeof(con->saveline)) {
+		   		    m_dprintf(MSYSLOG_SERIOUS,
+			   		      "im_tcp_read: partial message too long: [%d] [%s]\n",
+                   sizeof(con->saveline), thisline);
+             }
+           }
+		   	   con->saveline[save_end + position] = '\0';
+			   	 m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: partial message: [%s]\n", con->saveline);
+        }
+return (0);
+      }
+
       /* append the current line with any prior partial line */
   		if (con->saveline[0] != '\0') {
+				m_dprintf(MSYSLOG_INFORMATIVE,
+					      "im_tcp_read: append current line with prior partial message: [%s] [%s]\n",
+                con->saveline, thisline);
   			strncat(con->saveline, thisline, sizeof(con->saveline) - 1);
   			con->saveline[sizeof(con->saveline) - 1] = '\0';
   			thisline = con->saveline;
@@ -363,6 +378,7 @@ return (0);
 
       /* skip empty lines */
       if (*thisline == '\0') {
+				m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: empty line\n");
     continue;
       }
 
@@ -384,25 +400,26 @@ return (0);
         {
 					m_dprintf(MSYSLOG_INFORMATIVE,
 					    "im_tcp_read: ignoring invalid "
-					    "message having no embedded host name [%s]\n", thisline);
+					    "message has no embedded host name [%s]\n", thisline);
    continue;
 				}
 
 				/* remove host from message */
-				while (im->im_buf[n2] != '\0')
-					im->im_buf[n1++] = im->im_buf[n2++];
+				while (im->im_buf[n2] != '\0') im->im_buf[n1++] = im->im_buf[n2++];
 				im->im_buf[n1] = '\0';
 
 				strncpy(ret->im_host, host, sizeof(ret->im_host) - 1);
 				ret->im_host[sizeof(ret->im_host) - 1] = '\0';
 
-			} else {
+			}
+      else {
 				/* get hostname from originating addr */
 
 				strncpy(ret->im_host, con->name,
 				    sizeof(ret->im_host) - 1);
 				ret->im_host[sizeof(ret->im_host) - 1] = '\0';
 			}
+			m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: hostname obtained [%s]\n", ret->im_host);
 
 			if (c->flags & M_NOTFQDN) {
 				char	*dot;
@@ -416,8 +433,9 @@ return (0);
 
       /* release prior partial line */
   		con->saveline[0] = '\0';
-		}
-	}
+	  } /* for block */
+return (0);
+	} /* scoping block */
 }
 
 /*
