@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.132 2001/04/28 01:51:39 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.133 2001/05/01 02:25:49 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -124,8 +124,6 @@ AC_EGREP_HEADER(stack_t, [signal.h],[
 ])dnl
 
 
-AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")dnl
-
 AC_MSG_CHECKING(for daemon name)
 
 MSYSLOG_DAEMON_NAME="syslogd";
@@ -157,16 +155,19 @@ if test "$UNAME" = "OpenBSD" ; then
 	DCCFLAGS="-fPIC"
 elif test "$UNAME" = "Linux" ; then
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY | RTLD_GLOBAL)dnl
+	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")dnl
 	MAIN_CPPFLAGS="-Xlinker -E";
 	SHARED_PARAMS="-Bshareable"
 	DCCFLAGS=""
 	AC_DEFINE(_GNU_SOURCE, 1)
 elif test "$UNAME" = "SunOS" ; then
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
+	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")dnl
 	SHARED_PARAMS="-G"
 	DCCFLAGS="-fPIC"
 elif test "$UNAME" = "IRIX" -o "$UNAME" = "IRIX64" ; then
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
+	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")dnl
 	AC_DEFINE(INET6)dnl
 	CFLAGS="-D_BSD_SIGNALS"
 	if test "x$GCC" == "xyes"
@@ -182,6 +183,7 @@ elif test "$UNAME" = "IRIX" -o "$UNAME" = "IRIX64" ; then
 elif test "$UNAME" = "AIX" ; then
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY | RTLD_GLOBAL)dnl
 	AC_DEFINE(NEEDS_DLOPEN_NULL)dnl
+	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")dnl
 	DCCFLAGS="-shared"
 	SHARED_PARAMS="-lc -bI:libmsyslog.imp -bexpall -bnoentry -brtl"
 	cat > src/modules/libmsyslog.imp <<-EOF
@@ -201,6 +203,7 @@ elif test "$UNAME" = "AIX" ; then
 	SYSLOGD_LIBS="$SYSLOGD_LIBS -Wl,-bexpall"
 else
 	AC_MSG_WARN(cannot determine system type falling to defaults)dnl
+	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")dnl
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
 	SHARED_PARAMS="-Bshareable"
 fi
