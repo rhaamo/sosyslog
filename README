@@ -1,18 +1,19 @@
-/*	$CoreSDI: README,v 1.5 2000/06/06 00:44:12 alejo Exp $	*/
+/*	$CoreSDI: README,v 1.6 2000/07/04 18:33:12 claudio Exp $	*/
 
 Main differences with previous BSD syslog
 -----------------------------------------
 
-The whole internal structure was redesigned to work with inpput and output modules,
-standarizing interfaces to facilitate development for using special devices and
-flexible configuratios.
+The whole internal structure was redesigned to work with input and output
+modules, standarizing interfaces to facilitate development for using special
+logging targets and flexible configuratios.
 
 Special care was taken to remain backwards compatible on config files. You can
 use you previous BSD config files with this improved version of syslog. A new
 notation was made for configuration of modules.
 
-This new approach allows adding new functionality without complicating the code.
+This new approach allows adding new functionality without complicating the
+code.
 
-Current availble outout modules are classic, mysql, peo, pgsql and regex.
-Available input modules are bsd, unix, udp, linux, and tcp.
+Current availble output modules are classic, peo, regex, mysql and pgsql.
+Available input modules are bsd, unix, udp, linux.
 
