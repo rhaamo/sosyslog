@@ -11,4 +11,5 @@ om_peo:
 objs:
 	gcc -Wall -ggdb -c hash.c md5c.c rmd160.c sha1.c
 	
-
+clean:
+	rm *.o
