@@ -140,6 +140,7 @@ om_queue_write(
   time_t timer = 0;
   time_t time_rc = 0;
   int ix = 0;
+  msg->fired++;
 
   m_dprintf(MSYSLOG_INFORMATIVE, "om_queue_write: Entering\n");
 

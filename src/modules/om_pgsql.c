@@ -128,6 +128,7 @@ om_pgsql_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 	struct	om_pgsql_ctx *c;
 	int	err, i;
 	char    query[MAX_QUERY], err_buf[512], facility[18], priority[18], *p;
+  m->fired++;
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "om_pgsql_write: entering [%s] [%s]\n",
 	    m->msg, f->f_prevline);

@@ -89,6 +89,7 @@ om_peo_write(struct filed *f, int flags, struct m_msg *msg, void *ctx)
 	u_char			 key[41], mkey[41];
 	unsigned char		 m[MAXBUF], newkey[41];
 	char			 time_buf[16];
+  msg->fired++;
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "om_peo_write: Entering\n");
 	

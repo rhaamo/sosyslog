@@ -113,6 +113,7 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		return (-1);
 	}
 	c = (struct om_tcp_ctx *) *ctx;
+	c->inc = 0;
 
 	argcnt = 1;
 
@@ -187,6 +188,7 @@ om_tcp_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 	char time_buf[16];
 	char line[MAXLINE + 1];
 	int l;
+  m->fired++;
 
 	if (m->msg == NULL || !strcmp(m->msg, "")) {
 		logerror("om_tcp_write: no message!");
@@ -198,13 +200,14 @@ om_tcp_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 	strftime(time_buf, sizeof(time_buf), "%b %e %H:%M:%S", &f->f_tm);
 
 	/* we give a newline termination to difference lines, unlike UDP */
-	if (c->flags & M_ADDHOST) {
-		l = snprintf(line, sizeof(line), "<%d>%.15s %s %s\n",
-		    f->f_prevpri, time_buf, f->f_prevhost, m->msg);
-	} else {
-		l = snprintf(line, sizeof(line), "<%d>%.15s %s\n",
-		    f->f_prevpri, time_buf, m->msg);
-	}
+
+  if (c->flags & M_ADDHOST) {
+    l = snprintf(line, sizeof(line), "<%d>%.15s %s %s\n",
+        LOG_MAKEPRI(m->fac, m->pri), time_buf, f->f_prevhost, m->msg);
+  } else {
+    l = snprintf(line, sizeof(line), "<%d>%.15s %s\n",
+        LOG_MAKEPRI(m->fac, m->pri), time_buf, m->msg);
+  }
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "om_tcp_write: sending to %s, %s",
 	    c->host, line);
@@ -263,10 +266,11 @@ om_tcp_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 	 	    (c->savelen && (write(c->fd, c->saved, c->savelen)
 		    != c->savelen)) || (write(c->fd, line, l) != l) ) {
 
+			c->inc++;
+
 			m_dprintf(MSYSLOG_SERIOUS, "still down! next retry "
 			    "in %i seconds\n", c->msec - (c->msec / c->inc));
 
-			c->inc++;
 			c->savet = t;
 			if (c->fd)
 				close(c->fd);

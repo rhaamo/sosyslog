@@ -108,6 +108,7 @@ om_mysql_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 	char			facility[16], priority[16], *p;
 	int			i;
 	RETSIGTYPE		(*sigsave)(int);
+  m->fired++;
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "om_mysql_write: entering [%s] [%s]\n",
 	    m->msg, f->f_prevline);

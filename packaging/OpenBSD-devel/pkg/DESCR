@@ -1,0 +1,9 @@
+Modular syslog daemon reads and logs messages to the system console, log
+files, other machines and/or users as specified by its configuration
+file. Several input and output modules are provided (with features like
+log integrity checking -peo protocol-, output to postgresql, mysql, etc).
+It is based on the OpenBSD's syslog daemon.
+This package is intended for developers who want to build msyslog modules.
+
+WWW: ${HOMEPAGE}
+

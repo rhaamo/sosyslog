@@ -61,7 +61,7 @@ then
 	CFLAGS="$CFLAGS -Wall"
 fi
 
-MSYSLOG_VERSION="1.08e"
+MSYSLOG_VERSION="1.09a"
 
 AC_DEFINE_UNQUOTED(MSYSLOG_VERSION_STR, "$MSYSLOG_VERSION")
 echo msyslog version... $MSYSLOG_VERSION
@@ -395,6 +395,32 @@ AC_ARG_WITH(peo,
 	PEO=yes
 ])
 
+AC_ARG_WITH(queue,
+[  --without-queue
+	Use a directory to queue messages. Activated by default.
+],[
+	if test $with_queue = "yes" ; then
+		MSRCS="$MSRCS om_queue.c om_directory.c"
+		MANPAGES="$MANPAGES om_directory.8"
+	fi
+],[
+		MSRCS="$MSRCS om_queue.c om_directory.c"
+		MANPAGES="$MANPAGES om_directory.8"
+])
+
+AC_ARG_WITH(refract,
+[  --without-refract
+	Use refraction to prevent a rule from firing. Activated by default.
+],[
+	if test $with_refract = "yes" ; then
+		MSRCS="$MSRCS om_refract.c"
+		MANPAGES="$MANPAGES om_refract.8"
+	fi
+],[
+		MSRCS="$MSRCS om_refract.c"
+		MANPAGES="$MANPAGES om_refract.8"
+])
+
 HASH_SRCS="";
 if test $PEO = "yes" ; then
 
@@ -424,33 +450,18 @@ if test $PEO = "yes" ; then
 	fi
 fi
 
-AC_ARG_WITH(queue,
-[  --without-queue
-	Use a directory to queue messages. Activated by default.
-],[
-	if test $with_queue = "yes" ; then
-		MSRCS="$MSRCS om_queue.c om_directory.c"
-		MANPAGES="$MANPAGES om_directory.8"
-	fi
-],[
-	AC_CHECK_HEADER(regex.h, [
-		MSRCS="$MSRCS om_queue.c om_directory.c"
-		MANPAGES="$MANPAGES om_directory.8"
-	])
-])
-
 AC_ARG_WITH(regex,
 [  --without-regex
 	Use regex pattern matching output module. Activated by default.
 ],[
 	if test $with_regex = "yes" ; then
-		MSRCS="$MSRCS om_regex.c om_refract.c"
-		MANPAGES="$MANPAGES om_regex.8 om_refract.8"
+		MSRCS="$MSRCS om_regex.c"
+		MANPAGES="$MANPAGES om_regex.8"
 	fi
 ],[
 	AC_CHECK_HEADER(regex.h, [
-		MSRCS="$MSRCS om_regex.c om_refract.c"
-		MANPAGES="$MANPAGES om_regex.8 om_refract.8"
+		MSRCS="$MSRCS om_regex.c"
+		MANPAGES="$MANPAGES om_regex.8"
 	])
 ])
 

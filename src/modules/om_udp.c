@@ -175,18 +175,20 @@ om_udp_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 		logerror("om_udp_write: no message!");
 		return (-1);
 	}
+  m->fired++;
 
 	c = (struct om_udp_ctx *) ctx;
 
 	strftime(time_buf, sizeof(time_buf), "%b %e %H:%M:%S", &f->f_tm);
 
-	/* we give a newline termination to difference lines, unlike UDP */
+	/* we give a newline termination to difference lines */
+
 	if (c->flags & M_ADDHOST) {
 		l = snprintf(line, sizeof(line), "<%d>%.15s %s %s\n",
-		    f->f_prevpri, time_buf, f->f_prevhost, m->msg);
+		    LOG_MAKEPRI(m->fac, m->pri), time_buf, f->f_prevhost, m->msg);
 	} else {
 		l = snprintf(line, sizeof(line), "<%d>%.15s %s\n",
-		    f->f_prevpri, time_buf, m->msg);
+		    LOG_MAKEPRI(m->fac, m->pri), time_buf, m->msg);
 	}
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "om_udp_write: sending to %s:%s, %s",

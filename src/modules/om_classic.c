@@ -128,6 +128,7 @@ om_classic_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 	int l;
 	char line[MAXLINE + 1], greetings[500], time_buf[16];
 	time_t now;
+  m->fired++;
 
 	if (m == NULL || m->msg == NULL || !strcmp(m->msg, "")) {
 		m_dprintf(MSYSLOG_INFORMATIVE, "om_classic_write: no message!");

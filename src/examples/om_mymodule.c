@@ -76,6 +76,8 @@ om_mymodule_write(struct filed *f, int flags, char *msg,
 		logerror("om_mymodule_write: no message!");
 		return (-1);
 	}
+  /* increment the fired rule counter if this truely an output modules */
+  msg->fired++;
 
 	/*  here you must do your loggin
 	    take care with repeats and if message was repeated

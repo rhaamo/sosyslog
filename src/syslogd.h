@@ -119,8 +119,9 @@ char    *decode_val(int, int);
 
 
 /*
- * This structure has the message and facility
- * of it. It is the struct to pass to om_write
+ * This is the message structure.
+ * It contains the state information for the current message.
+ * It is used by om_write.
  */
 
 struct m_msg {
@@ -128,7 +129,9 @@ struct m_msg {
 	int	pri;	/* priority level */
 	int	mlen;	/* length of message */
 	int	flags;	/* flags of message */
-	char	*msg;	/* message */
+	int	fired;	/* a count of the rules fired by this message */
+	char *orig;	/* original message */
+	char *msg;	/* the message that will be written */
 };
 
 /*
@@ -222,6 +225,10 @@ struct imodule {
 
 # ifndef LOG_PRI
 #  define LOG_PRI(p) ((p) & LOG_PRIMASK)
+# endif
+
+# ifndef LOG_FACMASK
+#  define       LOG_FACMASK     0x03f8  /* mask to extract facility part */
 # endif
 
 # ifndef LOG_FAC

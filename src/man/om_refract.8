@@ -39,13 +39,19 @@ output module used to prevent repeated sending of messages within a period of ti
 .Sh SYNOPSIS
 .Nm refract
 .Op Fl p Ar seconds
+.Op Fl c Ar fire count
 .Sh DESCRIPTION
 .Nm refract
-output module used to prevent repeated sending of messages within the specified period of time.
+Output module used to prevent repeated sending of messages within the specified period of time.
+It can also be used to write out messages which have not fired enough rules to
+a default output module.
 .Sh EXAMPLES
 .Bd -literal
 # Prevent the repeated issuance of messages within one day of the previous message.
 *.*  %regex -m 'crontab.*REPLACE.*root.*'  %refract -p 86400 %classic /var/log/junk
+
+# If no previous rules have fired then this rule will fire.
+*.*  %refract -c 0    %classic /var/log/junk
 .Ed
 .Sh BUGS
 .Bl -bullet

@@ -43,6 +43,7 @@
 
 struct om_refract_ctx {
   time_t refraction_end_time;
+  int fire_count;
   int refraction_period;
 
 #define  OM_FILTER_PERIOD  0x01  /* FILTER BASED ON TIME ONLY */
@@ -93,9 +94,9 @@ om_refract_init(
   *context = (void *) calloc(1, sizeof(struct om_refract_ctx));
   if (*context == NULL) return (-1);
   ctx = (struct om_refract_ctx *) *context;
-  ctx->refraction_period = 0;
+  ctx->refraction_period = 0;  /* a zero indicates no time need pass until next firing */
   ctx->refraction_end_time = 0;
-
+  ctx->fire_count = -1;  /* a negative indicates not refracted on firing */
 
 
   /*
@@ -106,33 +107,48 @@ om_refract_init(
   optreset = 1;
 #endif
 
-  /* 'h' OPTION NOT YET IMPLEMENTED */
-  while (  ( ch = getopt(argc, argv, "p:") )  !=  -1  ) {
+  {
+    int argcnt = 1;
 
-    switch (ch) {
-
-      case 'p':
-        ctx->refraction_period = strtol(optarg, &endptr, 0);
-        if (endptr == NULL || endptr == optarg) { 
-          snprintf(statbuf, sizeof(statbuf), "om_refract_init: "
-            "bad argument to -p option [%s], should be numeric refraction period", optarg);
+    /* 'h' OPTION NOT YET IMPLEMENTED */
+    while (  ( ch = getxopt(argc, argv, "p!period: c!count:", &argcnt) )  !=  -1  ) {
+      switch (ch) {
+  
+        case 'p':
+          ctx->refraction_period = strtol(optarg, &endptr, 0);
+          if (endptr == NULL || endptr == optarg) { 
+            snprintf(statbuf, sizeof(statbuf), "om_refract_init: "
+              "bad argument to -p option [%s], should be numeric refraction period", optarg);
+            m_dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
+            *status = strdup(statbuf);
+            free(*context);
+            return(-1);
+          }
+  
+          ctx->filter_bitstring |= OM_FILTER_PERIOD;
+          break;
+  
+        case 'c':
+          ctx->fire_count = strtol(optarg, &endptr, 0);
+          if (endptr == NULL || endptr == optarg) { 
+            snprintf(statbuf, sizeof(statbuf), "om_refract_init: "
+              "bad argument to -c option [%s], should be numeric firing count", optarg);
+            m_dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
+            *status = strdup(statbuf);
+            free(*context);
+            return(-1);
+          }
+          break;
+  
+        default:
+          snprintf(statbuf, sizeof(statbuf), "om_refract_init: bad option [%c]", ch);
           m_dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
           *status = strdup(statbuf);
           free(*context);
-          return(-1);
-        }
-
-        ctx->filter_bitstring |= OM_FILTER_PERIOD;
-        break;
-
-      default:
-        snprintf(statbuf, sizeof(statbuf), "om_refract_init: bad option [%c]", ch);
-        m_dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
-        *status = strdup(statbuf);
-        free(*context);
-        return (-1);
+          return (-1);
+      }
+      argcnt++;
     }
-
   }
 
   snprintf(statbuf, sizeof(statbuf), "om_refract_init: initialization completed");
@@ -192,7 +208,13 @@ om_refract_write(
     }
   }
 
-  /* if all flags are on then the message is permitted to be sent */
+  /* if fire_count is negative then the rules fired by the message is irrelevant */
+  if (ctx->fire_count < 0) return ( 0 );
+
+  /* if the message has fired too many rules then don't fire this one */
+  if (ctx->fire_count < msg->fired) return( 1 );
+
+  /* I guess this rule can fire */
   return (0);
 }
 

@@ -196,7 +196,7 @@ void	die(int);
 int	cfline(char *, struct filed *, char *);
 int	decode(const char *, CODE *);
 void	markit(void);
-void	doLog(struct filed *, int, char *, int, int);
+void	doLog(struct filed *, int, struct m_msg *);
 void	printline(char *, char *, size_t, int);
 void	usage(void);
 int	imodule_create(struct i_module *, char *);
@@ -599,21 +599,20 @@ main(int argc, char **argv)
 				    !fd_inputs_mod[i]->im_func ||
 				    !fd_inputs_mod[i]->im_func->im_read ||
 				    (val = (*fd_inputs_mod[i]->im_func->im_read)
-				    (fd_inputs_mod[i], fd_inputs[i].fd,
-				    &log)) < 0) {
+				       (fd_inputs_mod[i], fd_inputs[i].fd, &log)) < 0) {
 					m_dprintf(MSYSLOG_SERIOUS, "syslogd: "
 					    "Error calling input module %s, "
 					    "for fd %i\n", mname, fd);
-
-				} else if (val == 1)    /* log it */
-					printline(log.im_host, log.im_msg,
-					    log.im_len,
-					    fd_inputs_mod[i]->im_flags);
-				/* return of 0 skips it */
+				}
+        else if (val == 1) {
+          /* log it */
+					printline(log.im_host, log.im_msg, log.im_len, fd_inputs_mod[i]->im_flags);
+        }
+        else if (val == 0) { }
+        else if (val > 1) { }
 
 				done++; /* one less */
 			}
-
 		}
 	}
 
@@ -703,6 +702,13 @@ logmsg(int pri, char *msg, char *from, int flags)
  	char prog[NAME_MAX+1];
 	time_t now;
 	struct tm timestamp;
+	struct m_msg msg_obj;
+	struct m_msg msg_nil;
+
+	msg_nil.orig = NULL;
+	msg_nil.fac = 0;
+	msg_nil.pri = 0;
+	msg_nil.fired = 0;
 
 	if (from == NULL || *from == '\0')
 		from = LocalHostName;
@@ -745,7 +751,7 @@ logmsg(int pri, char *msg, char *from, int flags)
 		strptime(msg, "%b %d %H:%M:%S", &timestamp);
 
 		/*
-		 * Is message date december 31 and are we on jan 1
+		 * Is message from december 31 of last year and it is now january 1
 		 * beware: tm_mon [0-11]
 		 *         tm_mday [1-31]
 		 *         tm_year is years since 1900
@@ -766,11 +772,8 @@ logmsg(int pri, char *msg, char *from, int flags)
 	}
 
 	/* extract facility and priority level */
-	if (flags & MARK)
-		fac = LOG_NFACILITIES;
-	else
-		fac = LOG_FAC(pri);
-	prilev = LOG_PRI(pri);
+  fac = (flags & MARK) ? LOG_NFACILITIES : LOG_FAC(pri);
+  prilev = LOG_PRI(pri);
 
 	/* extract program name */
 	for (i = 0; i < NAME_MAX; i++) {
@@ -780,11 +783,18 @@ logmsg(int pri, char *msg, char *from, int flags)
 	}
 	prog[i] = 0;
 
+  /* Build the message object */
+	msg_obj.pri = prilev;
+	msg_obj.fac = fac;
+	msg_obj.fired = 0;
+	msg_obj.orig = msg;
+
 	/* log the message to the particular outputs */
 	if (!Initialized) {
 		if (UseConsole && omodule_create(ctty, &consfile,
 		    NULL) != -1) {
-			doLog(&consfile, flags, msg, prilev, fac);
+			doLog(&consfile, flags, &msg_obj);
+
 			if (consfile.f_omod && consfile.f_omod->om_func
 			    && consfile.f_omod->om_func->om_close != NULL)
 				(*consfile.f_omod->om_func->om_close)
@@ -841,15 +851,15 @@ logmsg(int pri, char *msg, char *from, int flags)
 			 * in the future.
 			 */
 			if (now > REPEATTIME(f)) {
-				doLog(f, flags, NULL, prilev, fac);
+				doLog(f, flags, &msg_nil);
 				BACKOFF(f);
 			}
-		} else {
+		}
+    else {
 			/* new line, save it */
 
 			/* flush previous line */
-			if (f->f_prevcount)
-				doLog(f, 0, NULL, prilev, fac);
+			if (f->f_prevcount) { doLog(f, 0, &msg_nil); }
 
 			/*
 			 * Start counting again, save host data etc.
@@ -866,55 +876,61 @@ logmsg(int pri, char *msg, char *from, int flags)
 				strncpy(f->f_prevline, msg,
 				    sizeof(f->f_prevline) - 1);
 				f->f_prevline[sizeof(f->f_prevline) - 1] = '\0';
-				doLog(f, flags, NULL, prilev, fac);
+				doLog(f, flags, &msg_nil);
 			} else {
 				f->f_prevlen = 0;
 				f->f_prevline[0] = 0;
-				doLog(f, flags, msg, prilev, fac);
+				doLog(f, flags, &msg_obj);
 			}
 		}
 	}
 	(void)sigprocmask(SIG_SETMASK, &omask, NULL);
 }
 
+
 void
-doLog(struct filed *f, int flags, char *message, int prilev, int fac)
+doLog(struct filed *f, int flags, struct m_msg *m)
 {
 	struct o_module *om;
 	char	repbuf[80];
-	struct m_msg m;
 	int	ret;
 
-	m.pri = prilev;
-	m.fac = fac;
-	if (message) {
-		m.msg = message;
-	} else if (f->f_prevcount > 1) {
-		m.msg = repbuf;
-		snprintf(repbuf, sizeof(repbuf), "last message repeated %d"
-		    " times", f->f_prevcount);
-	} else {
-		m.msg = f->f_prevline;
-	}
+	if (m->orig == NULL) {
+    if (f->f_prevcount > 1) {
+	  	m->msg = repbuf;
+	  	snprintf(repbuf, sizeof(repbuf), "last message repeated %d times", f->f_prevcount);
+	  }
+    else {
+	  	m->msg = f->f_prevline;
+  	}
+  }
+  else {
+    m->msg = m->orig;
+  }
 
 	time(&f->f_time);
 	for (om = f->f_omod; om; om = om->om_next) {
 		if (!om->om_func || !om->om_func->om_write) {
 			m_dprintf(MSYSLOG_SERIOUS, "doLog: error, no write "
 			    "function in output module [%s], message [%s]\n",
-			    om->om_func->om_name, m.msg);
+			    om->om_func->om_name, m->msg);
 			continue;
 		}
 
 		/* call this module write */
-		ret = (*(om->om_func->om_write))(f, flags, &m, om->ctx);
+		ret = (*(om->om_func->om_write))(f, flags, m, om->ctx);
 		if (ret < 0) {
 			m_dprintf(MSYSLOG_SERIOUS, "doLog: error with output "
 			    "module [%s] for message [%s]\n",
-			    om->om_func->om_name, m.msg);
-		} else if (ret == 0)
-			/* stop going on */
-			break;
+			    om->om_func->om_name, m->msg);
+		} else if (ret == 0) {
+      /* m->fired should be incremented by output modules
+       * this may need to be done by the individual modules
+       * because some modules are not really output modules.
+       * e.g. refract, regex, ...
+       */
+      break;
+    }
 	}
 }
 
@@ -947,6 +963,12 @@ markit(void)
 {
 	struct filed *f;
 	time_t now;
+	struct m_msg msg_nil;
+
+	msg_nil.orig = NULL;
+	msg_nil.fac = 0;
+	msg_nil.pri = 0;
+	msg_nil.fired = 0;
 
 	now = time((time_t *) NULL);
 
@@ -963,7 +985,7 @@ markit(void)
 			m_dprintf(MSYSLOG_INFORMATIVE, "flush: repeated %d "
 			    "times, %d sec.\n", f->f_prevcount,
 			    repeatinterval[f->f_repeatcount]);
-			doLog(f, 0, NULL, 0, 0);
+			doLog(f, 0, &msg_nil);
 			BACKOFF(f);
 		}
 	}
@@ -998,6 +1020,12 @@ die(int signo) {
 	int was_initialized = Initialized;
 	char buf[100];
 	struct i_module	*im;
+	struct m_msg msg_nil;
+
+	msg_nil.orig = NULL;
+	msg_nil.fac = 0;
+	msg_nil.pri = 0;
+	msg_nil.fired = 0;
 
 	Initialized = 0;		/* Don't log SIGCHLDs */
 
@@ -1006,7 +1034,7 @@ die(int signo) {
 	for (f = Files; f != NULL; f = f->f_next) {
 		/* flush any pending output */
 		if (f->f_prevcount)
-			doLog(f, 0, NULL, 0, 0);
+			doLog(f, 0, &msg_nil);
 	}
 
 	Initialized = was_initialized;
@@ -1058,6 +1086,12 @@ init(int signo)
 	char cline[LINE_MAX];
  	char prog[NAME_MAX+1];
 	struct o_module *om, *om_next;
+	struct m_msg msg_nil;
+
+	msg_nil.orig = NULL;
+	msg_nil.fac = 0;
+	msg_nil.pri = 0;
+	msg_nil.fired = 0;
 
 	m_dprintf(MSYSLOG_INFORMATIVE, "init\n");
 
@@ -1073,7 +1107,7 @@ init(int signo)
 
 		/* flush any pending output */
 		if (f->f_prevcount)
-			doLog(f, 0, NULL, 0, 0);
+			doLog(f, 0, &msg_nil);
 
 		for (om = f->f_omod; om; om = om_next) {
 			/* flush any pending output */
