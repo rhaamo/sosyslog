@@ -1,4 +1,4 @@
-/*      $Id: hash.c,v 1.10 2000/05/05 21:47:50 claudio Exp $
+/*      $Id: hash.c,v 1.11 2000/05/05 23:04:21 claudio Exp $
  *
  * hash -- few things used by both peo output module and peochk 
  *
@@ -75,14 +75,10 @@ mac (method, data1, data1len, data2, data2len, dest)
 
 	/* calculate tmp buffer lenght */
 	if (data1len && data2len) {
-		if (data1len > data2len) {
-			if ( (tmplen = data1len / data2len * data2len) < data1len)
-				tmplen += data2len;
-		}
-		else if (data1len < data2len) {
-			if ( (tmplen = data2len / data1len * data1len) < data2len)
-				tmplen += data1len;
-			}
+		if (data1len > data2len)
+			tmplen += ((tmplen = data1len/data2len*data2len) < data1len) ? data2len:0;
+		else if (data1len < data2len)
+			tmplen += ((tmplen = data2len/data1len*data1len) < data2len) ? data1len:0;
 		else tmplen = data1len;
 	}
 	else if ( (tmplen = (data1len) ? data1len : data2len) == 0)
@@ -233,9 +229,9 @@ asc2bin (dst, src)
 	unsigned char       *dst;
 	const unsigned char *src;
 {
-	int   i;
-	int   j;
-	unsigned char *tmp;
+	int   		 i;
+	int   		 j;
+	unsigned char	*tmp;
 
 	if (dst == NULL || (tmp = (dst == src) ? strdup(src) : (char*)src) == NULL)
 		return (NULL);
@@ -288,7 +284,7 @@ bin2asc (dst, src, srclen)
 
 /*
  * getrandom:
- *	Open /dev/srandom and reads a len bytes random value.
+ *	Open RANDOM_DEVICE and reads len bytes random values.
  *	Returns 0 on success and -1 on error
  */
 int
@@ -299,11 +295,13 @@ getrandom (buffer, bytes)
 	int fd;
 
 	if ( (fd = open(RANDOM_DEVICE, O_RDONLY, 0)) >= 0) {
-		if (read(fd, buffer, bytes) == bytes) {
-			close(fd);
-			return (0);
-		}
+		if (read(fd, buffer, bytes) == bytes)
+			bytes = 0;
+		else
+			bytes = -1;
+
 		close(fd);
+		return (bytes);
 	}
 
 	return (-1);
