@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.89 2000/06/06 20:12:04 fgsch Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.90 2000/06/06 20:19:58 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -491,7 +491,7 @@ doLog(f, flags, message)
 
 	if (message) {
 		msg = message;
-        len = strlen(message);
+	        len = strlen(message);
 	} else if (f->f_prevcount > 1) {
 		msg = repbuf;
 		len = snprintf(repbuf, 80, "last message repeated %d times",
