@@ -1,4 +1,4 @@
-$Id: INSTALL,v 1.18 2002/08/15 22:53:29 phreed Exp $
+$Id: INSTALL,v 1.19 2002/09/24 20:12:20 alejo Exp $
 ==============================================================================
                          Modular Syslog package
                              INSTALL file
@@ -10,7 +10,7 @@ $Id: INSTALL,v 1.18 2002/08/15 22:53:29 phreed Exp $
 
   Msyslog has been tested on the following platforms:
 
-	- OpenBSD 2.6, 2.7, 2.8, 2.9, 3.0
+	- OpenBSD 2.6, 2.7, 2.8, 2.9, 3.0, 3.1
 	- RedHat 6.2, 7.0, 7.1, 7.2
 	- Debian Potato
 	- Solaris 7, 8
