@@ -1,4 +1,4 @@
-/*	$CoreSDI$	*/
+/*	$CoreSDI: modules.h,v 1.18 2000/05/23 21:47:05 fgsch Exp $	*/
 
 #ifndef SYSLOG_MODULES_H
 #define SYSLOG_MODULES_H
@@ -16,6 +16,7 @@
 #define IM_PIPE         3
 #define IM_UDP          4
 #define IM_TCP          5
+#define IM_LINUX	6
 
 extern int	Debug;			/* debug flag */
 extern char	LocalHostName[];	/* our hostname */
