@@ -1,4 +1,4 @@
-/*	$CoreSDI: NEWS,v 1.9 2000/12/04 23:25:26 alejo Exp $	*/
+/*	$CoreSDI: NEWS,v 1.10 2001/04/30 19:12:30 alejo Exp $	*/
 
 1.0 Release Notes:
 
@@ -12,18 +12,22 @@
 
 1.01 Release Notes:
 
- * Solaris port
- * Major autoconf cleanup
- * Multiple SQL module support
- * Many bugfixes
+ * solaris port
+ * major autoconf cleanup
+ * multiple SQL module support
+ * many bugfixes
+
+1.02
+ * clean up for Linux
 
 1.03
  * initial port to AIX
  * tcp modules
  * debug levels
+ * reconnect on mysql/pgsql modules
 
 1.04
- * Automatically detect and compile modules
+ * automatically detect and compile modules
  * major cleanup of code
  * support of sysklogd's extensions
  * lots of bugs squashed
