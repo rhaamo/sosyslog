@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.50 2001/03/23 00:12:29 alejo Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.53 2001/11/21 05:15:26 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -82,12 +82,13 @@ im_unix_read(struct i_module *im, int infd, struct im_msg  *ret)
 
 	slen = sizeof(fromunix);
 
-	ret->im_len = recvfrom(im->im_fd, ret->im_msg, ret->im_mlen,
-	    0, (struct sockaddr *)&fromunix, (socklen_t *)&slen);
+	ret->im_len = recvfrom(im->im_fd, ret->im_msg,
+	    sizeof(ret->im_msg) - 1, 0, (struct sockaddr *)&fromunix,
+	    (socklen_t *)&slen);
 
 	if (ret->im_len > 0) {
 		ret->im_msg[ret->im_len] = '\0';
-		strncpy(ret->im_host, LocalHostName, sizeof(ret->im_host));
+		ret->im_host[0] = '\0';
 	} else if (ret->im_len < 0 && errno != EINTR) {
 		logerror("recvfrom unix");
 		ret->im_msg[0] = '\0';
@@ -110,7 +111,7 @@ im_unix_init(struct i_module *I, char **argv, int argc)
 	struct sockaddr_un sunx;
 	char *logger;
 
-	m_dprintf(MSYSLOG_INFORMATIVE, "im_unix_init: Entering\n");
+	dprintf(MSYSLOG_INFORMATIVE, "im_unix_init: Entering\n");
 
 	if (I == NULL || argv == NULL || (argc != 2 && argc != 1)) 
 		return (-1);
@@ -135,7 +136,7 @@ im_unix_init(struct i_module *I, char **argv, int argc)
 		(void) snprintf(I->im_buf, sizeof(I->im_buf),
 		    "cannot create %s", logger);
 		logerror(I->im_buf);
-		m_dprintf(MSYSLOG_SERIOUS, "cannot create %s (%d)\n",
+		dprintf(MSYSLOG_SERIOUS, "cannot create %s (%d)\n",
 		    logger, errno);
 		return (-1);
 	}

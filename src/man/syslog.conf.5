@@ -1,4 +1,4 @@
-.\"	$CoreSDI: syslog.conf.5,v 1.13 2000/10/31 19:42:13 alejo Exp $
+.\"	$CoreSDI: syslog.conf.5,v 1.16 2001/11/14 19:27:27 alejo Exp $
 .\"
 .\" Copyright (c) 1990, 1991, 1993
 .\"	The Regents of the University of California.  All rights reserved.
@@ -135,7 +135,12 @@ and the first word in the message after the date matches the
 .Em program ,
 the action specified in the
 .Em action
-field will be taken.
+field will be taken. Beware, all rules after it are assigned this program
+name, to disable you may add a line with just
+.Em #!
+or
+.Em !
+to make it handle all programs.
 .Pp
 Multiple
 .Em selectors
@@ -317,15 +322,15 @@ configuration file.
 .El
 .Sh SEE ALSO
 .Xr syslog 3 ,
-.Xr om_classic.8 ,
-.Xr om_mysql.8 ,
-.Xr om_peo.8 ,
-.Xr om_pgsql.8 ,
-.Xr om_regex.8 ,
-.Xr om_tcp.8 ,
-.Xr om_udp.8 ,
-.Xr peochk.8 ,
-.Xr syslogd.8
+.Xr om_classic 8 ,
+.Xr om_mysql 8 ,
+.Xr om_peo 8 ,
+.Xr om_pgsql 8 ,
+.Xr om_regex 8 ,
+.Xr om_tcp 8 ,
+.Xr om_udp 8 ,
+.Xr peochk 8 ,
+.Xr syslogd 8
 .Sh HISTORY
 The
 .Nm

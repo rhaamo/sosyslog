@@ -1,4 +1,4 @@
-/*	$CoreSDI: peochk.c,v 1.51 2001/05/02 22:36:24 claudio Exp $	*/
+/*	$CoreSDI: peochk.c,v 1.54 2002/03/01 07:31:03 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -50,9 +50,9 @@
  *
  * NOTES:
  *	1) When logfile is specified without the -f switch, the data is
- *	   readed from the standard input 
+ *	   read from the standard input 
  *	2) If logfile is specified using both -f switch and without it,
- *	   the -f argument is used and data is readed from that file
+ *	   the -f argument is used and data is read from that file
  *	3) If logfile is specified but not the keyfile, this will be
  *	   /var/ssyslog/xxx.key where xxx is the logfile with all '/'
  *	   replaced by '.'
@@ -105,8 +105,6 @@ char	*key0file;
 char	*logfile;
 char	*macfile;
 int	 method;
-
-extern char *optarg;
 
 
 /*
@@ -388,6 +386,7 @@ int
 main(int argc, char **argv)
 {
 	int	 ch;
+	int	 argcnt;
 	int	 mac;
 
 	/* integrity check mode, stdin */
@@ -401,54 +400,69 @@ main(int argc, char **argv)
 	macfile = NULL;
 	method = SHA1;
 
-	/* parse command line */
-	while ( (ch = getopt(argc, argv, "f:ghi:k:lm:q")) != -1) {
+	argcnt = 1;	/* skip program name */
+
+	while ((ch = getxopt(argc, argv, "f!logfile: g!generatekey"
+	    " i!initkeyfile: k!keyfile: l!mac m!method: q!quiet h!help",
+	    &argcnt)) != -1) {
+
 		switch (ch) {
 			case 'f':
 				/* log file (intrusion detection mode) */
 				if (logfile != default_logfile)
 					free(logfile);
-				if ( (logfile = strrealpath(optarg)) == NULL) {
+
+				if ((logfile = strrealpath(argv[argcnt]))
+				    == NULL) {
 					release();
-					perror(optarg);
+					perror(argv[argcnt]);
 					exit(-1);
 				}
+
 				actionf &= ~ST_IN;
 				break;
+
 			case 'g':
 				/* generate new keyfile and initial key */
 				actionf &= ~CHECK;
 				break;
+
 			case 'i':
 				/* key 0 file */
 				if (key0file)
 					free(key0file);
-				if ( (key0file = strdup(optarg)) == NULL) {
+				if ((key0file = strdup(argv[argcnt]))
+				    == NULL) {
 					release();
-					perror(optarg);
+					perror(argv[argcnt]);
 					exit(-1);
 				}
 				break;
+
 			case 'k':
 				/* keyfile */
 				if (keyfile != default_keyfile)
 					free(keyfile);
-				if ( (keyfile = strdup(optarg)) == NULL) {
+
+				if ((keyfile = strdup(argv[argcnt])) == NULL) {
 					release();
-					perror(optarg);
+					perror(argv[argcnt]);
 					exit(-1);
 				}
 				break;
+
 			case 'l':
 				mac = 1;
 				break;
+
 			case 'm':
 				/* hash method */
-				if ( (method = gethash(optarg)) < 0) {
+				if ( (method = gethash(argv[argcnt])) < 0) {
 					release();
 					usage();
 				}
 				break;
+
 			case 'q':
 				/* quiet mode */
 				actionf |= QUIET;
@@ -459,11 +473,13 @@ main(int argc, char **argv)
 				usage();
 		}
 
+		argcnt++;
+
 	}
 
 	/* check logfile specified without -f switch */
-	argc -= optind;
-	argv += optind;
+	argc -= argc;
+	argv += argc;
 	if (argc && (actionf & ST_IN))
 		if ( (logfile = strrealpath(argv[argc-1])) == NULL) {
 			release();

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.85 2001/10/25 22:41:23 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.89 2001/11/21 05:30:46 alejo Exp $	*/
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
@@ -102,7 +102,7 @@ struct om_classic_ctx {
 	union {
 		char    f_uname[MAXUNAMES][UT_NAMESIZE+1];
 		struct {
-			char    f_hname[SIZEOF_MAXHOSTNAMELEN];
+			char    f_hname[MAXHOSTNAMELEN];
 			struct sockaddr		f_addr;
 		} f_forw;	/* forwarding address */
 		char    f_fname[MAXPATHLEN];
@@ -130,7 +130,7 @@ om_classic_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 	time_t now;
 
 	if (m == NULL || m->msg == NULL || !strcmp(m->msg, "")) {
-		m_dprintf(MSYSLOG_INFORMATIVE, "om_classic_write: no message!");
+		dprintf(MSYSLOG_INFORMATIVE, "om_classic_write: no message!");
 		return (-1);
 	}
 
@@ -169,39 +169,39 @@ om_classic_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 	v->iov_len = strlen(m->msg);
 	v++;
 
-	m_dprintf(MSYSLOG_INFORMATIVE, "Logging to %s", TypeNames[c->f_type]);
+	dprintf(MSYSLOG_INFORMATIVE, "Logging to %s", TypeNames[c->f_type]);
 
 	switch (c->f_type) {
 	case F_UNUSED:
-		m_dprintf(MSYSLOG_INFORMATIVE, "\n");
+		dprintf(MSYSLOG_INFORMATIVE, "\n");
 		break;
 	
 	case F_FORW:
-		if (finet < 0) {
-			m_dprintf(MSYSLOG_SERIOUS, "om_classic: write: "
+		if (c->fd < 0) {
+			dprintf(MSYSLOG_SERIOUS, "om_classic: write: "
 			    "can't forward message, socket down\n");
 			return(-1);
 		}
 
-		m_dprintf(MSYSLOG_INFORMATIVE, " %s\n", c->f_un.f_forw.f_hname);
+		dprintf(MSYSLOG_INFORMATIVE, " %s\n", c->f_un.f_forw.f_hname);
 		l = snprintf(line, sizeof(line), "<%d>%.15s %s", f->f_prevpri,
 		    (char *) iov[0].iov_base, (char *) iov[4].iov_base);
 
-		if (sendto(finet, line, l, 0, &c->f_un.f_forw.f_addr,
+		if (sendto(c->fd, line, l, 0, &c->f_un.f_forw.f_addr,
 #ifdef AF_INET6
 		    c->f_un.f_forw.f_addr.sa_family == AF_INET6 ?
 		    sizeof(struct sockaddr_in6) :
 #endif
 		    sizeof(struct sockaddr_in)) != l) {
 			c->f_type = F_UNUSED;
-			m_dprintf(MSYSLOG_WARNING, "om_classic: error on sendto()");
+			dprintf(MSYSLOG_WARNING, "om_classic: error on sendto()");
 		}
 
 		break;
 
 	case F_CONSOLE:
 		if (flags & IGN_CONS) {
-			m_dprintf(MSYSLOG_INFORMATIVE, " (ignored)\n");
+			dprintf(MSYSLOG_INFORMATIVE, " (ignored)\n");
 			break;
 		}
 		/* FALLTHROUGH */
@@ -209,7 +209,7 @@ om_classic_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 	case F_TTY:
 	case F_PIPE:
 	case F_FILE:
-		m_dprintf(MSYSLOG_INFORMATIVE, " %s\n", c->f_un.f_fname);
+		dprintf(MSYSLOG_INFORMATIVE, " %s\n", c->f_un.f_fname);
 		if (c->f_type != F_FILE) {
 			v->iov_base = "\r\n";
 			v->iov_len = 2;
@@ -236,7 +236,7 @@ om_classic_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 				    O_WRONLY|O_APPEND, 0);
 				if (c->fd < 0) {
 					c->f_type = F_UNUSED;
-					m_dprintf(MSYSLOG_WARNING, "om_classic: "
+					dprintf(MSYSLOG_WARNING, "om_classic: "
 					    "error on %s", c->f_un.f_fname);
 				} else
 					goto again;
@@ -244,7 +244,7 @@ om_classic_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 				c->f_type = F_UNUSED;
 				c->fd = -1;
 				errno = e;
-				m_dprintf(MSYSLOG_WARNING, "om_classic: error "
+				dprintf(MSYSLOG_WARNING, "om_classic: error "
 				    "on %s", c->f_un.f_fname);
 			}
 		} else if (flags & SYNC_FILE)
@@ -253,7 +253,7 @@ om_classic_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 
 	case F_USERS:
 	case F_WALL:
-		m_dprintf(MSYSLOG_INFORMATIVE, "\n");
+		dprintf(MSYSLOG_INFORMATIVE, "\n");
 		v->iov_base = "\r\n";
 		v->iov_len = 2;
 		wallmsg(f, iov, c);
@@ -276,15 +276,15 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 {
 	struct sockaddr *sa;
 	struct  om_classic_ctx *c;
-	socklen_t salen;
+	size_t salen;
 	int i, statbuf_len;
 	char *p, *q, statbuf[1024];
 
-	m_dprintf(MSYSLOG_INFORMATIVE, "om_classic_init: Entering\n");
+	dprintf(MSYSLOG_INFORMATIVE, "om_classic_init: Entering\n");
 
 	/* accepts "%classic /file" or "%classic -t TYPE /file" */
 	if ( (argc != 2 && argc != 4) || argv == NULL) {
-		m_dprintf(MSYSLOG_SERIOUS, "om_classic_init: incorrect "
+		dprintf(MSYSLOG_SERIOUS, "om_classic_init: incorrect "
 		    "parameters %d args [%s %s %s %s]\n", argc,
 		    argc > 0? argv[1] : "",
 		    argc > 1? argv[2] : "",
@@ -294,7 +294,7 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	}
 
 	if ((*ctx = (void *) calloc(1, sizeof(struct om_classic_ctx))) == NULL) {
-		m_dprintf(MSYSLOG_SERIOUS, "om_classic_init: cannot allocate "
+		dprintf(MSYSLOG_SERIOUS, "om_classic_init: cannot allocate "
 		    "context\n");
 		return (-1);
 	}
@@ -304,7 +304,7 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	if (argc > 2) {
 
 		if (strncmp(argv[1], "-t", 2)) {
-			m_dprintf(MSYSLOG_SERIOUS, "om_classic_init: incorrect" 
+			dprintf(MSYSLOG_SERIOUS, "om_classic_init: incorrect" 
 			    " parameter %s, should be '-t'\n", argv[1]);
 			free(*ctx);
 			*ctx = NULL;
@@ -315,7 +315,7 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		for (i = 0; TypeNames[i] && strncmp(TypeNames[i], argv[2],
 		    strlen(argv[2])); i++);
 		if (TypeNames[i] == NULL) {
-			m_dprintf(MSYSLOG_SERIOUS, "om_classic_init: couldn't" 
+			dprintf(MSYSLOG_SERIOUS, "om_classic_init: couldn't" 
 			    " determine type %s\n", argv[2]);
 			free(*ctx);
 			*ctx = NULL;
@@ -331,30 +331,7 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 
 	switch (*p) {
 	case '@':
-		if (!(DaemonFlags & SYSLOGD_INET_IN_USE)) {
-
-			finet = socket(AF_INET, SOCK_DGRAM, 0);
-
-			if ((sa = resolv_name("0.0.0.0", "syslog", "udp",
-			    &salen)) == NULL) {
-				errno = 0;
-				m_dprintf(MSYSLOG_SERIOUS, "om_classic_init: "
-				    "can't bind udp port");
-				free(*ctx);
-				*ctx = NULL;
-   				return (-1);
-			}
-
-			if (bind(finet, sa, salen) < 0) {
-				m_dprintf(MSYSLOG_WARNING, "om_classic: error "
-				    "on bind()");
-				free(sa);
-				free(*ctx);
-				*ctx = NULL;
-				return (-1);
-			}
-			free(sa);
-		}
+		c->fd = socket(AF_INET, SOCK_DGRAM, 0);
 
 		strncpy(c->f_un.f_forw.f_hname, ++p,
 		    sizeof(c->f_un.f_forw.f_hname) - 1);
@@ -363,7 +340,7 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 
 		if ((sa = resolv_name(c->f_un.f_forw.f_hname, "syslog", "udp",
 		    &salen)) == NULL) {
-			m_dprintf(MSYSLOG_SERIOUS, "om_classic: error resolving "
+			dprintf(MSYSLOG_SERIOUS, "om_classic: error resolving "
 			    "host %s\n", c->f_un.f_forw.f_hname);
 			break;
 		}
@@ -391,7 +368,7 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		}
 
 		if (c->fd < 0) {
-			m_dprintf(MSYSLOG_CRITICAL, "om_classic_init: error "
+			dprintf(MSYSLOG_CRITICAL, "om_classic_init: error "
 			    "opening log file: %s\n", p);
 			free(*ctx);
 			*ctx = NULL;
@@ -451,19 +428,10 @@ om_classic_close(struct filed *f, void *ctx)
 
 	c = (struct om_classic_ctx *) ctx;
 
-	switch (c->f_type) {
-	case F_FILE:
-	case F_PIPE:
-	case F_TTY:
-	case F_CONSOLE:
-		return (close(c->fd));
-	case F_FORW:
-		if ((finet > -1) && (DaemonFlags & SYSLOGD_INET_IN_USE)
-		    && !(DaemonFlags & SYSLOGD_INET_READ))
-			return (close(finet));
-	default:
-		return (0);
-	}
+	if (c->fd > -1)
+		close(c->fd);
+
+	return (0);
 }
 
 int
@@ -495,7 +463,7 @@ wallmsg( struct filed *f, struct iovec *iov, struct om_classic_ctx *c)
 	if (reenter++)
 		return;
 	if ( (uf = fopen(_PATH_UTMP, "r")) == NULL) {
-		m_dprintf(MSYSLOG_SERIOUS, "om_classic: error opening "
+		dprintf(MSYSLOG_SERIOUS, "om_classic: error opening "
 		    "%s\n", _PATH_UTMP);
 		reenter = 0;
 		return;
@@ -516,7 +484,7 @@ wallmsg( struct filed *f, struct iovec *iov, struct om_classic_ctx *c)
 		if (c->f_type == F_WALL) {
 			if ((p = ttymsg(iov, 6, line, TTYMSGTIME)) != NULL) {
 				errno = 0;	/* already in msg */
-				m_dprintf(MSYSLOG_SERIOUS, "om_classic: error "
+				dprintf(MSYSLOG_SERIOUS, "om_classic: error "
 				    "%s\n", p);
 			}
 			continue;
@@ -530,7 +498,7 @@ wallmsg( struct filed *f, struct iovec *iov, struct om_classic_ctx *c)
 				if ((p = ttymsg(iov, 6, line, TTYMSGTIME))
 								!= NULL) {
 					errno = 0;	/* already in msg */
-					m_dprintf(MSYSLOG_SERIOUS, "om_classic: error "
+					dprintf(MSYSLOG_SERIOUS, "om_classic: error "
 					    "%s\n", p);
 				}
 				break;

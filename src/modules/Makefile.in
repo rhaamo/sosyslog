@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.71 2001/09/19 09:56:26 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.73 2001/11/20 00:48:41 alejo Exp $
 #
 # Copyright (c) 2001, Core SDI S.A., Argentina
 # All rights reserved
@@ -64,7 +64,7 @@ distclean: clean
 install:
 	@echo "installing shared library..."
 	@if [ ! -d $(INSTALL_LIBDIR) ]; then \
-		$(INSTALL) -d $(INSTALL_LIBDIR); \
+		mkdir -p $(INSTALL_LIBDIR); \
 	fi
 	@$(INSTALL) $(MLIBNAME) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(MLIBNAME)"
 

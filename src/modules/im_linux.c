@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.51 2001/03/27 20:54:24 alejo Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.60 2002/03/01 08:43:37 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -62,7 +62,8 @@
 #define	KSYM_TRANSLATE		0x01
 #define KSYM_READ_TABLE		0x02
 #define KLOG_USE_SYSCALL	0x04
-int	 flags;
+#define KLOG_HAVE_NEWLINE	0x08
+int	linux_flags;
 char	*linux_input_module = "linux input module";
 
 
@@ -85,9 +86,12 @@ FILE	*ksym_fd = NULL;
 char	*ksym_path = PATH_KSYM;
 Symbol	*ksym_first = NULL;
 Symbol	*ksym_current = NULL;
+char	saveline[MAXLINE + 1];
+int	savelen;
 
 int	 ksym_init();
 void	 ksym_close();
+int	 ksym_snprintf (char*, int, char*);
 Symbol	*ksym_lookup (Symbol*, char*);
 int	 ksym_get_symbol (Symbol*);
 int	 ksym_parseline (char*, Symbol*);
@@ -100,7 +104,7 @@ char	*ksym_copyword (char*, char*, int);
 void
 im_linux_usage()
 {
-	m_dprintf(MSYSLOG_INFORMATIVE, "linux input module options:\n"
+	dprintf(MSYSLOG_INFORMATIVE, "linux input module options:\n"
 	    "   [ -k file ]    Use the specified file as source of kernel\n"
 	    "                  symbol information instead of %s.\n"
 	    "   [ -r ]         Force read symbol table on memory.\n"
@@ -119,6 +123,30 @@ im_linux_usage()
 
 
 /*
+ * getLine:
+ * Search for a line on a string buffer
+ * returns a pointer to the line or NULL if the buffer is empty
+ */
+char*
+getLine (char *buf, int *i)
+{
+	if (*buf == '\0')
+		return (NULL);
+	while (buf[*i] != '\n' && buf[*i] != '\0')
+		(*i)++;
+	if (buf[*i] == '\0') {
+		(*i)--;
+	} else {
+		if (buf[*i] == '\n')
+			linux_flags |= KLOG_HAVE_NEWLINE;
+
+		buf[*i] = '\0';
+	}
+	return (buf);
+}
+
+
+/*
  * Sets console loglevel
  */
 int
@@ -129,7 +157,7 @@ im_linux_set_console_loglevel (char *strlv)
 
 	if ( (loglevel = strtoul(strlv, &err, 10)) < 0 ||
 	      loglevel > 7 || *err != '\0') {
-		warnx("%s: invalid loglevel <%s>", linux_input_module, optarg);
+		warnx("%s: invalid loglevel <%s>", linux_input_module, strlv);
 		return (-1);
 	}
 	warnx("%s: setting console loglevel to <%lu>", linux_input_module,
@@ -149,41 +177,48 @@ int
 im_linux_init (struct i_module *I, char **argv, int argc)
 {
 	int ch;
-	int current_optind;
+	int argcnt;
 
-	m_dprintf(MSYSLOG_INFORMATIVE, "im_linux_init: Entering\n");
+	dprintf(MSYSLOG_INFORMATIVE, "im_linux_init: Entering\n");
 
 	/* parse command line */
-	current_optind = optind;	/* syslogd calls im_linux_init when
-					 * parsing command line
-					 * This should be changed
-					 */
-	flags = KSYM_TRANSLATE;
+	/* syslogd calls im_linux_init when
+	 * parsing command line
+	 * This should be changed
+	 */
+	linux_flags = KSYM_TRANSLATE;
 	if (argc > 1) {
-		optind = 1;
-		while ( (ch = getopt(argc, argv, "c:C:k:rsxh?")) != -1)
+		argcnt = 1; /* skip module name */
+
+		while ((ch = getxopt(argc, argv, "c!console: C!setconsole:"
+		    " k!symbolfile: r!readsymbols s!syscalls x!notranslate"
+		    " h!help", &argcnt)) != -1) {
+
 			switch(ch) {
 			case 'c': /* specify console loglevel */
-				if (im_linux_set_console_loglevel(optarg) < 0)
+				if (im_linux_set_console_loglevel(argv[argcnt])
+				    < 0)
 					return (-1);
 				break;
 
 			case 'C': /* specify console loglevel and force exit */
-				im_linux_set_console_loglevel(optarg);
+				im_linux_set_console_loglevel(argv[argcnt]);
 				return (-1);
 
 			case 'k': /* specify symbol file */
-				if (strcmp(ksym_path, optarg))
-				    if ( (ksym_path = strdup(optarg)) == NULL) {
+				if (strcmp(ksym_path, argv[argcnt]) != 0 ||
+				    (ksym_path = strdup(argv[argcnt])) == NULL) {
+
 					warn("%s", linux_input_module);
 					return (-1);
+
 				    }
 				break;
 
 			case 'r': /* force to read symbol table and keep
 				   * it in memory
 				   */
-				flags |= KSYM_READ_TABLE;
+				linux_flags |= KSYM_READ_TABLE;
 				break;
 
 /* not supported yet, we need to talk about somethings */
@@ -191,12 +226,12 @@ im_linux_init (struct i_module *I, char **argv, int argc)
 			case 's': /* force to use syscall instead
 				   * of _PATH_KLOG
 				   */
-				flags |= KLOG_USE_SYSCALL;
+				linux_flags |= KLOG_USE_SYSCALL;
 				break;
 #endif
 
 			case 'x': /* do not translate kernel symbols */
-				flags &= ~KSYM_TRANSLATE;
+				linux_flags &= ~KSYM_TRANSLATE;
 				break;
 
 			case 'h': /* usage */
@@ -205,11 +240,13 @@ im_linux_init (struct i_module *I, char **argv, int argc)
 				im_linux_usage();
 				return (-1);
 			}
+			argcnt++;
+		}
 	}
 
 	I->im_path = NULL;
 	I->im_fd = 0;
-	if (flags & ~KLOG_USE_SYSCALL) {
+	if (!(linux_flags & KLOG_USE_SYSCALL)) {
 		if ( (I->im_fd = open(_PATH_KLOG, O_RDONLY, 0)) >= 0)
 			I->im_path = _PATH_KLOG;
 
@@ -234,11 +271,12 @@ im_linux_init (struct i_module *I, char **argv, int argc)
 	}
 
 	/* open/read symbol table file */
-	if ((flags & KSYM_TRANSLATE) && ksym_init() < 0)
+	if ((linux_flags & KSYM_TRANSLATE) && ksym_init() < 0)
 		return (-1);
 
-        I->im_flags |= IMODULE_FLAG_KERN & ADDDATE;
-	optind = current_optind;
+        I->im_flags |= IMODULE_FLAG_KERN;
+	saveline[0] = '\0';	/* yes, globals are zeroed, but... */
+	savelen = 0;
 	add_fd_input(I->im_fd , I);
         return (I->im_fd);
 }
@@ -262,7 +300,7 @@ im_linux_read (struct i_module *im, int infd, struct im_msg *ret)
 
 /* syscall not supported yet */
 #if 0
-	if (im->im_path == NULL || flags & KLOG_USE_SYSCALL)
+	if (im->im_path == NULL || linux_flags & KLOG_USE_SYSCALL)
 		/* this blocks */
 		/* i = klogctl(2, im->im_buf, sizeof(im->im_buf)-1);
 		 */
@@ -278,96 +316,50 @@ im_linux_read (struct i_module *im, int infd, struct im_msg *ret)
 	}
 
 	if (i) {
-		char	*nextline;
-
 		im->im_buf[i] = '\0';
 
 		/* log each msg line */
+		i = 0;
 		ptr = im->im_buf;
-                do {
- 
-                        /* multiple lines ? */
-                        if((nextline = strchr(ptr, '\n')) != NULL) {
-                                /* terminate this line and advance */
-                                *nextline++ = '\0';
-                        }
-  
-                        if (*ptr == '\0') {
-                                if (nextline != NULL) {
-                                        ptr = nextline;  
-                                        continue;    
-                                } else           
-                                        return (0);
-                        }
-
-			if (sscanf(ptr, "<%d>", &ret->im_pri) == 1) {
-				ptr = &ptr[3];
-			} else {
+		while ( (ptr = getLine(ptr, &i)) != NULL) {
+			char	*msg;
+			int	buflen;
+			
+			/* get priority */
+			if (i >= 3 && ptr[0] == '<' &&
+			    ptr[2] == '>' && isdigit(ptr[1])) {
+				ret->im_pri = ptr[1] - '0';
+				ptr += 3;
+				i -= 3;
+			}
+			else
 				/* from printk.c: DEFAULT_MESSAGE_LOGLEVEL */
 				ret->im_pri = LOG_WARNING;
+
+			msg = &saveline[savelen];
+			buflen = sizeof(saveline) - savelen;
+
+			/*
+			 * Parse kernel/module symbols and print.
+			 */
+			if (linux_flags & KSYM_TRANSLATE)
+				savelen = ksym_snprintf(msg, buflen, ptr);
+			else
+				savelen = snprintf(msg, buflen,
+				    savelen == 0 ? "kernel: %s" : "%s", ptr);
+
+			ret->im_host[0] = '\0';
+
+			if (linux_flags & KLOG_HAVE_NEWLINE) {
+				logmsg(ret->im_pri, saveline, ret->im_host, im->im_flags);
+				saveline[0] = '\0';
+				savelen = 0;
+				linux_flags &= ~KLOG_HAVE_NEWLINE;
 			}
-
-
-			/* parse kernel/module symbols */
-			if (flags & KSYM_TRANSLATE) {
-				char	buf[512], symbuf[20];
-				Symbol	sym;
-				int	n;
-
-				n = 0;
-
-				strncpy(ret->im_msg, "kernel: ",
-				    sizeof(ret->im_msg) - 1);
-				ret->im_len = 8;
-
-				while (sscanf(ptr, "%511[^[][<%[0-9a-fA-F]>]%n",
-				    buf, symbuf, &n) == 2) {
-
-					ptr = &ptr[n];
-					n = 0;
-
-					symbuf[sizeof(symbuf) - 1] = '\0';
-					buf[sizeof(buf) - 1] = '\0';
-
-					ret->im_len += snprintf(ret->im_msg
-					    + ret->im_len, sizeof(ret->im_msg)
-					    - 1 - ret->im_len, "%s", buf);
-
-					if (ksym_lookup(&sym, symbuf) == NULL) {
-						ret->im_len += snprintf(ret->im_msg
-						    + ret->im_len, sizeof(ret->im_msg)
-						    - 1 - ret->im_len, "[%s]",
-						    symbuf);
-						continue;
-					}
-
-					ret->im_len += snprintf(ret->im_msg
-					    + ret->im_len, sizeof(ret->im_msg)
-					    - 1 - ret->im_len, "[<%s> %s.%s ]",
-					    sym.addr, sym.mname, sym.name);
-				}
-
-				if (n > 0) {
-					ret->im_len += snprintf(ret->im_msg
-					    + ret->im_len, sizeof(ret->im_msg)
-					    - 1 - ret->im_len, "%s", buf);
-					ret->im_msg[ret->im_len] = '\0';
-				}
-			} else
-				ret->im_len = snprintf(ret->im_msg,
-				    sizeof(ret->im_msg) - 1, "kernel: %s", ptr);
-
-			strncpy(ret->im_host, LocalHostName,
-			    sizeof(ret->im_host));
-			ret->im_host[sizeof(ret->im_host) - 1] = '\0';
-
-			logmsg(ret->im_pri, ret->im_msg, ret->im_host,
-			    im->im_flags);
 			ptr += i + 1;
 			i = 0;
-		} while (nextline != NULL);
+		}
 	}
-
 	return (0);
 }
 
@@ -402,7 +394,7 @@ ksym_init()
 		warn("%s: ksym_init: %s", linux_input_module, ksym_path);
 		return (-1);
 	}
-	if (flags & KSYM_READ_TABLE) {
+	if (linux_flags & KSYM_READ_TABLE) {
 		last = NULL;
 		while (fgets(buf, sizeof(buf), ksym_fd) != NULL) {
 			if ( (next = (Symbol*) malloc(sizeof(Symbol))) == NULL) {
@@ -449,6 +441,66 @@ ksym_close()
 	}
 	if (ksym_path != PATH_KSYM)
 		free(ksym_path);
+}
+
+
+/*
+ * ksym_snprintf
+ */
+int
+ksym_snprintf (char *buf, int bufsize, char *raw)
+{
+	int     i;
+	int	printed;
+	char   *p1;
+	char   *p2;
+	Symbol  sym;
+
+	if ( (printed = snprintf(buf, bufsize, "kernel: ")) < 0)
+		return (-1);
+	bufsize -= printed;
+
+	while (bufsize && *raw != '\0') {
+		if ( (p1 = strstr(raw, "[<")) != NULL &&
+		     (p2 = strstr(p1, ">]")) != NULL) {
+			for (i = 2; p1+i < p2 && isxdigit(p1[i]); i++);
+			if (p1+i == p2) {
+				*p2 = '\0';
+				if (ksym_lookup(&sym, p1+2) != NULL) {
+					*p1 = '\0';
+					if ( (printed +=
+					    snprintf(buf+printed, bufsize,
+					    "%s [<%s> %s.%s ]", raw, sym.addr,
+					    sym.mname, sym.name)) < 0)
+						return (-1);
+					bufsize -= printed;
+
+					/* we need to solve some things
+ 					 * about buf and msg params on
+					 * im_xxxxx_read.
+					 * so, i think that is better
+					 * not to change raw data ;;;
+					 */
+					*p1 = '[';
+					*p2 = '>';
+					raw = p2+2;
+					continue;
+				}
+				*p2 = '>';
+			} 
+		} 
+		break;
+	}
+
+	if (*raw) {
+		/* kernel message without symbols */
+		if ( (i = snprintf(buf+printed, bufsize, "%s", raw)) < 0)
+			return (-1);
+		else
+			printed += i;
+	}
+
+	return (printed);
 }
 
 

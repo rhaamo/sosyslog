@@ -1,4 +1,4 @@
-$Id: INSTALL,v 1.16 2002/08/13 17:25:10 phreed Exp $
+$Id: INSTALL,v 1.16.2.1 2003/04/11 16:36:19 alejo Exp $
 ==============================================================================
                          Modular Syslog package
                              INSTALL file
@@ -10,15 +10,39 @@ $Id: INSTALL,v 1.16 2002/08/13 17:25:10 phreed Exp $
 
   Msyslog has been tested on the following platforms:
 
-	- OpenBSD 2.6, 2.7, 2.8, 2.9
-	- RedHat 6.2, 7.0
-	- Debian
-	- Solaris 7
-	- Irix
+	- OpenBSD 2.6, 2.7, 2.8, 2.9, 3.0
+	- RedHat 6.2, 7.0, 7.1, 7.2
+	- Debian Potato
+	- Solaris 7, 8
+	- Irix64 6.5
 	- Aix 4.3
 
-  Arthur Korn made a package for Debian users. You can contact him by mail
-at: arthur@korn.ch.
+
+
+
+
+SPECIAL NOTE
+------------
+
+Most of the documentation and examples are on the manual pages provided.
+They are meant to be the ultimate reference. See im_bsd.8, im_linux.8
+im_udp.8, om_mysql.8, om_regex.8, peochk.8 im_doors.8, im_streams.8
+im_unix.8, om_peo.8, om_tcp.8, syslog.conf.5, im_file.8, im_tcp.8
+om_classic.8, om_pgsql.8, om_udp.8, and syslogd.8.
+
+
+0. Packages
+===========
+
+There are Debian packages you can use with Debian's apt_get and friends.
+(ie. apt_get msyslog)
+
+There are Redhat packages at the Sourceforge page. Those are built for
+now by Florin Andrei.
+
+In the future we plan to have the package creation of RedHat, Debian,
+OpenBSD, FreeBSD, NetBSD, and Solaris in the source tree. It would be done
+with some make target like 'make rpm'.
 
 
 1. Compiling
@@ -118,27 +142,23 @@ corresponding directory on the shell variable LD_PATH.
 4. HOW TO CONTACT US AND RELATED MAILING LISTS
 ==============================================
 
-  There are several mailing lists for msyslog:
+  There are two mailing lists for msyslog:
 
-    msyslog-usr@core-sdi.com
+    msyslog-usr 
         This mailing list is for general discussions about the
         modular syslog system.
 
-    msyslog-dev@core-sdi.com
+    msyslog-dev 
         This mailing list is for technical discussions about
         the modular syslog system.  It's intended for
         developers or any other person interested in the inner
         working parts of msyslog.
 
-    Send a message to majordomo@corest.com with the in the message body,
-    replacing list-name by the name of the choosen list.
-    e.g.  subscribe <msyslog-usr>
+  Send a message to majordomo@corest.com with the text:
 
+subscribe list-name
 
-   msyslog-users@lists.sourceforge.net
-        This mailing list is for general discussions about the
-        modular syslog system.
-        This list should be used for reporting all bugs.
-
-   <http://lists.sourceforge.net/lists/listinfo/msyslog-users>
+in the message body, replacing list-name by the name of the
+choosen list. You can also send an email to  the developers only
+at core.devel.alat@corest.com.
 

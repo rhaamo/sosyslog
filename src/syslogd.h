@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.102 2001/10/22 22:49:42 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.111 2002/03/01 04:05:20 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -36,7 +36,14 @@
 #ifndef SYSLOGD_H
 #define SYSLOGD_H
 
-#define	MAXLINE		1024		/* maximum line length */
+#ifndef MAXHOSTNAMELEN
+# include <netdb.h>
+# ifndef MAXHOSTNAMELEN
+#  define MAXHOSTNAMELEN 254
+# endif
+#endif
+
+#define	MAXLINE		2048		/* maximum line length */
 #define	MAXSVLINE	120		/* maximum saved line length */
 #define DEFUPRI		(LOG_USER|LOG_NOTICE)
 #define DEFSPRI		(LOG_KERN|LOG_CRIT)
@@ -69,7 +76,13 @@
  *
  */
 
-int m_dprintf(int, char const *, ...); /* level, format, ... */
+#ifdef dprintf
+#undef dprintf
+#endif
+
+int dprintf(int, char const *, ...); /* level, format, ... */
+int getxopt(int, char *[], char *, int *);  /* argc, argv, opts, startarg */
+
 
 #define MSYSLOG_CRITICAL	 10
 #define MSYSLOG_SERIOUS		 20
@@ -101,6 +114,15 @@ int m_dprintf(int, char const *, ...); /* level, format, ... */
 #endif
 
 /*
+ * Decode function
+ */
+#define CODE_FACILITY	0x01
+#define CODE_PRIORITY	0x02
+char    *decode_val(int, int);
+
+
+
+/*
  * This structure has the message and facility
  * of it. It is the struct to pass to om_write
  */
@@ -125,7 +147,7 @@ struct filed {
 	char    *f_program;	     /* program this applies to */
 	struct	tm f_tm;	/* date of message */
 	char    f_prevline[MAXSVLINE];	  /* last message logged */
-	char    f_prevhost[SIZEOF_MAXHOSTNAMELEN];     /* host from which recd. */
+	char    f_prevhost[MAXHOSTNAMELEN];     /* host from which recd. */
 	int     f_prevpri;		      /* pri of f_prevline */
 	int     f_prevlen;		      /* length of f_prevline */
 	int     f_prevcount;		    /* repetition cnt of prevline */
@@ -133,15 +155,6 @@ struct filed {
 	struct	o_module *f_omod;			/* module details */
 };
 
-extern char	LocalHostName[SIZEOF_MAXHOSTNAMELEN];  /* our hostname */
-extern int	finet;			/* Internet datagram socket */
-extern int	Debug;			/* debug flag */
-extern int	DaemonFlags;		/* running daemon flags */
-#define SYSLOGD_LOCKED_PIDFILE  0x01    /* pidfile is locked */
-#define SYSLOGD_INET_IN_USE	0x02    /* INET sockets are open */
-#define SYSLOGD_INET_READ	0x04    /* we read */
-#define SYSLOGD_MARK		0x08    /* call domark() */
-#define SYSLOGD_DIE		0x10    /* call die() */
 
 void logerror(char *);
 void logmsg(int, char *, char *, int);

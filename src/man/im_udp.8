@@ -1,4 +1,4 @@
-.\"	$CoreSDI: im_udp.8,v 1.3 2001/10/18 20:32:35 alejo Exp $
+.\"	$CoreSDI: im_udp.8,v 1.6 2001/11/06 23:08:53 alejo Exp $
 .\"
 .\" Copyright (c) 2000, 2001
 .\"	Core-SDI SA. All rights reserved.
@@ -38,6 +38,7 @@ input module for UDP network logging
 .Sh SYNOPSIS
 .Nm udp
 .Op Fl a
+.Op Fl q
 .Op Fl h Ar host
 .Op Fl p Ar port
 .Sh DESCRIPTION
@@ -57,25 +58,30 @@ daemon and logs UDP logging information coming in on the default port only:
 This does the same as above, but listens on address local.example.com
 port 1777 instead:
 .Pp
-.Dl syslogd -h local.example.com -i udp:1777
+.Dl syslogd -i udp '-h local.example.com -p 1777'
 .El
 .Pp
 .Bl -bullet
 .It
 This does the same as above, but gets host name from message:
 .Pp
-.Dl syslogd -i udp:1777
+.Dl syslogd -i udp '-a -h local.example.com -p 1777'
 .El
+.Bl -bullet
+.It
+The following is the same, but avoids adding full fomain (FQDN):
+.Pp
+.Dl syslogd -i 'udp -q -a -h local.example.com -p 1777'
 .Pp
 .Sh SEE ALSO
 .Xr syslog 3 ,
-.Xr im_bsd.8 ,
-.Xr im_doors.8 ,
-.Xr im_linux.8 ,
-.Xr im_streams.8 ,
-.Xr im_tcp.8 ,
-.Xr im_unix.8 ,
-.Xr syslogd.8
+.Xr im_bsd 8 ,
+.Xr im_doors 8 ,
+.Xr im_linux 8 ,
+.Xr im_streams 8 ,
+.Xr im_tcp 8 ,
+.Xr im_unix 8 ,
+.Xr syslogd 8
 .Sh BUGS
 .Bl -bullet
 .It

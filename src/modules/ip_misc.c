@@ -1,4 +1,4 @@
-/*	$CoreSDI: ip_misc.c,v 1.21 2001/09/21 11:25:07 alejo Exp $	*/
+/*	$CoreSDI: ip_misc.c,v 1.26 2001/12/05 20:47:56 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -148,7 +148,7 @@ resolv_addr(struct sockaddr *addr, socklen_t addrlen, char *host, int hlen,
 	}
 #endif /* HAVE_INET_NTOP */
 
-	m_dprintf(MSYSLOG_SERIOUS, "resolv_addr: error resolving "
+	dprintf(MSYSLOG_SERIOUS, "resolv_addr: error resolving "
 	     "remote host name!\n");
 	if (host)
 		host[0] = '\0';
@@ -172,6 +172,9 @@ resolv_name(char *host, char *port, char *proto, socklen_t *salen)
 #ifdef HAVE_GETADDRINFO
 	struct addrinfo hints, *res;
 	int i;
+#if defined(HAVE_INET_ADDR) && !defined(HAVE_INET_ATON)
+	in_addr_t	addr;
+#endif
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_flags = AI_PASSIVE;
@@ -184,7 +187,7 @@ resolv_name(char *host, char *port, char *proto, socklen_t *salen)
 
 	if ( (i = getaddrinfo(host, port, &hints, &res)) != 0) {
 
-		m_dprintf(MSYSLOG_SERIOUS, "resolv_name: error on address "
+		dprintf(MSYSLOG_SERIOUS, "resolv_name: error on address "
 		    "to listen %s, %s: %s\n", host, port, gai_strerror(i));
 
 		return (NULL);
@@ -225,13 +228,26 @@ resolv_name(char *host, char *port, char *proto, socklen_t *salen)
 	sin->sin_port = portnum;
 	memset(&sin->sin_addr, 0, sizeof(sin->sin_addr));
 
-	if (host == NULL || inet_aton(host, &sin->sin_addr) == 1) {
+	if (host == NULL ||
+#ifdef HAVE_INET_ATON
+
+inet_aton(host, &sin->sin_addr) == 1
+
+#elif defined(HAVE_INET_ADDR)
+
+        (addr = inet_addr(host)) > 0 && 
+                memcpy(&sin->sin_addr, &addr, sizeof(sin->sin_addr)) != NULL
+
+#else
+# error NEED RESOLVING FUNCTION, PLEASE REPORT
+#endif
+	    ) {
 
 		return ((struct sockaddr *) sin);
 
 	} else if ((hp = gethostbyname(host)) == NULL) {
 
-		m_dprintf(MSYSLOG_SERIOUS, "resolv_name: error "
+		dprintf(MSYSLOG_SERIOUS, "resolv_name: error "
 		    "resolving host address %s, %s\n", host, port);
 		return (NULL);
 	}
@@ -405,4 +421,24 @@ int
 udp_send(int fd, char *msg, int mlen, void *addr, int addrlen)
 {
 	return (sendto(fd, msg, mlen, 0, (struct sockaddr *) addr, addrlen));
+}
+
+/*
+ * resolv_domain: get a domain for a name, used to get local domain
+ *
+ */
+
+int
+resolv_domain(char *buf, int buflen, char *host)
+{
+	struct	sockaddr	*sa;
+	socklen_t		salen;
+
+	if ((sa = resolv_name(host, NULL, NULL, &salen)) == NULL ||
+	    resolv_addr(sa, salen, buf, buflen, NULL, 0) == -1) {
+
+		*buf = '\0';
+	}
+
+	return (1);
 }

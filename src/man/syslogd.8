@@ -1,4 +1,4 @@
-.\"	$CoreSDI: syslogd.8,v 1.19 2001/10/24 02:52:39 alejo Exp $
+.\"	$CoreSDI: syslogd.8,v 1.25 2002/01/21 19:26:21 alejo Exp $
 .\"
 .\" Copyright (c) 1983, 1986, 1991, 1993
 .\"	The Regents of the University of California.  All rights reserved.
@@ -39,14 +39,17 @@ modular
 .Nd log systems messages
 .Sh SYNOPSIS
 .Nm syslogd
+.Op Fl c
 .Op Fl u
 .Op Fl n
+.Op Fl A
 .Op Fl d Ar level
 .Op Fl f Ar config_file
 .Op Fl m Ar mark_interval
 .Op Fl a Ar path
 .Op Fl p Ar log_socket
 .Op Fl i Ar input
+.Op Fl P Ar pidfile
 .Sh DESCRIPTION
 Modular
 .Nm syslog
@@ -63,8 +66,8 @@ and do not disassociate from the controlling terminal. The
 is a number used to differentiate error reports. Up to 10 reports all
 critical errors that stop the daemon from working; up to 20 are the
 serious errors that stop some input or output; up to 30 are noncritical
-errors; up to 100 are warnings and potential errors; up to 100 are informative
-messages; and finally up to 200 are all possible reporting on what is going
+errors; up to 100 are warnings and potential errors; up to 200 are informative
+messages; and finally up to 250 are all possible reporting on what is going
 on.
 .It Fl f Ar config_file
 Specify the pathname of an alternate configuration file;
@@ -102,6 +105,10 @@ Enables the specified input modules, see
 .Xr im_* 8 .
 .It Fl n
 Disables opening default inputs when there aren't given on command line.
+.It Fl c
+Disables opening console device, useful for non root testing.
+.It Fl A
+Use local host name with it's domain.
 .El
 .Pp
 .Nm Syslogd
@@ -175,23 +182,23 @@ The kernel log device.
 .El
 .Sh SEE ALSO
 .Xr syslog 3 ,
-.Xr syslog.conf.5 ,
-.Xr im_bsd.8 ,
-.Xr im_doors.8 ,
-.Xr im_linux.8 ,
-.Xr im_streams.8 ,
-.Xr im_tcp.8 ,
-.Xr im_unix.8 ,
-.Xr im_udp.8 ,
-.Xr om_classic.8 ,
-.Xr om_mysql.8 ,
-.Xr om_peo.8 ,
-.Xr om_pgsql.8 ,
-.Xr om_regex.8 ,
-.Xr om_tcp.8 ,
-.Xr om_udp.8 ,
-.Xr peochk.8 ,
-.Xr syslogd.8
+.Xr syslog.conf 5 ,
+.Xr im_bsd 8 ,
+.Xr im_doors 8 ,
+.Xr im_linux 8 ,
+.Xr im_streams 8 ,
+.Xr im_tcp 8 ,
+.Xr im_unix 8 ,
+.Xr im_udp 8 ,
+.Xr om_classic 8 ,
+.Xr om_mysql 8 ,
+.Xr om_peo 8 ,
+.Xr om_pgsql 8 ,
+.Xr om_regex 8 ,
+.Xr om_tcp 8 ,
+.Xr om_udp 8 ,
+.Xr peochk 8 ,
+.Xr syslogd 8
 .Sh HISTORY
 Modular
 .Nm

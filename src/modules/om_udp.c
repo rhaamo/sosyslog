@@ -1,4 +1,4 @@
-/*	$CoreSDI$	*/
+/*	$CoreSDI: om_udp.c,v 1.5 2002/03/01 07:31:03 alejo Exp $	*/
 /*
      Copyright (c) 2001, Core SDI S.A., Argentina
      All rights reserved
@@ -96,55 +96,60 @@ om_udp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 {
 	struct	om_udp_ctx	*c;
 	int			ch;
+	int			argcnt;
 
-	m_dprintf(MSYSLOG_INFORMATIVE, "om_udp init: Entering\n");
+	dprintf(MSYSLOG_INFORMATIVE, "om_udp init: Entering\n");
 
 	if ((*ctx = (void *) calloc(1, sizeof(struct om_udp_ctx))) == NULL) {
-		m_dprintf(MSYSLOG_INFORMATIVE, "om_udp_init: couldn't allocate"
+		dprintf(MSYSLOG_INFORMATIVE, "om_udp_init: couldn't allocate"
 		    " context\n");
 		return (-1);
 	}
 	c = (struct om_udp_ctx *) *ctx;
 
-	/* parse line */
-	optind = 1;
-#ifdef HAVE_OPTRESET
-	optreset = 1;
-#endif
-	while ((ch = getopt(argc, argv, "h:p:m:s:a")) != -1) {
+	argcnt = 1;	/* skip module name */
+
+	while ((ch = getxopt(argc, argv, "h!host: p!port: a!addhost", &argcnt))
+	    != -1) {
+
 		switch (ch) {
 		case 'h':
 			/* get remote host name/addr */
-			c->host = strdup(optarg);
+			c->host = strdup(argv[argcnt]);
 			break;
+
 		case 'p':
 			/* get remote host port */
-			c->port = strdup(optarg);
+			c->port = strdup(argv[argcnt]);
 			break;
+
 		case 'a':
 			c->flags |= M_ADDHOST;
 			break;
+
 		default:
-			m_dprintf(MSYSLOG_SERIOUS, "om_udp_init: parsing error"
+			dprintf(MSYSLOG_SERIOUS, "om_udp_init: parsing error"
 			    " [%c]\n", ch);
 			if (c->host)
 				free(c->host);
 			if (c->port)
 				free(c->port);
 			free(*ctx);
+
 			return (-1);
 		}
+		argcnt++;
 	}
 
 	if ( c->host == NULL) {
-		m_dprintf(MSYSLOG_SERIOUS, "om_udp_init: host unspecified\n");
+		dprintf(MSYSLOG_SERIOUS, "om_udp_init: host unspecified\n");
 		return (-1);
 	}
 
 	errno = 0;
 	if ((c->fd = sock_udp(c->host, c->port == NULL? "syslog" : c->port,
 	    &c->addr, &c->addrlen)) == -1) {
-		m_dprintf(MSYSLOG_SERIOUS, "om_udp_init: error creating generic"
+		dprintf(MSYSLOG_SERIOUS, "om_udp_init: error creating generic"
 		    " outgoing UDP socket [%s]", strerror(errno));
 		return (-1);
 	}
@@ -159,14 +164,14 @@ om_udp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
  */
 
 int
-om_udp_write(struct filed *f, int flags, char *msg, void *ctx)
+om_udp_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 {
 	struct om_udp_ctx *c;
 	char time_buf[16];
 	char line[MAXLINE + 1];
 	int l;
 
-	if (msg == NULL || !strcmp(msg, "")) {
+	if (m == NULL || m->msg == NULL || !strcmp(m->msg, "")) {
 		logerror("om_udp_write: no message!");
 		return (-1);
 	}
@@ -178,18 +183,18 @@ om_udp_write(struct filed *f, int flags, char *msg, void *ctx)
 	/* we give a newline termination to difference lines, unlike UDP */
 	if (c->flags & M_ADDHOST) {
 		l = snprintf(line, sizeof(line), "<%d>%.15s %s %s\n",
-		    f->f_prevpri, time_buf, f->f_prevhost, msg);
+		    f->f_prevpri, time_buf, f->f_prevhost, m->msg);
 	} else {
 		l = snprintf(line, sizeof(line), "<%d>%.15s %s\n",
-		    f->f_prevpri, time_buf, msg);
+		    f->f_prevpri, time_buf, m->msg);
 	}
 
-	m_dprintf(MSYSLOG_INFORMATIVE, "om_udp_write: sending to %s:%s, %s",
+	dprintf(MSYSLOG_INFORMATIVE, "om_udp_write: sending to %s:%s, %s",
 	    c->host, c->port, line);
 
 	if (udp_send(c->fd, line, l, c->addr, c->addrlen) == -1) {
 
-		m_dprintf(MSYSLOG_SERIOUS, "om_udp_write: error sending "
+		dprintf(MSYSLOG_SERIOUS, "om_udp_write: error sending "
 		    "to remote host [%s]", strerror(errno));
 	}
 			

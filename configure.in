@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.143 2001/09/19 15:58:44 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.158 2002/03/04 22:17:57 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)
 AC_CONFIG_HEADER(src/config.h)
@@ -23,7 +23,7 @@ AC_HEADER_SYS_WAIT
 
 AC_CHECK_HEADERS(fcntl.h limits.h paths.h strings.h inttypes.h sys/ioctl.h \
     sys/types.h sys/time.h machine/endian.h syslog.h unistd.h sysctl.h \
-    err.h sys/context.h )
+    err.h sys/context.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -46,7 +46,7 @@ AC_FUNC_VPRINTF
 LIBS_SAVE="$LIBS"
 LIBS="$LIBS $SYSLOGD_LIBS"
 AC_CHECK_FUNCS(gethostname inet_ntop getaddrinfo regcomp poll select\
- socket strdup strerror strstr strtoul )
+ socket strdup strerror strstr strtoul inet_aton inet_addr )
 LIBS="$LIBS_SAVE"
 
 dnl Check endianness
@@ -61,7 +61,8 @@ then
 	CFLAGS="$CFLAGS -Wall"
 fi
 
-MSYSLOG_VERSION="1.08"
+MSYSLOG_VERSION="1.08e"
+
 AC_DEFINE_UNQUOTED(MSYSLOG_VERSION_STR, "$MSYSLOG_VERSION")
 echo msyslog version... $MSYSLOG_VERSION
 
@@ -97,13 +98,10 @@ dnl search mandir for non bsd systems
 for MANDIR in "/usr/share/man" "/usr/man"
 do
 	if test -d $MANDIR ; then
+		mandir=$MANDIR;
 		break;
 	fi
 done
-
-dnl AC_MSG_CHECKING(for MAXHOSTNAMELEN)
-
-AC_CHECK_SIZEOF_DEFINE(MAXHOSTNAMELEN, 254)
 
 dnl Check underscore requirement for dlsym()
 
@@ -189,12 +187,9 @@ elif test "$UNAME" = "AIX" ; then
 	SHARED_PARAMS="-lc -bI:libmsyslog.imp -bexpall -bnoentry -brtl"
 	cat > src/modules/libmsyslog.imp <<-EOF
 		#! .
-		m_dprintf
-		finet
+		dprintf
 		logerror
-		DaemonFlags
 		add_fd_input
-		LocalHostName
 		place_signal
 		remove_fd_input
 		printline
@@ -215,9 +210,9 @@ else
 	AC_DEFINE(PID_FILE, "syslog.pid")
 fi
 
-
+dnl
 dnl Here we check module support
-
+dnl
 
 temp_res="no";
 AC_ARG_WITH(bsd,
@@ -280,6 +275,17 @@ if test "X$temp_res" = "Xyes" ; then
 		MSRCS="$MSRCS im_unix.c"
 		AC_DEFINE(HAVE_UNIX_IMODULE)
 		MANPAGES="$MANPAGES im_unix.8"
+fi
+temp_res="yes";
+
+AC_ARG_WITH(file,
+[  --without-file
+	Use file/pip input module. Activated by default.
+],[ temp_res="$with_file"; ])
+if test "X$temp_res" = "Xyes" ; then
+		MSRCS="$MSRCS im_file.c"
+		AC_DEFINE(HAVE_FILE_IMODULE)
+		MANPAGES="$MANPAGES im_file.8"
 fi
 
 dnl Doors should only be used with streams
@@ -418,38 +424,27 @@ if test $PEO = "yes" ; then
 	fi
 fi
 
-AC_ARG_WITH(queue,
-[  --without-queue
-	Use directory output module. Activated by default.
-],[
-	if test $with_queue = "yes" ; then
-		MSRCS="$MSRCS om_directory.c om_queue.c"
-		MANPAGES="$MANPAGES om_directory.8"
-	fi
-]
-dnl ,[
-dnl 	MSRCS="$MSRCS om_directory.c om_queue.c"
-dnl 	MANPAGES="$MANPAGES om_directory.8"
-)
-
 AC_ARG_WITH(regex,
 [  --without-regex
 	Use regex pattern matching output module. Activated by default.
 ],[
 	if test $with_regex = "yes" ; then
-		MSRCS="$MSRCS om_regex.c om_refract.c"
-		MANPAGES="$MANPAGES om_regex.8 om_refract.8"
+		MSRCS="$MSRCS om_regex.c"
+		MANPAGES="$MANPAGES om_regex.8"
 	fi
 ],[
 	AC_CHECK_HEADER(regex.h, [
-		MSRCS="$MSRCS om_regex.c om_refract.c"
-		MANPAGES="$MANPAGES om_regex.8 om_refract.8"
+		MSRCS="$MSRCS om_regex.c"
+		MANPAGES="$MANPAGES om_regex.8"
 	])
 ])
 
 AC_CACHE_SAVE
 
-AC_CHECK_TYPES(socklen_t)
+AC_CHECK_TYPES(socklen_t,,,[#include <stdio.h>
+#include <sys/socket.h>
+#include <sys/types.h>])
+
 AC_CHECK_TYPES(uint32_t)
 AC_CHECK_TYPES(uint64_t)
 AC_CHECK_TYPES(u_int32_t)
@@ -461,8 +456,6 @@ AC_CHECK_TYPES(CODE,,,[#include <stdio.h>
 #define SYSLOG_NAMES
 #include <syslog.h>])
 
-dnl check CODE structure typedef
-dnl AC_CHECK_CODE_TYPE()
 
 AC_SUBST(SYSLOGD_LIBS)
 AC_SUBST(SHARED_PARAMS)
@@ -477,6 +470,7 @@ AC_SUBST(HASH_OBJS_MODULES)
 AC_SUBST(HAVE_SOCKLEN_T)
 AC_SUBST(MAIN_CPPFLAGS)
 AC_SUBST(MSYSLOG_DAEMON_NAME)
+AC_SUBST(MSYSLOG_VERSION)
 
 dnl AC_SUBST(SYMBOL_PREFIX)
 
@@ -486,4 +480,8 @@ AC_OUTPUT([Makefile
 	    src/peo/Makefile
 	    src/man/Makefile
 	    src/man/BSDmakefile
-	    src/man/GNUmakefile])
+	    src/man/GNUmakefile
+	    packaging/Makefile
+	    packaging/OpenBSD/Makefile
+	    packaging/OpenBSD/pkg/PLIST
+	    packaging/OpenBSD-devel/Makefile])

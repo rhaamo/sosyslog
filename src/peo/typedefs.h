@@ -1,4 +1,4 @@
-/* $CoreSDI: typedefs.h,v 1.4 2001/03/27 22:50:26 alejo Exp $
+/* $CoreSDI: typedefs.h,v 1.5 2001/03/27 22:53:53 alejo Exp $
  */
 
 #ifndef PEO_TYPEEFS_H

@@ -1,4 +1,19 @@
-/*	$CoreSDI: README,v 1.15 2001/10/18 20:32:35 alejo Exp $	*/
+/*	$CoreSDI: README,v 1.20 2002/03/04 21:47:14 claudio Exp $	*/
+
+
+  
+  
+SPECIAL NOTE
+------------
+  
+Most of the documentation and examples are on the manual pages provided.
+They are meant to be the ultimate reference. See im_bsd.8, im_linux.8
+im_udp.8, om_mysql.8, om_regex.8, peochk.8 im_doors.8, im_streams.8
+im_unix.8, om_peo.8, om_tcp.8, syslog.conf.5, im_file.8, im_tcp.8
+om_classic.8, om_pgsql.8, om_udp.8, and syslogd.8.
+
+
+
 
 Installation
 ------------
@@ -83,7 +98,7 @@ Performs loggin in a MySQL server, either local or remote. The table format
 must be specified as om_mysql(8) manpage.
 
 PostgreSQL Output Module
--------------------
+------------------------
 
 Performs loggin in a PostgreSQL server, either local or remote. The table
 format must be specified as om_pgsql(8) manpage.
@@ -152,4 +167,31 @@ Doors Input Module
 
 May be needed on for other input modules. Invoke it like this on command
 line -i doors or -i doors:/etc/.syslog_door (or equivalent).
+
+
+
+
+OpenBSD binary packages
+-----------------------
+
+It is possible to generate two OpenBSD packages: msyslog and msyslog-devel
+the first contains the msyslog binaries and the other some files for
+external module makers (external module means: a module not included
+into the "libmsyslog.so.X.X" library, this module should be named
+"libmsyslog_<modulenaem>.so" and located into the msyslog library directory).
+To generate the packages some steps should be done:
+	$ ./configure
+	$ make ports
+This generates three tar balls: msyslog-vX.XX-src.tar.gz, msyslog_port-X.XX.tgz,
+and msyslog_port-devel-X.XX.tgz.
+A common way to generate the packages is:
+	$ sudo cp msyslog-vX.XX-src.tar.gz /usr/ports/distfiles/
+	$ tar zxf msyslog_port-X.XX.tgz
+	$ tar zxf msyslog_port-devel-X.XX.tgz
+	$ cd msyslog_port-X.XX && make && sudo make package
+	$ cd ../msyslog_port-devel-X.XX && make && sudo make package
+Both packages will be created at /usr/ports/packages/<plat>/All.
+You can avoid the sudo command by using DISTDIR and PACKAGES variables
+(see bsd.port.mk(5)).
+
 

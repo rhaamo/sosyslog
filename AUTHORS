@@ -1,4 +1,4 @@
-$Id: AUTHORS,v 1.3 2002/08/13 20:15:05 phreed Exp $
+$Id: AUTHORS,v 1.3.2.1 2003/04/11 16:36:19 alejo Exp $
 
 We are probably omiting some authors. If you know about them, please notify
 developers by mail at core.devel.alat@corest.com
@@ -9,12 +9,11 @@ Eric Allman then did more extensive changes
 The NetBSD project (www.netbsd.org) adapted it
 The OpenBSD project(www.openbsd.org) project did a security audit and adapted it
 Alejo Sanchez (alejo@corest.com) developed Modular Syslog for Core-SDI
-coding specially autoconf sql support, and dynamic library use.
+general coding specially autoconf, sql support, dynamic library use.
 Federico Schwindt (fgsch@corest.com) did configure
-Claudio Castiglia (claudio@corest.com) did makefile work
+Claudio Castiglia (claudio@corest.com) did makefile work, peo and linux module.
 The Core-SDI consulting project did security audit for msyslog 1.0
 
-Current ALAT project (msyslog, auditd, etc.) coordinator is Federico Schwindt,
-msyslog maintainer is Alejo Sanchez, and audit maintainer/developer is Claudio Castiglia.
-Fredrick Paul Eisele (phreed@netarx.com) added modules refract, directory, and maintenance.
-
+Current Wisdom project (msyslog, auditd, etc.) coordinator is Ariel Aizenberg,
+Msyslog mantainer/developer is Alejo Sanchez, and Audit[d] mantainer/developer is
+Claudio Castiglia.

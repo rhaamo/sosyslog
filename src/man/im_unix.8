@@ -1,4 +1,4 @@
-.\"	$CoreSDI: im_unix.8,v 1.2 2001/10/18 20:32:35 alejo Exp $
+.\"	$CoreSDI: im_unix.8,v 1.5 2001/12/07 21:12:29 alejo Exp $
 .\"
 .\" Copyright (c) 2000, 2001
 .\"	Core-SDI SA. All rights reserved.
@@ -57,18 +57,18 @@ Starts
 .Dl syslogd -i unix
 .It
 or reading from /some/log_device:
-.Dl syslogd -i unix:/some/log_device
+.Dl syslogd -i 'unix /some/log_device'
 .El
 .Pp
 .Sh SEE ALSO
 .Xr syslog 3 ,
-.Xr im_bsd.8 ,
-.Xr im_doors.8 ,
-.Xr im_linux.8 ,
-.Xr im_streams.8 ,
-.Xr im_tcp.8 ,
-.Xr im_udp.8 ,
-.Xr syslogd.8
+.Xr im_bsd 8 ,
+.Xr im_doors 8 ,
+.Xr im_linux 8 ,
+.Xr im_streams 8 ,
+.Xr im_tcp 8 ,
+.Xr im_udp 8 ,
+.Xr syslogd 8
 .Sh BUGS
 .Bl -bullet
 .It

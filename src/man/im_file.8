@@ -1,4 +1,4 @@
-.\"	$Id: im_file.8,v 1.5 2002/09/17 05:20:27 alejo Exp $
+.\"	$CoreSDI: im_file.8,v 1.1 2001/11/06 22:59:18 alejo Exp $
 .\"
 .\" Copyright (c) 2000, 2001
 .\"	Core-SDI SA. All rights reserved.
@@ -34,34 +34,17 @@
 .Nm FILE input module
 .Nd
 .Xr syslogd 8
-input module for reading block special file and regular files.
+input module for reading files and pipes
 .Sh SYNOPSIS
 .Nm file
-.Op Fl f Ar file path
-.Op Fl n Ar program or alias, hostname
-.Op Fl s Ar start position for the timestamp
-.Op Fl t Ar time format (see strftime)
+.Op Fl f Ar path
+.Op Fl p Ar path
+.Op Fl n Ar program
 .Sh DESCRIPTION
-Reads the log messages from a regular file or other block device.
-It is presumed that the file will typically have have additional data appended to it.
-The file is reprocessed from the beginning if any of the following conditions are met:
-(1) The file size decreases
-(2) The creation time changes
-(3) The file name changes
-(4) The file becomes unlinked (in which case the file is first reopened).
-This module is intended primarily to read logs in formats other than typical syslog format.
-It should be possible to use this module for any block special file.
-If a character special file is providing the input the im_pipe module should be used.
-When the
+Reads the log messages from a file/pipe writen by another program
+for processing by the
 .Xr syslogd 8
-daemon is restarted this module will process all the records in the source file unless
-a start record identifier is provided.
-In the case where a start record is provided the module will search for that record before
-beginning processing.
-If the start record specifier is negative it is interpreted as that many records back from the end.
-.SH OPTIONS
-.LP
- It's options are:
+daemon. It's options are:
 .Bl -tag -width Ds
 .It Ar log_socket
 Socket to use, default is /dev/log.
@@ -100,5 +83,10 @@ Same as above, but on /some/named/pipe pipe instead of the file:
 .It
 Submit bugs at this project's Sourceforge Bug reporting system at:
 http://sourceforge.net/tracker/?func=add&group_id=25741&atid=385117
+You may also report them directly to the authors; send an email to
+core.devel.alat@corest.com, describing the problem the most you can,
+containing also machine description, hardware description, the
+configuration file (/etc/syslog.conf), the OS description, and the
+invoking command line.
 The more you describe the bug, the faster we can fix it.
 .El
