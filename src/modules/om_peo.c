@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.49 2000/09/09 00:42:13 alejo Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.50 2000/09/14 21:39:14 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -58,7 +58,6 @@
 #include "../peo/hash.h"
 extern char *default_keyfile;
 #define	SHA1	0
-#endif
 
 
 #define MAXBUF	MAXSVLINE+MAXHOSTNAMELEN+20
