@@ -1,4 +1,8 @@
 /*
+ * peochk - syslog -- Initial key generator and integrity log file checker
+ *
+ *
+ * peochk [-f logfile] [-g] [-i key0file] [-k keyfile] [-m hash_method] [logfile]
  *
  * supported hash_method values:
  *			md5
@@ -13,7 +17,9 @@
  * NOTE:
  *	1) When logfile is specified without the -f switch, the data is
  *	   readed from the standard input 
- *	2) If logfile is specified but not the keyfile, this will be
+ *	2) If logfile is specified using both -f switch and without it,
+ *	   the -f argument is used and data is not read from the standard input
+ *	3) If logfile is specified but not the keyfile, this will be
  *	   /var/ssyslog/xxx where xxx is the logfile with all '/'
  *	   replaced by '.'
  *
@@ -24,9 +30,6 @@
 
 #include <err.h>
 #include <errno.h>
-#include <md5.h>
-#include <rmd160.h>
-#include <sha1.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -53,9 +56,10 @@ release()
 {
 if (keyfile != default_keyfile)
 	free(keyfile);
+if (key0file)
+	free(key0file);
 if (logfile != default_logfile)
 	free(logfile);
-free(key0file);
 }
 
 
@@ -67,14 +71,19 @@ usage()
 {
 	fprintf (stderr,
 		"Usage:\n"
-		"Audit mode:\n"
-		"\tpeochk [-f logfile] [-i key0file] [-k keyfile] [-m hash_method]\n"
-		"\tpeochk [-i key0file] [-k keyfile] [-m hash_method] [logfile]\n\n"
+		"Check mode:\n"
+		"\tpeochk [-f logfile] [-i key0file] [-k keyfile] "
+		"[-m hash_method]\n"
+		"\tpeochk [-i key0file] [-k keyfile] [-m hash_method] "
+		"[logfile]\n\n"
 		"Initial key generator mode:\n"
 		"peochk -g [-k keyfile] [-m hash_method] logfile\n\n"
 		"hash_method options:\tmd5, sha1, rmd160\n\n"
 		"When no logfile is specified or it is without the -f switch\n"
 		"the data is readed from the standard input.\n"
+ 		"If logfile is specified using both -f switch and without\n"
+		"it, the -f argument is used and data is not read from the\n"
+		"standard input.\n"
 		"If the logfile is specified but not the keyfile, this will\n"
 		"be /var/ssyslog/xxx where xxx is the logfile whit all '.'\n"
 		"replaced by ','\n\n"
@@ -88,19 +97,19 @@ usage()
 
 
 /*
- * Audit: reads logfile 
+ * check: reads logfile and check it
  */
 void
-Audit()
+check()
 {
 }
 
 
 /*
- * Generate: generate initial key and write it on keyfile and key0file
+ * generate: generate initial key and write it on keyfile and key0file
  */
 void
-Generate()
+generate()
 {
 	char	*ct;
 	char	*newkey[41];
@@ -121,13 +130,17 @@ Generate()
 			unlink(key0file);
 			close(fkey0);
 		}
-		
-		
-	
+		release();
+		err(1, "");
+	}
 
-	
+	/* write key 0 */
+	write (fkey, newkey, len);
+	write (fkey0, newkey, len);
+	close(fkey);
+	close(fkey0);
 }
-
+	
 
 /*
  * main
@@ -140,16 +153,15 @@ main (argc, argv)
 	int	 action;
 	int	 ch;
 
-	/* intrusion detection */
+	/* integrity check mode */
 	action = 0;
 
 	/* default values */
 	use_stdin = 1;
 	logfile = default_logfile;
 	keyfile = default_keyfile;
+	key0file = NULL;
 	method = SHA1;
-	if ( (key0file = strkey(keyfile)) == NULL)
-		err(1, NULL);
 
 	/* parse command line */
 	while ( (ch = getopt(argc, argv, "f:gk:m:")) != -1) {
@@ -170,7 +182,8 @@ main (argc, argv)
 				break;
 			case 'i':
 				/* key 0 file */
-				free(key0file);
+				if (key0file)
+					free(key0file);
 				if ( (key0file = strdup(optarg)) == NULL) {
 					release();
 					err(1, NULL);
@@ -187,12 +200,14 @@ main (argc, argv)
 				break;
 			case 'm':
 				/* hash method */
-				if (strcasecmp("md5", optarg) == NULL)
+				if (strcasecmp("md5", optarg) == 0)
 					method = MD5;
-				else if (strcasecmp("rmd160", optarg) == NULL)
-					method = RMD160;
-				else if (strcasecmp("sha1", optarg) == NULL)
-					method = SHA1;
+				else
+					if (strcasecmp("rmd160", optarg) == 0)
+						method = RMD160;
+				else
+					if (strcasecmp("sha1", optarg) == 0)
+						method = SHA1;
 				else {
 					release();
 					usage();
@@ -201,16 +216,49 @@ main (argc, argv)
 			default:
 				release();
 				usage();
-			}
+		}
 
 	}
 
-	/* audit logfile */
+	/* check logfile specified without -f switch */
+	argc -= optind;
+	argv += optind;
+	if (argc && use_stdin)
+		if ( (logfile = strdup(argv[argc-1])) == NULL) {
+			release();
+			err(1, NULL);
+		}
+
+	/* if keyfile was not specified converted logfile is used instead */
+	if (keyfile == default_keyfile && logfile != default_logfile) {
+		char *tmp;
+		if ( (tmp = strkey(logfile)) == NULL) {
+			release();
+			err(1, NULL);
+		}
+		keyfile = (char*) calloc(1, 14+strlen(tmp));
+		strcpy(keyfile, "/var/ssyslog/");
+		strcat(keyfile, tmp);
+		free(tmp);
+	}
+
+	/* if key0file was not specified create one */
+	if (key0file == NULL) {
+		if ( (key0file = calloc(1, strlen(keyfile)+1)) == NULL) {
+			release();
+			err(1, NULL);
+		}
+		strcpy(key0file, keyfile);
+		strcat(key0file, "0");
+	}
+
+
+	/* check logfile */
 	if (action == 0)
-		Audit();
-	/* generate new key and save it */
+		check();
+	/* generate new key */
 	else 
-		Generate();
+		generate();
 
 	release();
 	return (0);
