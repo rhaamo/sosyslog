@@ -1,0 +1,64 @@
+.\"	$Netarx: om_directory.8,v 1.4 2002/11/06 23:08:53 phreed Exp $
+.\"
+.\" Copyright (c) 2002
+.\"	Netarx, Inc.. All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. Neither the name of Netarx, Inc. nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.Dd Aug 06, 2002
+.Dt IM_DIRECTORY 8
+.Os Netarx
+.Sh NAME
+.Nm directory output module
+.Nd
+.Xr syslogd 8
+output module for output to separate files in a directory, 
+.Sh SYNOPSIS
+.Nm directory
+.Ar filename | user{,user} | * | @hostname
+.Sh DESCRIPTION
+It is intended to be used as a queue.
+It sets a semaphone corresponding to the directory.
+.Pp
+.Sh EXAMPLES
+.Pp
+.Sh SEE ALSO
+.Xr syslog 3 ,
+.Xr syslog.conf 5 ,
+.Xr om_mysql 8 ,
+.Xr om_peo 8 ,
+.Xr om_pgsql 8 ,
+.Xr om_regex 8 ,
+.Xr om_tcp 8 ,
+.Xr om_udp 8 ,
+.Xr peochk 8 ,
+.Xr syslogd 8
+.Sh BUGS
+.Bl -bullet
+.It
+Submit bugs at this project's Sourceforge Bug reporting system at:
+http://sourceforge.net/tracker/?func=add&group_id=25741&atid=385117
+The more you describe the bug, the faster we can fix it.
+.El
