@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.51 2001/04/23 23:13:28 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.52 2001/04/26 19:00:47 alejo Exp $
 #
 # Copyright (c) 2001, Core SDI S.A., Argentina
 # All rights reserved
@@ -39,6 +39,7 @@ INSTALL=	@INSTALL@
 INSTALL_DIR=    @prefix@/sbin
 
 PROG=		@MSYSLOG_DAEMON_NAME@
+PROG_FLAGS=	$(CFLAGS) $(CPPFLAGS) $(LIBS) $(SYSLOGD_LIBS) $(MAIN_CPPFLAGS)
 SRCS=		modules.c syslogd.c
 OBJS=		$(SRCS:.c=.o)
 
@@ -53,8 +54,7 @@ $(OBJS): $(SRCS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $(@:.o=.c) -o $@
 
 $(PROG): $(OBJS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(LIBS) \
-            $(SYSLOGD_LIBS) $(MAIN_CPPFLAGS) $(OBJS) -o $@
+	$(CC) $(PROG_FLAGS) $(OBJS) -o $@
 
 .PHONY:	clean distclean
 
