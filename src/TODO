@@ -1,11 +1,9 @@
-/*	$CoreSDI: TODO,v 1.67 2001/02/26 22:43:34 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.68 2001/03/01 00:01:22 alejo Exp $	*/
 
 Things to do:
 
 - AIX port
 - DB2 output module
-- let input modules return multiline in one read (maybe supply a function
-  for parsing incoming lines)
 - Check "" errors on solaris / support spaces intead the tabs on configfile
 - Change strcpy and strncpy to strlcpy (same w/ strlcat)
 - define STYLE for names (ie. underscore or caps, indentation)
