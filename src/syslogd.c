@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.116 2000/08/22 18:38:57 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.117 2000/08/23 00:52:52 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.116 2000/08/22 18:38:57 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.117 2000/08/23 00:52:52 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -168,7 +168,7 @@ int	MarkSeq = 0;		/* mark sequence number */
 char	*ConfFile = _PATH_LOGCONF;	/* configuration file */
 #define MAX_PIDFILE_LOCK_TRIES 5
 char pidfile[PATH_MAX];
-FILE *pidfd;
+FILE *pidf;
 
 void    cfline(char *, struct filed *, char *);
 int     decode(const char *, CODE *);
@@ -316,9 +316,9 @@ main(int argc, char **argv) {
 		fl.l_len    = 0L; /* lock to eof */
 
 		/* no truncating before lock checking */
-		pidfd = fopen(pidfile, "a+");
-		if (pidfd != NULL) {
-			lfd = fileno(pidfd);
+		pidf = fopen(pidfile, "a+");
+		if (pidf != NULL) {
+			lfd = fileno(pidf);
 			for (tries = 0; tries < MAX_PIDFILE_LOCK_TRIES; tries++) {
 				errno = 0;
 				status = fcntl(lfd, F_SETLK, &fl);
@@ -375,8 +375,15 @@ main(int argc, char **argv) {
 				die(0);
 			}
 
-			fprintf(pidfd, "%d\n", getpid());
-			(void) fflush(pidfd);
+			if (ftruncate(lfd,0) < 0) {
+				snprintf(buf, sizeof(buf), "Error truncating pidfile, %s",
+						strerror(errno));
+				logerror(buf);
+				die(0);
+			}
+
+			fprintf(pidf, "%d\n", getpid());
+			(void) fflush(pidf);
 		}
 	}
 
@@ -796,14 +803,14 @@ die(int signo) {
 		struct flock fl;
 		int lfd;
 
-		lfd = fileno(pidfd);
+		lfd = fileno(pidf);
 		fl.l_type   = F_UNLCK;
 		fl.l_whence = SEEK_SET; /* relative to bof */
 		fl.l_start  = 0L; /* from offset zero */
 		fl.l_len    = 0L; /* lock to eof */
 
 		fcntl(lfd, F_SETLK, &fl);
-		(void) fclose(pidfd);
+		(void) fclose(pidf);
 		if (unlink(pidfile) < 0)
 			logerror("error deleting pidfile");
 	}
