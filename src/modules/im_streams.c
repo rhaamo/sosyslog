@@ -1,4 +1,4 @@
-/*      $CoreSDI: im_streams.c,v 1.13 2001/03/07 21:35:14 alejo Exp $   */
+/*      $CoreSDI: im_streams.c,v 1.14 2001/03/23 00:12:29 alejo Exp $   */
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -140,7 +140,7 @@ im_streams_init (struct i_module *I, char **argv, int argc)
 	dprintf(MSYSLOG_INFORMATIVE, "im_streams_init: Entering\n");
 
 	if (I == NULL || argv == NULL || argc < 1 || argc > 2) {
-		dprintf(MSYSLOG_SERIOUS) ("usage: -i streams[:path]\n\n");
+		dprintf(MSYSLOG_SERIOUS, "usage: -i streams[:path]\n\n");
 		return(-1);
 	}
 
