@@ -1,4 +1,4 @@
-/*
+/*	$Id: im_udp.c,v 1.14 2000/05/17 22:52:52 claudio Exp $
  *  im_udp -- classic behaviour module for BDS like systems
  *      
  * Author: Alejo Sanchez for Core-SDI SA
