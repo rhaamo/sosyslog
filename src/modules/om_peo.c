@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.34 2000/06/05 22:37:58 fgsch Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.35 2000/06/06 00:07:01 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -77,7 +77,7 @@ om_peo_doLog(f, flags, msg, ctx)
 	struct filed *f;
 	int flags;
 	char *msg;
-	struct om_header_ctx *ctx;
+	struct om_hdr_ctx *ctx;
 {
 	struct om_peo_ctx *c;
 	int	 fd;
