@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.117 2001/04/06 18:00:30 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.118 2001/04/06 18:05:30 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -145,10 +145,10 @@ elif test "$UNAME" = "IRIX" -o "$UNAME" = "IRIX64" ; then
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
 	AC_DEFINE(INET6)dnl
 	SHARED_PARAMS="-G"
-	DCCFLAGS="-shared -IPA -fullwarn"
+	DCCFLAGS="-shared -Ofast -O2"
 	if test "x$GCC" != "xyes"
 	then
-	CFLAGS="-g3 -Ofast -fullwarn -IPA -OPT:Olimit=0 -D_BSD_SIGNALS"
+	CFLAGS="-g3 -Ofast -O2 -D_BSD_SIGNALS"
 	fi
 elif test "$UNAME" = "AIX" ; then
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY | RTLD_GLOBAL)dnl
