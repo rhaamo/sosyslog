@@ -213,7 +213,7 @@ m_classic_init(argc, argv, f, prog, context)
 
 	dprintf("m_classic init\n");
 
-	p = *argv;
+	p = argv[1];
 
 	switch (*p)
 	{
