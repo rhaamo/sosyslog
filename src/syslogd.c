@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.86 2000/06/06 17:06:27 fgsch Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.87 2000/06/06 17:12:49 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -115,6 +115,7 @@ int	LogPort;		/* port number for INET connections */
 int	Initialized = 0;	/* set when we have initialized ourselves */
 int	MarkInterval = 20 * 60;	/* interval between marks in seconds */
 int	MarkSeq = 0;		/* mark sequence number */
+char	*ConfFile = _PATH_LOGCONF;	/* configuration file */
 
 void    cfline __P((char *, struct filed *, char *));
 int     decode __P((const char *, CODE *));
@@ -135,7 +136,6 @@ main(argc, argv)
 	char *argv[];
 {
 	char pidfile[PATH_MAX];
-	char *ConfFile = _PATH_LOGCONF;
 	int ch;
 	FILE *fp;
 	char *p;

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.8 2000/06/05 23:21:46 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.9 2000/06/06 00:53:23 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -120,6 +120,7 @@ im_linux_init(I, argv, argc)
         I->im_flags |= IMODULE_FLAG_KERN;
         return(I->im_fd);
 }
+
 
 int
 parseCommandLine(argc, argv)
