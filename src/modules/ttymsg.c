@@ -67,6 +67,10 @@
 /* #warning Using "/dev/" for _PATH_DEV */
 #endif
 
+#ifndef sigsetmask
+int sigsetmask(int);
+#endif
+
 /*
  * Display the contents of a uio structure on a terminal.  Used by wall(1),
  * syslogd(8), and talkd(8).  Forks and finishes in child if write would block,
