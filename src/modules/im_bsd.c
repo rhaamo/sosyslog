@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.37 2000/05/23 21:47:03 fgsch Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.38 2000/05/26 16:43:35 fgsch Exp $	*/
 
 /*
  *  im_bsd -- classic behaviour module for BDS like systems
@@ -8,18 +8,17 @@
  *    
  */
 
-#include <syslog.h>
-#include <fcntl.h>
-#include <errno.h>
+#include "config.h"
+
 #include <sys/types.h>
 #include <sys/uio.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <ctype.h>
+#include <fcntl.h>
 #include <errno.h>
-#include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include "config.h"
+#include <string.h>
+#include <syslog.h>
+#include <unistd.h>
 #include "syslogd.h"
 
 void    logerror __P((char *));

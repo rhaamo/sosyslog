@@ -1,10 +1,10 @@
-/*	$CoreSDI$	*/
+/*	$CoreSDI: iolib.c,v 1.6 2000/05/23 21:47:04 fgsch Exp $	*/
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <string.h>
 #include <signal.h>
 #include <stdio.h>
+#include <string.h>
 #include <syslog.h>
 #include "syslogd.h"
 

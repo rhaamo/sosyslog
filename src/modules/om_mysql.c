@@ -1,4 +1,4 @@
-/*	$CoreSDI$	*/
+/*	$CoreSDI: om_mysql.c,v 1.15 2000/05/23 21:47:05 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,23 +41,18 @@
  *
  */
 
+#include <sys/types.h>
 #include <sys/time.h>
-
-#include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/syslog.h>
-#include <sys/types.h>
 #include <time.h>
-
-#include "syslogd.h"
+#include <syslog.h>
+#include <unistd.h>
 #include "modules.h"
-
-#include "/usr/local/include/mysql/mysql.h"
+#include "syslogd.h"
 
 #define MAX_QUERY	8192
 

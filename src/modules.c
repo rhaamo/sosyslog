@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.66 2000/05/24 23:04:17 fgsch Exp $	*/
+/*	$CoreSDI: modules.c,v 1.67 2000/05/26 16:43:36 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -39,12 +39,12 @@
  * Author: Alejo Sanchez for Core-SDI S.A.
  */
 
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
 #include <ctype.h>
-#include <syslog.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <syslog.h>
+#include <unistd.h>
 #include "syslogd.h"
 #include "modules.h"
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI$	*/
+/*	$CoreSDI: im_unix.c,v 1.15 2000/05/23 21:47:04 fgsch Exp $	*/
 
 /*
  *  im_unix -- classic behaviour module for BDS like systems
@@ -20,7 +20,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <signal.h>
-
 #include <syslog.h>
 #include "modules.h"
 #include "syslogd.h"

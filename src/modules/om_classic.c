@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.22 2000/05/23 21:47:05 fgsch Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.23 2000/05/24 17:58:51 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -42,17 +42,15 @@
  */
 
 #include <sys/time.h>
-
+#include <sys/socket.h>
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 #include <unistd.h>
-#include <sys/socket.h>
-#include <sys/syslog.h>
-
 #include "syslogd.h"
 #include "modules.h"
 

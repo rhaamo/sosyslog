@@ -45,17 +45,17 @@ static char rcsid[] = "$OpenBSD: ttymsg.c,v 1.3 1996/10/25 06:06:30 downsj Exp $
 
 #include <sys/types.h>
 #include <sys/uio.h>
-#include <signal.h>
-#include <fcntl.h>
 #include <dirent.h>
 #include <errno.h>
+#include <fcntl.h>
 #ifdef HAVE_PATHS_H
 #include <paths.h>
 #endif /* HAVE_PATHS_H */
-#include <unistd.h>
+#include <signal.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 /*
  * Display the contents of a uio structure on a terminal.  Used by wall(1),
