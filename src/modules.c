@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.156 2001/05/03 20:12:26 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.157 2001/05/03 21:37:21 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -454,8 +454,12 @@ parseParams(char ***ret, char *c)
 
 		(*ret)[argc++] = strdup(p);
 		if ((argc % 20) == 18)
-		    *ret = (char **) realloc(*ret, sizeof(char *) * (argc + 20));
-		if (ret != NULL)
+			if ( (*ret = (char **) realloc(*ret, sizeof(char *) *
+			    (argc + 20))) == NULL) {
+				free(line);
+				return(NULL);
+			}
+		if (*ret != NULL)
 			(*ret)[argc] = NULL;
 	}
 	
