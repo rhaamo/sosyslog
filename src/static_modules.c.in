@@ -1,4 +1,4 @@
-/* $CoreSDI: static_modules.c.in,v 1.6 2000/10/31 19:42:12 alejo Exp $
+/* $CoreSDI: static_modules.c.in,v 1.7 2000/11/01 18:18:02 alejo Exp $
  * Automatically generated static modules initialization file
  * do not modify it manually, insted modify static_modules.c.in or ../aclocal.m4
  */
@@ -23,6 +23,8 @@ modules_load()
 
 	imodules = NULL;
 	omodules = NULL;
+	im = NULL; ilast = NULL;
+	om = NULL; olast = NULL;
 
 	@SMODULES_LOAD@
 
