@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.58 2000/05/09 20:47:11 alejo Exp $
+/*	$Id: syslogd.c,v 1.59 2000/05/12 22:23:43 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -489,26 +489,31 @@ doLog(f, flags, message)
 {
 	struct	o_module *m;
 	char	repbuf[80], *msg;
+	int	len;
 
-	if (!message && (f->f_prevcount > 1)) {
-		msg = repbuf;
-		sprintf(repbuf, "last message repeated %d times",
-			f->f_prevcount);
-	} else {
+	if (message) {
 		msg = message;
+        len = strlen(message);
+	} else if (f->f_prevcount > 1) {
+		msg = repbuf;
+		len = snprintf(repbuf, 80, "last message repeated %d times",
+				f->f_prevcount);
+	} else {
+		msg = f->f_prevline;
+		len = f->f_prevlen;
 	}
 
-        for (m = f->f_mod; m; m = m->om_next) {
+	for (m = f->f_mod; m; m = m->om_next) {
 		if(OModules[m->om_type].om_doLog == NULL) {
 			dprintf("Unsupported module type [%i] "
-			        "for message [%s]\n", m->om_type, msg);
+				"for message [%s]\n", m->om_type, msg);
 			continue;
 		};
 
 		/* call this module doLog */
 		if((*(OModules[m->om_type].om_doLog))(f,flags,msg,m->context) != 0) {
 			dprintf("doLog error with module type [%i] "
-			        "for message [%s]\n",
+				"for message [%s]\n",
 				m->om_type, msg);
 		}
 	}
