@@ -1,4 +1,4 @@
-/*	$CoreSDI: TODO,v 1.39 2000/09/26 00:12:08 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.40 2000/09/27 21:43:47 alejo Exp $	*/
 
 Things to do:
 
@@ -6,6 +6,7 @@ Things to do:
 - do not generate coredumps (via resource limits)
 - divide classic in om_file, om_udp, om_console, om_wall, om_user.
 - warn the when ignoring a line
+- define STYLE for names (ie. underscore or caps)
 - tell about -i linux in syslogd(8)
 - fix time and date usage on syslogd.c and modules. it is UGLY.
 - thinker about wall mesages
