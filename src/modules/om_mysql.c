@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.70 2001/04/05 20:56:25 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.71 2001/04/28 04:09:15 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -85,6 +85,7 @@ struct om_mysql_ctx {
 	void *	(*mysql_real_connect)(void *, char *, char *, char *,
 	    char *, int, void *, int);
 	int	(*mysql_query)(void *, char *);
+	void	(*mysql_close)(void *);
 	char *	(*mysql_error)(void *);
 };
 
@@ -236,6 +237,8 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	    "mysql_real_connect"))
 	    || !(ctx->mysql_query = (int (*)(void *, char *)) dlsym(ctx->lib,
 	    SYMBOL_PREFIX "mysql_query"))
+	    || !(ctx->mysql_close = (void (*)(void *)) dlsym(ctx->lib,
+	    SYMBOL_PREFIX "mysql_close"))
 	    || !(ctx->mysql_error = (char * (*)(void *)) dlsym(ctx->lib,
 	    SYMBOL_PREFIX "mysql_error"))) {
 		dprintf(MSYSLOG_SERIOUS, "om_mysql_init: Error resolving"
@@ -337,6 +340,8 @@ om_mysql_close(struct filed *f, void *ctx)
 	struct om_mysql_ctx *c;
 
 	c = (struct om_mysql_ctx*) ctx;
+
+	(c->mysql_close)(c->h);
 
 	if (c->table)
 		free(c->table);
