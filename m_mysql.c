@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: m_mysql.c,v 1.15 2000/04/05 19:25:40 gera Exp $";
+static char rcsid[] = "$Id: m_mysql.c,v 1.16 2000/04/05 23:18:08 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -60,6 +60,8 @@ static char rcsid[] = "$Id: m_mysql.c,v 1.15 2000/04/05 19:25:40 gera Exp $";
 #include <string.h>
 #include <unistd.h>
 #include <sys/syslog.h>
+#include <sys/types.h>
+#include <time.h>
 
 #include "syslogd.h"
 #include "modules.h"
@@ -91,6 +93,7 @@ m_mysql_doLog(f, flags, msg, context)
 {
 	struct m_mysql_ctx *c;
 	char	*dummy, *y, *m, *d, *h, mymsg[1024];
+        time_t now;
 
 	dprintf("MySQL doLog: entering [%s] [%s]\n", msg, f->f_prevline);
 	if (f == NULL)
@@ -119,13 +122,19 @@ m_mysql_doLog(f, flags, msg, context)
 	h = dummy + 7;
 	y = dummy + 16;
 
+	if(strcmp(y, "") == 0) {
+		time_t now;
+
+		(void) time(&now);
+		y = ctime(&now) + 20;
+	}
+
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, programname,  msg  */ 
 	snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s"
 			" VALUES('%s-%s-%s', '%s', '%s', '%s', '%s',"
 			"'%s')", c->table, y, m, d, h, mymsg);
 
 	free(dummy);
-	dummy = c->query;
 
 	return (mysql_query(c->h, c->query));
 }
