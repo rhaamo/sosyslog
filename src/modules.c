@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.95 2000/06/16 19:47:38 claudio Exp $	*/
+/*	$CoreSDI: modules.c,v 1.96 2000/06/16 20:11:45 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -307,9 +307,6 @@ imoduleDestroy(im)
 		return(-1);
 	}
 	free(im->im_name);
-	free(im->im_init);
-	free(im->im_getLog);
-	free(im->im_close);
 
 	return(1);
 }
