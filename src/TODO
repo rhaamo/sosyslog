@@ -1,10 +1,9 @@
-/*	$CoreSDI: TODO,v 1.76 2001/04/03 19:35:07 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.77 2001/04/03 21:06:51 alejo Exp $	*/
 
 Things to do:
 
 - DB2 output module
 - Use one function per module, with action as a parameter.
-- om_mysql have an option for INSERT DELAYED (look same for pgsql too)
 - Check "" errors on solaris / support spaces intead the tabs on configfile
 - Change strcpy and strncpy to strlcpy (same w/ strlcat)
 - define STYLE for names (ie. underscore or caps, indentation)
