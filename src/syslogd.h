@@ -54,7 +54,10 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
+#ifndef _PATH_KLOG
 #define	_PATH_KLOG	"/dev/klog"
+#endif
+
 #define	_PATH_LOGCONF	"/etc/syslog.conf"
 #define	_PATH_LOGPID	"/var/run/syslog.pid"
 
