@@ -76,4 +76,10 @@ else
 	echo "Disabling MySQL support..."
 fi
 
+if test `/usr/bin/uname` = "Linux"
+then
+	echo "Enabling Linux input module..."
+	EXTRAOBJ="$EXTRAOBJ im_linux.o"
+fi
+
 AC_OUTPUT(Makefile)
