@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.75 2000/09/27 20:29:58 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.76 2000/09/27 21:58:34 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -130,14 +130,6 @@ struct filed {
 	time_t  f_time;		 /* time this was last written */
 	u_char  f_pmask[LOG_NFACILITIES+1];     /* priority mask */
 	char    *f_program;	     /* program this applies to */
-	union {
-		char    f_uname[MAXUNAMES][UT_NAMESIZE+1];
-		struct {
-			char    f_hname[MAXHOSTNAMELEN];
-			struct sockaddr_in      f_addr;
-		} f_forw;	       /* forwarding address */
-		char    f_fname[MAXPATHLEN];
-	} f_un;
 	char    f_prevline[MAXSVLINE];	  /* last message logged */
 	char    f_lasttime[16];		 /* time of last occurrence */
 	char    f_prevhost[MAXHOSTNAMELEN];     /* host from which recd. */
