@@ -1,4 +1,4 @@
- /*	$Id: im_udp.c,v 1.77 2002/09/24 22:00:07 alejo Exp $	*/
+ /*	$Id: im_udp.c,v 1.78 2002/09/25 07:25:52 alejo Exp $	*/
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
  * All rights reserved
@@ -109,8 +109,7 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 	/* parse args (skip module name) */
 	for (argcnt = 1; (ch = getxopt(argc, argv, "h!host: p!port: "
 	    "a!addhost q!nofqdn c!cachenames r!replacechar: n!noresolv",
-	    &argcnt)) != -1;
-	    argcnt++) {
+	    &argcnt)) != -1; argcnt++) {
 
 		switch (ch) {
 		case 'h':
@@ -246,37 +245,41 @@ return (0);
 		strncat(ret->im_host, host, sizeof(ret->im_host));
 
     /* strip domain from hostname */
-    /* There is no assurance that the hostname is not an ip address
+    /* XXX: what is this?
+     * There is no assurance that the hostname is not an ip address
      * in which case stripping off the domain would be inappropriate.
      *
-	  if (c->flags & M_NOTFQDN) { 
-	    char   *dot;
-  		if ((dot = strchr(ret->im_host, '.')) != NULL) *dot = '\0';
-   	}
-    */
-	}
-  else {
-		/* extract host ip address from ip header, and attempt to look up the name */
+     */
+	} else {
 		struct hostent *hent;
+
+		/*
+		 * extract host ip address from ip header
+		 * and attempt to look up the name
+		 */
 
 		hent = gethostbyaddr((char *) &frominet.sin_addr,
 		    sizeof(frominet.sin_addr), frominet.sin_family);
+
 		if (hent) {
+
 			strncpy(ret->im_host, hent->h_name, sizeof(ret->im_host));
-      /* strip domain from hostname */
-	    if (c->flags & M_NOTFQDN) { 
-		    char   *dot;
-    		if ((dot = strchr(ret->im_host, '.')) != NULL) *dot = '\0';
-    	}
-		}
-    else {
-			strncpy(ret->im_host, inet_ntoa(frominet.sin_addr), sizeof(ret->im_host));
-		}
+
+			/* strip domain from hostname */
+			if (c->flags & M_NOTFQDN) { 
+				char   *dot;
+
+				if ((dot = strchr(ret->im_host, '.')) != NULL)
+					*dot = '\0';
+			}
+		} else
+			strncpy(ret->im_host, inet_ntoa(frominet.sin_addr),
+			    sizeof(ret->im_host) - 1);
 	}
 
 	ret->im_host[sizeof(ret->im_host) - 1] = '\0';
 
-return (1);
+	return (1);
 }
 
 int
