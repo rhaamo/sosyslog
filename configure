@@ -2114,7 +2114,7 @@ elif test "$UNAME" = "SunOS" ; then
 EOF
 	SHARED_PARAMS="-G"
 	DCCFLAGS="-fPIC"
-elif test "$UNAME" = "Irix" ; then
+elif test "$UNAME" = "IRIX" -o "$UNAME" = "IRIX64" ; then
 	cat >> confdefs.h <<\EOF
 #define DLOPEN_FLAGS RTLD_LAZY
 EOF
