@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.37 2000/06/06 00:35:14 fgsch Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.38 2000/06/06 00:36:36 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -180,7 +180,7 @@ om_peo_init(argc, argv, f, prog, ctx)
 	char			**argv;
 	struct filed		 *f;
 	char			 *prog;
-	struct om_header_ctx	**ctx;
+	struct om_hdr_ctx	**ctx;
 {
 	int	 ch;
 	struct	 om_peo_ctx *c;
@@ -257,7 +257,7 @@ om_peo_init(argc, argv, f, prog, ctx)
 	c->hash_method = hash_method;
 	c->keyfile = keyfile; 
 	c->macfile = macfile;
-	*ctx = (struct om_header_ctx*) c;
+	*ctx = (struct om_hdr_ctx*) c;
 
 	dprintf ("method: %d\nkeyfile: %s\nmacfile: %s\n", hash_method,
 	    keyfile, macfile);
