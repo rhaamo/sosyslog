@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.78 2000/05/29 23:34:59 gera Exp $	*/
+/*	$CoreSDI: modules.c,v 1.79 2000/05/30 00:14:56 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -35,6 +35,8 @@
  * Authors: Alejo Sanchez for Core-SDI S.A.
  *          Federico Schwindt for Core-SDI S.A.
  */
+
+#include "config.h"
 
 #include <ctype.h>
 #include <stdio.h>
