@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.50 2000/11/24 21:55:25 alejo Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.51 2000/12/04 23:25:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -77,7 +77,7 @@ im_udp_getLog(struct imodule *im, struct im_msg *ret)
 	int slen;
 
 	if (ret == NULL) {
-		dprintf("im_udp: arg is null\n");
+		dprintf(DPRINTF_SERIOUS)("im_udp: arg is null\n");
 		return (-1);
 	}
 
@@ -117,7 +117,7 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 
         if ((argc != 1 && argc != 2) || (argc == 2 &&
 	    (argv == NULL || argv[1] == NULL))) {
-        	dprintf("im_udp: error on params!\n");
+        	dprintf(DPRINTF_SERIOUS)("im_udp: error on params!\n");
         	return (-1);
         }
 
@@ -149,7 +149,7 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 		DaemonFlags |= SYSLOGD_INET_READ;
         }
 
-        dprintf("im_udp: running\n");
+        dprintf(DPRINTF_INFORMATIVE)("im_udp: running\n");
         return (1);
 }
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_mymodule.c,v 1.4 2000/11/01 18:18:02 alejo Exp $	*/
+/*	$CoreSDI: im_mymodule.c,v 1.5 2000/12/04 23:25:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -62,6 +62,13 @@ struct im_mymodule_ctx {
 int
 im_mymodule_getLog (struct i_module *im, struct im_msg *ret)
 {
+
+	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_getLog: Entering\n");
+
+	/* read from input */
+
+	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_getLog: Leaving\n");
+
 	return (1);
 }
 
@@ -73,6 +80,12 @@ im_mymodule_getLog (struct i_module *im, struct im_msg *ret)
 int
 im_mymodule_init (struct i_module *I, char **argv, int argc)
 {
+	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_init: Entering\n");
+
+	/* initialize */
+
+	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_init: Leaving\n");
+
         return (1);
 }
 
@@ -83,5 +96,11 @@ im_mymodule_init (struct i_module *I, char **argv, int argc)
 int
 im_mymodule_close (struct i_module *im) 
 {
+	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_close: Entering\n");
+
+	/* close */
+
+	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_close: Leaving\n");
+
         return (1);
 }

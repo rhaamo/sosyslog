@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.56 2000/11/24 21:55:25 alejo Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.58 2000/12/04 23:25:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -85,14 +85,14 @@ struct om_peo_ctx {
 };
 
 int
-om_peo_doLog (struct filed *f, int flags, char *msg, void *ctx)
+om_peo_doLog(struct filed *f, int flags, char *msg, void *ctx)
 {
 	struct om_peo_ctx *c;
 	int	 fd, mfd, len, keylen, newkeylen;
 	u_char	 key[41], mkey[41];
 	char	 m[MAXBUF], newkey[41], time_buf[16];
 
-	dprintf ("peo output module: doLog\n");
+	dprintf(DPRINTF_INFORMATIVE)("om_peo_doLog: Entering\n");
 	
 	if (f == NULL || ctx == NULL)
 		return (-1);
@@ -104,20 +104,21 @@ om_peo_doLog (struct filed *f, int flags, char *msg, void *ctx)
 	len = snprintf(m, MAXBUF, "%s %s %s\n", time_buf, f->f_prevhost,
 	    msg ? msg : f->f_prevline) - 1;
 
-	dprintf ("len = %i, msg = %s\n ", len, m);
+	dprintf(DPRINTF_INFORMATIVE)("om_peo_doLog: len = %i, msg = %s\n ",
+	    len, m);
 
 	/* open keyfile and read last key */
 	if ( (fd = open(c->keyfile, O_RDWR, 0)) == -1) {
-		dprintf ("opening keyfile: %s: %s\n", c->keyfile,
-		    strerror(errno));
+		dprintf(DPRINTF_SERIOUS)("om_peo_dolog: opening keyfile: %s:"
+		    " %s\n", c->keyfile, strerror(errno));
 		return (-1);
 	}
 
 	bzero(key, sizeof(key));
 	if ( (keylen = read(fd, key, 40)) == -1) {
 		close(fd);
-		dprintf ("reading form: %s: %s\n", c->keyfile,
-		    strerror(errno));
+		dprintf(DPRINTF_SERIOUS)("om_peo_doLog: reading form: %s:"
+		    " %s\n", c->keyfile, strerror(errno));
 		return (-1);
 	}
 
@@ -125,13 +126,15 @@ om_peo_doLog (struct filed *f, int flags, char *msg, void *ctx)
 	if (c->macfile) {
 		if ( (mfd = open(c->macfile, O_WRONLY, 0)) == -1) {
 			close(fd);
-			dprintf ("opening macfile: %s: %s\n", c->macfile,
+			dprintf(DPRINTF_SERIOUS)("om_peo_doLog: opening "
+			    "macfile: %s: %s\n", c->macfile,
 			    strerror(errno));
 			return (-1);
 		}
 		lseek(mfd, (off_t)0, SEEK_END);
 		write(mfd, mkey, mac2(key, keylen, m, len, mkey));
-		dprintf ("write to macfile ok\n");
+		dprintf(DPRINTF_INFORMATIVE)("om_peo_doLog: write to macfile"
+		    " ok\n");
 		close(mfd);
 	}
 
@@ -141,7 +144,8 @@ om_peo_doLog (struct filed *f, int flags, char *msg, void *ctx)
 	if ( (newkeylen = mac(c->hash_method, key, keylen, m,
 	    len, newkey)) == -1) {
 		close(fd);
-		dprintf ("generating key[i+1]: keylen = %i: %s\n", newkeylen,
+		dprintf(DPRINTF_INFORMATIVE)("om_peo_doLog: generating "
+		    "key[i+1]: keylen = %i: %s\n", newkeylen,
 		    strerror(errno));
 		return (-1);
 	}
@@ -178,14 +182,15 @@ release()
 }
 
 int
-om_peo_init (int argc, char **argv, struct filed *f, char *prog, void **ctx)
+om_peo_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 {
 	int	 ch;
 	struct	 om_peo_ctx *c;
 	int	 hash_method;
 	int	 mfd;
 
-	dprintf("peo output module init: called by %s\n", prog);
+	dprintf(DPRINTF_INFORMATIVE)("om_peo_init: Entering, called by %s\n",
+	    prog);
 	
 	if (argv == NULL || *argv == NULL || argc == 0 || f == NULL ||
 	    ctx == NULL)
@@ -257,20 +262,21 @@ om_peo_init (int argc, char **argv, struct filed *f, char *prog, void **ctx)
 	c->macfile = macfile;
 	*ctx = (void *) c;
 
-	dprintf ("method: %d\nkeyfile: %s\nmacfile: %s\n", hash_method,
-	    keyfile, macfile);
+	dprintf(DPRINTF_INFORMATIVE)("om_peo_init: method: %d\nkeyfile: "
+	    "%s\nmacfile: %s\n", hash_method, keyfile, macfile);
 
 	return (1);
 }
 
 
 int
-om_peo_close (struct filed *f, void *ctx)
+om_peo_close(struct filed *f, void *ctx)
 {
 	struct om_peo_ctx *c;
 
 	c = (struct om_peo_ctx *) ctx;
-	dprintf ("peo output module close\n");
+	dprintf(DPRINTF_INFORMATIVE)("om_peo_close: peo output module "
+	    "close\n");
 
 	if (c->keyfile != default_keyfile)
 		free(c->keyfile);

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.41 2000/11/24 21:55:25 alejo Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.42 2000/12/04 23:25:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -100,21 +100,21 @@ char	*ksym_copyword (char*, char*, int);
 void
 im_linux_usage()
 {
-	dprintf("linux input module options:\n"
-		"   [ -k file ]    Use the specified file as source of kernel\n"
-		"                  symbol information instead of %s.\n"
-		"   [ -r ]         Force read symbol table on memory.\n"
-		"   [ -s ]         Force to use syscall instead of %s\n"
-		"                  to log kernel messages.\n"
-		"   [ -x ]         Do not translate kernel symbols.\n"
-		"Defaults:\n"
-		"   Reads kernel messages from %s; "
+	dprintf(DPRINTF_INFORMATIVE)("linux input module options:\n"
+	    "   [ -k file ]    Use the specified file as source of kernel\n"
+	    "                  symbol information instead of %s.\n"
+	    "   [ -r ]         Force read symbol table on memory.\n"
+	    "   [ -s ]         Force to use syscall instead of %s\n"
+	    "                  to log kernel messages.\n"
+	    "   [ -x ]         Do not translate kernel symbols.\n"
+	    "Defaults:\n"
+	    "   Reads kernel messages from %s; "
 #if 0
-		" if this file doesn't exists\n"
-		"   it uses the syscall method.\n"
+	    " if this file doesn't exists\n"
+	    "   it uses the syscall method.\n"
 #endif
-		"   Symbols are translated only if %s exists.\n\n",
-		PATH_KSYM, _PATH_KLOG, _PATH_KLOG, PATH_KSYM);
+	    "   Symbols are translated only if %s exists.\n\n",
+	    PATH_KSYM, _PATH_KLOG, _PATH_KLOG, PATH_KSYM);
 }
 
 
@@ -171,7 +171,7 @@ im_linux_init (struct i_module *I, char **argv, int argc)
 	int ch;
 	int current_optind;
 
-	dprintf ("\nim_linux_init...\n");
+	dprintf(DPRINTF_INFORMATIVE)("im_linux_init: Entering\n");
 
 	/* parse command line */
 	current_optind = optind;	/* syslogd calls im_linux_init when

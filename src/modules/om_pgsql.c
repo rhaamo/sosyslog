@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.29 2000/11/24 21:55:25 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.31 2000/12/04 23:25:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -117,12 +117,14 @@ om_pgsql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 	int	err, i;
 	char    query[MAX_QUERY], err_buf[512];
 
-	dprintf("om_pgsql_dolog: entering [%s] [%s]\n", msg, f->f_prevline);
+	dprintf(DPRINTF_INFORMATIVE)("om_pgsql_dolog: entering [%s] [%s]\n",
+	    msg, f->f_prevline);
 
 	c = (struct om_pgsql_ctx *) ctx;
 
 	if ((c->h) == NULL) {
-		dprintf("om_pgsql_doLog: error, no connection\n");
+		dprintf(DPRINTF_SERIOUS)("om_pgsql_doLog: error, no "
+		    "connection\n");
 		return (-1);
 	}
 
@@ -175,11 +177,13 @@ om_pgsql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 		else
 			query[sizeof(query) - 1] = '\0';
 
-		dprintf("om_pgsql_doLog: query [%s]\n", query);
+		dprintf(DPRINTF_INFORMATIVE2)("om_pgsql_doLog: query [%s]\n",
+		    query);
 
 		r = PQexec(c->h, query);
 		if (PQresultStatus(r) != PGRES_COMMAND_OK) {
-			dprintf("%s\n", PQresultErrorMessage(r));
+			dprintf(DPRINTF_SERIOUS)("om_pgsql_doLog: %s\n",
+			    PQresultErrorMessage(r));
 			return (-1);
 		}
 		PQclear(r);
@@ -196,12 +200,12 @@ om_pgsql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 	else
 		query[sizeof(query) - 1] = '\0';
 
-	dprintf("om_pgsql_doLog: query [%s]\n", query);
+	dprintf(DPRINTF_INFORMATIVE2)("om_pgsql_doLog: query [%s]\n", query);
 
 	err = 1;
 	r = PQexec(c->h, query);
 	if (PQresultStatus(r) != PGRES_COMMAND_OK) {
-		dprintf("%s\n", PQresultErrorMessage(r));
+		dprintf(DPRINTF_INFORMATIVE)("%s\n", PQresultErrorMessage(r));
 		err = -1;
 	}
 
@@ -232,7 +236,8 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 	char    *host, *user, *passwd, *db, *table, *port, *p;
 	int     ch = 0;
 
-	dprintf("om_pgsql_init: entering initialization\n");
+	dprintf(DPRINTF_INFORMATIVE)("om_pgsql_init: entering "
+	    "initialization\n");
 
 	if (argv == NULL || *argv == NULL || argc < 2 || f == NULL ||
 		 c == NULL)
@@ -290,8 +295,8 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 	/* check to see that the backend connection was successfully made */
 	if (PQstatus(h) == CONNECTION_BAD)
 	{
-		dprintf("om_pgsql_init: Error connecting to db server"
-		    " [%s:%s] user [%s] db [%s]\n",
+		dprintf(DPRINTF_SERIOUS)("om_pgsql_init: Error connecting "
+		    "to db server [%s:%s] user [%s] db [%s]\n",
 		    host?host:"(unix socket)", port?port:"(none)", user, db);
 		PQfinish(h); 
 		return (-5);

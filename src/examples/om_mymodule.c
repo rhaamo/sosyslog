@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mymodule.c,v 1.6 2000/11/01 18:18:03 alejo Exp $	*/
+/*	$CoreSDI: om_mymodule.c,v 1.8 2000/12/04 23:25:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -112,7 +112,7 @@ om_mymodule_init (int argc, char **argv, struct filed *f, char *prog,
 	char *myArg;
 
 	/* for debugging purposes */
-	dprintf("om_mymodule init\n");
+	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_init: Entering\n");
 
 	/*
 	 * Parse your options with getopt(3)
@@ -132,7 +132,8 @@ om_mymodule_init (int argc, char **argv, struct filed *f, char *prog,
 				myArg = optarg;
 				break;
 			default :
-				dprintf("om_mymodule: error on arguments\n");
+				dprintf(DPRINTF_INFORMATIVE)("om_mymodule: "
+				    "error on arguments\n");
 				return (-1);
 		}
 	}
@@ -147,6 +148,7 @@ om_mymodule_init (int argc, char **argv, struct filed *f, char *prog,
 			-1  something went wrong
 	*/
 
+	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_init: Leaving ok\n");
 	return (1);
 }
 
@@ -156,22 +158,33 @@ om_mymodule_init (int argc, char **argv, struct filed *f, char *prog,
  */
 int
 om_mymodule_close (struct filed *f, void *ctx) {
+
+	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_close: Entering\n");
+
 	/* flush any buffered data and close this output */
 
 	/* return:
 			 1  OK
 			-1  BAD
 	 */
+
+	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_close: Leaving ok\n");
+
 	return (ret);
 }
 
 int
 om_mymodule_flush (struct filed *f, void *context) {
+
+	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_flush: Entering\n");
 	/* flush any pending output */
 
 	/* return:
 			 1  OK
 			-1  BAD
 	 */
+
+	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_flush: Leaving ok\n");
+
 	return (1);
 }

@@ -1,4 +1,4 @@
-/*      $CoreSDI: im_streams.c,v 1.4 2000/11/24 21:55:25 alejo Exp $   */
+/*      $CoreSDI: im_streams.c,v 1.5 2000/12/04 23:25:29 alejo Exp $   */
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -87,9 +87,10 @@ im_streams_getLog (struct i_module *im, struct im_msg *ret)
 		return (-1);
 
 	r = getmsg (im->im_fd, &ctl, &dat, &flags);
+
 	if (r & MORECTL) {
-		dprintf ("im_streams_getLog: getmsg() returned too much"
-		    " control information\n");
+		dprintf(DPRINTF_SERIOUS)("im_streams_getLog: getmsg() "
+		    "returned too much control information\n");
 		logerror("im_streams_getLog: getmsg() returned too much"
 		    " control information");
 		return (-1);
@@ -98,8 +99,9 @@ im_streams_getLog (struct i_module *im, struct im_msg *ret)
 	do {
 		if (r & MOREDATA) {
 			/* message is too long for im_msg */
-			dprintf ("im_streams_getLog: STREAMS device offered"
-			    " too much data (remainder to come) ...\n");
+			dprintf(DPRINTF_INFORMATIVE)("im_streams_getLog: "
+			    "STREAMS device offered too much data (remainder "
+			    "to come) ...\n");
 		}
 
 		streams_datfmt(&dat);
@@ -114,8 +116,8 @@ im_streams_getLog (struct i_module *im, struct im_msg *ret)
 			logmsg (ret->im_pri, ret->im_msg,
 			    LocalHostName, ret->im_flags);
 		} else {
-			dprintf ("im_streams_getLog: STREAMS device offered"
-			    " no data?\n");
+			dprintf(DPRINTF_INFORMATIVE)("im_streams_getLog: "
+			    "STREAMS device offered no data?\n");
 			logerror("im_streams_getLog: STREAMS device offered"
 			    " no data?");
 		}
@@ -134,10 +136,10 @@ im_streams_init (struct i_module *I, char **argv, int argc)
 {
 	char *streams_logpath;
 
-	dprintf ("\nim_streams_init\n");
+	dprintf(DPRINTF_INFORMATIVE)("im_streams_init: Entering\n");
 
 	if (I == NULL || argv == NULL || argc < 1 || argc > 2) {
-		dprintf ("usage: -i streams[:path]\n\n");
+		dprintf(DPRINTF_SERIOUS) ("usage: -i streams[:path]\n\n");
 		return(-1);
 	}
 
@@ -146,7 +148,8 @@ im_streams_init (struct i_module *I, char **argv, int argc)
 	} else {
 		streams_logpath = strdup(DEFAULT_LOGGER);
 	}
-	dprintf ("streams_logpath = %s\n", streams_logpath);
+	dprintf(DPRINTF_INFORMATIVE)("streams_logpath = %s\n",
+	    streams_logpath);
 
 	I->im_path = streams_logpath;
 
@@ -176,7 +179,7 @@ int do_streams_init (I)
 	I->im_fd = open (I->im_path, O_RDONLY|O_NOCTTY|O_NONBLOCK);
 
 	if (I->im_fd == -1) {
-		dprintf ("couldn't open %s: %s\n", I->im_path,
+		dprintf(DPRINTF_SERIOUS)("couldn't open %s: %s\n", I->im_path,
 		    strerror (errno));
 		return (-1);
 	} else {
@@ -187,8 +190,8 @@ int do_streams_init (I)
 
 		ioctbuf.ic_cmd = I_CONSLOG; /* why I_CONSLOG? */
 		if (ioctl (I->im_fd, I_STR, &ioctbuf) == -1) {
-			dprintf ("ioctl(%s): %s\n", I->im_path,
-			    strerror (errno));
+			dprintf(DPRINTF_SERIOUS)("ioctl(%s): %s\n",
+			    I->im_path, strerror (errno));
 			close (I->im_fd);
 			return (-1);
 		}

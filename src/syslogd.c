@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.153 2000/11/24 21:55:24 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.154 2000/12/04 23:25:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.153 2000/11/24 21:55:24 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.154 2000/12/04 23:25:28 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -225,53 +225,69 @@ main(int argc, char **argv) {
 
 	/* Load main modules library */
 	if (modules_start() < 0) {
-		dprintf("Error starting modules! \n");
+		dprintf(DPRINTF_CRITICAL)("Error starting modules! \n");
 		exit(-1);
 	}
 
-	while ((ch = getopt(argc, argv, "dubSf:m:p:a:i:h")) != -1)
-		switch (ch) {
-		case 'd':		/* debug */
-			Debug++;
-			break;
-		case 'f':		/* configuration file */
-			ConfFile = optarg;
-			break;
-		case 'm':		/* mark interval */
-			MarkInterval = atoi(optarg) * 60;
-			break;
-		case 'u':		/* allow udp input port */
-			if (imodule_init(&Inputs, "udp") < 0) {
-				fprintf(stderr, "syslogd: WARNING error on udp"
-				    " input module\n");
-			}
-			break;
-		case 'i':		/* inputs */
-			if (imodule_init(&Inputs, optarg) < 0) {
-				fprintf(stderr, "syslogd: WARNING error on "
-				    "input module, ignoring %s\n", optarg);
-			}
-			break;
-		case 'p':		/* path */
-		case 'a':		/* additional AF_UNIX socket name */
-			if (optarg != NULL) {
-			    char buf[512];
+	/* use ':' at start to allow -d to be used without argument */
 
-			    snprintf(buf, 512, "unix %s", optarg); 
-			    if (imodule_init(&Inputs, buf) < 0) {
-				fprintf(stderr,
-				    "syslogd: WARNING out of descriptors,"
-				    " ignoring %s\n", optarg);
-			    }
-			}
-			break;
-		case '?':
-		case 'h':
-		default:
-			usage();
+	opterr = 0;
+
+	while ((ch = getopt(argc, argv, ":d:ubSf:m:p:a:i:h")) != -1) {
+		char buf[512];
+
+		switch (ch) {
+			case ':':	/* missing arg, bsd */
+			case '?':	/* missing arg, sysv */
+				break;
+			case 'd':	/* debug */
+				if (optarg == NULL) {
+					Debug++;
+				} else if (isdigit((int) *optarg)) {
+					Debug = atoi(optarg);
+				} else {
+					Debug++;
+					optind--;
+				}
+				break;
+			case 'f':	/* configuration file */
+				ConfFile = optarg;
+				break;
+			case 'm':	/* mark interval */
+				MarkInterval = atoi(optarg) * 60;
+				break;
+			case 'u':	/* allow udp input port */
+				if (imodule_init(&Inputs, "udp") < 0) {
+					fprintf(stderr, "syslogd: WARNING "
+					    "error on udp input module\n");
+				}
+				break;
+			case 'i':	/* inputs */
+				if (imodule_init(&Inputs, optarg) < 0) {
+					fprintf(stderr, "syslogd: WARNING "
+					    "error on input module, "
+					    "ignoring %s\n", optarg);
+				}
+				break;
+			case 'p':	/* path */
+			case 'a':	/* additional im_unix socket */
+				snprintf(buf, 512, "unix %s", optarg); 
+				if (imodule_init(&Inputs, buf) < 0) {
+					fprintf(stderr, "syslogd: WARNING"
+					    " out of descriptors,"
+					    " ignoring %s\n", optarg);
+				}
+				break;
+			case 'h':
+			default:
+				usage();
 		}
+	}
+
 	if (((argc -= optind) != 0) || Inputs.im_fd < 0)
 		usage();
+
+printf("Debug level is: %i\n", Debug);
 
 	if (!Debug) {
 		int fd;
@@ -305,7 +321,8 @@ main(int argc, char **argv) {
 	consfile.f_type = F_CONSOLE;
 	/* this should get into Files and be way nicer */
 	if (omodule_create(ctty, &consfile, NULL) == -1) {
-		dprintf("Error initializing classic output module!\n");
+		dprintf(DPRINTF_SERIOUS)("Error initializing classic output "
+		    "module!\n");
 	}
 
 	(void)strncpy(consfile.f_un.f_fname, ctty,
@@ -414,7 +431,7 @@ main(int argc, char **argv) {
 		}
 	}
 
-	dprintf("off & running....\n");
+	dprintf(DPRINTF_INFORMATIVE)("off & running....\n");
 
 	init(0);
 	(void)signal(SIGHUP, init);
@@ -443,7 +460,6 @@ main(int argc, char **argv) {
 		if (finet > 0 && !(DaemonFlags & SYSLOGD_INET_READ))
 			FD_SET(finet, &readfds);
 
-		/*dprintf("readfds = %#x\n", readfds);*/
 		nfds = select(nfds+1, &readfds, (fd_set *)NULL,
 			(fd_set *)NULL, (struct timeval *)NULL);
 		if (nfds == 0)
@@ -454,7 +470,6 @@ main(int argc, char **argv) {
 			continue;
 		}
 
-		/*dprintf("got a message (%d, %#x)\n", nfds, readfds);*/
 		for (im = &Inputs; im ; im = im->im_next) {
 			if (im->im_fd != -1 && FD_ISSET(im->im_fd, &readfds)) {
 				int i = 0;
@@ -466,9 +481,10 @@ main(int argc, char **argv) {
 				if ( !im->im_func || !(im->im_func->im_getLog)
 				    || (i = (*im->im_func->im_getLog)(im, &log))
 				    < 0) {
-					dprintf("Syslogd: Error calling input "
-					    "module %s, for fd %d\n",
-					    im->im_name, im->im_fd);
+					dprintf(DPRINTF_SERIOUS)("Syslogd: "
+					    "Error calling input module %s, "
+					    "for fd %d\n", im->im_name,
+					    im->im_fd);
 				}
 
 				/* log it if normal (1), (2) already logged */
@@ -499,8 +515,11 @@ usage(void) {
 
 	(void)fprintf(stderr,
 	    "Modular Syslog vesion " MSYSLOG_VERSION_STR "\n\n"
-	    "usage: syslogd [-d] [-u] [-f conffile] [-m markinterval] \\\n"
-	    " [-p logpath] [-a logpath] -i input1 [-i input2] [-i inputn]\n\n");
+	    "usage: syslogd [-d <debug_level>] [-u] [-f conffile] "
+	    "[-m markinterval] \\\n [-p logpath] [-a logpath] -i "
+	    "input1 [-i input2] [-i inputn]\n %s\n%s\n\n", copyright,
+	    rcsid);
+
 	exit(1);
 }
 
@@ -569,8 +588,8 @@ logmsg(int pri, char *msg, char *from, int flags) {
 	time_t now;
 	struct tm timestamp;
 
-	dprintf("logmsg: pri 0%o, flags 0x%x, from %s, msg %s\n",
-	    pri, flags, from, msg);
+	dprintf(DPRINTF_INFORMATIVE2)("logmsg: pri 0%o, flags 0x%x, from %s,
+	    msg %s\n", pri, flags, from, msg);
 
 	sigemptyset(&mask);
 	sigaddset(&mask, SIGALRM);
@@ -662,8 +681,9 @@ logmsg(int pri, char *msg, char *from, int flags) {
 		    !strcmp(from, f->f_prevhost)) {
 			memcpy(&f->f_tm, &timestamp, sizeof(f->f_tm));
 			f->f_prevcount++;
-			dprintf("msg repeated %d times, %ld sec of %d\n",
-			    f->f_prevcount, (long)(now - f->f_time),
+			dprintf(DPRINTF_INFORMATIVE)("msg repeated %d times,
+			    %ld sec of %d\n", f->f_prevcount,
+			    (long)(now - f->f_time),
 			    repeatinterval[f->f_repeatcount]);
 			/*
 			 * If domark would have logged this by now,
@@ -727,8 +747,8 @@ doLog(struct filed *f, int flags, char *message) {
 	time(&f->f_time);
 	for (om = f->f_omod; om; om = om->om_next) {
 		if (!om->om_func || !om->om_func->om_doLog) {
-			dprintf("doLog: error, no doLog function in output "
-			    "module [%s], message [%s]\n",
+			dprintf(DPRINTF_SERIOUS)("doLog: error, no doLog "
+			    "function in output module [%s], message [%s]\n",
 			    om->om_func->om_name, msg);
 			continue;
 		};
@@ -736,8 +756,9 @@ doLog(struct filed *f, int flags, char *message) {
 		/* call this module doLog */
 		ret = (*(om->om_func->om_doLog))(f,flags,msg,om->ctx);
 		if (ret < 0) {
-			dprintf("doLog: error with output module [%s] "
-			    "for message [%s]\n", om->om_func->om_name, msg);
+			dprintf(DPRINTF_SERIOUS)("doLog: error with output "
+			    "module [%s] for message [%s]\n",
+			    om->om_func->om_name, msg);
 		} else if (ret == 0)
 			/* stop going on */
 			break;
@@ -769,9 +790,9 @@ domark(int signo) {
 
 	for (f = Files; f; f = f->f_next) {
 		if (f->f_prevcount && now >= REPEATTIME(f)) {
-			dprintf("flush %s: repeated %d times, %d sec.\n",
-			    TypeNames[f->f_type], f->f_prevcount,
-			    repeatinterval[f->f_repeatcount]);
+			dprintf(DPRINTF_INFORMATIVE)("flush %s: repeated %d "
+			    "times, %d sec.\n", TypeNames[f->f_type],
+			    f->f_prevcount, repeatinterval[f->f_repeatcount]);
 			doLog(f, 0, (char *)NULL);
 			BACKOFF(f);
 		}
@@ -795,7 +816,7 @@ logerror(char *type) {
 	else
 		(void)snprintf(buf, sizeof(buf), "syslogd: %s", type);
 	errno = 0;
-	dprintf("%s\n", buf);
+	dprintf(DPRINTF_INFORMATIVE)("%s\n", buf);
 	logmsg(LOG_SYSLOG|LOG_ERR, buf, LocalHostName, ADDDATE);
 }
 
@@ -817,7 +838,8 @@ die(int signo) {
 	Initialized = was_initialized;
 
 	if (signo) {
-		dprintf("syslogd: exiting on signal %d\n", signo);
+		dprintf(DPRINTF_SERIOUS)("syslogd: exiting on signal %d\n",
+		    signo);
 		(void)sprintf(buf, "exiting on signal %d", signo);
 		errno = 0;
 		logerror(buf);
@@ -863,7 +885,7 @@ init(int signo)
  	char prog[NAME_MAX+1];
 	struct o_module *om, *om_next;
 
-	dprintf("init\n");
+	dprintf(DPRINTF_INFORMATIVE)("init\n");
 
 	/*
 	 *  Close all open log files.
@@ -905,14 +927,16 @@ init(int signo)
 		free(f);
 	}
 
+#if BUGGY_LIBRARY_OPEN
 	if (close_modules) {
 		modules_stop();
 		/* Load main modules library */
 		if (modules_start() < 0) {
-			dprintf("Error starting modules! \n");
+			dprintf(DPRINTF_SERIOUS)("Error starting modules! \n");
 			exit(-1);
 		}
 	}
+#endif
 
 	/* list of filed is now empty */
 	Files = NULL;
@@ -930,7 +954,7 @@ init(int signo)
 
 	/* open the configuration file */
 	if ((cf = fopen(ConfFile, "r")) == NULL) {
-		dprintf("cannot open %s\n", ConfFile);
+		dprintf(DPRINTF_SERIOUS)("cannot open %s\n", ConfFile);
 		*nextp = (struct filed *)calloc(1, sizeof(*f));
 		cfline("*.ERR\t/dev/console", *nextp, "*");
 		(*nextp)->f_next = (struct filed *)calloc(1, sizeof(*f));
@@ -993,7 +1017,7 @@ init(int signo)
 
 	Initialized = 1;
 
-	if (Debug) {
+	if (Debug <= DPRINTF_SERIOUS) {
 		for (f = Files; f; f = f->f_next) {
 			for (i = 0; i <= LOG_NFACILITIES; i++)
 				if (f->f_pmask[i] == INTERNAL_NOPRI)
@@ -1029,7 +1053,7 @@ init(int signo)
 	}
 
 	logmsg(LOG_SYSLOG|LOG_INFO, "syslogd: restart", LocalHostName, ADDDATE);
-	dprintf("syslogd: restarted\n");
+	dprintf(DPRINTF_INFORMATIVE)("syslogd: restarted\n");
 }
 
 /*
@@ -1041,7 +1065,8 @@ cfline(char *line, struct filed *f, char *prog) {
 	char *bp, *p, *q;
 	char buf[MAXLINE], ebuf[100];
 
-	dprintf("cfline(\"%s\", f, \"%s\")\n", line, prog);
+	dprintf(DPRINTF_INFORMATIVE)("cfline(\"%s\", f, \"%s\")\n", line,
+	    prog);
 
 	errno = 0;	/* keep strerror() stuff out of logerror messages */
 
@@ -1120,11 +1145,11 @@ cfline(char *line, struct filed *f, char *prog) {
 		p++;
 
 	if (omodule_create(p, f, NULL) == -1) {
-		dprintf("Error initializing modules!\n");
+		dprintf(DPRINTF_SERIOUS)("Error initializing modules!\n");
 		return;
 	}
 
-	dprintf("cfline: all ok\n");
+	dprintf(DPRINTF_INFORMATIVE)("cfline: all ok\n");
 }
 
 /*
@@ -1142,7 +1167,7 @@ getmsgbufsize()
 	mib[1] = KERN_MSGBUFSIZE;
 	size = sizeof msgbufsize;
 	if (sysctl(mib, 2, &msgbufsize, &size, NULL, 0) == -1) {
-		dprintf("couldn't get kern.msgbufsize\n");
+		dprintf(DPRINTF_INFORMATIVE)("couldn't get kern.msgbufsize\n");
 		return (0);
 	}
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.138 2000/12/04 23:35:45 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.139 2000/12/05 23:39:25 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -104,9 +104,9 @@ modules_start() {
 	for (i = 0; mlibs[i].mname; i++) {
 		if ((mlibs[i].h = dlopen(mlibs[i].libname, DLOPEN_FLAGS))
 		    == NULL) {
-			dprintf("Error [%s] on file [%s], this may be due to "
-			    "a kludge for old config files\n", dlerror(),
-			    mlibs[i].libname);
+			dprintf(DPRINTF_INFORMATIVE)("Error [%s] on file [%s],"
+			    " this may be due to a kludge for old config "
+			    "files\n", dlerror(), mlibs[i].libname);
 			return(-1);
 		}
 	}
@@ -115,8 +115,8 @@ modules_start() {
 	    libdir ? libdir : INSTALL_LIBDIR);
 
 	if ((main_lib = dlopen(buf, DLOPEN_FLAGS)) == NULL) {
-	   	dprintf("Error opening main library, [%s] file"
-		    " [%s]\n", dlerror(), buf);
+	   	dprintf(DPRINTF_CRITICAL)("Error opening main library, [%s] "
+		    "file [%s]\n", dlerror(), buf);
 	   	return(-1);
 	}
 
@@ -133,7 +133,8 @@ modules_stop() {
 
 	if (main_lib) {
 		dlclose(main_lib);
-		dprintf("modules_stop: unloaded main library\n");
+		dprintf(DPRINTF_INFORMATIVE)("modules_stop: unloaded main "
+		    "library\n");
 		
 	}
 
@@ -155,12 +156,11 @@ int
 prepare_module_libs(const char *modname, void **ret) {
 #if BUGGY_LIBRARY_OPEN
 	int i;
-#endif
 	char buf[LIB_PATH_MAX];
 
-	dprintf("prepare_module_libs: called for module:%s\n", modname);
+	dprintf(DPRINTF_INFORMATIVE)("prepare_module_libs: called for "
+	    "module:%s\n", modname);
 
-#if BUGGY_LIBRARY_OPEN
 	/*
 	 * Load required libs for this module
 	 * if already open, mark them as used
@@ -171,32 +171,34 @@ prepare_module_libs(const char *modname, void **ret) {
 			if (mlibs[i].h) {
 				mlibs[i].used++;
 			} else {
-				dprintf("addImodule: going to open library %s "
-				    "for module %s\n", modname,
-				    mlibs[i].libname);
+				dprintf(DPRINTF_INFORMATIVE)("addImodule: "
+				    "going to open library %s for module %s\n",
+				    modname, mlibs[i].libname);
 				if ((mlibs[i].h = dlopen(mlibs[i].libname,
 				    DLOPEN_FLAGS)) == NULL) {
-					dprintf("Error [%s] on file [%s]\n",
-					    dlerror(), mlibs[i].libname);
+					dprintf(DPRINTF_SERIOUS)("Error [%s] "
+					    "on file [%s]\n", dlerror(),
+					    mlibs[i].libname);
 					return(-1);
 				}
 				mlibs[i].used = 1;
 			}
 		}
 	}
-#endif
 
 	snprintf(buf, sizeof(buf), "%s/" MLIBNAME_STR,
 	    libdir ? libdir : INSTALL_LIBDIR);
 
-	dprintf("prepare_module_libs: Going to open %s\n", buf);
+	dprintf(DPRINTF_INFORMATIVE)("prepare_module_libs: Going to open %s\n",
+	    buf);
 
 	/* We don't care if it is not open */
 	*ret = dlopen(buf, DLOPEN_FLAGS);
 
-	dprintf("prepare_module_libs: lib %s was %sopened\n", buf, *ret == NULL?
-	    "not " : "");
+	dprintf(DPRINTF_INFORMATIVE)("prepare_module_libs: lib %s was "
+	    "%sopened\n", buf, *ret == NULL?  "not " : "");
 
+#endif
 	return (1);
 }
 
@@ -214,30 +216,35 @@ get_symbol(const char *modname, const char *funcname, void *h, void **ret) {
 
 	snprintf(buf, sizeof(buf), SYMBOL_PREFIX "%s_%s", modname, funcname);
 
-	dprintf("get_symbol: called to fetch %s\n", buf);
+	dprintf(DPRINTF_INFORMATIVE)("get_symbol: called to fetch %s\n", buf);
 
 	/*
 	 * Search for symbol on main library
 	 * and in module libs
 	 */
-	if (main_lib == NULL || (*ret = dlsym(main_lib, buf)) == NULL) {
+	if (main_lib == NULL || ( (*ret = dlsym(main_lib, buf)) == NULL &&
+	    (*ret = dlsym(main_lib, buf +  1)) == NULL ) ) {
 
-		dprintf("get_symbol: func %s not found on main lib \n", buf);
+		dprintf(DPRINTF_INFORMATIVE)("get_symbol: func %s not found "
+		    "on main lib \n", buf);
 
 		for (i = 0; mlibs[i].mname; i++) {
 			if(!strcmp(modname, mlibs[i].mname)) {
-				if (mlibs[i].h && (*ret = dlsym(mlibs[i].h,
-				    buf)) != NULL)
+				if (mlibs[i].h && ( (*ret = dlsym(mlibs[i].h,
+				    buf)) != NULL || (*ret = dlsym(mlibs[i].h,
+				    buf + 1)) != NULL ))
 					return(1); /* found! */
 			}
 		}
 	}
 
-	dprintf("get_symbol: func %s%s found %p\n", buf, *ret ? "":"not ", *ret);
+	dprintf(DPRINTF_INFORMATIVE)("get_symbol: func %s%s found %p\n", buf,
+	     *ret ? "":"not ", *ret);
 
-	if (*ret == NULL && h && (*ret = dlsym(h, buf)) == NULL) {
-	   	dprintf("get_symbol: error linking function %s, %s\n", buf,
-		    dlerror());
+	if (*ret == NULL && h && ( (*ret = dlsym(h, buf)) == NULL &&
+	    (*ret = dlsym(h, buf + 1)) == NULL) ) {
+	   	dprintf(DPRINTF_SERIOUS)("get_symbol: error linking function "
+		    "%s, %s\n", buf, dlerror());
 	   	return(-1);
 	}
 
@@ -255,7 +262,7 @@ imodule_init(struct i_module *I, char *line)
 
 	/* create initial node for Inputs list */
 	if (I == NULL) {
-	    dprintf("imodule_init: Error from caller\n");
+	    dprintf(DPRINTF_SERIOUS)("imodule_init: Error from caller\n");
 	    return (-1);
 	}
 
@@ -266,9 +273,10 @@ imodule_init(struct i_module *I, char *line)
 		im = im_prev;
 	} else {
 		if((im_prev->im_next = (struct i_module *) calloc(1,
-		        sizeof(struct i_module))) == NULL) {
-		    dprintf("No memory available for calloc\n");
-		    return (-1);
+		    sizeof(struct i_module))) == NULL) {
+			dprintf(DPRINTF_SERIOUS)("No memory available for "
+			    "calloc\n");
+			return (-1);
 		}
 		im = im_prev->im_next;
 		im->im_fd = -1;
@@ -385,8 +393,8 @@ omodule_create(char *c, struct filed *f, char *prog)
 					}
 				}
 
-				dprintf("omodule_create: got output module "
-				    "%s\n", argv[0]);
+				dprintf(DPRINTF_INFORMATIVE)("omodule_create: "
+				    "got output module %s\n", argv[0]);
 
 				/* build argv and argc, modifies input p */
 				while (isspace((int)*p)) p++;
@@ -420,7 +428,8 @@ omodule_create(char *c, struct filed *f, char *prog)
 						p++;
 				}
 
-				dprintf("omodule_create: successfully made output module "
+				dprintf(DPRINTF_INFORMATIVE)("omodule_create:"
+				    " successfully made output module "
 				    "%s's argv[]\n", argv[0]);
 
 				break;
@@ -466,7 +475,8 @@ omodule_create(char *c, struct filed *f, char *prog)
 	if (f->f_type == F_UNUSED)
 		f->f_type = F_MODULE;
 
-	dprintf("omodule_create: all done for output module %s\n", argv[0]);
+	dprintf(DPRINTF_INFORMATIVE)("omodule_create: all done for output "
+	    "module %s\n", argv[0]);
 	return (1);
 
 omodule_create_bad:
@@ -576,7 +586,8 @@ addImodule(char *name)
 
 		free(im);
 
-		dprintf("addImodule: couldn't config %s input module\n", buf);
+		dprintf(DPRINTF_SERIOUS)("addImodule: couldn't config %s input"
+		    " module\n", buf);
 		return(NULL);
 	}
 
@@ -585,7 +596,8 @@ addImodule(char *name)
 
 	im->im_name = strdup(name);
 
-	dprintf("addImodule: successfully configured %s input module\n", buf);
+	dprintf(DPRINTF_INFORMATIVE)("addImodule: successfully configured %s "
+	    "input module\n", buf);
 
 	return (im);
 }
@@ -634,7 +646,8 @@ addOmodule(char *name)
 	get_symbol(buf, "close", om->h, (void *) &om->om_close); 
 	get_symbol(buf, "flush", om->h, (void *) &om->om_flush); 
 
-	dprintf("addOmodule: successfully configured %s output module\n", buf);
+	dprintf(DPRINTF_INFORMATIVE)("addOmodule: successfully configured %s "
+	    "output module\n", buf);
 
 
 	om->om_name = strdup(name);
@@ -649,7 +662,7 @@ omoduleDestroy(struct omodule *om)
 		return (-1);
 
 	if (om->h && dlclose(om->h) < 0) {
-	   	dprintf("Error [%s]\n", dlerror());
+	   	dprintf(DPRINTF_SERIOUS)("Error [%s]\n", dlerror());
 		return (-1);
 	}
 
@@ -724,15 +737,15 @@ imodules_destroy(struct imodule *i)
 					mlibs[j].used--;
 				} else {
 					dlclose(mlibs[j].h);
-					dprintf("imodule_destroy: dlclosed "
-					    "%s\n", mlibs[j].libname);
+					dprintf(DPRINTF_INFORMATIVE)(
+					    "imodule_destroy: dlclosed %s\n",
+					    mlibs[j].libname);
 				}
 			}
 		}
 #endif
 
-		if (im->h)
-			dlclose(im->h);
+		dlclose(im->h);
 
 		free(im);
 	}
@@ -780,13 +793,13 @@ omodules_destroy(struct omodule *o)
 					mlibs[j].used--;
 				} else {
 					dlclose(mlibs[j].h);
-					dprintf("omodule_destroy: dlclosed "
-					    "%s\n", mlibs[j].libname);
+					dprintf(DPRINTF_INFORMATIVE)(
+					    "omodule_destroy: dlclosed %s\n",
+					    mlibs[j].libname);
 				}
 			}
 		}
 #endif
-
 
 		dlclose(om->h);
 		free(om);

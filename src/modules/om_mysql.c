@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.53 2000/11/24 21:55:25 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.56 2000/12/04 23:25:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -100,7 +100,8 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 	int i;
 	RETSIGTYPE (*sigsave)(int);
 
-	dprintf("om_mysql_dolog: entering [%s] [%s]\n", msg, f->f_prevline);
+	dprintf(DPRINTF_INFORMATIVE)("om_mysql_dolog: entering [%s] [%s]\n",
+	    msg, f->f_prevline);
 
 	c = (struct om_mysql_ctx *) ctx;
 
@@ -115,7 +116,8 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 		signal(SIGPIPE, sigsave);
 		c->lost++;
 		if (c->lost == 1) {
-			dprintf("om_mysql_dolog: Lost connection!");
+			dprintf(DPRINTF_SERIOUS)("om_mysql_dolog: Lost "
+			    "connection!");
 			logerror("om_mysql_dolog: Lost connection!");
 		}
 		return (1);
@@ -156,7 +158,8 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 		else
 			query[sizeof(query) - 1] = '\0';
 
-		dprintf("om_mysql_doLog: query [%s]\n", query);
+		dprintf(DPRINTF_INFORMATIVE2)("om_mysql_doLog: query [%s]\n",
+		    query);
 
 		if (mysql_query(c->h, query) < 0)
 			return (-1);
@@ -173,7 +176,8 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 	else
 		query[sizeof(query) - 1] = '\0';
 
-	dprintf("om_mysql_doLog: query [%s]\n", query);
+	dprintf(DPRINTF_INFORMATIVE2)("om_mysql_doLog: query [%s]\n",
+	    query);
 
 	return (mysql_query(c->h, query) < 0? -1 : 1);
 }
@@ -199,7 +203,7 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 	char	*p, err_buf[256];
 	int	ch;
 
-	dprintf("om_mysql_init: entering initialization\n");
+	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: Entering\n");
 
 	if (argv == NULL || *argv == NULL || argc < 2 || f == NULL ||
 	    c == NULL || *c != NULL)

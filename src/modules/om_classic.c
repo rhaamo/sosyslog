@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.56 2000/11/24 21:55:25 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.57 2000/12/04 23:25:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -138,21 +138,21 @@ om_classic_doLog(struct filed *f, int flags, char *msg, void *context)
 	v->iov_len = strlen(msg);
 	v++;
 
-	dprintf("Logging to %s", TypeNames[f->f_type]);
+	dprintf(DPRINTF_INFORMATIVE)("Logging to %s", TypeNames[f->f_type]);
 
 	switch (f->f_type) {
 	case F_UNUSED:
-		dprintf("\n");
+		dprintf(DPRINTF_INFORMATIVE)("\n");
 		break;
 	
 	case F_FORW:
 		if (finet < 0) {
-			dprintf("om_classic: doLog: can't forward"
-			    "message, socket down\n");
+			dprintf(DPRINTF_SERIOUS)("om_classic: doLog: "
+			    "can't forward message, socket down\n");
 			break;
 		}
 
-		dprintf(" %s\n", f->f_un.f_forw.f_hname);
+		dprintf(DPRINTF_INFORMATIVE)(" %s\n", f->f_un.f_forw.f_hname);
 		l = snprintf(line, sizeof(line), "<%d>%.15s %s", f->f_prevpri,
 		    (char *) iov[0].iov_base, (char *) iov[4].iov_base);
 		if (l > MAXLINE)
@@ -167,14 +167,14 @@ om_classic_doLog(struct filed *f, int flags, char *msg, void *context)
 
 	case F_CONSOLE:
 		if (flags & IGN_CONS) {
-			dprintf(" (ignored)\n");
+			dprintf(DPRINTF_INFORMATIVE)(" (ignored)\n");
 			break;
 		}
 		/* FALLTHROUGH */
 
 	case F_TTY:
 	case F_FILE:
-		dprintf(" %s\n", f->f_un.f_fname);
+		dprintf(DPRINTF_INFORMATIVE)(" %s\n", f->f_un.f_fname);
 		if (f->f_type != F_FILE) {
 			v->iov_base = "\r\n";
 			v->iov_len = 2;
@@ -209,7 +209,7 @@ om_classic_doLog(struct filed *f, int flags, char *msg, void *context)
 
 	case F_USERS:
 	case F_WALL:
-		dprintf("\n");
+		dprintf(DPRINTF_INFORMATIVE)("\n");
 		v->iov_base = "\r\n";
 		v->iov_len = 2;
 		wallmsg(f, iov);
@@ -233,7 +233,7 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog,
 	int i;
 	char *p, *q;
 
-	dprintf("om_classic init\n");
+	dprintf(DPRINTF_INFORMATIVE)("om_classic init: Entering\n");
 
 	p = argv[1];
 

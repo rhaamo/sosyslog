@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.84 2000/11/24 21:55:24 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.85 2000/12/04 23:25:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -59,7 +59,23 @@
 
 #define	_PATH_LOGCONF	"/etc/syslog.conf"
 
-#define	dprintf		if (Debug) printf
+/*
+ * Debug reporting levels
+ *
+ * critical and below are cause of daemon exit
+ * noncritical and up are not cause of exit
+ * warning and up are not necesary an error, user must check
+ * informative and up are just for debugging purposes
+ *
+ */
+#define	dprintf(level)		if (Debug >= level) printf
+
+#define DPRINTF_CRITICAL	 10
+#define DPRINTF_SERIOUS		 20
+#define DPRINTF_NONCRITICAL	 30
+#define DPRINTF_WARNING		100
+#define DPRINTF_INFORMATIVE	200 /* calling/returning from a func */
+#define DPRINTF_INFORMATIVE2	250 /* each message, structure contents */
 
 #define MAXUNAMES	20	/* maximum number of user names */
 

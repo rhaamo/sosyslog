@@ -18,8 +18,7 @@ dnl This isn't needed
 dnl AC_HEADER_SYS_WAIT
 
 AC_CHECK_HEADERS(fcntl.h limits.h paths.h strings.h sys/ioctl.h \
-    sys/time.h syslog.h unistd.h un.h sys/klog.h sys/socket.h \
-    regex.h door.h stropts.h)dnl
+    sys/time.h syslog.h unistd.h)dnl
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -103,7 +102,45 @@ AC_EGREP_CPP(yes,
 ])dnl
 
 
-echo "setting system linking flags"
+dnl Check underscore requirement for dlsym()
+
+AC_DEFINE(SYMBOL_PREFIX, "_")
+
+dnl	AC_MSG_CHECKING([for symbol prefix in compiled objects])
+
+dnl	AC_REQUIRE([AC_PROG_NM])dnl
+
+dnl	AC_CACHE_VAL(SYMBOL_PREFIX,
+dnl	[SYMBOL_PREFIX=""
+dnl	cat > conftest.$ac_ext <<EOF
+dnl	int prefix_func(){};
+dnl	int main(){return prefix_func();}
+dnl	EOF
+dnl	if AC_TRY_EVAL(ac_compile); then
+dnl	  # Now try to grab the symbols.
+dnl	  nm_output=conftest.nm
+dnl	  if AC_TRY_EVAL(NM conftest.$ac_objext \| $ac_cv_sys_global_symbol_pipe \> $nm_output) && test -s
+dnl	"$nm_output"; then
+dnl	    # See whether the symbols have a leading underscore.  
+dnl	    if egrep '^. _prefix_func' "$nm_output" >/dev/null; then
+dnl	      SYMBOL_PREFIX=yes
+dnl	    else
+dnl	      if egrep '^. prefix_func ' "$nm_output" >/dev/null; then
+dnl	        :
+dnl	      else
+dnl	        echo "configure: cannot find prefix_func in $nm_output" >&AC_FD_CC
+dnl	      fi
+dnl	    fi
+dnl	  else
+dnl	    echo "configure: cannot run $ac_cv_sys_global_symbol_pipe" >&AC_FD_CC
+dnl	  fi
+dnl	else
+dnl	  echo "configure: failed program was:" >&AC_FD_CC
+dnl	  cat conftest.$ac_ext >&AC_FD_CC
+dnl	fi
+dnl	rm -rf conftest*
+dnl	])
+dnl	AC_MSG_RESULT($SYMBOL_PREFIX)
 
 UNAME=`uname`
 if test "$UNAME" = "OpenBSD" ; then
@@ -186,7 +223,7 @@ AC_ARG_WITH(unix,
 		MSRCS="$MSRCS im_unix.c"
 	fi
 ],[
-	AC_CHECK_HEADER(un.h, [
+	AC_CHECK_HEADER(sys/un.h, [
 		MSRCS="$MSRCS im_unix.c"
 	])dnl
 ])dnl
@@ -334,6 +371,8 @@ AC_SUBST(HAVE_UINT32_T)dnl
 AC_SUBST(HAVE_UINT64_T)dnl
 AC_SUBST(HAVE_U_INT32_T)dnl
 AC_SUBST(HAVE_U_INT64_T)dnl
+
+dnl AC_SUBST(SYMBOL_PREFIX)dnl
 
 AC_OUTPUT([Makefile
 	    src/Makefile

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.23 2000/11/24 21:55:26 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.25 2000/12/04 23:25:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -90,10 +90,11 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 	int ch;
 
 	/* for debugging purposes */
-	dprintf("om_regex init\n");
+	dprintf(DPRINTF_INFORMATIVE)("om_regex init\n");
 
 	if (argc < 2 || argv == NULL || argv[1] == NULL) {
-		dprintf("om_regex: error on initialization\n");
+		dprintf(DPRINTF_SERIOUS)("om_regex: error on "
+		    "initialization\n");
 		return (-1);
 	}
 
@@ -127,8 +128,9 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 			c->filters |= OM_FILTER_MESSAGE;
 			c->msg_exp = (regex_t *) malloc(sizeof(regex_t));
 			if (regcomp(c->msg_exp, optarg, REG_EXTENDED) != 0) {
-				dprintf("om_regex: error compiling regular "
-				    "expression [%s] for message\n", optarg);
+				dprintf(DPRINTF_SERIOUS)("om_regex: error "
+				    "compiling regular expression [%s] for"
+				    " message\n", optarg);
 				free(c->msg_exp);
 				goto bad;
 			}
@@ -137,7 +139,8 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 			c->filters |= OM_FILTER_HOST;
 			c->host_exp = (regex_t *) malloc(sizeof(regex_t));
 			if (regcomp(c->host_exp, optarg, REG_EXTENDED) != 0) {
-				dprintf("om_regex: error compiling regular "
+				dprintf(DPRINTF_SERIOUS)("om_regex: error"
+				    " compiling regular "
 				    "expression [%s] for message\n", optarg);
 				free(c->host_exp);
 				goto bad;
@@ -147,8 +150,9 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 			c->filters |= OM_FILTER_DATE;
 			c->date_exp = (regex_t *) malloc(sizeof(regex_t));
 			if (regcomp(c->date_exp, optarg, REG_EXTENDED) != 0) {
-				dprintf("om_regex: error compiling regular "
-				    "expression [%s] for message\n", optarg);
+				dprintf(DPRINTF_SERIOUS)("om_regex: error "
+				    "compiling regular expression [%s] for "
+				    "message\n", optarg);
 				free(c->date_exp);
 				goto bad;
 			}
@@ -157,14 +161,16 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 			c->filters |= OM_FILTER_TIME;
 			c->time_exp = (regex_t *) malloc(sizeof(regex_t));
 			if (regcomp(c->time_exp, optarg, REG_EXTENDED) != 0) {
-				dprintf("om_regex: error compiling regular "
-				    "expression [%s] for message\n", optarg);
+				dprintf(DPRINTF_SERIOUS)("om_regex: error "
+				    "compiling regular expression [%s] for "
+				    "message\n", optarg);
 				free(c->time_exp);
 				goto bad;
 			}
 			break;
 		default:
-			dprintf("om_regex: unknown parameter [%c]\n", ch);
+			dprintf(DPRINTF_SERIOUS)("om_regex: unknown "
+			    "parameter [%c]\n", ch);
 			goto bad;
 		}
 	}
