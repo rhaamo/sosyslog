@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.10 2000/06/05 22:40:57 fgsch Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.11 2000/06/06 00:44:13 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -35,6 +35,12 @@
  * Author: Oliver Teuber (ot@penguin-power.de)
  *         Based on om_mysql from Alejo Sanchez
  *
+ * Changes:
+ *
+ * 06/08/2000 - Gerardo_Richarte@core-sdi.com
+ *   Moved to_sql() to sql_misc.c to reuse it in om_mysql
+ *   removed some code regarding msg being NULL, this is checked before calling
+ *   doLog
  */
 
 #include <sys/types.h>
@@ -71,45 +77,6 @@ struct om_pgsql_ctx {
 	char    *table;
 	char    *query;         /* speed hack: this is a buffer for querys */
 };
-
-static char *
-to_sql(s)
-	char *s;
-{
-	char *p, *b;
-	int ns, ss;
-
-	if(!s)
-		return strdup("NULL");
-	
-	if(s[0]=='-' && s[1]=='0')
-		return strdup("NULL");
-
-	for(p=s, ns=0; *p; p++) 
-		if(*p=='\'') ns++;
-
-	ss=(int)(p-s);
-
-	b=malloc(ss+ns+4);
-	if(!b)
-		return NULL;
-
-	p=b; *p++='\'';
-	for(;*s; s++)
-	{
-		if(*s=='\'') {
-			*p++='\'';
-			*p++='\'';
-		} else
-			*p++=*s;
-	}
-	*p++='\'';
-	*p=0;
-	
-	return b;
-}
-
-
 
 int
 om_pgsql_doLog(f, flags, msg, ctx)
@@ -163,7 +130,7 @@ om_pgsql_doLog(f, flags, msg, ctx)
 
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
 	snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s"
-			" VALUES('%s-%02d-%s', '%s', '%s', %s)",
+			" VALUES('%s-%02d-%s', '%s', '%s', '%s')",
 			c->table, y, mn, d, h, host, m);
 
 	free(m);
