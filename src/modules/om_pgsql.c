@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.40 2001/03/23 00:12:30 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.41 2001/04/05 20:56:26 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -281,7 +281,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	    "PQsetdbLogin"))   
 	    || !(ctx->PQfinish = (void (*)(void *)) dlsym(ctx->lib,
 	    SYMBOL_PREFIX "PQfinish"))) {
-		dprintf(MSYSLOG_SERIOUS, "om_mysql_init: Error resolving"
+		dprintf(MSYSLOG_SERIOUS, "om_pgsql_init: Error resolving"
 		    " api symbols, %s\n", dlerror());
 		free(ctx);
 		return (-1);
