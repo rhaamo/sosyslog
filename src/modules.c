@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.67 2000/05/26 16:43:36 fgsch Exp $	*/
+/*	$CoreSDI: modules.c,v 1.68 2000/05/26 16:53:37 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -48,32 +48,37 @@
 #include "syslogd.h"
 #include "modules.h"
 
-int om_peo_doLog(struct filed *, int, char *, struct om_hdr_ctx *);
-int om_peo_init(int, char **, struct filed *, char *, struct om_hdr_ctx **);
-int om_peo_close(struct filed *, struct om_hdr_ctx *);
-int om_peo_flush(struct filed *, struct om_hdr_ctx *);
+int	om_peo_doLog __P((struct filed *, int, char *, struct om_hdr_ctx *));
+int	om_peo_init __P((int, char **, struct filed *, char *,
+	    struct om_hdr_ctx **));
+int	om_peo_close __P((struct filed *, struct om_hdr_ctx *));
+int	om_peo_flush __P((struct filed *, struct om_hdr_ctx *));
 
-int om_classic_doLog(struct filed *, int , char *, struct om_hdr_ctx *);
-int om_classic_init(int, char **, struct filed *, char *, struct om_hdr_ctx **);
-int om_classic_close(struct filed*, struct om_hdr_ctx *);
-int om_classic_flush(struct filed*, struct om_hdr_ctx *);
+int	om_classic_doLog __P((struct filed *, int , char *,
+	    struct om_hdr_ctx *));
+int	om_classic_init __P((int, char **, struct filed *, char *,
+	    struct om_hdr_ctx **));
+int	om_classic_close(struct filed*, struct om_hdr_ctx *);
+int	om_classic_flush(struct filed*, struct om_hdr_ctx *);
 
 #ifdef ENABLE_MYSQL
-int om_mysql_doLog(struct filed *, int , char *, struct om_hdr_ctx *);
-int om_mysql_init(int, char **, struct filed *, char *, struct om_hdr_ctx **);
-int om_mysql_close(struct filed*, struct om_hdr_ctx *);
-int om_mysql_flush(struct filed*, struct om_hdr_ctx *);
+int	om_mysql_doLog __P((struct filed *, int , char *,
+	    struct om_hdr_ctx *));
+int	om_mysql_init __P((int, char **, struct filed *, char *,
+	    struct om_hdr_ctx **));
+int	om_mysql_close __P((struct filed*, struct om_hdr_ctx *));
+int	om_mysql_flush __P((struct filed*, struct om_hdr_ctx *));
 #endif /* ENABLE_MYSQL */
 
-int im_bsd_init(struct i_module *, char **, int);
-int im_bsd_getLog(struct i_module *, struct im_msg *);
-int im_bsd_close(struct i_module *);
-int im_unix_init(struct i_module *, char **, int);
-int im_unix_getLog(struct i_module *, struct im_msg *);
-int im_unix_close(struct i_module *);
-int im_udp_init(struct i_module *, char **, int);
-int im_udp_getLog(struct i_module *, struct im_msg *);
-int im_udp_close(struct i_module *);
+int	im_bsd_init __P((struct i_module *, char **, int));
+int	im_bsd_getLog __P((struct i_module *, struct im_msg *));
+int	im_bsd_close __P((struct i_module *));
+int	im_unix_init __P((struct i_module *, char **, int));
+int	im_unix_getLog __P((struct i_module *, struct im_msg *));
+int	im_unix_close __P((struct i_module *));
+int	im_udp_init __P((struct i_module *, char **, int));
+int	im_udp_getLog __P((struct i_module *, struct im_msg *));
+int	im_udp_close __P((struct i_module *));
 
 void    die __P((int));
 
@@ -154,7 +159,8 @@ modules_init (I, line)
 
 	for(im = I; im->im_next != NULL; im = im->im_next);
 	if (im == I && im->im_fd > -1) {
-		im->im_next = (struct i_module *) calloc(1, sizeof(struct i_module));
+		im->im_next = (struct i_module *) calloc(1,
+		    sizeof(struct i_module));
 		im = im->im_next;
 		im->im_fd = -1;
 	}
