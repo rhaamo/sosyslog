@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.57 2000/05/08 22:28:38 alejo Exp $
+/*	$Id: syslogd.c,v 1.58 2000/05/09 20:47:11 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -166,6 +166,7 @@ main(argc, argv)
 		case 'i':		/* non AF_UNIX/pipe inputs */
 			if (modules_init(&Inputs, optarg) < 0)
 				exit(-1);
+			break;
 		case 'a':		/* additional AF_UNIX socket name */
 			if (optarg != NULL) {
 			    char buf[512];
