@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.68 2000/11/10 01:44:22 alejo Exp $
+dnl	$CoreSDI: configure.in,v 1.69 2000/11/14 01:29:01 alejo Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -22,7 +22,7 @@ dnl Check needed libs (Mostly for Solaris)
 dnl
 AC_CHECK_LIB(dl, dlopen)
 AC_CHECK_LIB(socket, connect)
-AC_CHECK_LIB(nsl, nlsenv)
+AC_CHECK_LIB(nls, nlsenv)
 dnl AC_CHECK_LIB(resolv, gethostbyaddr)
 
 AC_CHECK_HEADERS(paths.h)
