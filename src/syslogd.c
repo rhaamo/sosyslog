@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.208 2001/09/21 06:40:26 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.209 2001/09/21 06:48:47 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.208 2001/09/21 06:40:26 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.209 2001/09/21 06:48:47 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -1151,6 +1151,8 @@ init(int signo)
 	f = NULL;
 	strncpy(prog, "*", 2);
 	while (fgets(cline, sizeof(cline), cf) != NULL) {
+		int	clen;
+
 		/*
 		 * check for end-of-section, comments, strip off trailing
 		 * spaces and newline character. #!prog  and !prog are treated
@@ -1160,6 +1162,17 @@ init(int signo)
 			continue;
 		if (*p == '\0')
 			continue;
+		/* line is splitted, merge with the next */
+		clen = strlen(cline);
+		if (cline[clen - 1] == '\n' && cline[clen - 2] == '\\') {
+			if (fgets(&cline[clen - 2], sizeof(cline) - clen, cf)
+			    == NULL) {
+				cline[clen - 2] = '\0';
+				dprintf(MSYSLOG_INFORMATIVE, "syslogd: error "
+				    "merging line [%s]\n", cline);
+				break;
+			}
+		}
 		if (*p == '#') {
 			p++;
 			if (*p != '!')
@@ -1295,7 +1308,7 @@ cfline(char *line, struct filed *f, char *prog) {
 
 		if (pri < 0) {
 			snprintf(ebuf, sizeof ebuf, "unknown priority"
-			    " name \"%s\"", buf);
+			    " name \"%s\" on line [%s]", buf, line);
 			logerror(ebuf);
 			return;
 		}
