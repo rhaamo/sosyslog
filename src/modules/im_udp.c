@@ -82,91 +82,34 @@ im_udp_init(I, argc, argv, c)
 	struct im_udp_ctx *ctx;
 	int i;
 	char line[MAXLINE + 1];
-	struct sockaddr_un
+	struct sockaddr_in sin;
+	struct servent *sp;
 
 	*c = (struct im_header_ctx *) calloc(1, sizeof(struct im_udp_ctx));
 	ctx = (struct im_udp_ctx *) *c;
 
 
         I->fd = socket(AF_INET, SOCK_DGRAM, 0);
-        if (finet >= 0) {
-                struct servent *sp;
 
-                sp = getservbyname("syslog", "udp");
-                if (sp == NULL) {
-                        errno = 0;
-                        logerror("syslog/udp: unknown service");
-                        die(0);
-                }
-                memset(&sin, 0, sizeof(sin));
-                sin.sin_len = sizeof(sin);
-                sin.sin_family = AF_INET;
-                sin.sin_port = LogPort = sp->s_port;
-                if (bind(finet, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
-                        logerror("bind");
-                        if (!Debug)
-                                die(0);
-                } else {
+	sp = getservbyname("syslog", "udp");
+	if (sp == NULL) {
+		errno = 0;
+		logerror("syslog/udp: unknown service");
+		die(0);
+	}
+	memset(&sin, 0, sizeof(sin));
+	sin.sin_len = sizeof(sin);
+	sin.sin_family = AF_INET;
+	sin.sin_port = LogPort = sp->s_port;
+	if (bind(finet, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+		logerror("bind");
+		if (!Debug)
+		die(0);
+	} else {
                         InetInuse = 1;
-                }
-        }
+	}
 
-        if ((fklog = open(_PATH_KLOG, O_RDONLY, 0)) < 0)
-                dprintf("can't open %s (%d)\n", _PATH_KLOG, errno);
-
-
- 
-
-
-	
-}
-
-
-/*
- * get messge
- *
- */
-
-char *
-im_udp_getLog(c)
-	struct im_header_ctx  *c;
-{
-	struct im_udp_ctx *ctx;
-
-	ctx = (struct im_udp_ctx *) c;
-
-
-
-
-                if (finet != -1 && FD_ISSET(finet, &readfds)) {
-                        len = sizeof(frominet);
-                        i = recvfrom(finet, line, MAXLINE, 0,
-                            (struct sockaddr *)&frominet, &len);
-                        if (SecureMode) {
-                                /* silently drop it */
-                        } else {
-                                if (i > 0) {
-                                        line[i] = '\0';
-                                        printline(cvthname(&frominet), line);
-                                } else if (i < 0 && errno != EINTR)
-                                        logerror("recvfrom inet");
-                        }
-                }
-                for (i = 0; i < nfunix; i++) {
-                        if (funix[i] != -1 && FD_ISSET(funix[i], &readfds)) {
-                                len = sizeof(fromunix);
-                                len = recvfrom(funix[i], line, MAXLINE, 0,
-                                    (struct sockaddr *)&fromunix, &len);
-                                if (len > 0) {
-                                        line[len] = '\0';
-                                        printline(LocalHostName, line);
-                                } else if (len < 0 && errno != EINTR)
-                                        logerror("recvfrom unix");
-                        }
-                }
-
-
-	
+        return(1);
 }
 
 

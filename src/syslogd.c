@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.40 2000/04/19 00:05:50 alejo Exp $
+/*	$Id: syslogd.c,v 1.41 2000/04/19 17:13:47 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -136,9 +136,7 @@ main(argc, argv)
 	int argc;
 	char *argv[];
 {
-	int ch, i, len;
-	struct sockaddr_un sunx, fromunix;
-	struct sockaddr_in sin, frominet;
+	int ch;
 	FILE *fp;
 	char *p;
 	struct	i_module *Inputs;
@@ -262,7 +260,8 @@ main(argc, argv)
 		       for (i = 0; i < MAX_N_IMODULES &&
 					(im->im_type != IModules[i].im_type); i++);
 		       if (i == MAX_N_IMODULES) {
-		       		dprintf("Error getting input module %i on IMODULES\n");
+		       		dprintf("Error getting input module %i on IMODULES\n",
+						im->im_type);
 		       		continue;
 		       }
 
