@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.3 2000/05/29 22:59:43 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.4 2000/05/30 18:57:20 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -80,6 +80,33 @@ im_linux_init(I, argv, argc)
 }
 
 
+
+/*
+ * readline
+ */
+int
+readline (fd, buf, len)
+	int     fd;
+	char   *buf;
+	size_t  len;
+{
+	int readed;
+	int r;
+
+	readed = 0;
+	while (len) {
+		if ( (r = read(fd, buf, 1)) == -1)
+			return (-1);
+		if (!r || *buf == '\n')
+			break;
+		buf++;
+		readed++;
+		len--;
+	}
+	*buf = '\0';
+	return readed;
+}
+
 /*
  * get kernel messge
  * Take input line from /proc/kmsg or syslog(2), split and format similar to syslog().
@@ -90,15 +117,16 @@ im_linux_getLog(im, ret)
 	struct i_module *im;
 	struct im_msg  *ret;
 {
-	int readed;
+	int i;
 	int pri;
+	int readed;
 
 	if (im->im_fd < 0)
 		return (-1);
 
 	/* read message from kernel */
 	if (im->im_path)
-		readed = read(im->im_fd, im->im_buf, sizeof(im->im_buf));
+		readed = readline(im->im_fd, im->im_buf, sizeof(im->im_buf));
 	else
 		/* readed = klogctl(2, im->im_buf, sizeof(im->im_buf)); */ /* this blocks */
 		readed = klogctl(4, im->im_buf, sizeof(im->im_buf));/*this don't block,testing!*/
@@ -109,21 +137,25 @@ im_linux_getLog(im, ret)
 			return(-1);
 		}
 
+	/* only when not using readline 
 	im->im_buf[readed-1] = '\0';
+	*/
 
-	/* parse kernel and module symbols */
+	/* parse kernel and module symbols (include priority) */
 	;;;
 	;;;
-
 	/* get priority */
-	if (readed >= 3 && im->im_buf[0] == '<' && im->im_buf[2] == '>' && isdigit(im->im_buf[1]))
-		pri = im->im_buf[1] - '9';
+	i = 0;
+	if (readed >= 3 && im->im_buf[0] == '<' && im->im_buf[2] == '>' && isdigit(im->im_buf[1])) {
+		pri = '9' - im->im_buf[1];
+		i = 3;
+		readed -= 3;
+	}
 	else
 		pri = LOG_WARNING;	/* from printk.c: DEFAULT_MESSAGE_LOGLEVEL */
 
 	/* log it */
-	ret->im_len = snprintf(ret->im_msg, sizeof(ret->im_msg), "%s: %s: %s",
-		_PATH_UNIX, LocalHostName, im->im_buf);
+	ret->im_len = snprintf(ret->im_msg, sizeof(ret->im_msg), "kernel: %s", &im->im_buf[i]);
 	strncpy(ret->im_host, LocalHostName, sizeof(ret->im_host));
 	ret->im_host[sizeof(ret->im_host)-1] = '\0';
 
