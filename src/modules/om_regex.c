@@ -109,7 +109,7 @@ int om_regex_init(
  int argc,
  char **argv,
  struct filed *f,
- char *prog,
+ struct global* global,
  void **ctx,
  char **status
 ) {
@@ -504,6 +504,9 @@ int om_regex_flush(struct filed *f, void *ctx) {
 }
 
 
+/* 
+ * Free the compiled regex
+ */
 int om_regex_close(struct filed *f, void *ctx) {
 
   struct om_regex_ctx *c;
@@ -512,7 +515,7 @@ int om_regex_close(struct filed *f, void *ctx) {
 
   if (c->msg_no_subst) {
     int ix;
-    char *string = c->msg_non_subst;
+    char *string = *(c->msg_non_subst);
     for(ix = c->msg_no_subst ; ix >= 0 ; --ix)
       free(string++);
     free(c->msg_non_subst);

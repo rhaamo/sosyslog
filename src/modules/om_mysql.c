@@ -238,7 +238,12 @@ om_mysql_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
  */
 
 int
-om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
+om_mysql_init(
+    int argc,
+    char **argv,
+    struct filed *f,
+    struct global *global,
+    void **c,
     char **status)
 {
 	char			err_buf[256];

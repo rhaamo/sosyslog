@@ -159,6 +159,7 @@ int repeatinterval[] = { 30, 120, 600 };  /* # of secs before flush */
 struct filed *Files;
 struct filed  consfile;
 
+
 int   Initialized = 0;   /* set when we have initialized ourselves */
 int   MarkInterval = 20 * 60; /* interval between marks in seconds */
 int   MarkSeq = 0;     /* mark sequence number */
@@ -175,17 +176,18 @@ FILE  *pidf;
 
 #define MAX_PIDFILE_LOCK_TRIES 5
 
-char    *ctty = "%classic -t CONSOLE " _PATH_CONSOLE;  /* console path */
-int  UseConsole = 1;
-char     LocalHostName[MAXHOSTNAMELEN];  /* our hostname */
-int      Debug = 0;        /* debug flag */
-int   DaemonFlags = 0;    /* running daemon flags */
-#define SYSLOGD_LOCKED_PIDFILE  0x01    /* pidfile is locked */
-#define SYSLOGD_MARK    0x02    /* call domark() */
-#define SYSLOGD_DIE    0x04    /* call die() */
-#define USE_LOCALDOMAIN    0x08    /* use hostname with local domain */
+char  *ctty = "%classic -t CONSOLE " _PATH_CONSOLE;  /* console path */
+int   UseConsole = 1;
+char  LocalHostName[MAXHOSTNAMELEN];  /* our hostname */
+int   Debug = 0;                      /* debug flag */
+int   DaemonFlags = 0;                /* running daemon flags */
+#define SYSLOGD_LOCKED_PIDFILE  0x01  /* pidfile is locked */
+#define SYSLOGD_MARK            0x02  /* call domark() */
+#define SYSLOGD_DIE             0x04  /* call die() */
+#define USE_LOCALDOMAIN         0x08  /* use hostname with local domain */
 
 char  *libdir = NULL;
+struct global globals = {NULL, NULL, NULL};
 
 RETSIGTYPE domark(int);
 RETSIGTYPE reapchild(int);
@@ -200,7 +202,7 @@ void  doLog(struct filed *, int, struct m_msg *);
 void  printline(char *, char *, size_t, int);
 void  usage(void);
 int  imodule_create(struct i_module *, char *);
-int  omodule_create(char *, struct filed *, char *);
+int  omodule_create(char *, struct filed *, struct global *);
 int  omodules_destroy(struct omodule *);
 int  imodules_destroy(struct imodule *);
 void  logerror(char *);
@@ -256,12 +258,10 @@ main(int argc, char **argv)
     printf("syslogd: error exporting%s\n", dlerror());
 #endif
 
-  if ( (main_lib = dlopen(INSTALL_LIBDIR "/" MLIBNAME_STR, DLOPEN_FLAGS))
-      == NULL && Debug)
-    main_lib = dlopen("./" MLIBNAME_STR, DLOPEN_FLAGS);
+  main_lib = dlopen(INSTALL_LIBDIR "/" MLIBNAME_STR, DLOPEN_FLAGS);
 
   if (main_lib == NULL) {
-    printf("Error opening main library, [%s] file [%s]\n",
+    printf("Warning, could not open main library, [%s] file [%s]\n",
         dlerror(), INSTALL_LIBDIR "/" MLIBNAME_STR);
 return(-1);
   }
@@ -284,7 +284,9 @@ return(-1);
    */
 
   for ( argcnt = 1;  /* skip argv[0] getxopt() */
-        ((ch = getxopt(argc, argv, "d!debug: i!input: f!conf:"
+        ((ch = getxopt(argc, argv, 
+         " l!list"
+         " d!debug: i!input: f!conf:"
          " m!markinterval: P!pidfile: c!console A!localdomain"
          " n!nodefault h!help"
          " u!udp p!path a!add", &argcnt)) != -1);
@@ -293,6 +295,9 @@ return(-1);
     char buf[512];
 
     switch (ch) {
+    case 'l':  /* listing of files/directories etc. */
+      globals.FileListing = argv[argcnt];
+      break;
     case 'd':  /* debug */
       if (argcnt >= argc || *argv[argcnt] == '-'
           || !isdigit((int) *argv[argcnt])) {
@@ -302,6 +307,8 @@ return(-1);
       } else if (isdigit((int) *argv[argcnt])) {
         Debug = strtol(argv[argcnt], NULL, 10);
       }
+      if (main_lib == NULL)
+         main_lib = dlopen("./" MLIBNAME_STR, DLOPEN_FLAGS);
       break;
     case 'f':  /* configuration file */
       ConfFile = argv[argcnt];
@@ -865,8 +872,7 @@ logmsg(int pri, char *msg, char *from, int flags)
 
   /* log the message to the particular outputs */
   if (!Initialized) {
-    if (UseConsole && omodule_create(ctty, &consfile,
-        NULL) != -1) {
+    if (UseConsole && omodule_create(ctty, &consfile, &globals) != -1) {
       doLog(&consfile, flags, &msg_obj);
 
       if (consfile.f_omod && consfile.f_omod->om_func
@@ -1011,7 +1017,8 @@ doLog(struct filed *f, int flags, struct m_msg *m)
     /* zero) indicates that the module did not fire/match */
     if (ret == 0) {
   break;
-    } else 
+    } 
+    else { 
     /* positive) indicates if the module fired/matched */
     /* if this was the last module, then all of the 
      * modules have fired, and hence the rule has fired
@@ -1252,9 +1259,15 @@ exit(-1);
 #endif
   }
 
+  /* open the file listing */
+  /* it might be useful to have this go to stdout but for now... */
+  if ((globals.flist_des = fopen(globals.FileListing, "w")) == NULL) {
+    m_dprintf(MSYSLOG_SERIOUS, "cannot open listing: %s\n", globals.FileListing);
+  }
+
   /* open the configuration file */
   if ((cf = fopen(ConfFile, "r")) == NULL) {
-    m_dprintf(MSYSLOG_SERIOUS, "cannot open %s\n", ConfFile);
+    m_dprintf(MSYSLOG_SERIOUS, "cannot open config: %s\n", ConfFile);
     if ( (*nextp = (struct filed *) calloc(1, sizeof(*f)))
         == NULL) {
       m_dprintf(MSYSLOG_CRITICAL, "calloc struct filed");
@@ -1394,8 +1407,7 @@ cfline(char *line, struct filed *f, char *prog) {
   char *bp;
   char buf[MAXLINE], ebuf[240];
 
-  m_dprintf(MSYSLOG_INFORMATIVE, "cfline(\"%s\", f, \"%s\")\n", line,
-      prog);
+  m_dprintf(MSYSLOG_INFORMATIVE, "cfline(\"%s\", f, \"%s\")\n", line, prog);
 
   errno = 0;  /* keep strerror() stuff out of logerror messages */
   ignorepri = 0;
@@ -1428,8 +1440,7 @@ cfline(char *line, struct filed *f, char *prog) {
     *bp = '\0';
 
     /* skip cruft */
-    while (strchr(", ;", *q))
-      q++;
+    while (strchr(", ;", *q)) q++;
 
     if (*buf == '!') {
       ignorepri++;
@@ -1560,7 +1571,7 @@ return (-1);
   while (*p == '\t' || *p == ' ')
     p++;
 
-  if (omodule_create(p, f, NULL) == -1) {
+  if (omodule_create(p, f, &globals) == -1) {
     m_dprintf(MSYSLOG_SERIOUS, "cfline: error initializing modules!\n");
 return (-1);
   }

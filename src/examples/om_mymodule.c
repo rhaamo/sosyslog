@@ -99,15 +99,13 @@ om_mymodule_write(struct filed *f, int flags, char *msg,
  *
  */
 int
-om_mymodule_init (int argc, char **argv, struct filed *f, char *prog,
-		void **context) {
-/*
- * int argc;			Argumemt count
- * char **argv;			Argumemt array, like main()
- * struct filed *f;		Our filed structure
- * char *prog;			Program name doing this log
- * void **context; Our context
- */
+om_mymodule_init (
+  int argc,              /* Argumemt count */
+  char **argv,           /* Argumemt array, like main() */
+  struct filed *f,       /* Our filed structure */
+  struct global *global, /* Global information */
+	void **context)        /* Our context */
+{
 	char	*myArg;
 	int	argcnt;
 

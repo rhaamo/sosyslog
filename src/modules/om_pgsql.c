@@ -131,8 +131,13 @@ struct om_pgsql_ctx {
  */
 
 int
-om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
-    char **status)
+om_pgsql_init(
+   int argc,
+   char **argv,
+   struct filed *f,
+   struct global *global,
+   void **c,
+   char **status)
 {
 	char			statbuf[1024];
 	void			*h;

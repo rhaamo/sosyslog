@@ -272,7 +272,12 @@ om_classic_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
  *  taken mostly from syslogd's cfline
  */
 int
-om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
+om_classic_init(
+    int argc,
+    char **argv,
+    struct filed *f,
+    struct global *global, 
+    void **ctx,
     char **status)
 {
 	struct sockaddr *sa;
@@ -360,15 +365,26 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	case '/':
 		strncpy(c->f_un.f_fname, p, sizeof c->f_un.f_fname);
 		c->f_un.f_fname[sizeof (c->f_un.f_fname) - 1] = 0;
+
 		if ( *p == '|' ) {
-			c->fd = open(++p, O_RDWR|O_NONBLOCK);
-			c->f_type = F_PIPE;
+      if (global->flist_des) {
+        fprintf (global->flist_des, "%s\tpipe\n", ++p);
+      }
+      else {
+			  c->fd = open(++p, O_RDWR|O_NONBLOCK);
+			  c->f_type = F_PIPE;
+      }
 		} else {
-			c->fd = open(p, O_WRONLY|O_APPEND, 0);
-			c->f_type = F_FILE;
+      if (global->flist_des) {
+        fprintf (global->flist_des, "%s\tregular\n", p);
+      }
+      else {
+			  c->fd = open(p, O_WRONLY|O_APPEND, 0);
+			  c->f_type = F_FILE;
+      }
 		}
 
-		if (c->fd < 0) {
+		if (c->fd < 0 && ! global->flist_des) {
 			m_dprintf(MSYSLOG_CRITICAL, "om_classic_init: error "
 			    "opening log file: %s\n", p);
 			free(*ctx);
@@ -418,8 +434,7 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	}
 
 	*status = strdup(statbuf);
-
-	return (1);
+return (1);
 }
 
 int
@@ -463,6 +478,7 @@ wallmsg( struct filed *f, struct iovec *iov, struct om_classic_ctx *c)
 
 	if (reenter++)
 		return;
+
 	if ( (uf = fopen(_PATH_UTMP, "r")) == NULL) {
 		m_dprintf(MSYSLOG_SERIOUS, "om_classic: error opening "
 		    "%s\n", _PATH_UTMP);

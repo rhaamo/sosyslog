@@ -176,8 +176,13 @@ release(void)
 }
 
 int
-om_peo_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
-	    char **status)
+om_peo_init(
+    int argc,
+    char **argv,
+    struct filed *f,
+    struct global *global,
+    void **ctx,
+	  char **status)
 {
 	char			 statbuf[2048];
 	struct om_peo_ctx	*c;
@@ -186,8 +191,7 @@ om_peo_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	int			 ch;
 	int			 argcnt;
 
-	m_dprintf(MSYSLOG_INFORMATIVE, "om_peo_init: Entering, called by %s\n",
-	    prog);
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_peo_init: Entering, called by %s\n", global->prog);
 	
 	if (argv == NULL || *argv == NULL || argc == 0 || f == NULL ||
 	    ctx == NULL)

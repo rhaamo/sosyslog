@@ -55,6 +55,7 @@
 #include <paths.h>
 #endif /* HAVE_PATHS_H */
 
+#include <stdio.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
@@ -148,6 +149,12 @@ struct filed {
 	struct	o_module *f_omod;			/* module details */
 };
 
+struct global {
+  char  *prog;         /* program name */
+  char  *FileListing;  /* File Listing */
+  FILE  *flist_des;    /* File Listing descriptor */
+};
+
 void logerror(char *);
 void logmsg(int, char *, char *, int);
 void die(int);
@@ -159,7 +166,7 @@ RETSIGTYPE (*place_signal(int signo, RETSIGTYPE (*)(int))) (int);
 struct omodule {
 	struct	omodule *om_next;
 	char	*om_name;
-	int	(*om_init) (int, char **, struct filed *, char *, void **, char **);
+	int	(*om_init) (int, char **, struct filed *, struct global*, void **, char **);
 	int	(*om_write) (struct filed *, int, struct m_msg *, void *);
 	int	(*om_flush) (struct filed *, void *);
 	int	(*om_close) (struct filed *, void *);

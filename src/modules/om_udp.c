@@ -91,8 +91,13 @@ int udp_send(int, char *, int, void *, int);
  */
 
 int
-om_udp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
-    char **status)
+om_udp_init(
+  int argc,
+  char **argv,
+  struct filed *f,
+  struct global* global,
+  void **ctx,
+  char **status)
 {
 	struct	om_udp_ctx	*c;
 	int			ch;

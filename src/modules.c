@@ -270,11 +270,11 @@ return (ret);
  *
  *  c (line) is the command line of the input module
  *  f is a pointer to a filed structure
- *  prog is the program to match
+ *  global is for relaying global information
  *
  */
 int
-omodule_create(char *c, struct filed *f, char *prog)
+omodule_create(char *c, struct filed *f, struct global* global)
 {
 #define OMODULE_ARGV_MAX 20
 	char	*line, *p, quotes, *argv[OMODULE_ARGV_MAX];
@@ -388,7 +388,7 @@ omodule_create(char *c, struct filed *f, char *prog)
 		}
 
 		if (!om->om_func->om_init ||
-		    (*(om->om_func->om_init))(argc, argv, f, prog, (void *)
+		    (*(om->om_func->om_init))(argc, argv, f, global, (void *)
 		    &(om->ctx), &om->status) < 0) {
 			snprintf(err_buf, sizeof(err_buf), "Error "
 			    "initializing dynamic output module %s [%s]\n",

@@ -235,12 +235,13 @@ return (1);
 
 int
 om_queue_init (
-/* Argumemt count */                 int argc,
-/* Argumemt array, like main() */    char* *argv,
-/*  Our filed structure */           struct filed* f,
-/*  Program name doing this log */   char* prog,
-/* Our context */                    void* *context,
-/* status */                         char* *status)  {
+    int argc,              /* Argumemt count */
+    char* *argv,           /* Argumemt array, like main() */
+    struct filed* f,       /*  Our filed structure */ 
+    struct global* global, /* Global variable */  
+    void* *context,        /* Our context */     
+    char* *status)         /* status */     
+{
 
   char* mark;
   char ch;

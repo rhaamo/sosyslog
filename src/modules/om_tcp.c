@@ -97,7 +97,12 @@ int om_tcp_close(struct filed *, void *);
  */
 
 int
-om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
+om_tcp_init(
+    int argc,
+    char **argv,
+    struct filed *f,
+    struct global *global,
+    void **ctx,
     char **status)
 {
 	char			statbuf[1024];

@@ -65,13 +65,13 @@ struct om_refract_ctx {
  */
 int
 om_refract_init(
-  /* Argumemt count */               int argc,
-  /* Argumemt array, like main() */  char* *argv,
-  /*  Our filed structure */         struct filed* f,
-  /*  Program name doing this log */ char* prog,
-  /* Our context */                  void* *context,
-  /* status */                       char* *status
-) {
+    int argc,              /* Argumemt count */
+    char* *argv,           /* Argumemt array, like main() */
+    struct filed* f,       /*  Our filed structure */ 
+    struct global* global, /* Global variable */  
+    void* *context,        /* Our context */     
+    char* *status)         /* status */     
+{
 
   struct om_refract_ctx *ctx;
   char statbuf[1024];
@@ -205,7 +205,7 @@ return (0);
     break;
 
       case OM_FILTER_RULES:
-        if ( m->fired >= ctx->fired_count )
+        if ( msg->fired >= ctx->fired_count )
 return (0);
     break;
 
