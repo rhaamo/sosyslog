@@ -1,5 +1,5 @@
 /*
- * Static modules initialization file
+ * Automatically generated static modules initialization file
  */
 
 #include <sys/param.h>
@@ -15,6 +15,11 @@ extern struct omodule *omodules;
 int
 modules_load()
 {
-	if ( (INPUT_MODULES && (imodules = (struct imodule*)calloc(INPUT_MODULES, sizeof(struct imodule))) == NULL) ||
-	     (OUTPUT_MODULES && (omodules = (struct omodule*)calloc(OUTPUT_MODULES, sizeof(struct omodule))) == NULL))
-		return(-1);
+	struct imodule *im;
+	struct imodule *ilast;
+	struct omodule *om;
+	struct omodule *olast;
+
+	imodules = NULL;
+	omodules = NULL;
+
