@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mymodule.c,v 1.2 2000/05/29 19:24:35 fgsch Exp $	*/
+/*	$CoreSDI: om_mymodule.c,v 1.3 2000/05/29 20:35:43 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -58,7 +58,7 @@ om_mymodule_doLog(f, flags, msg, context)
 	struct filed *f;    /* current filed struct */
 	int flags;          /* flags for this message */
 	char *msg;          /* the message string */
-	struct om_header_ctx *context; /* our context */
+	struct om_hdr_ctx *context; /* our context */
 {
 
 	/* always check, just in case ;) */
@@ -93,7 +93,7 @@ om_mymodule_init(argc, argv, f, prog, context)
 	char **argv;		/* argumemt array, like main() */
 	struct filed *f;	/* our filed structure */
 	char *prog;		/* program name doing this log */
-	struct om_header_ctx **context; /* our context */
+	struct om_hdr_ctx **context; /* our context */
 {
 
 	/* for debugging purposes */
@@ -117,7 +117,7 @@ om_mymodule_init(argc, argv, f, prog, context)
 int
 om_mymodule_close(f, ctx)
 	struct filed *f;
-	struct om_header_ctx *ctx;
+	struct om_hdr_ctx *ctx;
 {
 	/* flush any buffered data and close this output */
 
@@ -131,7 +131,7 @@ om_mymodule_close(f, ctx)
 int
 om_mymodule_flush(f, context)
 	struct filed *f;
-	struct om_header_ctx *context;
+	struct om_hdr_ctx *context;
 {
 	/* flush any pending output */
 

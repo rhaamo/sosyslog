@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.17 2000/05/27 02:04:01 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.18 2000/05/29 20:35:44 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -75,7 +75,7 @@ om_mysql_doLog(f, flags, msg, ctx)
 	struct filed *f;
 	int flags;
 	char *msg;
-	struct om_header_ctx *ctx;
+	struct om_hdr_ctx *ctx;
 {
 	struct om_mysql_ctx *c;
 	char	*dummy, *y, *m, *d, *h, *host;
@@ -149,7 +149,7 @@ om_mysql_init(argc, argv, f, prog, c)
 	char	**argv;
 	struct filed *f;
 	char *prog;
-	struct om_header_ctx **c;
+	struct om_hdr_ctx **c;
 {
 	MYSQL *h;
 	struct om_mysql_ctx	*ctx;
@@ -219,7 +219,7 @@ om_mysql_init(argc, argv, f, prog, c)
 	}
 
 	/* save handle and stuff on context */
-	if (! (*c = (struct om_header_ctx *)
+	if (! (*c = (struct om_hdr_ctx *)
 		calloc(1, sizeof(struct om_mysql_ctx))))
 		return (-1);
 
@@ -256,7 +256,7 @@ om_mysql_destroy_ctx(ctx)
 int
 om_mysql_close(f, ctx)
 	struct filed *f;
-	struct om_header_ctx *ctx;
+	struct om_hdr_ctx *ctx;
 {
 
 	mysql_close(ctx->h);
@@ -268,7 +268,7 @@ om_mysql_close(f, ctx)
 int
 om_mysql_flush(f, ctx)
 	struct filed *f;
-	struct om_header_ctx *ctx;
+	struct om_hdr_ctx *ctx;
 {
 	/* this module doesn't need to "flush" data */
 	return (0);

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.27 2000/05/27 02:04:00 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.28 2000/05/29 19:24:34 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -64,7 +64,7 @@ om_classic_doLog(f, flags, msg, context)
 	struct filed *f;
 	int flags;
 	char *msg;
-	struct om_header_ctx *context;
+	struct om_hdr_ctx *context;
 {
 	struct iovec iov[6];
 	struct iovec *v;
@@ -195,7 +195,7 @@ om_classic_init(argc, argv, f, prog, context)
 	char **argv;
 	struct filed *f;
 	char *prog;
-	struct om_header_ctx **context;
+	struct om_hdr_ctx **context;
 {
 	struct hostent *hp;
 	int i;
@@ -272,7 +272,7 @@ om_classic_init(argc, argv, f, prog, context)
 int
 om_classic_close(f, ctx)
 	struct filed *f;
-	struct om_header_ctx *ctx;
+	struct om_hdr_ctx *ctx;
 {
 	int ret;
 
@@ -294,7 +294,7 @@ om_classic_close(f, ctx)
 int
 om_classic_flush(f, context)
 	struct filed *f;
-	struct om_header_ctx *context;
+	struct om_hdr_ctx *context;
 {
 	/* flush any pending output */
 	if (f->f_prevcount)

@@ -1,6 +1,7 @@
 			HOW TO WRITE A SYSLOGD MODULE
 			=============================
 
+First, it is recommended that you use the templates for module creations. 
 Names
 -----
 
