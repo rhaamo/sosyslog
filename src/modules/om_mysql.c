@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.67 2001/03/07 21:35:15 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.68 2001/03/23 00:12:30 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -78,6 +78,8 @@ struct om_mysql_ctx {
 	char	*passwd;
 	char	*db;
 	void	*lib;
+	int	flags;
+#define	OM_MYSQL_DELAYED_INSERTS	0x2
 	int	(*mysql_ping)(void *);
 	void *	(*mysql_init)(void *);
 	void *	(*mysql_real_connect)(void *, char *, char *, char *,
@@ -129,8 +131,9 @@ om_mysql_write(struct filed *f, int flags, char *msg, void *ctx)
 	place_signal(SIGPIPE, sigsave);
 
 	/* table, yyyy-mm-dd, hh:mm:ss, host, msg  */ 
-	i = snprintf(query, sizeof(query), "INSERT INTO %s"
-	    " VALUES('%.4d-%.2d-%.2d', '%.2d:%.2d:%.2d', '%s', '", c->table,
+	i = snprintf(query, sizeof(query), "INSERT %sINTO %s"
+	    " VALUES('%.4d-%.2d-%.2d', '%.2d:%.2d:%.2d', '%s', '",
+	    (c->flags & OM_MYSQL_DELAYED_INSERTS)? "DELAYED " : "", c->table,
 	    f->f_tm.tm_year + 1900, f->f_tm.tm_mon + 1, f->f_tm.tm_mday,
 	    f->f_tm.tm_hour, f->f_tm.tm_min, f->f_tm.tm_sec, f->f_prevhost);
 
@@ -240,7 +243,7 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 #ifdef HAVE_OPTRESET
 	optreset = 1;
 #endif
-	while ((ch = getopt(argc, argv, "s:u:p:d:t:")) != -1) {
+	while ((ch = getopt(argc, argv, "s:u:p:d:t:D")) != -1) {
 		switch (ch) {
 		case 's':
 			/* get database host name and port */
@@ -263,6 +266,9 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 			break;
 		case 't':
 			ctx->table = strdup(optarg);
+			break;
+		case 'D':
+			ctx->flags |= OM_MYSQL_DELAYED_INSERTS;
 			break;
 		default:
 			goto om_mysql_init_bad;
