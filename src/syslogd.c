@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.98 2000/06/20 17:48:55 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.99 2000/06/21 22:14:59 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -141,15 +141,11 @@ main(int argc, char **argv)
 	memset(&Inputs, 0, sizeof(Inputs));
 	Inputs.im_fd = -1;
 
+	/* assign functions and init input */
 	imodules = NULL;
 	omodules = NULL;
-	/* assign functions and init input */
-	if ((ch = imodules_load()) < 0) {
-		dprintf("Error loading input modules [%d]\n", ch);
-		exit(-1);
-	}
-	if ((ch = omodules_load()) < 0) {
-		dprintf("Error loading output modules [%d]\n", ch);
+	if ((ch = modules_load()) < 0) {
+		dprintf("Error loading modules [%d]\n", ch);
 		exit(-1);
 	}
 
