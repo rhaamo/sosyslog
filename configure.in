@@ -1,4 +1,4 @@
-#	$CoreSDI: configure.in,v 1.31 2000/06/30 22:04:09 claudio Exp $
+#	$CoreSDI: configure.in,v 1.32 2000/06/30 22:59:56 claudio Exp $
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
 
@@ -41,7 +41,7 @@ done
 AC_MSG_RESULT(root-mode pid file will go in $dir)
 AC_DEFINE_UNQUOTED(PID_DIR, "$dir")
 
-for INSTALL_LIBDIR in "/lib" "/usr/lib" "/usr/local/lib"
+for INSTALL_LIBDIR in "/usr/local/lib" "/usr/lib" "/lib"
 do
 	if test -d $INSTALL_LIBDIR
 	then
