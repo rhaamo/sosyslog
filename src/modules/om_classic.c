@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.82 2001/09/19 11:43:16 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.83 2001/10/22 22:49:42 alejo Exp $	*/
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
@@ -130,7 +130,7 @@ om_classic_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 	time_t now;
 
 	if (m == NULL || m->msg == NULL || !strcmp(m->msg, "")) {
-		logerror("om_classic_write: no message!");
+		dprintf(MSYSLOG_INFORMATIVE, "om_classic_write: no message!");
 		return (-1);
 	}
 
@@ -194,7 +194,7 @@ om_classic_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 #endif
 		    sizeof(struct sockaddr_in)) != l) {
 			c->f_type = F_UNUSED;
-			logerror("sendto");
+			dprintf(MSYSLOG_WARNING, "om_classic: error on sendto()");
 		}
 
 		break;
@@ -236,14 +236,16 @@ om_classic_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 				    O_WRONLY|O_APPEND, 0);
 				if (c->fd < 0) {
 					c->f_type = F_UNUSED;
-					logerror(c->f_un.f_fname);
+					dprintf(MSYSLOG_WARNING, "om_classic: "
+					    "error on %s", c->f_un.f_fname);
 				} else
 					goto again;
 			} else {
 				c->f_type = F_UNUSED;
 				c->fd = -1;
 				errno = e;
-				logerror(c->f_un.f_fname);
+				dprintf(MSYSLOG_WARNING, "om_classic: error "
+				    "on %s", c->f_un.f_fname);
 			}
 		} else if (flags & SYNC_FILE)
 			fsync(c->fd);
@@ -283,7 +285,11 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	/* accepts "%classic /file" or "%classic -t TYPE /file" */
 	if ( (argc != 2 && argc != 4) || argv == NULL) {
 		dprintf(MSYSLOG_SERIOUS, "om_classic_init: incorrect "
-		    "parameters %d args\n", argc);
+		    "parameters %d args [%s %s %s %s]\n", argc,
+		    argc > 0? argv[1] : "",
+		    argc > 1? argv[2] : "",
+		    argc > 2? argv[3] : "",
+		    argc > 3? argv[4] : "");
 		return (-1);
 	}
 
@@ -340,7 +346,8 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 			}
 
 			if (bind(finet, sa, salen) < 0) {
-				logerror("bind");
+				dprintf(MSYSLOG_WARNING, "om_classic: error "
+				    "on bind()");
 				free(sa);
 				free(*ctx);
 				*ctx = NULL;
@@ -356,9 +363,8 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 
 		if ((sa = resolv_name(c->f_un.f_forw.f_hname, "syslog", "udp",
 		    &salen)) == NULL) {
-                        dprintf(MSYSLOG_SERIOUS, "Error resolving host "
-			    "%s\n", c->f_un.f_forw.f_hname);
-			logerror("om_classic: couldn't resolv host");
+                        dprintf(MSYSLOG_SERIOUS, "om_classic: error resolving "
+			    "host %s\n", c->f_un.f_forw.f_hname);
 			break;
 		}
 
@@ -383,9 +389,8 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
                 }
 
 		if (c->fd < 0) {
-                        dprintf(MSYSLOG_CRITICAL, "Error opening log file: "
-			    "%s\n", p);
-			logerror(p);
+                        dprintf(MSYSLOG_CRITICAL, "om_classic_init: error "
+			    "opening log file: %s\n", p);
 			free(*ctx);
 			*ctx = NULL;
 			return (-1);
@@ -488,7 +493,8 @@ wallmsg( struct filed *f, struct iovec *iov, struct om_classic_ctx *c)
 	if (reenter++)
 		return;
 	if ( (uf = fopen(_PATH_UTMP, "r")) == NULL) {
-		logerror(_PATH_UTMP);
+                dprintf(MSYSLOG_SERIOUS, "om_classic: error opening "
+		    "%s\n", _PATH_UTMP);
 		reenter = 0;
 		return;
 	}
@@ -508,7 +514,8 @@ wallmsg( struct filed *f, struct iovec *iov, struct om_classic_ctx *c)
 		if (c->f_type == F_WALL) {
 			if ((p = ttymsg(iov, 6, line, TTYMSGTIME)) != NULL) {
 				errno = 0;	/* already in msg */
-				logerror(p);
+                		dprintf(MSYSLOG_SERIOUS, "om_classic: error "
+				    "%s\n", p);
 			}
 			continue;
 		}
@@ -521,7 +528,8 @@ wallmsg( struct filed *f, struct iovec *iov, struct om_classic_ctx *c)
 				if ((p = ttymsg(iov, 6, line, TTYMSGTIME))
 								!= NULL) {
 					errno = 0;	/* already in msg */
-					logerror(p);
+                			dprintf(MSYSLOG_SERIOUS, "om_classic: error "
+					    "%s\n", p);
 				}
 				break;
 			}
