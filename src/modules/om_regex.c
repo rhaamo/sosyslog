@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.18 2000/09/04 23:43:45 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.19 2000/09/09 00:42:14 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -168,7 +168,6 @@ int
 om_regex_doLog(struct filed *f, int flags, char *msg,
 		struct om_hdr_ctx *ctx) {
 	struct om_regex_ctx *c;
-	int ret;
 
 	c = (struct om_regex_ctx *) ctx;
 
