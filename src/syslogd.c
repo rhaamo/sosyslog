@@ -282,7 +282,7 @@ main(int argc, char **argv) {
 				timeout.tv_sec, timeout.tv_usec,
 				tnow.tv_sec, tnow.tv_usec);
 
-		if (timeout.tv_sec < 1 && (timeout.tv_usec < SYSLOG_TIMEOUT_MINUSEC ||
+		if ((timeout.tv_sec < 1 && (timeout.tv_usec < SYSLOG_TIMEOUT_MINUSEC ||
 				timeout.tv_usec < -1)) ||
 				timeout.tv_sec > SYSLOG_TIMEOUT_MAXSEC) {
 			timeout.tv_sec = SYSLOG_TIMEOUT_SEC;

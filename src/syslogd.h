@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.68 2000/07/18 01:02:49 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.69 2000/07/21 21:15:48 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -51,6 +51,7 @@
 #define SYSLOG_TIMEOUT_SEC	10L
 #define SYSLOG_TIMEOUT_USEC	0L
 #define SYSLOG_TIMEOUT_MINUSEC	100L
+#define SYSLOG_TIMEOUT_MAXSEC	100L
 
 #ifdef HAVE_PATHS_H
 #include <paths.h>
