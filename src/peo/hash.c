@@ -1,4 +1,4 @@
-/*	$CoreSDI: hash.c,v 1.34 2000/11/06 18:26:09 alejo Exp $	*/
+/*	$CoreSDI: hash.c,v 1.35 2000/12/04 23:25:30 alejo Exp $	*/
  
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -32,12 +32,11 @@
 /*
  * hash -- few things used by both peo output module and peochk 
  *
- * Author: Claudio Castiglia for Core-SDI SA
+ * Author: Claudio Castiglia
  *
  */
 
 #include "../../config.h"
-
 #include <sys/types.h>
 #include <ctype.h>
 #include <errno.h>
@@ -47,24 +46,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <md5.h>
+#include <rmd160.h>
+#include <sha1.h>
 
-#ifdef HAVE_MD5
-	#include <md5.h>
-#else
-	#include "md5.h"
-#endif
-
-#ifdef HAVE_RMD160
-	#include <rmd160.h>
-#else
-	#include "rmd160.h"
-#endif
-
-#ifdef HAVE_SHA1
-	#include <sha1.h>
-#else
-	#include "sha1.h"
-#endif
+#include "hash.h"
 
 #ifdef HAVE_SRANDOM
 	#define RANDOM_DEVICE	"/dev/srandom"
@@ -72,11 +58,8 @@
 	#define RANDOM_DEVICE	"/dev/random"
 #endif
 
-#include "hash.h"
-
 
 char *default_keyfile = "/var/ssyslog/.var.log.messages.key";
-
 char *hmstr[] = { /* enum order */
 	"md5",
 	"rmd160",
@@ -104,26 +87,31 @@ typedef union {
  *	On error returns -1
  */
 int
-mac (int method, const char *data1, unsigned int data1len,
-     const char *data2, unsigned int data2len, char *dest)
+mac(int method, const unsigned char *data1, unsigned int data1len,
+    const unsigned char *data2, unsigned int data2len, unsigned char *dest)
 {
 	HASH_CTX	 ctx;
-	int		 destlen, i, tmplen = 0;
-	char		*tmp;
+	int	 	 i, destlen, tmplen;
+	unsigned char	*tmp;
 
-	/* calculate tmp buffer lenght */
+	/* Calculate tmp buffer lenght */
+	tmplen = 0;
 	if (data1len && data2len) {
-		if (data1len > data2len)
-			tmplen += ((tmplen = data1len/data2len*data2len) < data1len) ? data2len:0;
-		else if (data1len < data2len)
-			tmplen += ((tmplen = data2len/data1len*data1len) < data2len) ? data1len:0;
-		else tmplen = data1len;
+		if (data1len > data2len) {
+			tmplen = data1len / data2len * data2len;
+			tmplen += (tmplen < data1len) ? data2len : 0;
+		} else if (data1len < data2len) {
+			tmplen = data2len / data1len * data1len;
+			tmplen += (tmplen < data2len) ? data1len : 0;
+		} else tmplen = data1len;
+	} else {
+		tmplen = (data1len) ? data1len : data2len;
+		if (!tmplen)
+			tmplen = 1; 
 	}
-	else if ( (tmplen = (data1len) ? data1len : data2len) == 0)
-		tmplen = 1; 
 	
-	/* allocate needed memory and clear tmp buffer */
-	if ( (tmp = (char*) calloc (1, tmplen)) == NULL)
+	/* Allocate needed memory and clear tmp buffer */
+	if ( (tmp = (unsigned char *) calloc(1, tmplen)) == NULL)
 		return (-1);
 
 	/* tmp = data1 xor data2 */
@@ -139,21 +127,21 @@ mac (int method, const char *data1, unsigned int data1len,
 	switch(method) {
 	case MD5:
 		MD5Init(&ctx.md5);
-		MD5Update(&ctx.md5, (unsigned char*) tmp, tmplen);
-		MD5Final((unsigned char*)dest, &ctx.md5);
+		MD5Update(&ctx.md5, tmp, tmplen);
+		MD5Final(dest, &ctx.md5);
 		destlen = 16;
 		break;
 	case RMD160:
 		RMD160Init(&ctx.rmd160);
-		RMD160Update(&ctx.rmd160, (unsigned char*) tmp, tmplen);
-		RMD160Final((unsigned char*) dest, &ctx.rmd160);
+		RMD160Update(&ctx.rmd160, tmp, tmplen);
+		RMD160Final(dest, &ctx.rmd160);
 		destlen = 20;
 		break;
 	case SHA1:
 	default:
 		SHA1Init(&ctx.sha1);
-		SHA1Update(&ctx.sha1, (unsigned char*) tmp, tmplen);
-		SHA1Final((unsigned char*) dest, &ctx.sha1);
+		SHA1Update(&ctx.sha1, tmp, tmplen);
+		SHA1Final(dest, &ctx.sha1);
 		destlen = 20;
 		break;
 	}
@@ -176,14 +164,14 @@ mac (int method, const char *data1, unsigned int data1len,
  *	On error returns -1
  */
 int
-mac2 (const char *data1, int data1len,
-      const char *data2, int data2len, char *dest)
+mac2(const unsigned char *data1, int data1len, const unsigned char *data2,
+     int data2len, unsigned char *dest)
 {
 	int destlen;
 
-	if ( (destlen = mac(SHA1, data1, data1len, data2, data2len, dest)) != -1)
+	destlen = mac(SHA1, data1, data1len, data2, data2len, dest);
+	if (destlen != -1)
 		destlen = mac(RMD160, dest, destlen, data2, data2len, dest);
-
 	return (destlen);
 }
 
@@ -196,14 +184,13 @@ mac2 (const char *data1, int data1len,
  *	Case is ignored.
  */
 int
-gethash (const char *str)
+gethash(const char *str)
 {
 	int i;
 
 	for (i = 0; i < LAST_HASH; i++)
 		if (!strcasecmp(str, hmstr[i]))
 			return (i);
-
 	return (-1);
 }
 
@@ -213,8 +200,8 @@ gethash (const char *str)
  * 	Receives something like this: /a/b/c/d/e
  *	and chages it to something like this: .a.b.c.d.e
  */
-char*
-strdot (char *s)
+char *
+strdot(char *s)
 {
 	char *b;
 
@@ -230,15 +217,16 @@ strdot (char *s)
  *	Concatenates two strings and returns a pointer to the new string
  *	The new buffer should be freed using free(3)
  */
-char*
-strallocat (const char *s1, const char *s2)
+char *
+strallocat(const char *s1, const char *s2)
 {
 	char *dest;
 	int   size;
 
-	if ( (dest = (char*) calloc(1, (size = strlen(s1) + strlen(s2) + 1))) != NULL)
-		snprintf (dest, size, "%s%s", (s1) ? s1 : "", (s2) ? s2 : "");
-
+	size = strlen(s1) + strlen(s2) + 1;
+	if ( (dest = (char *) calloc(1, size)) != NULL)
+		snprintf(dest, size, "%s%s", (s1 != NULL) ? s1 : "",
+		    (s2 != NULL) ? s2 : "");
 	return (dest);
 }
 
@@ -246,64 +234,62 @@ strallocat (const char *s1, const char *s2)
 /*
  * strmac
  */
-char*
-strmac (const char *s)
+char *
+strmac(const char *s)
 {
-	return strallocat(s, ".mac");
+	return (strallocat(s, ".mac"));
 }
 
 
 /*
  * strkey0
  */
-char*
-strkey0 (const char *s)
+char *
+strkey0(const char *s)
 {
-	return strallocat(s, "0");
+	return (strallocat(s, "0"));
 }
 
 
 /*
- * stresolvepath
+ * strrealpath
  */
-char*
-strrealpath (const char *path)
+char *
+strrealpath(const char *path)
 {
 	char *resolved;
 
-	if ( (resolved = (char*)calloc(1, PATH_MAX)) != NULL)
-		return realpath(path, resolved);
+	if ( (resolved = (char *) calloc(1, PATH_MAX)) != NULL)
+		return (realpath(path, resolved));
 	return (NULL);
 }
 
 
 /*
  * asc2bin:
- *	Translates a hex string to binary buffer
+ *	Translates an hex string to binary.
  *	Buffer lenght = string lenght / 2
- *	(2 byte string "ab" is translated to 1 byte buffer 0xab)
+ *	(Ex.: 2 byte string "ab" is translated to byte 0xab)
  */
-
-#define ASC2BIN(x)	((x <= '9') ? x-'0' : x-'a'+10)
-
-unsigned char*
-asc2bin (unsigned char *dst, const unsigned char *src)
+#define ASC2BIN(x)	((x <= '9') ? x - '0' : x - 'a' + 10)
+unsigned char *
+asc2bin(unsigned char *dst, const unsigned char *src)
 {
 	int   		 i;
 	int   		 j;
 	unsigned char	*tmp;
 
-	if (src == NULL || dst == NULL || (strlen((char*) src) & 1))
+	if (src == NULL || dst == NULL || (strlen((char *) src) & 1))
 		return (NULL);
 
 	if (dst == src) {
-		if ( (tmp = (unsigned char*) strdup((char*) src)) == NULL)
+		if ( (tmp = (unsigned char *) strdup((char *) src)) == NULL)
 			return (NULL);
 	} else
-		tmp = (unsigned char*) src;
+		tmp = (unsigned char *) src;
 
-	for (j = i = 0; tmp[i] != '\0'; i+=2, j++)
-		dst[j] = (ASC2BIN(tmp[i]) << 4) | ASC2BIN(tmp[i+1]);
+	for (j = i = 0; tmp[i] != '\0'; i += 2, j++)
+		dst[j] = (ASC2BIN(tmp[i]) << 4) | ASC2BIN(tmp[i + 1]);
 
 	if (dst == src)
 		free(tmp);
@@ -318,11 +304,9 @@ asc2bin (unsigned char *dst, const unsigned char *src)
  *	Based on XXXEnd function
  *	(2 byte buffer 0x3, 0x9a is translated to 4 byte string "039a")
  */
-
 char hex[] = { "0123456789abcdef" };
-
-unsigned char*
-bin2asc (unsigned char *dst, const unsigned char *src, int srclen)
+unsigned char *
+bin2asc(unsigned char *dst, const unsigned char *src, int srclen)
 {
 	int i;
 
@@ -345,7 +329,7 @@ bin2asc (unsigned char *dst, const unsigned char *src, int srclen)
  *	Returns 0 on success and -1 on error
  */
 int
-getrandom (char *buffer, int bytes)
+getrandom(char *buffer, int bytes)
 {
 	int fd;
 
@@ -354,11 +338,9 @@ getrandom (char *buffer, int bytes)
 			bytes = 0;
 		else
 			bytes = -1;
-
 		close(fd);
 		return (bytes);
 	}
-
 	return (-1);
 }
 

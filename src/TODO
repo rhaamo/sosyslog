@@ -1,7 +1,8 @@
-/*	$CoreSDI: TODO,v 1.63 2001/01/10 19:10:08 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.64 2001/01/10 19:39:21 alejo Exp $	*/
 
 Things to do:
 
+- REMOVE mlibs struct!!!
 - Check "" errors on solaris
 - Change strcpy and strncpy to strlcpy (same w/ strlcat)
 - define STYLE for names (ie. underscore or caps, indentation)

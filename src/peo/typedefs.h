@@ -1,3 +1,6 @@
+/* $CoreSDI: Id$
+ */
+
 #ifndef PEO_TYPEEFS_H
 #define PEO_TYPEEFS_H 1
 

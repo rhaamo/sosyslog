@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.39 2000/12/04 23:25:27 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.40 2001/01/31 20:43:46 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -100,7 +100,7 @@ install: install-prog
 	"**   listen to.                                         **\n"\
 	"**                                                      **\n"\
 	"**   NOTE: your new syslogd daemon was installed on     **\n"\
-	"**         directory  *** $(INSTALL_DIR) ***            **\n"\
+	"**         directory  *** $(INSTALL_DIR) ***           **\n"\
 	"**         if that wasn't your previous syslogd daemon  **\n"\
 	"**         directory, either copy the new binary to the **\n"\
 	"**         previous path, or change the path on the     **\n"\

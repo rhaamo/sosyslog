@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.60 2000/12/19 21:25:06 alejo Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.61 2001/01/27 01:04:19 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -32,7 +32,7 @@
 /*
  * om_peo -- peo autentication
  *
- * Author: Claudio Castiglia, Core-SDI SA
+ * Author: Claudio Castiglia
  *
  */
 
@@ -97,7 +97,7 @@ om_peo_write(struct filed *f, int flags, char *msg, void *ctx)
 	if (f == NULL || ctx == NULL)
 		return (-1);
 
-	c = (struct om_peo_ctx*) ctx;
+	c = (struct om_peo_ctx *) ctx;
 
 	strftime(time_buf, sizeof(time_buf), "%b %d %H:%M:%S", &f->f_tm);
 	time_buf[15] = '\0';
@@ -107,42 +107,41 @@ om_peo_write(struct filed *f, int flags, char *msg, void *ctx)
 	dprintf(DPRINTF_INFORMATIVE)("om_peo_write: len = %i, msg = %s\n ",
 	    len, m);
 
-	/* open keyfile and read last key */
-	if ( (fd = open(c->keyfile, O_RDWR, 0)) == -1) {
+	/* Open keyfile and read last key */
+	if ( (fd = open(c->keyfile, O_RDWR, 0)) < 0) {
 		dprintf(DPRINTF_SERIOUS)("om_peo_dolog: opening keyfile: %s:"
 		    " %s\n", c->keyfile, strerror(errno));
 		return (-1);
 	}
-
 	bzero(key, sizeof(key));
-	if ( (keylen = read(fd, key, 40)) == -1) {
+	if ( (keylen = read(fd, key, 40)) < 0) {
 		close(fd);
 		dprintf(DPRINTF_SERIOUS)("om_peo_write: reading form: %s:"
 		    " %s\n", c->keyfile, strerror(errno));
 		return (-1);
 	}
 
-	/* open macfile and write mac'ed msg */
+	/* Open macfile and write mac'ed msg */
 	if (c->macfile) {
-		if ( (mfd = open(c->macfile, O_WRONLY, 0)) == -1) {
+		if ( (mfd = open(c->macfile, O_WRONLY, 0)) < 0) {
 			close(fd);
 			dprintf(DPRINTF_SERIOUS)("om_peo_write: opening "
 			    "macfile: %s: %s\n", c->macfile,
 			    strerror(errno));
 			return (-1);
 		}
-		lseek(mfd, (off_t)0, SEEK_END);
+		lseek(mfd, (off_t) 0, SEEK_END);
 		write(mfd, mkey, mac2(key, keylen, m, len, mkey));
 		dprintf(DPRINTF_INFORMATIVE)("om_peo_write: write to macfile"
 		    " ok\n");
 		close(mfd);
 	}
 
-	/* generate new key and save it on keyfile */
+	/* Generate new key and save it on keyfile */
 	lseek(fd, (off_t)0, SEEK_SET);
 	ftruncate(fd, (off_t)0);
-	if ( (newkeylen = mac(c->hash_method, key, keylen, m,
-	    len, newkey)) == -1) {
+	newkeylen = mac(c->hash_method, key, keylen, m, len, newkey);
+	if (newkeylen == -1) {
 		close(fd);
 		dprintf(DPRINTF_INFORMATIVE)("om_peo_write: generating "
 		    "key[i+1]: keylen = %i: %s\n", newkeylen,
@@ -157,10 +156,7 @@ om_peo_write(struct filed *f, int flags, char *msg, void *ctx)
 
 /*
  *  INIT -- Initialize om_peo
- *
- *  Parse options
- * 
- *  params:
+ *  args:
  * 
  *	-k <keyfile>		(default: /var/ssyslog/.var.log.messages)
  *	-l			line number corruption detect mode
@@ -168,11 +164,11 @@ om_peo_write(struct filed *f, int flags, char *msg, void *ctx)
  *	-m <hash_method>	md5, rmd160, or sha1 (default: sha1)
  *
  */
-
 char		*keyfile;
 char		*macfile;
-
 void
+
+/* XXX remove this! */
 release()
 {
 	if (keyfile != default_keyfile)
@@ -205,10 +201,10 @@ om_peo_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 	/* parse command line */
 #ifdef HAVE_OPTRESET
 	optreset = 1;
-#endif /* HAVE_OPTRESET */
+#endif
 	optind = 1;
-	while ((ch = getopt(argc, argv, "k:lm:")) != -1) {
-		switch(ch) {
+	while ( (ch = getopt(argc, argv, "k:lm:")) != -1) {
+		switch (ch) {
 		case 'k':
 			/* set keyfile */
 			release();
@@ -240,7 +236,7 @@ om_peo_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 			release();
 			return (-1);
 		}
-		if (! (mfd = open(macfile, O_CREAT, S_IRUSR|S_IWUSR))) {
+		if (! (mfd = open(macfile, O_CREAT, S_IRUSR | S_IWUSR))) {
 			if (errno != EEXIST) {
 				release();
 				return (-1);
@@ -275,8 +271,7 @@ om_peo_close(struct filed *f, void *ctx)
 	struct om_peo_ctx *c;
 
 	c = (struct om_peo_ctx *) ctx;
-	dprintf(DPRINTF_INFORMATIVE)("om_peo_close: peo output module "
-	    "close\n");
+	dprintf(DPRINTF_INFORMATIVE)("om_peo_close\n");
 
 	if (c->keyfile != default_keyfile)
 		free(c->keyfile);

@@ -1,7 +1,7 @@
-/*	$CoreSDI: TODO,v 1.4 2000/06/05 21:33:01 fgsch Exp $	*/					
+/*	$CoreSDI: TODO,v 1.6 2000/10/31 19:42:15 alejo Exp $	*/					
 Things to do:
 
 - Optimize peo output module (readline included)
 - Optimize peo check utility
-- Peochek utility and commutication with audit
+- Peochek utility and commutication with audit (raw and xml)
 - Add vcr protocol (new module?)

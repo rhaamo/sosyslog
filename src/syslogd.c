@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.164 2001/02/08 18:01:52 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.165 2001/02/09 00:57:10 claudio Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.164 2001/02/08 18:01:52 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.165 2001/02/09 00:57:10 claudio Exp $";
 #endif /* not lint */
 
 /*
@@ -123,13 +123,13 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.164 2001/02/08 18:01:52 alejo Exp
 #endif /* PATH_MAX */
 
 #ifndef _PATH_CONSOLE
-#define _PATH_CONSOLE "/dev/console"
+#define _PATH_CONSOLE	"/dev/console"
 /* #warning Using "/dev/console" for _PATH_CONSOLE */
 #endif /* _PATH_CONSOLE */
 
 /* if _PATH_DEVNULL isn't defined, define it here... */
 #ifndef _PATH_DEVNULL
-#define _PATH_DEVNULL "/dev/null"
+#define _PATH_DEVNULL	"/dev/null"
 #endif
 
 #ifndef NAME_MAX
@@ -147,74 +147,74 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.164 2001/02/08 18:01:52 alejo Exp
  * in seconds after previous message is logged.  After each flush,
  * we move to the next interval until we reach the largest.
  */
-int	repeatinterval[] = { 30, 120, 600 };	/* # of secs before flush */
+int repeatinterval[] = { 30, 120, 600 };	/* # of secs before flush */
 
 
-struct	filed *Files;
-struct	filed consfile;
+struct filed *Files;
+struct filed  consfile;
 
-int	Initialized = 0;	/* set when we have initialized ourselves */
-int	MarkInterval = 20 * 60;	/* interval between marks in seconds */
-int	MarkSeq = 0;		/* mark sequence number */
-char	*ConfFile = _PATH_LOGCONF;	/* configuration file */
+int	 Initialized = 0;	 /* set when we have initialized ourselves */
+int	 MarkInterval = 20 * 60; /* interval between marks in seconds */
+int	 MarkSeq = 0;		 /* mark sequence number */
+char	*ConfFile = _PATH_LOGCONF; /* configuration file */
+char	 pidfile[PID_PATH_MAX];
+FILE	*pidf;
+
 #define MAX_PIDFILE_LOCK_TRIES 5
-char pidfile[PID_PATH_MAX];
-FILE *pidf;
 
 /* names for f_types */
 char    *TypeNames[] = { "UNUSED", "FILE", "TTY", "CONSOLE",
-	"FORW", "USERS", "WALL", "MODULE", NULL};
+	    "FORW", "USERS", "WALL", "MODULE", NULL};
 char    *ctty;
-char    LocalHostName[SIZEOF_MAXHOSTNAMELEN];  /* our hostname */
-char    *LocalDomain = NULL;	/* our domain */
-int     finet = -1;		/* Internet datagram socket */
-int     LogPort = -1;		/* port number for INET connections */
-int     Debug = 0;		/* debug flag */
-int	DaemonFlags = 0;
+char     LocalHostName[SIZEOF_MAXHOSTNAMELEN];  /* our hostname */
+char    *LocalDomain = NULL;			/* our domain */
+int      finet = -1;				/* Internet datagram socket */
+int      LogPort = -1;				/* port number for INET conns */
+int      Debug = 0;				/* debug flag */
+int	 DaemonFlags = 0;
+char	*libdir = NULL;
 
-char *libdir = NULL;
+int	 force_log = 0;	/* XXX: used by dummylog() and logmsg() */
 
-/* To raise SIGSTOP after flush all output modules */
-static int must_suspend = 0;
+RETSIGTYPE domark (int);
+RETSIGTYPE reapchild (int);
+RETSIGTYPE init (int);
+RETSIGTYPE die (int);
+RETSIGTYPE signal_handler (int);
+void	dummylog();
+void    cfline (char *, struct filed *, char *);
+int     decode (const char *, CODE *);
+void    markit (void);
+void    doLog (struct filed *, int, char *);
+void    printline (char *, char *, size_t, int);
+void    usage (void);
+int     imodule_create (struct i_module *, char *);
+int     omodule_create (char *, struct filed *, char *);
+int	omodules_destroy (struct omodule *);
+int	imodules_destroy (struct imodule *);
+void    logerror (char *);
+void    logmsg (int, char *, char *, int);
+int	getmsgbufsize (void);
+int	modules_start (void);
+void	modules_stop (void);
 
-RETSIGTYPE domark(int);
-RETSIGTYPE reapchild(int);
-RETSIGTYPE init(int);
-RETSIGTYPE die(int);
-RETSIGTYPE suspend(int);
-RETSIGTYPE get_up(int);
-void    cfline(char *, struct filed *, char *);
-int     decode(const char *, CODE *);
-void    markit(void);
-void    doLog(struct filed *, int, char *);
-void    printline(char *, char *, size_t, int);
-void    usage(void);
-int     imodule_create(struct i_module *, char *);
-int     omodule_create(char *, struct filed *, char *);
-int	omodules_destroy(struct omodule *);
-int	imodules_destroy(struct imodule *);
-void    logerror(char *);
-void    logmsg(int, char *, char *, int);
-int	getmsgbufsize(void);
-int	modules_start(void);
-void	modules_stop(void);
+extern struct omodule *omodules;
+extern struct imodule *imodules;
+struct i_module	       Inputs;
 
-
-extern	struct   omodule *omodules;
-extern	struct   imodule *imodules;
-struct	i_module Inputs;
-
-struct	pollfd   *fd_inputs = NULL;
-int	fd_in_count = 0;
+struct pollfd    *fd_inputs = NULL;
+int		  fd_in_count = 0;
 struct i_module **fd_inputs_mod = NULL;
-int	*fd_inputs_index = NULL;
+int		 *fd_inputs_index = NULL;
 
 int
 main(int argc, char **argv)
 {
-	int ch;
-	char *p;
-	struct im_msg log;
+	int		   ch;
+	char		  *p;
+	struct im_msg	   log;
+	struct sigaltstack alt_stack;
+	struct sigaction   sa;
 
 	Inputs.im_next = NULL;
 	Inputs.im_fd = -1;
@@ -226,66 +226,62 @@ main(int argc, char **argv)
 
 	/* Load main modules library */
 	if (modules_start() < 0) {
-		dprintf(DPRINTF_CRITICAL)("Error starting modules! \n");
+		dprintf(DPRINTF_CRITICAL)("Error starting modules!\n");
 		exit(-1);
 	}
 
 	/* use ':' at start to allow -d to be used without argument */
-
 	opterr = 0;
-
-	while ((ch = getopt(argc, argv, ":d:ubSf:m:p:a:i:h")) != -1) {
+	while ( (ch = getopt(argc, argv, ":d:ubSf:m:p:a:i:h")) != -1) {
 		char buf[512];
 
 		switch (ch) {
-			case ':':	/* missing arg, bsd */
-			case '?':	/* missing arg, sysv */
-				break;
-			case 'd':	/* debug */
-				if (optarg == NULL) {
-					Debug++;
-				} else if (isdigit((int) *optarg)) {
-					Debug = atoi(optarg);
-				} else {
-					Debug++;
-					optind--;
-				}
-				break;
-			case 'f':	/* configuration file */
-				ConfFile = optarg;
-				break;
-			case 'm':	/* mark interval */
-				MarkInterval = atoi(optarg) * 60;
-				break;
-			case 'u':	/* allow udp input port */
-				if (imodule_create(&Inputs, "udp") < 0) {
-					fprintf(stderr, "syslogd: WARNING "
-					    "error on udp input module\n");
-				}
-				break;
-			case 'i':	/* inputs */
-				if (imodule_create(&Inputs, optarg) < 0) {
-					fprintf(stderr, "syslogd: WARNING "
-					    "error on input module, "
-					    "ignoring %s\n", optarg);
-				}
-				break;
-			case 'p':	/* path */
-			case 'a':	/* additional im_unix socket */
-				snprintf(buf, 512, "unix %s", optarg); 
-				if (imodule_create(&Inputs, buf) < 0) {
-					fprintf(stderr, "syslogd: WARNING"
-					    " out of descriptors,"
-					    " ignoring %s\n", optarg);
-				}
-				break;
-			case 'h':
-			default:
-				usage();
+		case ':':	/* missing arg, bsd */
+		case '?':	/* missing arg, sysv */
+			break;
+		case 'd':	/* debug */
+			if (optarg == NULL) {
+				Debug++;
+			} else if (isdigit((int) *optarg)) {
+				Debug = atoi(optarg);
+			} else {
+				Debug++;
+				optind--;
+			}
+			break;
+		case 'f':	/* configuration file */
+			ConfFile = optarg;
+			break;
+		case 'm':	/* mark interval */
+			MarkInterval = atoi(optarg) * 60;
+			break;
+		case 'u':	/* allow udp input port */
+			if (imodule_create(&Inputs, "udp") < 0) {
+				fprintf(stderr, "syslogd: WARNING error on "
+				    "udp input module\n");
+			}
+			break;
+		case 'i':	/* inputs */
+			if (imodule_create(&Inputs, optarg) < 0) {
+				fprintf(stderr, "syslogd: WARNING error on "
+				    "input module, ignoring %s\n", optarg);
+			}
+			break;
+		case 'p':	/* path */
+		case 'a':	/* additional im_unix socket */
+			snprintf(buf, sizeof(buf), "unix %s", optarg); 
+			if (imodule_create(&Inputs, buf) < 0) {
+				fprintf(stderr, "syslogd: WARNING out of "
+				    "descriptors, ignoring %s\n", optarg);
+			}
+			break;
+		case 'h':
+		default:
+			usage();
 		}
 	}
 
-	if (((argc -= optind) != 0) || Inputs.im_fd < 0)
+	if (( (argc -= optind) != 0) || Inputs.im_fd < 0)
 		usage();
 
 	if (!Debug) {
@@ -304,6 +300,7 @@ main(int argc, char **argv)
 		int fd;
 
 		/* go daemon and mimic daemon() */
+		/* XXX: remove this and use daemon() (on all plats) */
 		switch (fork()) {
 			case -1:
         		        perror("fork");
@@ -343,18 +340,41 @@ main(int argc, char **argv)
 	} else
 		LocalDomain = "";
 
+	/* Set signal handlers */
+	/* XXX: use one signal handler for all signals other than HUP */
+	/*      use sigaction and sigaltstack */
 	(void)signal(SIGTERM, die);
 	(void)signal(SIGINT, Debug ? die : SIG_IGN);
 	(void)signal(SIGQUIT, Debug ? die : SIG_IGN);
 	(void)signal(SIGCHLD, reapchild);
 	(void)signal(SIGALRM, domark);
 	(void)signal(SIGPIPE, SIG_IGN);
-	(void)signal(SIGUSR1, suspend);
-	(void)signal(SIGUSR2, get_up);
+	alt_stack.ss_sp = malloc(SIGSTKSZ);
+	alt_stack.ss_size = SIGSTKSZ;
+	alt_stack.ss_flags = 0;
+	if (alt_stack.ss_sp == NULL) {
+		perror(strerror(errno));
+		exit(-1);
+	}
+	sigemptyset(&sa.sa_mask);
+	sigaddset(&sa.sa_mask, SIGTSTP);
+	sigaddset(&sa.sa_mask, SIGUSR1);
+	sigaddset(&sa.sa_mask, SIGALRM);
+	sigaddset(&sa.sa_mask, SIGHUP);
+	sa.sa_handler = signal_handler;
+	sa.sa_flags = SA_NOCLDSTOP | SA_RESTART | SA_ONSTACK;
+	if (sigaltstack(&alt_stack, NULL) < 0 ||
+	    sigaction(SIGTSTP, &sa, NULL) < 0 ||
+	    sigaction(SIGUSR1, &sa, NULL) < 0) {
+		free(alt_stack.ss_sp);
+		perror(strerror(errno));
+		exit(-1);
+	}
 	(void)alarm(TIMERINTVL);
 
 	snprintf(pidfile, PID_PATH_MAX, "%s/syslog.pid", PID_DIR);
 
+	/* XXX: remove lock */
 	/* took my process id away */
 	if (!Debug) {
 		struct flock fl;
@@ -468,19 +488,16 @@ main(int argc, char **argv)
 			add_fd_input(finet, NULL, 0);
 
 		/* count will always be less than fd_in_count */
-		switch (count = poll(fd_inputs, fd_in_count, -1)) {
-
-			case 0:
-				dprintf(DPRINTF_INFORMATIVE)("main: poll "
-				    "returned 0\n");
-				continue;
-
-			case -1:
-				dprintf(DPRINTF_INFORMATIVE)("main: poll "
-				    "returned -1\n");
-				if (errno != EINTR)
-					logerror("select");
-				continue;
+		switch ( (count = poll(fd_inputs, fd_in_count, -1))) {
+		case 0:
+			dprintf(DPRINTF_INFORMATIVE)("main: poll returned 0\n");
+			continue;
+		case -1:
+			dprintf(DPRINTF_INFORMATIVE)("main: poll returned "
+			    "-1\n");
+			if (errno != EINTR)
+				logerror("select");
+			continue;
 		}
 
 		if (DaemonFlags && SYSLOGD_MARK)
@@ -501,8 +518,9 @@ main(int argc, char **argv)
 						int len = sizeof(frominet);
 						char line[MAXLINE];
 
-						recvfrom(finet, line, MAXLINE, 0,
-						    (struct sockaddr *) &frominet, &len);
+						recvfrom(finet, line, MAXLINE,
+						    0, (struct sockaddr *)
+						    &frominet, &len);
 					}
 				} else if (!fd_inputs_mod[i]->im_func ||
 				    !fd_inputs_mod[i]->im_func->im_read ||
@@ -511,7 +529,8 @@ main(int argc, char **argv)
 				    &log)) < 0) {
 					dprintf(DPRINTF_SERIOUS)("Syslogd: "
 					    "Error calling input module %s, "
-					    "for fd %d\n", fd_inputs_mod[i]->im_name,
+					    "for fd %d\n",
+					    fd_inputs_mod[i]->im_name,
 					    fd_inputs[i].fd);
 
 				} else if (val == 1)    /* log it */
@@ -535,14 +554,12 @@ main(int argc, char **argv)
 void
 usage(void)
 {
-
-	(void)fprintf(stderr,
+	fprintf(stderr,
 	    "Modular Syslog vesion " MSYSLOG_VERSION_STR "\n\n"
 	    "usage: syslogd [-d <debug_level>] [-u] [-f conffile] "
 	    "[-m markinterval] \\\n [-p logpath] [-a logpath] -i "
 	    "input1 [-i input2] [-i inputn]\n %s\n%s\n\n", copyright,
 	    rcsid);
-
 	exit(1);
 }
 
@@ -578,7 +595,7 @@ printline(char *hname, char *msg, size_t len, int flags)
 
 	q = line;
 
-	while ((c = *p++) && q < &line[sizeof(line) - 1]) {
+	while ( (c = *p++) && q < &line[sizeof(line) - 1]) {
 		if (c == '\n')
 			*q++ = ' ';
 		else if (c < 040 && q < &line[sizeof(line) - 2]) {
@@ -619,6 +636,8 @@ logmsg(int pri, char *msg, char *from, int flags)
 	sigemptyset(&mask);
 	sigaddset(&mask, SIGALRM);
 	sigaddset(&mask, SIGHUP);
+	sigaddset(&mask, SIGTSTP);
+	sigaddset(&mask, SIGUSR1);
 	sigprocmask(SIG_BLOCK, &mask, &omask);
 
 	/*
@@ -681,12 +700,14 @@ logmsg(int pri, char *msg, char *from, int flags)
 
 	for (f = Files; f; f = f->f_next) {
 		/* skip messages that are incorrect priority */
-		if (f->f_pmask[fac] < prilev ||
-		    f->f_pmask[fac] == INTERNAL_NOPRI)
+		/* XXX */
+		if (!force_log && (f->f_pmask[fac] < prilev ||
+		    f->f_pmask[fac] == INTERNAL_NOPRI))
 			continue;
 
 		/* skip messages with the incorrect program name */
-		if (f->f_program)
+		/* XXX */
+		if (!force_log && f->f_program)
 			if (strcmp(prog, f->f_program) != 0)
 				continue;
 
@@ -788,14 +809,6 @@ doLog(struct filed *f, int flags, char *message)
 		} else if (ret == 0)
 			/* stop going on */
 			break;
-	}
-
-	if (must_suspend) {
-		sigset_t mask;
-		sigfillset(&mask);
-		sigdelset(&mask, SIGUSR2);
-		sigsuspend(&mask);
-		must_suspend = 0;
 	}
 }
 
@@ -1265,19 +1278,26 @@ add_fd_input(int fd, struct i_module *im, int index)
 	return(1);
 }
 
-RETSIGTYPE
-suspend(int signo)
-{
-	/* XXX: use sigaction */
-	signal(SIGUSR1, suspend);
-	must_suspend = 1;
-}
 
 RETSIGTYPE
-get_up(int signo)
+signal_handler(int signo)
 {
-	/* XXX: use sigaction */
-	signal(SIGUSR2, get_up);
+	switch (signo) {
+	case SIGTSTP:
+		raise(SIGSTOP);
+		break;
+	case SIGUSR1:
+		dummylog();
+	default:;
+	}
 }
 
+void
+dummylog()
+{
+	force_log = 1;
+	logmsg(LOG_SYSLOG|LOG_INFO, "syslogd: dummy log", LocalHostName,
+	    ADDDATE);
+	force_log = 0;
+}
 
