@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.28 2000/07/08 00:52:52 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.29 2000/07/10 19:55:51 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -97,7 +97,7 @@ STATIC: $(SOBJS)
 DYNAMIC:	$(DUNIX) $(DUDP) $(DBSD) $(DLINUX) \
 		$(DCLASSIC) $(DPEO) $(DMYSQL) $(DPGSQL) $(DREGEX)
 
-${DUNIX}:
+$(DUNIX):
 	$(DCC) $(DUNIX_SRCS)
 	$(DLK) -o $@ $(DUNIX_OBJS)
 
@@ -119,7 +119,7 @@ $(DCLASSIC):
 
 $(DPEO):
 	$(DCC) $(DPEO_SRCS) $(DHASH_SRCS:%=../peo/%)
-	$(LDK) -o $@ $(DPEO_OBJ) $(DHASH_OBJS)
+	$(LDK) -o $@ $(DPEO_OBJS) $(DHASH_OBJS)
 
 $(DMYSQL):
 	$(DCC) $(DMYSQL_SRCS)
