@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.52 2000/06/06 20:19:59 fgsch Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.53 2000/06/08 23:14:25 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -126,33 +126,33 @@ struct filed {
         struct	o_module *f_omod;			/* module details */
 };
 
-int	modules_load __P((void));
-int	modules_init __P((struct i_module *, char *));
-int	omodule_create __P((char *c, struct filed *, char *));
-int	im_close __P((struct i_module *));
-int	om_close __P((struct filed *, struct om_hdr_ctx *));
-void    logerror __P((char *));
-void	logmsg __P((int, char *, char *, int));
-void    die __P((int));
+int	modules_load(void);
+int	modules_init(struct i_module *, char *);
+int	omodule_create(char *c, struct filed *, char *);
+int	im_close(struct i_module *);
+int	om_close(struct filed *, struct om_hdr_ctx *);
+void    logerror(char *);
+void	logmsg(int, char *, char *, int);
+void    die(int);
 
 struct OModule {
         char   *om_name;
         short	om_type;
-        int	(*om_doLog) __P((struct filed *, int, char *,
+        int	(*om_doLog) ((struct filed *, int, char *,
 		    struct om_hdr_ctx *));
-        int	(*om_init) __P((int, char **, struct filed *, char *,
+        int	(*om_init) ((int, char **, struct filed *, char *,
 		    struct om_hdr_ctx **));
-        int	(*om_close) __P((struct filed *, struct om_hdr_ctx *));
-        int	(*om_flush) __P((struct filed *, struct om_hdr_ctx *));
+        int	(*om_close) ((struct filed *, struct om_hdr_ctx *));
+        int	(*om_flush) ((struct filed *, struct om_hdr_ctx *));
 };
 
 struct IModule {
         char   *im_name;
         short	im_type;
         /* buf, bufsize */
-        int	(*im_getLog) __P((struct i_module *, struct im_msg *));
-        int	(*im_init) __P((struct i_module *, char **, int));
-        int	(*im_close) __P((struct i_module *));
+        int	(*im_getLog) ((struct i_module *, struct im_msg *));
+        int	(*im_init) ((struct i_module *, char **, int));
+        int	(*im_close) ((struct i_module *));
 };
 
 #define	MAXREPEAT ((sizeof(repeatinterval) / sizeof(repeatinterval[0])) - 1)

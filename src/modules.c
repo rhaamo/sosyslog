@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.91 2000/06/08 21:08:00 claudio Exp $	*/
+/*	$CoreSDI: modules.c,v 1.92 2000/06/08 23:14:24 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -48,47 +48,47 @@
 #include "syslogd.h"
 #include "modules.h"
 
-int	om_peo_doLog __P((struct filed *, int, char *, struct om_hdr_ctx *));
-int	om_peo_init __P((int, char **, struct filed *, char *,
-	    struct om_hdr_ctx **));
-int	om_peo_close __P((struct filed *, struct om_hdr_ctx *));
+int	om_peo_doLog(struct filed *, int, char *, struct om_hdr_ctx *);
+int	om_peo_init(int, char **, struct filed *, char *,
+	    struct om_hdr_ctx **);
+int	om_peo_close(struct filed *, struct om_hdr_ctx *);
 
-int	om_classic_doLog __P((struct filed *, int , char *,
-	    struct om_hdr_ctx *));
-int	om_classic_init __P((int, char **, struct filed *, char *,
-	    struct om_hdr_ctx **));
+int	om_classic_doLog(struct filed *, int , char *,
+	    struct om_hdr_ctx *);
+int	om_classic_init(int, char **, struct filed *, char *,
+	    struct om_hdr_ctx **);
 int	om_classic_close(struct filed*, struct om_hdr_ctx *);
 int	om_classic_flush(struct filed*, struct om_hdr_ctx *);
 
-int	om_regex_doLog __P((struct filed *, int , char *,
-	    struct om_hdr_ctx *));
-int	om_regex_init __P((int, char **, struct filed *, char *,
-	    struct om_hdr_ctx **));
-int	om_regex_close __P((struct filed*, struct om_hdr_ctx *));
-int	om_regex_flush __P((struct filed*, struct om_hdr_ctx *));
+int	om_regex_doLog(struct filed *, int , char *,
+	    struct om_hdr_ctx *);
+int	om_regex_init(int, char **, struct filed *, char *,
+	    struct om_hdr_ctx **);
+int	om_regex_close(struct filed*, struct om_hdr_ctx *);
+int	om_regex_flush(struct filed*, struct om_hdr_ctx *);
 
 #ifdef ENABLE_MYSQL
-int	om_mysql_doLog __P((struct filed *, int , char *,
-	    struct om_hdr_ctx *));
-int	om_mysql_init __P((int, char **, struct filed *, char *,
-	    struct om_hdr_ctx **));
-int	om_mysql_close __P((struct filed*, struct om_hdr_ctx *));
+int	om_mysql_doLog(struct filed *, int , char *,
+	    struct om_hdr_ctx *);
+int	om_mysql_init(int, char **, struct filed *, char *,
+	    struct om_hdr_ctx **);
+int	om_mysql_close(struct filed*, struct om_hdr_ctx *);
 #endif /* ENABLE_MYSQL */
 
-int	im_bsd_init __P((struct i_module *, char **, int));
-int	im_bsd_getLog __P((struct i_module *, struct im_msg *));
+int	im_bsd_init(struct i_module *, char **, int);
+int	im_bsd_getLog(struct i_module *, struct im_msg *);
 
-int	im_unix_init __P((struct i_module *, char **, int));
-int	im_unix_getLog __P((struct i_module *, struct im_msg *));
-int	im_unix_close __P((struct i_module *));
+int	im_unix_init(struct i_module *, char **, int);
+int	im_unix_getLog(struct i_module *, struct im_msg *);
+int	im_unix_close(struct i_module *);
 
-int	im_udp_init __P((struct i_module *, char **, int));
-int	im_udp_getLog __P((struct i_module *, struct im_msg *));
+int	im_udp_init(struct i_module *, char **, int);
+int	im_udp_getLog(struct i_module *, struct im_msg *);
 
 #ifdef HAVE_LINUX
-int	im_linux_init __P((struct i_module *, char **, int));
-int	im_linux_getLog __P((struct i_module *, struct im_msg *));
-int	im_linux_close __P((struct i_module *));
+int	im_linux_init(struct i_module *, char **, int);
+int	im_linux_getLog(struct i_module *, struct im_msg *);
+int	im_linux_close(struct i_module *);
 #endif
 
 #ifdef ENABLE_PGSQL
@@ -98,13 +98,13 @@ int	om_pgsql_init(int, char **, struct filed *, char *,
 int	om_pgsql_close(struct filed*, struct om_hdr_ctx *);
 #endif
 
-int	parseParams __P((char ***, char *));
+int	parseParams(char ***, char *);
 
 extern struct OModule OModules[];
 extern struct IModule IModules[];
 
 int
-modules_load()
+modules_load(void)
 {
 	/* initialize module function assignations */
 	memset(OModules, 0, MAX_N_OMODULES);
@@ -191,9 +191,7 @@ modules_load()
 
 /* assign module functions to generic pointer */
 int
-modules_init (I, line)
-	struct	 i_module *I;
-	char	*line;
+modules_init (struct i_module *I, char *line)
 {
 	int argc;
 	char **argv, *p;
@@ -251,10 +249,7 @@ modules_init (I, line)
 
 /* create all necesary modules for a specific filed */
 int
-omodule_create(c, f, prog)
-	char *c;
-	struct filed *f;
-	char *prog;
+omodule_create(char *c, struct filed *f, char *prog)
 {
 	char	*line, *p, quotes, *argv[20];
 	int	argc, i;
@@ -356,9 +351,7 @@ omodule_create(c, f, prog)
  */
 
 int
-parseParams(ret, c)
-	char ***ret;
-	char *c;
+parseParams(char ***ret, char *c)
 {
 	char	*line, *p, *q;
 	int	argc;

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.91 2000/06/07 22:43:15 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.92 2000/06/08 23:14:24 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -117,23 +117,21 @@ int	MarkInterval = 20 * 60;	/* interval between marks in seconds */
 int	MarkSeq = 0;		/* mark sequence number */
 char	*ConfFile = _PATH_LOGCONF;	/* configuration file */
 
-void    cfline __P((char *, struct filed *, char *));
-int     decode __P((const char *, CODE *));
-void    domark __P((int));
-void    doLog __P((struct filed *, int, char *));
-void    init __P((int));
-void    printline __P((char *, char *, int));
-void    reapchild __P((int));
-void    usage __P((void));
+void    cfline(char *, struct filed *, char *);
+int     decode(const char *, CODE *);
+void    domark(int);
+void    doLog(struct filed *, int, char *);
+void    init((int);
+void    printline(char *, char *, int);
+void    reapchild(int);
+void    usage(void);
 
 struct  OModule OModules[MAX_N_OMODULES];
 struct  IModule IModules[MAX_N_IMODULES];
 struct	i_module Inputs;
 
 int
-main(argc, argv)
-	int argc;
-	char *argv[];
+main(int argc, char **argv)
 {
 	char pidfile[PATH_MAX];
 	int ch;
@@ -285,7 +283,7 @@ main(argc, argv)
 }
 
 void
-usage()
+usage(void)
 {
 
 	(void)fprintf(stderr,
@@ -299,10 +297,7 @@ usage()
  * on the appropriate log files.
  */
 void
-printline(hname, msg, flags)
-	char *hname;
-	char *msg;
-	int   flags;
+printline(char *hname, char *msg, int flags)
 {
 	int c, pri;
 	char *p, *q, line[MAXLINE + 1];
@@ -352,10 +347,7 @@ time_t	now;
  * the priority.
  */
 void
-logmsg(pri, msg, from, flags)
-	int pri;
-	char *msg, *from;
-	int flags;
+logmsg(int pri, char *msg, char *from, int flags)
 {
 	struct filed *f;
 	int fac, msglen, prilev, i;
@@ -480,10 +472,7 @@ logmsg(pri, msg, from, flags)
 }
 
 void
-doLog(f, flags, message)
-        struct filed *f;
-        int flags;
-        char *message;
+doLog(struct filed *f, int flags, char *message)
 {
 	struct	o_module *om;
 	char	repbuf[80], *msg;
@@ -521,8 +510,7 @@ doLog(f, flags, message)
 
 
 void
-reapchild(signo)
-	int signo;
+reapchild(int signo)
 {
 	union wait status;
 	int save_errno = errno;
@@ -533,8 +521,7 @@ reapchild(signo)
 }
 
 void
-domark(signo)
-	int signo;
+domark(int signo)
 {
 	struct filed *f;
 
@@ -561,8 +548,7 @@ domark(signo)
  * Print syslogd errors some place.
  */
 void
-logerror(type)
-	char *type;
+logerror(char *type)
 {
 	char buf[100];
 
@@ -577,8 +563,7 @@ logerror(type)
 }
 
 void
-die(signo)
-	int signo;
+die(int signo)
 {
 	struct filed *f;
 	int was_initialized = Initialized;
@@ -615,8 +600,7 @@ die(signo)
  *  INIT -- Initialize syslogd from configuration table
  */
 void
-init(signo)
-	int signo;
+init(int signo)
 {
 	int i;
 	FILE *cf;
@@ -763,10 +747,7 @@ init(signo)
  * Crack a configuration file line
  */
 void
-cfline(line, f, prog)
-	char *line;
-	struct filed *f;
-	char *prog;
+cfline(char *line, struct filed *f, char *prog)
 {
 	int i, pri;
 	char *bp, *p, *q;
@@ -860,9 +841,7 @@ cfline(line, f, prog)
  *  Decode a symbolic name to a numeric value
  */
 int
-decode(name, codetab)
-	const char *name;
-	CODE *codetab;
+decode(const char *name, CODE *codetab)
 {
 	CODE *c;
 	char *p, buf[40];
