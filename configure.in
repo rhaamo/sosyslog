@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.38 2000/07/04 19:11:21 claudio Exp $
+dnl	$CoreSDI: configure.in,v 1.39 2000/07/04 19:37:36 alejo Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -8,7 +8,7 @@ AC_PROG_INSTALL
 MSYSLOG_VERSION=`awk '/#define VERSION/ { print $3 }' src/syslogd.h`
 echo msyslog version... $MSYSLOG_VERSION
 
-CFLAGS="-O -ggdb"
+CFLAGS="-Wall -O -ggdb"
 LDFLAGS=
 LDCONFIG_FLAGS="-m"
 
@@ -238,7 +238,7 @@ SMODULES_LOAD="$SMODULES_LOAD \
 
 GREP(im_$1_close, "$MODULES_DIR/$2", [
 SMODULES_HEADER="$SMODULES_HEADER \
-	int im_$1_close (struct i_module*, struct globals*);"
+	int im_$1_close (struct i_module*, struct sglobals*);"
 SMODULES_LOAD="$SMODULES_LOAD \
 	ilast->im_close=im_$1_close;" ])
 ])
