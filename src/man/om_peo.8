@@ -31,7 +31,7 @@
 .\"
 .ta 3m 3m
 .Dd May 10, 2000
-.Dt OM_PEO 1
+.Dt OM_PEO 8
 .Os Core-SDI
 .Sh NAME
 .Nm peo output module
@@ -55,10 +55,10 @@ Specify the key file pathname; the default is
 .It Fl l
 This option enables the line corrupted detection mode;
 the module generates two keys, the first explained above and a second
-key using a \fBmac\fP method based on two serial \fBhash\fPes, this
+key using a \fBmac\fP method based on two consecutive \fBhash\fPes, this
 new key is added into the \fBmac\fP file whose pathname is the same as
 \fIkeyfile\fP with a ".mac" string added at the end, this file should
-had been created by peochk(1) command.
+had been created by peochk(8) command.
 .It Fl m Ar hash_method
 Specifies the hash method used to generate the key to put into the
 \fIkeyfile\fP, \fIhash_method\fP should be one of \fImd5\fP, \fIsha1\fP,
@@ -68,13 +68,18 @@ If you want to protect the /var/log/authlog file you should edit the
 /etc/syslog.conf file (see syslog.conf(5)) and add a line with something
 like this:
 .Pp
-	\fBaca va la linea que hay que agregar en /etc/syslog.conf\fP
+.in +3m
+.ll -3m
+\fBauth.info   %peo -l -k /var/ssyslog/.var.log.authlog.key %classic /var/log/authlog\fP
+.in -3m
+.ll +3m
 .Pp
 When you want to check the protected file integrity you should use the
-peochk(1) command.
+peochk(8) command.
 .Sh SEE ALSO
-.Xr peochk 1 ,
+.Xr om_classic 8 ,
+.Xr peochk 8 ,
 .Xr syslogd 8 ,
 .Xr syslog.conf 5
 .Sh BUGS
-if you found bugs, please report them to msyslog-list@core-sdi.com
+if you found bugs, please report them to syslog-bugs@core-sdi.com
