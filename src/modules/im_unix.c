@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.44 2001/01/27 01:04:19 alejo Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.45 2001/01/31 19:48:45 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -72,7 +72,7 @@
  */
 
 int
-im_unix_read(struct i_module *im, struct im_msg  *ret)
+im_unix_read(struct i_module *im, int index, struct im_msg  *ret)
 {
 	struct sockaddr_un fromunix;
 	int slen;
@@ -143,7 +143,7 @@ im_unix_init(struct i_module *I, char **argv, int argc)
 
 	I->im_path = strdup(logger);
 
-	add_fd_input(I->im_fd , I);
+	add_fd_input(I->im_fd , I, 0);
 
 	return (1);
 }
@@ -159,40 +159,4 @@ im_unix_close( struct i_module *im)
 	return (0);
 }
 
-
-#if 0
-/*
- * get user credentials
- */
-
-ssize_t
-getcred(fd, fcred)
-	int	fd;
-	struct f_cred *fcred;
-{
-	struct msg_hdr	msg;
-	struct iovec	iov[1];
-	ssize_t		n;
-	union {
-	    struct cmsghdr cm;
-	    char   control[CMSGSPACE(sizeof(struct fcred))]
-	} control_un;
-	struct cmsghdr  *cmptr;
-
-	msg.msg_control = control_un.control;
-	msg.msg_controllen = sizeof(control_un.control);
-
-	msg.msg_name = NULL;
-	msg.msg_nmelen = 0;
-
-	iov[0].io_base = NULL;
-	iov[0].io_len  = 0;
-	msg.msg_iov = iov;
-	msg.msg_iovlen = 1;
-
-	if ((n = recvmsg(fd, &msg, 0)) < 0)k
-	
-}
-
-#endif
 

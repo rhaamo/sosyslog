@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_mymodule.c,v 1.6 2000/12/14 00:16:44 alejo Exp $	*/
+/*	$CoreSDI: im_mymodule.c,v 1.7 2001/01/27 01:04:18 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -45,22 +45,13 @@
 #include "modules.h"
 #include "syslogd.h"
 
-/* standard input module header variables in context */
-struct im_mymodule_ctx {
-	short	flags;
-#define M_FLAG_INITIALIZED 0x1
-#define M_FLAG_ERROR 0x2
-	int	size;
-	int	fd;
-};
-
 /*
  * get message
  *
  */
 
 int
-im_mymodule_read (struct i_module *im, struct im_msg *ret)
+im_mymodule_read(struct i_module *im, int index, struct im_msg *ret)
 {
 
 	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_read: Entering\n");
@@ -85,6 +76,8 @@ im_mymodule_init (struct i_module *I, char **argv, int argc)
 	/* initialize */
 
 	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_init: Leaving\n");
+
+	add_fd_input(I->im_fd , I, 0);
 
         return (1);
 }

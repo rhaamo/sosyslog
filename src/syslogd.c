@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.162 2001/01/27 01:04:18 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.163 2001/01/29 21:41:20 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.162 2001/01/27 01:04:18 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.163 2001/01/29 21:41:20 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -198,9 +198,11 @@ void modules_stop(void);
 extern	struct   omodule *omodules;
 extern	struct   imodule *imodules;
 struct	i_module Inputs;
+
 struct	pollfd   *fd_inputs = NULL;
 int	fd_in_count = 0;
 struct i_module **fd_inputs_mod = NULL;
+int	*fd_inputs_index = NULL;
 
 int
 main(int argc, char **argv) {
@@ -328,14 +330,13 @@ main(int argc, char **argv) {
 		    "module!\n");
 	}
 
-	(void)strncpy(consfile.f_un.f_fname, ctty,
-			sizeof(consfile.f_un.f_fname) - 1);
-	(void)gethostname(LocalHostName, sizeof(LocalHostName));
+	gethostname(LocalHostName, sizeof(LocalHostName));
 	if ((p = strchr(LocalHostName, '.')) != NULL) {
 		*p++ = '\0';
 		LocalDomain = p;
 	} else
 		LocalDomain = "";
+
 	(void)signal(SIGTERM, die);
 	(void)signal(SIGINT, Debug ? die : SIG_IGN);
 	(void)signal(SIGQUIT, Debug ? die : SIG_IGN);
@@ -456,7 +457,7 @@ main(int argc, char **argv) {
 
 		/* this may not be on inputs */
 		if (finet != -1 && !(DaemonFlags & SYSLOGD_INET_READ))
-			add_fd_input(finet, NULL);
+			add_fd_input(finet, NULL, 0);
 
 		/* count will always be less than fd_in_count */
 		switch (count = poll(fd_inputs, fd_in_count, -1)) {
@@ -498,7 +499,8 @@ main(int argc, char **argv) {
 				} else if (!fd_inputs_mod[i]->im_func ||
 				    !fd_inputs_mod[i]->im_func->im_read ||
 				    (val = (*fd_inputs_mod[i]->im_func->im_read)
-				    (fd_inputs_mod[i], &log)) < 0) {
+				    (fd_inputs_mod[i], fd_inputs_index[i],
+				    &log)) < 0) {
 					dprintf(DPRINTF_SERIOUS)("Syslogd: "
 					    "Error calling input module %s, "
 					    "for fd %d\n", fd_inputs_mod[i]->im_name,
@@ -1036,7 +1038,7 @@ init(int signo)
 	}
 
 	/* close the configuration file */
-	(void)fclose(cf);
+	fclose(cf);
 
 	Initialized = 1;
 
@@ -1048,29 +1050,8 @@ init(int signo)
 				else
 					printf("%d ", f->f_pmask[i]);
 			printf("%s: ", TypeNames[f->f_type]);
-			switch (f->f_type) {
-			case F_FILE:
-			case F_TTY:
-			case F_CONSOLE:
-				printf("%s", f->f_un.f_fname);
-				break;
 
-			case F_FORW:
-				printf("%s", f->f_un.f_forw.f_hname);
-				break;
-
-			case F_USERS:
-				for (i = 0; i < MAXUNAMES &&
-				     *f->f_un.f_uname[i]; i++)
-					printf("%s, ", f->f_un.f_uname[i]);
-				break;
-			case F_MODULE:
-				for (om = f->f_omod; om; om = om->om_next) 
-					printf("%s, ", om->om_func->om_name);
-				break;
-			}
-			if (f->f_program)
-				printf(" (%s)", f->f_program);
+#warning modules should report here their output debug status strings
 			printf("\n");
 		}
 	}
@@ -1232,22 +1213,30 @@ decode(const char *name, CODE *codetab) {
  *
  * grow by 50
  *
+ * params: fd    file descriptor to watch
+ *         im    module functions and more
+ *         index index of file descriptors (ie. connection)
+ *
  */
 
 int
-add_fd_input(int fd, struct i_module *im) {
+add_fd_input(int fd, struct i_module *im, int index)
+{
 
 	/* do we need bigger arrays? */
 	if (!fd_inputs || fd_in_count % 50 == 0) {
 		fd_inputs = (struct pollfd *) realloc(fd_inputs,
-		    (size_t) fd_in_count + 50);
+		    (size_t) (fd_in_count + 50) * sizeof(struct pollfd));
 		fd_inputs_mod = (struct i_module **) realloc(fd_inputs_mod,
-		    (size_t) fd_in_count + 50);
+		    (size_t) (fd_in_count + 50) * sizeof(struct i_module *));
+		fd_inputs_index = (int *) realloc(fd_inputs_index,
+		    (size_t) (fd_in_count + 50) * sizeof(int));
 	}
 
 	fd_inputs[fd_in_count].fd = fd;
 	fd_inputs[fd_in_count].events = POLLIN;
 	fd_inputs_mod[fd_in_count] = im;
+	fd_inputs_index[fd_in_count] = index;
 	fd_in_count++;
 	
 	return(1);

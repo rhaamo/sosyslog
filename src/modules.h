@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.38 2000/12/19 21:25:05 alejo Exp $	*/
+/*	$CoreSDI: modules.h,v 1.39 2001/01/27 01:04:18 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -62,9 +62,10 @@ struct i_module {
 	char	*im_name;
 	char	*im_path;
 	char	 im_buf[MAXLINE + 1];
+	void	*im_ctx;
 };
 
-int	add_fd_input(int , struct i_module *); /* add this fd to array */
+int	add_fd_input(int , struct i_module *, int); /* add this fd to array */
 
 /*
  * This structure represents the return of the input modules

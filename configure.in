@@ -252,6 +252,16 @@ AC_ARG_WITH(classic,
 ],[
 	MSRCS="$MSRCS om_classic.c ttymsg.c"
 ])
+AC_ARG_WITH(tcp,
+[  --without-tcp
+	Use tcp input and output modules. Activated by default.
+],[
+	if test $with_tcp = "yes" ; then
+		MSRCS="$MSRCS om_tcp.c im_tcp.c"
+	fi
+],[
+	MSRCS="$MSRCS om_tcp.c im_tcp.c"
+])
 
 AC_ARG_WITH(mysql,
 [  --without-mysql

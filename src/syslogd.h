@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.88 2001/01/12 01:48:31 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.89 2001/01/27 01:04:18 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -111,14 +111,6 @@ struct filed {
 	time_t  f_time;		 /* time this was last written */
 	u_char  f_pmask[LOG_NFACILITIES+1];     /* priority mask */
 	char    *f_program;	     /* program this applies to */
-	union {
-		char    f_uname[MAXUNAMES][UT_NAMESIZE+1];
-		struct {
-			char    f_hname[SIZEOF_MAXHOSTNAMELEN];
-			struct sockaddr_in      f_addr;
-		} f_forw;	       /* forwarding address */
-		char    f_fname[MAXPATHLEN];
-	} f_un;
 	struct	tm f_tm;	/* date of message */
 	char    f_prevline[MAXSVLINE];	  /* last message logged */
 	char    f_prevhost[SIZEOF_MAXHOSTNAMELEN];     /* host from which recd. */
@@ -161,7 +153,7 @@ struct imodule {
 	struct	imodule *im_next;
 	char   *im_name;
 	int	(*im_init) (struct i_module *, char **, int);
-	int	(*im_read) (struct i_module *, struct im_msg *);
+	int	(*im_read) (struct i_module *, int, struct im_msg *);
 	int	(*im_close) (struct i_module *); /* close input, optional */
 	int	(*im_set) (struct i_module *, fd_set *); /* extra fds, opt */
 	int	(*im_check) (struct i_module *, fd_set *); /* extra fds, opt */

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.73 2001/01/27 01:04:19 alejo Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.74 2001/01/31 19:48:45 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -73,7 +73,7 @@ im_bsd_init(struct i_module *I, char **argv, int argc)
 	
 	I->im_path = _PATH_KLOG;
 	I->im_flags |= IMODULE_FLAG_KERN;
-	add_fd_input(I->im_fd , I);
+	add_fd_input(I->im_fd , I, 0);
 	return (I->im_fd);
 }
 
@@ -85,7 +85,7 @@ im_bsd_init(struct i_module *I, char **argv, int argc)
  */
 
 int
-im_bsd_read(struct i_module *im, struct im_msg *ret)
+im_bsd_read(struct i_module *im, int index, struct im_msg *ret)
 {
 	char *p, *q, *lp;
 	int i, c;

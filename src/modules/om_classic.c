@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.59 2001/01/27 01:04:19 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.60 2001/01/29 21:41:20 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -88,14 +88,29 @@ extern char     *TypeNames[9];          /* names for f_types */
 extern char     *ctty;
 
 
-void wallmsg (struct filed *, struct iovec *);
+union om_classic_ctx {
+	char    f_uname[MAXUNAMES][UT_NAMESIZE+1];
+	struct {
+		char    f_hname[SIZEOF_MAXHOSTNAMELEN];
+		struct sockaddr_in      f_addr;
+	} f_forw;	      /* forwarding address */
+	char    f_fname[MAXPATHLEN];
+};
+
+void wallmsg (struct filed *, struct iovec *, union om_classic_ctx *c);
 char *ttymsg(struct iovec *, int , char *, int);
 
+
+/*
+ * Write to file, tty, user and network udp
+ */
+
 int
-om_classic_write(struct filed *f, int flags, char *msg, void *context)
+om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
 {
 	struct iovec iov[6];
 	struct iovec *v;
+	union om_classic_ctx *c;
 	int l;
 	char line[MAXLINE + 1], greetings[500], time_buf[16];
 	time_t now;
@@ -104,6 +119,8 @@ om_classic_write(struct filed *f, int flags, char *msg, void *context)
 		logerror("om_classic_write: no message!");
 		return (-1);
 	}
+
+	c = (union om_classic_ctx *) ctx;
 
 	/* prepare buffers for writing */
 	v = iov;
@@ -152,14 +169,14 @@ om_classic_write(struct filed *f, int flags, char *msg, void *context)
 			break;
 		}
 
-		dprintf(DPRINTF_INFORMATIVE)(" %s\n", f->f_un.f_forw.f_hname);
+		dprintf(DPRINTF_INFORMATIVE)(" %s\n", c->f_forw.f_hname);
 		l = snprintf(line, sizeof(line), "<%d>%.15s %s", f->f_prevpri,
 		    (char *) iov[0].iov_base, (char *) iov[4].iov_base);
 		if (l > MAXLINE)
 			l = MAXLINE;
 		if (sendto(finet, line, l, 0,
-		    (struct sockaddr *)&f->f_un.f_forw.f_addr,
-		    sizeof(f->f_un.f_forw.f_addr)) != l) {
+		    (struct sockaddr *)&c->f_forw.f_addr,
+		    sizeof(c->f_forw.f_addr)) != l) {
 			f->f_type = F_UNUSED;
 			logerror("sendto");
 		}
@@ -174,7 +191,7 @@ om_classic_write(struct filed *f, int flags, char *msg, void *context)
 
 	case F_TTY:
 	case F_FILE:
-		dprintf(DPRINTF_INFORMATIVE)(" %s\n", f->f_un.f_fname);
+		dprintf(DPRINTF_INFORMATIVE)(" %s\n", c->f_fname);
 		if (f->f_type != F_FILE) {
 			v->iov_base = "\r\n";
 			v->iov_len = 2;
@@ -190,18 +207,18 @@ om_classic_write(struct filed *f, int flags, char *msg, void *context)
 			 * Check for errors on TTY's due to loss of tty
 			 */
 			if ((e == EIO || e == EBADF) && f->f_type != F_FILE) {
-				f->f_file = open(f->f_un.f_fname,
+				f->f_file = open(c->f_fname,
 				    O_WRONLY|O_APPEND, 0);
 				if (f->f_file < 0) {
 					f->f_type = F_UNUSED;
-					logerror(f->f_un.f_fname);
+					logerror(c->f_fname);
 				} else
 					goto again;
 			} else {
 				f->f_type = F_UNUSED;
 				f->f_file = -1;
 				errno = e;
-				logerror(f->f_un.f_fname);
+				logerror(c->f_fname);
 			}
 		} else if (flags & SYNC_FILE)
 			(void)fsync(f->f_file);
@@ -212,7 +229,7 @@ om_classic_write(struct filed *f, int flags, char *msg, void *context)
 		dprintf(DPRINTF_INFORMATIVE)("\n");
 		v->iov_base = "\r\n";
 		v->iov_len = 2;
-		wallmsg(f, iov);
+		wallmsg(f, iov, c);
 		break;
 	}
 	f->f_prevcount = 0;
@@ -227,14 +244,18 @@ om_classic_write(struct filed *f, int flags, char *msg, void *context)
  *  taken mostly from syslogd's cfline
  */
 int
-om_classic_init(int argc, char **argv, struct filed *f, char *prog,
-		void **context)
+om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 {
 	struct hostent *hp;
+	union  om_classic_ctx *c;
 	int i;
 	char *p, *q;
 
 	dprintf(DPRINTF_INFORMATIVE)("om_classic init: Entering\n");
+
+	if ((*ctx = (void *) calloc(1, sizeof(union om_classic_ctx))) == NULL)
+		return (-1);
+	c = (union om_classic_ctx *) *ctx;
 
 	p = argv[1];
 
@@ -265,28 +286,27 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog,
 			}
 		}
 
-		(void)strncpy(f->f_un.f_forw.f_hname, ++p,
-		    sizeof(f->f_un.f_forw.f_hname)-1);
-		f->f_un.f_forw.f_hname[sizeof(f->f_un.f_forw.f_hname)-1] = '\0';
-		hp = gethostbyname(f->f_un.f_forw.f_hname);
+		strncpy(c->f_forw.f_hname, ++p,
+		    sizeof(c->f_forw.f_hname) - 1);
+		c->f_forw.f_hname[sizeof(c->f_forw.f_hname) - 1] = '\0';
+		hp = gethostbyname(c->f_forw.f_hname);
 		if (hp == NULL) {
 			extern int h_errno;
 
 			logerror((char *)hstrerror(h_errno));
 			break;
 		}
-		memset(&f->f_un.f_forw.f_addr, 0,
-		    sizeof(f->f_un.f_forw.f_addr));
-		f->f_un.f_forw.f_addr.sin_family = AF_INET;
-		f->f_un.f_forw.f_addr.sin_port = LogPort;
-		memmove(&f->f_un.f_forw.f_addr.sin_addr, hp->h_addr,
+
+		c->f_forw.f_addr.sin_family = AF_INET;
+		c->f_forw.f_addr.sin_port = LogPort;
+		memmove(&c->f_forw.f_addr.sin_addr, hp->h_addr,
 		    sizeof(struct in_addr));
 		f->f_type = F_FORW;
 		break;
 
 	case '/':
-		(void)strncpy(f->f_un.f_fname, p, sizeof f->f_un.f_fname);
-		f->f_un.f_fname[sizeof f->f_un.f_fname]=0;
+		strncpy(c->f_fname, p, sizeof c->f_fname);
+		c->f_fname[sizeof (c->f_fname) - 1]=0;
 		if ((f->f_file = open(p, O_WRONLY|O_APPEND, 0)) < 0) {
 			f->f_type = F_UNUSED;
 			logerror(p);
@@ -308,11 +328,11 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog,
 		for (i = 0; i < MAXUNAMES && *p; i++) {
 			for (q = p; *q && *q != ','; )
 				q++;
-			(void)strncpy(f->f_un.f_uname[i], p, UT_NAMESIZE);
+			(void)strncpy(c->f_uname[i], p, UT_NAMESIZE);
 			if ((q - p) > UT_NAMESIZE)
-				f->f_un.f_uname[i][UT_NAMESIZE] = '\0';
+				c->f_uname[i][UT_NAMESIZE] = '\0';
 			else
-				f->f_un.f_uname[i][q - p] = '\0';
+				c->f_uname[i][q - p] = '\0';
 			while (*q == ',' || *q == ' ')
 				q++;
 			p = q;
@@ -343,7 +363,7 @@ om_classic_close(struct filed *f, void *ctx)
 }
 
 int
-om_classic_flush(struct filed *f, void *context)
+om_classic_flush(struct filed *f, void *ctx)
 {
 	/* flush any pending output */
 	if (f->f_prevcount)
@@ -360,7 +380,7 @@ om_classic_flush(struct filed *f, void *context)
  *	world, or a list of approved users.
  */
 void
-wallmsg( struct filed *f, struct iovec *iov)
+wallmsg( struct filed *f, struct iovec *iov, union om_classic_ctx *c)
 {
 	static int reenter;			/* avoid calling ourselves */
 	FILE *uf;
@@ -398,9 +418,9 @@ wallmsg( struct filed *f, struct iovec *iov)
 		}
 		/* should we send the message to this user? */
 		for (i = 0; i < MAXUNAMES; i++) {
-			if (!f->f_un.f_uname[i][0])
+			if (!c->f_uname[i][0])
 				break;
-			if (!strncmp(f->f_un.f_uname[i], ut.ut_name,
+			if (!strncmp(c->f_uname[i], ut.ut_name,
 			    UT_NAMESIZE)) {
 				if ((p = ttymsg(iov, 6, line, TTYMSGTIME))
 								!= NULL) {
