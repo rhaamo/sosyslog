@@ -1,4 +1,4 @@
-/*	$CoreSDI: sql_misc.c,v 1.1 2000/06/08 00:25:46 gera Exp $	*/
+/*	$CoreSDI: sql_misc.c,v 1.2 2000/06/08 22:57:32 gera Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -30,7 +30,7 @@
  */
 
 /*
- * om_pgsql -- PostgreSQL database support Module
+ * sql_misc - Functions shared by SQL modules
  *
  * Author: Gerardo_Richarte@core-sdi.com
  *         Extracted from om_pgsql.c by Oliver Teuber (ot@penguin-power.de)
@@ -70,14 +70,14 @@ to_sql(s)
 }
 
 int
-month_number(monthName)
-	char *monthName;
+month_number(month_name)
+	char *month_name;
 {
 	const char *Months[] = {
 		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
 		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 	int i=0;
 	for (;i<sizeof(Months)/sizeof(Months[0]);i++)
-		if (!strncmp(Months[i],monthName,3)) return i+1;
+		if (!strncmp(Months[i],month_name,3)) return i+1;
 	return 0;
 }

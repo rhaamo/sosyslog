@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.54 2000/06/09 19:24:15 fgsch Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.55 2000/06/09 19:43:24 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -128,7 +128,7 @@ struct filed {
 
 int	modules_load(void);
 int	modules_init(struct i_module *, char *);
-int	omodule_create(char *c, struct filed *, char *);
+int	omodule_create(char *, struct filed *, char *);
 int	im_close(struct i_module *);
 int	om_close(struct filed *, struct om_hdr_ctx *);
 void    logerror(char *);
