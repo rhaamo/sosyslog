@@ -1,3 +1,4 @@
+.\"	$Id: syslog.conf.5,v 1.1 2000/05/19 19:48:09 claudio Exp $
 .\" Copyright (c) 1990, 1991, 1993
 .\"	The Regents of the University of California.  All rights reserved.
 .\"
@@ -35,7 +36,7 @@
 .\"
 .Dd June 9, 1993
 .Dt SYSLOG.CONF 5
-.Os
+.Os Core-SDI
 .Sh NAME
 .Nm syslog.conf
 .Nd
@@ -180,7 +181,7 @@ The
 field of each line specifies the action to be taken when the
 .Em selector
 field selects a message.
-There are four forms:
+There are five forms:
 .Bl -bullet
 .It
 A pathname (beginning with a leading slash).
@@ -197,6 +198,9 @@ if they are logged in.
 .It
 An asterisk.
 Selected messages are written to all logged-in users.
+.It
+A ``%'' character followed by a module name.
+Selected messages are forwarded to the specified modules.
 .El
 .Pp
 Blank lines and lines whose first non-blank character is a hash (``#'')
@@ -254,7 +258,10 @@ For example ``mail.crit,*.err'' will select ``mail'' facility messages at
 the level of ``err'' or higher, not at the level of ``crit'' or higher.
 .Sh SEE ALSO
 .Xr syslog 3 ,
-.Xr syslogd 8
+.Xr syslogd 8 ,
+.Xr om_classic 8 ,
+.Xr om_peo 8 ,
+.Xr peochk 8 
 .Sh HISTORY
 The
 .Nm
