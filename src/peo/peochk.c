@@ -1,4 +1,4 @@
-/*      $Id: peochk.c,v 1.26 2000/05/09 21:10:04 claudio Exp $
+/*      $Id: peochk.c,v 1.27 2000/05/10 17:15:14 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
@@ -146,33 +146,22 @@ readline (fd, buf, len)
 
 
 /*
- * qerr:
- *	err and errx functions with quiet mode support
+ * exit:
+ *	Prints a message on stdout and exits with a status
  */
-enum {
-	ERR,
-	ERRX
-};
-
 void
-qerr (int quiet, int op, int eval, char *fmt, ...)
+eexit (int status, char *fmt, ...)
 {
-	va_list	ap;
-
-	if (quiet)
-		exit(eval);
-
-	va_start(ap, fmt);
-	switch(op) {
-		case ERR:  /* err */
-			verr(eval, fmt, ap);
-		case ERRX: /* errx */
-		default:
-			verrx(eval, fmt, ap);
+	va_list ap;
+	if (fmt) {
+		va_start (ap, fmt);
+		vfprintf (stdout, fmt, ap);
+		va_end(ap);
 	}
+	exit(status);
 }
-
-
+	
+	
 /*
  * check: read logfile and check it
  */
@@ -198,20 +187,24 @@ check()
 	if (actionf & ST_IN)
 		input = STDIN_FILENO;
 	else if ( (input = open(logfile, O_RDONLY, 0)) == -1)
-		qerr(actionf & QUIET, ERR, -1, logfile);
+		err(-1, logfile);
 
 	/* open macfile */
 	if (macfile)
 		if ( (mfd = open(macfile, O_RDONLY, 0)) == -1)
-			qerr(0, ERR, -1, macfile);
+			err(-1, macfile);
 
 	/* read initial key (as ascii string) and tranlate it to binary */
 	if ( (i = open(key0file, O_RDONLY, 0)) == -1)
-		qerr(0, ERR, -1, key0file);
+		err(-1, key0file);
 	if ( (keylen = read(i, key, 40)) == -1)
-		qerr(0, ERR, -1, key0file);
-	if (!keylen)
-		qerr(actionf & QUIET, ERRX, 1, "%s: %s\n", key0file, corrupted);
+		err(-1, key0file);
+	if (!keylen) {
+		if (actionf & QUIET)
+			eexit(1, "1\n");
+		else
+			eexit(1, "(1) %s: %s\n", key0file, corrupted);
+	}
 	key[keylen] = 0;
 	asc2bin(key, key);
 	keylen >>= 1;
@@ -219,44 +212,61 @@ check()
 
 	/* read last key */
 	if ( (i = open(keyfile, O_RDONLY, 0)) == -1)
-		qerr(0, ERR, -1, keyfile);
+		err(-1, keyfile);
 	if ( (lastkeylen = read(i, lastkey, 20)) == -1)
-		qerr(0, ERR, -1, keyfile);
-	if (!lastkeylen)
-		qerr(actionf & QUIET, ERRX, 1, "%s: %s\n", keyfile, corrupted);
+		err(-1, keyfile);
+	if (!lastkeylen) {
+		if (actionf & QUIET)
+			eexit(1, "1\n");
+		else
+			eexit(1, "(1) %s: %s\n", keyfile, corrupted);
+	}
 	close(i);
 
 	/* test both key lenghts */
-	if (lastkeylen != keylen)
-		qerr(actionf & QUIET, ERRX, 1, "%s and/or %s %s\n", key0file, keyfile, corrupted);
+	if (lastkeylen != keylen) {
+		if (actionf & QUIET)
+			eexit(1, "1\n");
+		else
+			eexit(1, "(1) %s and/or %s %s\n", key0file, keyfile, corrupted);
+	}
 
 	/* check it */
 	line = 1;
 	while( (msglen = readline(input, msg, MAXLINE)) > 0) {
 		if (macfile) {
 			if ( (mkey1len = mac2(key, keylen, msg, msglen, mkey1)) < 0)
-				qerr(0, ERR, -1, macfile);
+				err(-1, macfile);
 			if ( (mkey2len = read(mfd, mkey2, mkey1len)) < 0)
-				qerr(0, ERR, -1, macfile);
-			if ((mkey2len != mkey1len) || memcmp(mkey2, mkey1, mkey1len))
-				qerr(actionf & QUIET, ERRX, line, "%s %s on line %i\n", logfile, corrupted, line);
+				err(-1, macfile);
+			if ((mkey2len != mkey1len) || memcmp(mkey2, mkey1, mkey1len)) {
+				if (actionf & QUIET)
+					eexit(1, "%i\n", line);
+				else
+					eexit(1, "(%i) %s %s on line %i\n", line, logfile, corrupted, line);
+			}
 			line++;
 		}
 		if ( (keylen = mac(method, key, keylen, msg, msglen, key)) == -1)
-			qerr(0, ERR, -1, "fatal");
+			err(-1, "fatal");
 	}
 
 	if (macfile)
 		close(mfd);
 
 	if (i < 0)
-		qerr(0, ERRX, -1, "error reading logs form %s", (actionf & ST_IN) ? "standard input" : logfile);
+		errx(-1, "error reading logs form %s", (actionf & ST_IN) ? "standard input" : logfile);
 
-	if (memcmp(lastkey, key, keylen)) 
-		qerr(actionf & QUIET, ERRX, 1, "%s %s\n", logfile, corrupted);
-
-	if (!(actionf & QUIET))
-		fprintf(stderr, "%s file is ok\n", logfile);
+	if (memcmp(lastkey, key, keylen)) {
+		if (actionf & QUIET) 
+			eexit(1, "1\n");
+		else
+			eexit(1, "(1) %s %s\n", logfile, corrupted);
+	}
+	if (actionf & QUIET)
+		eexit(0, "0\n");
+	else
+		eexit(0, "(0) %s file is ok\n", logfile);
 }
 
 
@@ -277,21 +287,21 @@ generate()
 
 	if (getrandom(randvalue, 20) < 0) {
 		release();
-		qerr(0, ERR, -1, "getrandom");
+		err(-1, "getrandom");
 	}
 	if ( (keylen = mac(method, NULL, 0, randvalue, 20, key)) == -1) {
 		release();
-		qerr(0, ERR, -1, "fatal");
+		err(-1, "fatal");
 	}
 	if ( (kfd = open(keyfile, O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR)) == -1) {
 		release();
-		qerr(0, ERR, -1, keyfile); 
+		err(-1, keyfile); 
 	}
 	if ( (k0fd = open(key0file, O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR)) == -1) {
 		unlink(keyfile);
 		close(kfd);
 		release();
-		qerr(0, ERR, -1, key0file);
+		err(-1, key0file);
 	}
 
 	/* write key 0 */
@@ -333,7 +343,7 @@ main (argc, argv)
 					free(logfile);
 				if ( (logfile = strdup(optarg)) == NULL) {
 					release();
-					qerr(0, ERR, -1, optarg);
+					err(-1, optarg);
 				}
 				actionf &= ~ST_IN;
 				break;
@@ -347,7 +357,7 @@ main (argc, argv)
 					free(key0file);
 				if ( (key0file = strdup(optarg)) == NULL) {
 					release();
-					qerr(0, ERR, -1, optarg);
+					err(-1, optarg);
 				}
 				break;
 			case 'k':
@@ -356,7 +366,7 @@ main (argc, argv)
 					free(keyfile);
 				if ( (keyfile = strdup(optarg)) == NULL) {
 					release();
-					qerr(0, ERR, -1, optarg); 
+					err(-1, optarg); 
 				}
 				break;
 			case 'l':
@@ -387,14 +397,14 @@ main (argc, argv)
 	if (argc && (actionf & ST_IN))
 		if ( (logfile = strdup(argv[argc-1])) == NULL) {
 			release();
-			qerr(0, ERR, -1, argv[argc-1]);
+			err(-1, argv[argc-1]);
 		}
 
 	/* if keyfile was not specified converted logfile is used instead */
 	if (keyfile == default_keyfile && logfile != default_logfile) {
 		if ( (keyfile = strallocat("/var/log/ssyslog/key.", logfile)) == NULL) {
 			release();
-			qerr(0, ERR, -1, "buffer for keyfile");
+			err(-1, "buffer for keyfile");
 		}
 		strdot(&keyfile[17]);
 	}
@@ -403,14 +413,14 @@ main (argc, argv)
 	if (key0file == NULL)
 		if ( (key0file = strkey0(keyfile)) == NULL) {
 		release();
-		qerr(0, ERR, -1, "creating key0 file");
+		err(-1, "creating key0 file");
 		}
 
 	/* create macfile */
 	if (mac)
 		if ( (macfile = strmac(keyfile)) == NULL) {
 			release();
-			qerr(0, ERR, -1, "creating mac file");
+			err(-1, "creating mac file");
 		}
 
 	/* execute action */
