@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.23 2000/05/16 19:23:22 claudio Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.24 2000/05/16 21:38:12 claudio Exp $";
 #endif /* not lint */
 
 /*
@@ -67,7 +67,7 @@ static char rcsid[] = "$Id: om_peo.c,v 1.23 2000/05/16 19:23:22 claudio Exp $";
 #include "../modules.h"
 #include "hash.h"
 
-#define MAXBUF	MAXSVLINE+MAXHOSTNAMELEN+16
+#define MAXBUF	MAXSVLINE+MAXHOSTNAMELEN+20
 
 struct om_peo_ctx {
 	short	flags;
@@ -92,7 +92,7 @@ om_peo_doLog(f, flags, msg, context)
 	char	 m[MAXBUF];
 	int	 mfd;
 	u_char	 mkey[41];
-	char	*newkey;
+	char	 newkey[41];
 	int	 newkeylen;
 
 	dprintf ("peo output module: doLog\n");
@@ -102,13 +102,13 @@ om_peo_doLog(f, flags, msg, context)
 
 	c = (struct om_peo_ctx*) context;
 
-	if (msg == NULL) {
+	if (msg == NULL)
 		snprintf(m, MAXBUF, "%s %s %s\n", f->f_lasttime, f->f_prevhost, f->f_prevline);
-		len = f->f_prevlen+strlen(f->f_lasttime)+strlen(f->f_prevhost);
-	} else {
+	else
 		snprintf(m, MAXBUF, "%s %s %s\n", f->f_lasttime, f->f_prevhost, msg);
-		len = f->f_prevlen+strlen(f->f_lasttime)+strlen(msg);
-	}
+
+	len = strlen(m)-1;
+
 	dprintf ("msg = %s\n ", m);
 
 	/* open keyfile and read last key */
