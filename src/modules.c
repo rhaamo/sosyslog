@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.60 2000/05/23 01:44:34 alejo Exp $
+/*	$Id: modules.c,v 1.61 2000/05/23 03:10:17 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -175,6 +175,11 @@ modules_init (I, line)
 
 	} else if (!strncmp(argv[0], "unix", 4)) {
 	    if (im_unix_init(im, argv, argc) < 0) {
+	    	dprintf("Error initializing module %s [%s]\n", argv[0], line);
+	        die(0);
+	    }
+	} else if (!strncmp(argv[0], "udp", 3)) {
+	    if (im_udp_init(im, argv, argc) < 0) {
 	    	dprintf("Error initializing module %s [%s]\n", argv[0], line);
 	        die(0);
 	    }

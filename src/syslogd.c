@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.68 2000/05/23 01:44:34 alejo Exp $
+/*	$Id: syslogd.c,v 1.69 2000/05/23 03:10:18 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -113,7 +113,6 @@ int	LogPort;		/* port number for INET connections */
 int	Initialized = 0;	/* set when we have initialized ourselves */
 int	MarkInterval = 20 * 60;	/* interval between marks in seconds */
 int	MarkSeq = 0;		/* mark sequence number */
-int	SecureMode = 1;		/* when true, speak only unix domain socks */
 
 void    cfline __P((char *, struct filed *, char *));
 int     decode __P((const char *, CODE *));
@@ -155,11 +154,18 @@ main(argc, argv)
 			MarkInterval = atoi(optarg) * 60;
 			break;
 		case 'u':		/* allow udp input port */
-			SecureMode = 0;
+			if (modules_init(&Inputs, "udp") < 0) {
+				fprintf(stderr, "syslogd: error on udp input module\n");
+				exit(-1);
+			}
+			modules_init(&Inputs, "udp");
 			break;
 		case 'i':		/* inputs */
-			if (modules_init(&Inputs, optarg) < 0)
+			if (modules_init(&Inputs, optarg) < 0) {
+				fprintf(stderr, "syslogd: error on input module, ignoring"
+						"%s\n", optarg);
 				exit(-1);
+			}
 			break;
 		case 'p':		/* path */
 		case 'a':		/* additional AF_UNIX socket name */
@@ -198,7 +204,8 @@ main(argc, argv)
         consfile.f_omod = (struct o_module *) calloc(1, sizeof(struct o_module));
         consfile.f_omod->om_type = OM_CLASSIC;
 
-	(void)strcpy(consfile.f_un.f_fname, ctty);
+	(void)strncpy(consfile.f_un.f_fname, ctty,
+			sizeof(consfile.f_un.f_fname) - 1);
 	(void)gethostname(LocalHostName, sizeof(LocalHostName));
 	if ((p = strchr(LocalHostName, '.')) != NULL) {
 		*p++ = '\0';
@@ -457,7 +464,7 @@ logmsg(pri, msg, from, flags)
 			f->f_prevhost[sizeof(f->f_prevhost)-1] = '\0';
 			if (msglen < MAXSVLINE) {
 				f->f_prevlen = msglen;
-				(void)strcpy(f->f_prevline, msg);
+				(void)strncpy(f->f_prevline, msg, sizeof(f->f_prevline) - 1);
 				doLog(f, flags, (char *)NULL);
 			} else {
 				f->f_prevline[0] = 0;
@@ -657,7 +664,7 @@ init(signo)
 	 *  Foreach line in the conf table, open that file.
 	 */
 	f = NULL;
-	strcpy(prog, "*");
+	strncpy(prog, "*", 2);
 	while (fgets(cline, sizeof(cline), cf) != NULL) {
 		/*
 		 * check for end-of-section, comments, strip off trailing
@@ -678,7 +685,7 @@ init(signo)
 			while (isspace(*p))
 				p++;
 			if (!*p) {
-				strcpy(prog, "*");
+				strncpy(prog, "*", 2);
 				continue;
 			}
 			for (i = 0; i < NAME_MAX; i++) {

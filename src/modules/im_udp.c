@@ -1,4 +1,4 @@
-/*	$Id: im_udp.c,v 1.17 2000/05/22 22:40:50 alejo Exp $
+/*	$Id: im_udp.c,v 1.18 2000/05/23 03:10:17 alejo Exp $
  *  im_udp -- classic behaviour module for BDS like systems
  *      
  * Author: Alejo Sanchez for Core-SDI SA
@@ -25,6 +25,9 @@
 
 void    logerror __P((char *));
 void    die __P((int));
+
+extern int      finet;                  /* Internet datagram socket */
+extern int      LogPort;                /* port number for INET connections */
 
 
 /* standard input module header variables in context */
@@ -64,18 +67,15 @@ im_udp_getLog(im, ret)
 	slen = sizeof(frominet);
 	ret->im_len = recvfrom(finet, ret->im_msg, MAXLINE, 0,
 		(struct sockaddr *)&frominet, &slen);
-	if (SecureMode) {
-		/* silently drop it */
-	} else {
-		if (ret->im_len > 0) {
-			ret->im_msg[ret->im_len] = '\0';
-			hent = gethostbyaddr((char *) &frominet.sin_addr, sizeof frominet.sin_addr,
-					frominet.sin_family);
-			if (hent!=NULL) strncpy(ret->im_host, hent->h_name, sizeof ret->im_host);
-				else strncpy(ret->im_host,inet_ntoa(frominet.sin_addr),sizeof ret->im_host);
-		} else if (ret->im_len < 0 && errno != EINTR)
-			logerror("recvfrom inet");
-	}
+	if (ret->im_len > 0) {
+		ret->im_msg[ret->im_len] = '\0';
+		hent = gethostbyaddr((char *) &frominet.sin_addr, sizeof frominet.sin_addr,
+				frominet.sin_family);
+		if (hent!=NULL) strncpy(ret->im_host, hent->h_name, sizeof ret->im_host);
+			else strncpy(ret->im_host, inet_ntoa(frominet.sin_addr),
+					sizeof ret->im_host);
+	} else if (ret->im_len < 0 && errno != EINTR)
+		logerror("recvfrom inet");
 
 	return(-1);
 
@@ -85,10 +85,6 @@ im_udp_getLog(im, ret)
  * initialize udp input
  *
  */
-
-extern int nfunix;
-extern char *funixn[];
-extern int *funix[];
 
 int
 im_udp_init(I, argv, argc)

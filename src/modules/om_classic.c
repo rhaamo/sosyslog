@@ -1,4 +1,4 @@
-/*	$Id: om_classic.c,v 1.20 2000/05/22 22:40:52 alejo Exp $
+/*	$Id: om_classic.c,v 1.21 2000/05/23 03:10:18 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -61,6 +61,9 @@ char   *ttymsg __P((struct iovec *, int, char *, int));
 
 extern time_t now;
 void    logerror __P((char *));
+extern int      finet;                  /* Internet datagram socket */
+extern int      LogPort;                /* port number for INET connections */
+
 
 int
 om_classic_doLog(f, flags, msg, context)
