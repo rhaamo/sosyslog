@@ -34,5 +34,5 @@ peo/om_peo.o peo/hash.o peo/rmd160.o:
 tester:		tester.c
 
 clean:
-	@(cd peo && make clean); rm -f *.o syslogd 
+	@(cd peo && make clean);
 	@rm -f *.o syslogd tester
