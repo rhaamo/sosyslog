@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.119 2000/08/24 19:59:11 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.120 2000/08/25 22:37:51 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.119 2000/08/24 19:59:11 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.120 2000/08/25 22:37:51 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -178,6 +178,8 @@ int Debug = 0;
 int InetInuse = 0;
 char  LocalHostName[MAXHOSTNAMELEN];  /* our hostname */
 
+char *libdir = NULL;
+
 void    cfline(char *, struct filed *, char *);
 int     decode(const char *, CODE *);
 void    domark(int);
@@ -218,7 +220,7 @@ main(int argc, char **argv) {
 		exit(-1);
 	}
 
-	while ((ch = getopt(argc, argv, "dubSf:m:p:a:i:h")) != -1)
+	while ((ch = getopt(argc, argv, "dubSf:m:p:a:i:l:h")) != -1)
 		switch (ch) {
 		case 'd':		/* debug */
 			Debug++;
@@ -250,11 +252,14 @@ main(int argc, char **argv) {
 			    snprintf(buf, 512, "unix %s", optarg); 
 			    if (imodule_init(&Inputs, buf) < 0) {
 				fprintf(stderr,
-				    "syslogd: out of descriptors, ignoring %s\n",
-				    optarg);
+					"syslogd: out of descriptors, ignoring %s\n",
+					optarg);
 			        exit(-1);
 			    }
 			}
+			break;
+		case 'l':
+			libdir = optarg;
 			break;
 		case '?':
 		case 'h':

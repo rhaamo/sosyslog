@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.121 2000/08/25 22:37:51 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.122 2000/08/29 23:59:26 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -78,6 +78,8 @@ struct omodule *addOmodule(char *);
 
 struct omodule *omodules;
 struct imodule *imodules;
+
+extern char *libdir;
 
 /* assign module functions to generic pointer */
 int
@@ -309,7 +311,8 @@ addImodule(char *name) {
 		}
 	}
 
-	snprintf(buf, LIB_PATH_MAX, "libmsyslog_im_%s.so", name);
+	snprintf(buf, LIB_PATH_MAX, "%slibmsyslog_im_%s.so",
+			libdir ? libdir: "/var/ssyslog/lib", name);
 
 	if ((im->h = dlopen(buf, RTLD_LAZY)) == NULL) {
 	   	dprintf("Error [%s] on file [%s]\n", dlerror(), buf);

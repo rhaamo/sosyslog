@@ -1,4 +1,4 @@
-dnl	$CoreSDI: aclocal.m4,v 1.13 2000/08/25 22:41:24 alejo Exp $
+dnl	$CoreSDI: aclocal.m4,v 1.14 2000/08/29 23:56:59 alejo Exp $
 
 dnl
 dnl MSYSLOG_GREP patt file comm
@@ -18,11 +18,11 @@ fi
 dnl
 dnl Check given library install directory
 dnl
-AC_DEFUN(MSYSLOG_CHECK_MSYSLOG_LIBDIR, [
-AC_ARG_WITH(msyslog-libdir,
+AC_DEFUN(MSYSLOG_CHECK_MSYSLOG_BASEDIR, [
+AC_ARG_WITH(msyslog-basedir,
 	[--with-msyslog-libdir=DIR        specify msyslog library dir],
-	[MSYSLOG_LIBDIR="$withval"],
-	[MSYSLOG_LIBDIR="/var/ssyslog"]
+	[MSYSLOG_BASEDIR="$withval"],
+	[MSYSLOG_BASEDIR="/var/ssyslog"]
 )])
 
 dnl
