@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_tcp.c,v 1.14 2001/04/24 15:21:04 alejo Exp $	*/
+/*	$CoreSDI: om_tcp.c,v 1.15 2001/04/24 15:25:00 alejo Exp $	*/
 /*
      Copyright (c) 2001, Core SDI S.A., Argentina
      All rights reserved
@@ -214,14 +214,18 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 		if (c->savet == 0) {
 			c->savet = t;
 		} else {
+			register unsigned int n, s;
+
+			n = (unsigned int) t;
+			s = c->msec - (c->msec / c->inc);
+			n -= s;
 
 			dprintf(MSYSLOG_INFORMATIVE, "om_tcp_write: should "
-			    "I retry? (now %i, lasttime %i, sleep %i,"
-			    " next %i)...", t, c->savet,
-			    c->msec - (c->msec / c->inc),
-			    (t - (c->msec - (c->msec / c->inc))) );
+			    "I retry? (now %u, lasttime %u, sleep %u,"
+			    " next %u)...", (unsigned int) t,
+			    (unsigned int) c->savet, s, n);
 
-			if ((t - (c->msec - (c->msec / c->inc))) < c->savet ) {
+			if (n < c->savet) {
 				dprintf(MSYSLOG_INFORMATIVE, "no!\n");
 				if (c->saved && l < (c->savesize - c->savelen
 				    - 1)) {
