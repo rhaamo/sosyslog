@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.73 2000/05/23 21:47:06 fgsch Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.74 2000/05/26 16:43:36 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -123,7 +123,6 @@ void    die __P((int));
 void    domark __P((int));
 void    doLog __P((struct filed *, int, char *));
 void    init __P((int));
-void    logerror __P((char *));
 void    logmsg __P((int, char *, char *, int));
 void    printline __P((char *, char *, int));
 void    reapchild __P((int));

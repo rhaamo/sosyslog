@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.15 2000/05/23 21:47:04 fgsch Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.16 2000/05/26 16:53:36 fgsch Exp $	*/
 
 /*
  *  im_unix -- classic behaviour module for BDS like systems
@@ -26,7 +26,6 @@
 
 
 char   *cvthname __P((struct sockaddr_in *));
-void    logerror __P((char *));
 
 
 /*

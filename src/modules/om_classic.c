@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.23 2000/05/24 17:58:51 fgsch Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.24 2000/05/26 16:53:37 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -58,7 +58,6 @@ void	wallmsg __P((struct filed *, struct iovec *));
 char   *ttymsg __P((struct iovec *, int, char *, int));
 
 extern time_t now;
-void    logerror __P((char *));
 extern int      finet;                  /* Internet datagram socket */
 extern int      LogPort;                /* port number for INET connections */
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.23 2000/05/26 16:43:35 fgsch Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.24 2000/05/26 16:53:36 fgsch Exp $	*/
 
 /*
  *  im_udp -- classic behaviour module for BDS like systems
@@ -23,8 +23,6 @@
 #include "modules.h"
 #include "syslogd.h"
 
-
-void    logerror __P((char *));
 void    die __P((int));
 
 extern int      finet;                  /* Internet datagram socket */
