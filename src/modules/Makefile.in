@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.64 2001/03/15 20:40:49 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.65 2001/03/23 18:06:41 alejo Exp $
 #
 # Copyright (c) 2001, Core SDI S.A., Argentina
 # All rights reserved
@@ -63,10 +63,10 @@ all: $(MLIBNAME)
 .PHONY:	clean distclean
 
 clean:
-	-rm -f core *.core *.o *.so.* *.so *.imp
+	-rm -f core *.core *.o *.so.* *.so
 
 distclean: clean
-	-rm -f Makefile
+	-rm -f Makefile *.imp
 
 install:
 	@echo "installing shared library..."
