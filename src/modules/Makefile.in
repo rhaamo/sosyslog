@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.32 2000/07/10 23:58:41 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.33 2000/08/04 01:55:10 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -130,11 +130,11 @@ $(DPEO):
 	$(LDK) -o $@ $(DPEO_OBJS) $(DHASH_OBJS)
 
 $(DMYSQL):
-	$(DCC) $(MYSQL_CPPFLAGS) $(MYSQL_LIBS) $(DMYSQL_SRCS)
+	$(DCC) $(MYSQL_CPPFLAGS) $(DMYSQL_SRCS)
 	$(LDK) -o $@ $(DMYSQL_OBJS)
 
 $(DPGSQL):
-	$(DCC) $(PGSQL_CPPFLAGS) $(PGSQL_LIBS) $(DPGSQL_SRCS)
+	$(DCC) $(PGSQL_CPPFLAGS) $(DPGSQL_SRCS)
 	$(LDK) -o $@ $(DPGSQL_OBJS)
 
 $(DREGEX):
