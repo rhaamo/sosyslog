@@ -22,7 +22,7 @@ objs = $(protobjs) $(EXTRAOBJ)
 all: syslogd
 
 .c.o:
-	$(CC) $(CFLAGS) $(CEFLAGS) -c $< 
+	$(CC) $(CFLAGS) $(CEFLAGS) -c $< -o $(.PREFIX).o
 
 syslogd: $(objs)
 	$(CC) $(objs) -o syslogd $(LDEFLAGS) $(LIBS) $(LDFLAGS)
