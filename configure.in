@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.123 2001/04/09 20:11:23 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.124 2001/04/09 20:22:40 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -127,6 +127,11 @@ AC_EGREP_HEADER(stack_t, [signal.h],[
 ])dnl
 
 
+AC_ARG_WITH(maximum-optimization,
+[  --without-maximum-optimization
+	Activate maximum possible compile and link optimization
+],[ maxopt="yes"; ],[ maxopt="no"; ])
+
 UNAME=`uname`
 if test "$UNAME" = "OpenBSD" ; then
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)dnl
@@ -149,13 +154,12 @@ elif test "$UNAME" = "IRIX" -o "$UNAME" = "IRIX64" ; then
 	then
 		DCCFLAGS="-Bshared"
 	else
-		if test "x$MAXOPT" == "xyes"
+		if test "x$maxopt" = "xyes"
 		then
-			DCCFLAGS="$DCCFLAGS -g3 -Ofast"
 			CFLAGS="$CFLAGS -g3 -Ofast"
 		fi
-		SHARED_PARAMS="-shared"
 	fi
+	SHARED_PARAMS="-shared -soname $MLIBNAME -all"
 elif test "$UNAME" = "AIX" ; then
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY | RTLD_GLOBAL)dnl
 	AC_DEFINE(NEEDS_DLOPEN_NULL)dnl
@@ -186,19 +190,6 @@ fi
 dnl
 dnl Here we check module support
 dnl
-
-AC_ARG_WITH(maximum-optimization,
-[  --without-maximum-optimization
-	Activate maximum possible compile and link optimization
-],[
-	if test $with_maximum-optimization = "yes" ; then
-		MAXOPT=yes
-	else
-		MAXOPT=no
-	fi
-],[
-	MAXOPT=no
-])
 
 temp_res="no";
 AC_ARG_WITH(bsd,
