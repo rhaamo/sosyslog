@@ -1,4 +1,4 @@
-$Id: INSTALL,v 1.7 2000/08/24 20:28:45 gera Exp $
+$Id: INSTALL,v 1.8 2000/09/04 23:38:21 alejo Exp $
 ==============================================================================
                          Modular Syslog package
                              INSTALL file
@@ -120,9 +120,6 @@ stop running klogd.
 
 3.a PEO
 
-<<<<<<< INSTALL
-  See manpage om_peo(8) for details on proper setup instructions.
-=======
   See om_peo(8), peochk(8) and syslog.conf(5) manpages for details and
 proper setup instructions.
 
