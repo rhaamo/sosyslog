@@ -1,11 +1,11 @@
-/*      $Id: peochk.c,v 1.20 2000/05/05 22:24:51 claudio Exp $
+/*      $Id: peochk.c,v 1.21 2000/05/06 00:58:23 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
  * Author: Claudio Castiglia for Core-SDI SA
  *
  *
- * peochk [-f logfile] [-g] [-i key0file] [-k keyfile] [-l] [-m hash_method] [logfile]
+ * peochk [-f logfile] [-g] [-i key0file] [-k keyfile] [-l] [-m hash_method] [-q] [logfile]
  *
  * supported hash_method values:
  *			md5
@@ -27,6 +27,7 @@
  *	   replaced by '.'
  *	4) If -l switch is specified, peochk detects the line number
  *	   corrupted on logfile
+ *	5) -q means quiet mode
  *
  */
 
@@ -47,6 +48,11 @@
 #include "hash.h"
 #include "../syslogd.h"
 
+#define CHECK	0x01
+#define QUIET	0x02
+#define ST_IN	0x04
+
+int	 actionf;
 char	*corrupted = "corrupted";
 char	*default_logfile = "/var/log/messages";
 char	*keyfile;
@@ -54,7 +60,6 @@ char	*key0file;
 char	*logfile;
 char	*macfile;
 int	 method;
-int	 use_stdin;
 
 extern char *optarg;
 
@@ -160,7 +165,7 @@ check()
 	int   msglen;
 	
 	/* open logfile */
-	if (use_stdin)
+	if (actionf & ST_IN)
 		input = STDIN_FILENO;
 	else if ( (input = open(logfile, O_RDONLY, 0)) == -1)
 		err(2, logfile);
@@ -215,7 +220,7 @@ check()
 		close(mfd);
 
 	if (i < 0)
-		errx(2, "error reading logs form %s", (use_stdin) ? "standard input" : logfile);
+		errx(2, "error reading logs form %s", (actionf & ST_IN) ? "standard input" : logfile);
 
 	if (memcmp(lastkey, key, keylen)) 
 		errx(1, "%s %s\n", logfile, corrupted);
@@ -274,15 +279,13 @@ main (argc, argv)
 	int argc;
 	char **argv;
 {
-	int	 action;
 	int	 ch;
 	int	 mac;
 
-	/* integrity check mode */
-	action = 0;
+	/* integrity check mode, stdin */
+	actionf = CHECK | ST_IN;
 
 	/* default values */
-	use_stdin = 1;
 	logfile = default_logfile;
 	keyfile = default_keyfile;
 	key0file = NULL;
@@ -291,7 +294,7 @@ main (argc, argv)
 	method = SHA1;
 
 	/* parse command line */
-	while ( (ch = getopt(argc, argv, "f:ghi:k:lm:")) != -1) {
+	while ( (ch = getopt(argc, argv, "f:ghi:k:lm:q")) != -1) {
 		switch (ch) {
 			case 'f':
 				/* log file (intrusion detection mode) */
@@ -301,11 +304,11 @@ main (argc, argv)
 					release();
 					err(2, optarg);
 				}
-				use_stdin = 0;
+				actionf &= ~ST_IN;
 				break;
 			case 'g':
 				/* generate new keyfile and initial key */
-				action = 1;
+				actionf &= ~CHECK;
 				break;
 			case 'i':
 				/* key 0 file */
@@ -335,6 +338,10 @@ main (argc, argv)
 					usage();
 				}
 				break;
+			case 'q':
+				/* quiet mode */
+				actionf |= QUIET;
+				break;
 			case 'h':
 			default:
 				release();
@@ -346,47 +353,39 @@ main (argc, argv)
 	/* check logfile specified without -f switch */
 	argc -= optind;
 	argv += optind;
-	if (argc && use_stdin)
+	if (argc && (actionf & ST_IN))
 		if ( (logfile = strdup(argv[argc-1])) == NULL) {
 			release();
 			err(2, argv[argc-1]);
 		}
 
 	/* if keyfile was not specified converted logfile is used instead */
-	if (keyfile == default_keyfile && logfile != default_logfile) {
-		char *tmp;
-		if ( (tmp = strkey(logfile)) == NULL) {
+	if (keyfile == default_keyfile && logfile != default_logfile)
+		if ( (keyfile = strallocat("/var/log/ssyslog/", logfile)) == NULL) {
 			release();
-			err(2, logfile);
+			err(2, "buffer for keyfile");
 		}
-		keyfile = (char*) calloc(1, 14+strlen(tmp));
-		strcpy(keyfile, "/var/ssyslog/");
-		strcat(keyfile, tmp);
-		free(tmp);
-	}
+	strdot(&keyfile[17]);
 
 	/* if key0file was not specified create one */
-	if (key0file == NULL) {
-		if ( (key0file = calloc(1, strlen(keyfile)+1)) == NULL) {
-			release();
-			err(2, keyfile);
+	if (key0file == NULL)
+		if ( (key0file = strkey0(keyfile)) == NULL) {
+		release();
+		err(2, "creating key0 file");
 		}
-		strcpy(key0file, keyfile);
-		strcat(key0file, "0");
-	}
 
 	/* create macfile */
 	if (mac)
 		if ( (macfile = strmac(keyfile)) == NULL) {
 			release();
-			err(2, "creating %s.mac", keyfile);
+			err(2, "creating mac file");
 		}
 
 	/* execute action */
-	if (action)
-		generate();
-	else
+	if (actionf & CHECK)
 		check();
+	else
+		generate();
 
 	release();
 	return (0);

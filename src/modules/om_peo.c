@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.12 2000/05/05 22:24:50 claudio Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.13 2000/05/06 00:58:22 claudio Exp $";
 #endif /* not lint */
 
 /*
@@ -231,7 +231,6 @@ om_peo_init(argc, argv, f, prog, context)
 			release();
 			return (-1);
 		}
-
 		if (! (mfd = open(macfile, O_CREAT, S_IRUSR|S_IWUSR))) {
 			if (errno != EEXIST) {
 				release();

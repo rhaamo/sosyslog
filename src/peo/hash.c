@@ -1,4 +1,4 @@
-/*      $Id: hash.c,v 1.11 2000/05/05 23:04:21 claudio Exp $
+/*      $Id: hash.c,v 1.12 2000/05/06 00:58:22 claudio Exp $
  *
  * hash -- few things used by both peo output module and peochk 
  *
@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -177,44 +178,60 @@ gethash (str)
 
 
 /*
- * strkey:
+ * strdot:
  * 	Receives something like this: /a/b/c/d/e
- *	and generates something like this: .a.b.c.d.e
- *	The new buffer should be freed using free(3)
+ *	and chages it to something like this: .a.b.c.d.e
  */
 char*
-strkey (logfile)
-	const char *logfile;
+strdot (s)
+	char *s;
 {
 	char *b;
-	char *keyfile;
 
-	if ( (b = keyfile = strdup(logfile)) != NULL)
+	if ( (b = s) == NULL)
 		while ( (b = strchr(b, '/')) != NULL)
 			*b = '.';
-
-	return (keyfile);
+	return (s);
 }
 
 
 /*
- * strmac:
- *	generates macfile name based on keyfile name
- *	macfile = keyfile + ".mac"
- *	the new buffer should be freed using free(3)
+ * strallocat:
+ *	Concatenates two strings and returns a pointer to the new string
+ *	The new buffer should be freed using free(3)
  */
 char*
-strmac (keyfile)
-	const char *keyfile;
+strallocat (s1, s2)
+	const char *s1;
+	const char *s2;
 {
-	char *macfile;
+	char *dest;
+	int   size;
 
-	if ( (macfile = (char*) calloc(1, strlen(keyfile)+4)) != NULL) {
-		strcpy(macfile, keyfile);
-		strcat(macfile, ".mac");
-	}
+	if ( (dest = (char*) calloc(1, (size = strlen(s1) + strlen(s2) + 1))) != NULL)
+		snprintf (dest, size-1, "%s%s", s1, s2);
 
-	return (macfile);
+	return (dest);
+}
+
+
+/*
+ * strmac
+ */
+char *strmac (s)
+	const char *s;
+{
+return strallocat(s, ".mac");
+}
+
+
+/*
+ * strkey0
+ */
+char *strkey0 (s)
+	const char *s;
+{
+return strallocat(s, "0");
 }
 
 
