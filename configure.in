@@ -112,37 +112,6 @@ dnl	AC_MSG_CHECKING([for symbol prefix in compiled objects])
 
 dnl	AC_REQUIRE([AC_PROG_NM])dnl
 
-dnl	AC_CACHE_VAL(SYMBOL_PREFIX,
-dnl	[SYMBOL_PREFIX=""
-dnl	cat > conftest.$ac_ext <<EOF
-dnl	int prefix_func(){};
-dnl	int main(){return prefix_func();}
-dnl	EOF
-dnl	if AC_TRY_EVAL(ac_compile); then
-dnl	  # Now try to grab the symbols.
-dnl	  nm_output=conftest.nm
-dnl	  if AC_TRY_EVAL(NM conftest.$ac_objext \| $ac_cv_sys_global_symbol_pipe \> $nm_output) && test -s
-dnl	"$nm_output"; then
-dnl	    # See whether the symbols have a leading underscore.  
-dnl	    if egrep '^. _prefix_func' "$nm_output" >/dev/null; then
-dnl	      SYMBOL_PREFIX=yes
-dnl	    else
-dnl	      if egrep '^. prefix_func ' "$nm_output" >/dev/null; then
-dnl	        :
-dnl	      else
-dnl	        echo "configure: cannot find prefix_func in $nm_output" >&AC_FD_CC
-dnl	      fi
-dnl	    fi
-dnl	  else
-dnl	    echo "configure: cannot run $ac_cv_sys_global_symbol_pipe" >&AC_FD_CC
-dnl	  fi
-dnl	else
-dnl	  echo "configure: failed program was:" >&AC_FD_CC
-dnl	  cat conftest.$ac_ext >&AC_FD_CC
-dnl	fi
-dnl	rm -rf conftest*
-dnl	])
-dnl	AC_MSG_RESULT($SYMBOL_PREFIX)
 
 UNAME=`uname`
 if test "$UNAME" = "OpenBSD" ; then
@@ -230,20 +199,24 @@ AC_ARG_WITH(unix,
 	])dnl
 ])dnl
 
-AC_ARG_WITH(doors,
-[  --without-doors
-	Use doors input module (for System V systems). Activated by default.
-],[
-	if test $with_doors = "yes" ; then
-		MSRCS="$MSRCS im_doors.c"
-		MANPAGES="$MANPAGES im_doors.8"
-	fi
-],[
-	AC_CHECK_HEADER(door.h, [
-		MSRCS="$MSRCS im_doors.c"
-		MANPAGES="$MANPAGES im_doors.8"
-	])dnl
-])
+dnl Doors should only be used with streams
+
+dnl AC_ARG_WITH(doors,
+dnl [  --without-doors
+dnl 	Use doors input module (for System V systems). Activated by default.
+dnl ],[
+dnl 	if test $with_doors = "yes" ; then
+dnl 		MSRCS="$MSRCS im_doors.c"
+dnl 		MANPAGES="$MANPAGES im_doors.8"
+dnl 	fi
+dnl ],[
+dnl 	AC_CHECK_HEADER(door.h, [
+dnl 		MSRCS="$MSRCS im_doors.c"
+dnl 		MANPAGES="$MANPAGES im_doors.8"
+dnl 	])dnl
+dnl ])
+
+AC_MSG_CHECKING(for streams module)
 
 AC_ARG_WITH(streams,
 [  --without-streams
@@ -254,13 +227,19 @@ AC_ARG_WITH(streams,
 		MLIBS="$MLIBS -lpthread"
 		MANPAGES="$MANPAGES im_streams.8"
 		SYSLOGD_LIBS="$SYSLOGD_LIBS -lthread -ldoor"
+        	AC_MSG_RESULT(yes)
+       	else
+        	AC_MSG_RESULT(no)
 	fi
 ],[
-	AC_CHECK_HEADER(stropts.h, [
+ 	AC_CHECK_HEADER(sys/strlog.h, [
 		MSRCS="$MSRCS im_streams.c"
 		MANPAGES="$MANPAGES im_streams.8"
 		SYSLOGD_LIBS="$SYSLOGD_LIBS -lthread -ldoor"
-	])dnl
+		MSRCS="$MSRCS im_doors.c"
+		MANPAGES="$MANPAGES im_doors.8"
+        	AC_MSG_RESULT(yes)
+	], AC_MSG_RESULT(no) )dnl
 ])
 
 AC_ARG_WITH(classic,

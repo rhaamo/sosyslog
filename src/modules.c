@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.143 2001/01/12 01:49:53 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.144 2001/01/27 01:04:18 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -47,6 +47,7 @@
 #include <unistd.h>
 #include <dlfcn.h>
 #include <limits.h>
+#include <time.h>
 #include "modules.h"
 #include "syslogd.h"
 

@@ -1,4 +1,4 @@
-/*      $CoreSDI: im_streams.c,v 1.7 2001/01/03 22:57:09 alejo Exp $   */
+/*      $CoreSDI: im_streams.c,v 1.8 2001/01/27 01:04:19 alejo Exp $   */
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -51,6 +51,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <time.h>
 #include "../modules.h"
 #include "../syslogd.h"
 
