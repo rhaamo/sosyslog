@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.62 2001/02/16 00:34:52 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.63 2001/02/16 22:30:56 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -270,7 +270,7 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 
 	if ((*ctx = (void *) calloc(1, sizeof(struct om_classic_ctx))) == NULL) {
 		dprintf(DPRINTF_SERIOUS)("om_classic_init: cannot allocate "
-		    "context\n", argc);
+		    "context\n");
 		return (-1);
 	}
 
