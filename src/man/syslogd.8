@@ -1,4 +1,4 @@
-.\"	$CoreSDI: syslogd.8,v 1.17 2001/10/18 20:32:36 alejo Exp $
+.\"	$CoreSDI: syslogd.8,v 1.18 2001/10/18 21:19:12 alejo Exp $
 .\"
 .\" Copyright (c) 1983, 1986, 1991, 1993
 .\"	The Regents of the University of California.  All rights reserved.
@@ -40,6 +40,7 @@ modular
 .Sh SYNOPSIS
 .Nm syslogd
 .Op Fl u
+.Op Fl n
 .Op Fl d Ar level
 .Op Fl f Ar config_file
 .Op Fl m Ar mark_interval
@@ -97,6 +98,8 @@ option.
 .It Fl i Ar input_module [ module_arguments ]
 Enables the specified input modules, see
 .Xr im_* 8 .
+.It Fl n
+Disables opening default inputs when there aren't given on command line.
 .El
 .Pp
 .Nm Syslogd

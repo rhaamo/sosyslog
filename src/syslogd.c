@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.211 2001/10/22 22:49:41 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.212 2001/10/23 20:23:20 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.211 2001/10/22 22:49:41 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.212 2001/10/23 20:23:20 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -225,6 +225,7 @@ main(int argc, char **argv)
 	stack_t alt_stack;
 #endif
 	struct sigaction   sa;
+	int		default_inputs = 1; /* start default modules? */
 
 	Inputs.im_next = NULL;
 	Inputs.im_fd = -1;
@@ -257,7 +258,7 @@ main(int argc, char **argv)
 	/* use ':' at start to allow -d to be used without argument */
 	opterr = 0;
 
-	while ( (ch = getopt(argc, argv, ":d:f:m:ui:p:a:hc")) != -1) {
+	while ( (ch = getopt(argc, argv, ":d:f:m:ui:p:a:hcn")) != -1) {
 		char buf[512];
 
 		switch (ch) {
@@ -303,13 +304,16 @@ main(int argc, char **argv)
 		case 'c':	/* don't use console */
 			UseConsole = 0;
 			break;
+		case 'n':	/* don't start default modules */
+			default_inputs = 0;
+			break;
 		case 'h':
 		default:
 			usage();
 		}
 	}
 
-	if ( Inputs.im_fd < 0 && Inputs.im_next == NULL ) {
+	if ( default_inputs && Inputs.im_fd < 0 && Inputs.im_next == NULL ) {
 #ifdef	HAVE_LINUX_IMODULE
 		if (imodule_create(&Inputs, "linux") < 0) {
 			fprintf(stderr, "syslogd: WARNING error on "
@@ -626,7 +630,7 @@ usage(void)
 	fprintf(stderr,
 	    "Modular Syslog vesion " MSYSLOG_VERSION_STR "\n\n"
 	    "usage: syslogd [-d <debug_level>] [-u] [-f conffile] "
-	    "[-m markinterval] \\\n [-p logpath] [-a logpath] -i "
+	    "[-n] [-m markinterval] \\\n [-p logpath] [-a logpath] -i "
 	    "input1 [-i input2] [-i inputn]\n %s\n%s\n\n", copyright,
 	    rcsid);
 	exit(1);
