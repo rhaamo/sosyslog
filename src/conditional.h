@@ -1,4 +1,4 @@
-/*	$CoreSDI: conditional.h,v 1.1 2000/11/03 22:18:49 alejo Exp $	*/
+/*	$CoreSDI: conditional.h,v 1.2 2000/11/06 18:14:35 alejo Exp $	*/
 
 /*
  * Needed vars for Solaris machines
@@ -105,8 +105,11 @@ CODE facilitynames[] =
     
 /* if _PATH_UTMP isn't defined, define it here... */
 #ifndef _PATH_UTMP
-# define _PATH_UTMP "/var/adm/utmp"
-# warning Using "/var/adm/utmp" for _PATH_UTMP
+# ifdef UTMP_FILE
+#  define _PATH_UTMP UTMP_FILE
+# else  /* if UTMP_FILE */
+#  define _PATH_UTMP "/var/adm/utmp"
+# endif /* if UTMP_FILE */
 #endif
 
 /* if _PATH_DEVNULL isn't defined, define it here... */
