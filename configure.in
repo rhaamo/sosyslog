@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.127 2001/04/23 23:13:28 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.128 2001/04/25 22:39:34 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -40,6 +40,9 @@ dnl AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS(gethostname inet_ntop getaddrinfo regcomp poll select\
  socket strdup strerror strstr strtoul )dnl
+
+dnl Check endianness
+AC_C_BIGENDIAN
 
 dnl 
 dnl Here are our checks...

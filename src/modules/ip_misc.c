@@ -1,4 +1,4 @@
-/*	$CoreSDI: ip_misc.c,v 1.11 2001/04/20 00:16:49 alejo Exp $	*/
+/*	$CoreSDI: ip_misc.c,v 1.12 2001/04/20 21:51:46 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -164,7 +164,9 @@ resolv_name(const char *host, const char *port, socklen_t *salen)
 	else
 		portnum = 0;
 
+#ifndef	WORDS_BIGENDIAN
 	portnum = htons(portnum);
+#endif
 
 	if ( (hp = gethostbyname(host)) == NULL ) {
 		dprintf(MSYSLOG_SERIOUS, "resolv_name: error resolving "

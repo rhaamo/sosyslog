@@ -144,3 +144,5 @@
 
 #undef _SGIAPI
 #undef INET6
+
+#undef WORDS_BIGENDIAN
