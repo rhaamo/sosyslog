@@ -93,8 +93,15 @@ im_bsd_read(struct i_module *im, int infd, struct im_msg *ret)
 	char *p, *q, *lp;
 	int i, c;
 
+	/* ret->im_mlen is the size of ret->im_msg */
+	if (ret->im_mlen < 10)
+		return (-1);
+
 	strncpy(ret->im_msg, _PATH_UNIX, ret->im_mlen - 3);
+	ret->im_msg[ret->im_mlen - 1] = '\0';
+
 	strncat(ret->im_msg, ": ", 2);
+
 	lp = ret->im_msg + strlen(ret->im_msg);
 
 	i = read(im->im_fd, im->im_buf, sizeof(im->im_buf) - 1);
