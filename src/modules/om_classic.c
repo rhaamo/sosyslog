@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.43 2000/09/04 23:43:45 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.31.2.8.2.4 2000/09/14 00:56:26 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -59,6 +59,7 @@
 #include "../syslogd.h"
 #include "../modules.h"
 
+
 int
 om_classic_doLog(struct filed *f, int flags, char *msg,
 		struct om_hdr_ctx *context) {
@@ -66,6 +67,7 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 	struct iovec *v;
 	int l;
 	char line[MAXLINE + 1], greetings[500];
+
 
 	if (msg == NULL || !strcmp(msg, "")) {
 		logerror("om_classic_doLog: no message!");
@@ -112,6 +114,12 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 			break;
 	
 		case F_FORW:
+			if (finet < 0) {
+				dprintf("om_classic: doLog: can't forward"
+						"message, socket down\n");
+				break;
+			}
+
 			dprintf(" %s\n", f->f_un.f_forw.f_hname);
 			l = snprintf(line, sizeof(line), "<%d>%.15s %s", f->f_prevpri,
 			    (char *) iov[0].iov_base, (char *) iov[4].iov_base);
@@ -199,8 +207,31 @@ om_classic_init( int argc, char **argv, struct filed *f,
 	switch (*p)
 	{
 	case '@':
-		if (!InetInuse)
-			break;
+		if (!(DaemonFlags & SYSLOGD_INET_IN_USE)) {
+			struct sockaddr_in sin;
+			struct servent *sp;
+
+			finet = socket(AF_INET, SOCK_DGRAM, 0);
+
+			sp = getservbyname("syslog", "udp");
+			if (sp == NULL) {
+				errno = 0;
+				logerror("syslog/udp: unknown service");
+   				return(-1);
+			}
+			memset(&sin, 0, sizeof(sin));
+			sin.sin_family = AF_INET;
+			sin.sin_port = LogPort = sp->s_port;
+
+			if (bind(finet, (struct sockaddr *)&sin,
+					sizeof(sin)) < 0) {
+				logerror("bind");
+				return(-1);
+			} else {
+				DaemonFlags |= SYSLOGD_INET_IN_USE;
+			}
+		}
+
 		(void)strncpy(f->f_un.f_forw.f_hname, ++p,
 		    sizeof(f->f_un.f_forw.f_hname)-1);
 		f->f_un.f_forw.f_hname[sizeof(f->f_un.f_forw.f_hname)-1] = '\0';
@@ -262,21 +293,20 @@ om_classic_init( int argc, char **argv, struct filed *f,
 
 int
 om_classic_close( struct filed *f, struct om_hdr_ctx *ctx) {
-	int ret;
 
-	ret = -1;
 	switch (f->f_type) {
 		case F_FILE:
 		case F_TTY:
 		case F_CONSOLE:
-			ret = close(f->f_file);
-			break;
+			return(close(f->f_file));
 		case F_FORW:
-			ret = 0;
-			break;
+			if ((finet > -1) && (DaemonFlags & SYSLOGD_INET_IN_USE)
+					&& !(DaemonFlags & SYSLOGD_INET_READ)) {
+				return(close(finet));
+			}
+		default:
+			return(0);
 	}
-
-	return (ret);
 }
 
 int
