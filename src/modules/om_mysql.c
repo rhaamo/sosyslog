@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.38 2000/09/04 23:43:45 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.36.2.4.2.3 2000/09/14 01:07:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -30,7 +30,7 @@
  */
 
 /*
- * om_mysql -- MySQL database syupport Module
+ * om_mysql -- MySQL database support Module
  *
  * Author: Alejo Sanchez for Core-SDI SA
  *
@@ -65,30 +65,29 @@ struct om_mysql_ctx {
 	char	*passwd;
 	char	*db;
 	char	*table;
-	char	*query;		/* speed hack: this is a buffer for querys */
+	char	*query;		/* speed hack: this is a buffer for queries */
 };
 
 int
 om_mysql_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *ctx) {
 	struct om_mysql_ctx *c;
 	char	*dummy, *y, *m, *d, *h, *host, *msg_q;
-	time_t now;
 
 	if (!ctx) {
 		dprintf("MySQL doLog: error, no context\n");
 		return(-1);
 	}
 
+	dprintf("MySQL doLog: entering [%s] [%s]\n", msg, f->f_prevline);
 	if (f == NULL)
 		return (-1);
 
 	c = (struct om_mysql_ctx *) ctx;
+
 	if (!(c->h)) {
-		dprintf("MySQL doLog: error, handle\n");
+		dprintf("MySQL doLog: error, no connection\n");
 		return(-1);
 	}
-
-	dprintf("MySQL doLog: entering [%s] [%s]\n", msg, f->f_prevline);
 
 	memset(c->query, 0, MAX_QUERY);
 
@@ -270,5 +269,5 @@ om_mysql_close(struct filed *f, struct om_hdr_ctx *ctx) {
 		om_mysql_destroy_ctx((struct om_mysql_ctx*)ctx);
 	}
 
-	return (-1);
+	return (0);
 }
