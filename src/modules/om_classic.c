@@ -1,4 +1,4 @@
-/*	$Id: om_classic.c,v 1.91 2002/09/17 05:20:28 alejo Exp $	*/
+/*	$Id: om_classic.c,v 1.92 2003/01/06 23:17:39 phreed Exp $	*/
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
@@ -234,7 +234,7 @@ om_classic_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 			 */
 			if ((e == EIO || e == EBADF) && c->f_type != F_FILE) {
 				c->fd = open(c->f_un.f_fname,
-				    O_WRONLY|O_APPEND, 0);
+				    O_WRONLY|O_APPEND|O_CREAT, 0640);
 				if (c->fd < 0) {
 					c->f_type = F_UNUSED;
 					m_dprintf(MSYSLOG_WARNING, "om_classic: "
@@ -379,7 +379,7 @@ om_classic_init(
         fprintf (global->flist_des, "%s\tregular\n", p);
       }
       else {
-			  c->fd = open(p, O_WRONLY|O_APPEND, 0);
+			  c->fd = open(p, O_WRONLY|O_APPEND|O_CREAT, 0640);
 			  c->f_type = F_FILE;
       }
 		}

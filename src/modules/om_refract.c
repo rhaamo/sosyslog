@@ -78,6 +78,7 @@ om_refract_init(
   char ch;
   char *endptr;
 
+  int argcnt;
 
   /* FOR DEBUGGING PURPOSES */
   m_dprintf(MSYSLOG_INFORMATIVE, "om_refract_init: starting\n");
@@ -108,47 +109,55 @@ om_refract_init(
   optreset = 1;
 #endif
 
-  {
-    int argcnt = 1;
+  /* 'h' OPTION NOT YET IMPLEMENTED */
+  for(  argcnt = 1 ; ( ch = getxopt(argc, argv, "p!period: c!count:", &argcnt) ) != -1 ; ++argcnt  ) {
+    switch (ch) {
+  
+      case 'p':
+        ctx->refraction_period = strtol(argv[argcnt], &endptr, 0);
+        if (endptr == NULL || endptr == argv[argcnt]) { 
+          snprintf(statbuf, sizeof(statbuf), "om_refract_init: "
+           "bad argument to -p option [%s], should be numeric refraction period", argv[argcnt]);
+          m_dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
+          *status = strdup(statbuf);
+          free(*context);
+return(-1);
+        }
+  
+        ctx->filter_bitstring |= OM_FILTER_PERIOD;
+    break;
 
-    /* 'h' OPTION NOT YET IMPLEMENTED */
-    while (  ( ch = getxopt(argc, argv, "p!period: c!count:", &argcnt) )  !=  -1  ) {
-      switch (ch) {
-  
-        case 'p':
-          ctx->refraction_period = strtol(optarg, &endptr, 0);
-          if (endptr == NULL || endptr == optarg) { 
+      case 'r':
+          ctx->fired_count = strtol(argv[argcnt], &endptr, 0);
+          if (endptr == NULL || endptr == argv[argcnt]) { 
             snprintf(statbuf, sizeof(statbuf), "om_refract_init: "
-              "bad argument to -p option [%s], should be numeric refraction period", optarg);
-            m_dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
-            *status = strdup(statbuf);
-            free(*context);
-            return(-1);
-          }
-          ctx->filter_bitstring |= OM_FILTER_PERIOD;
-          break;
-  
-        case 'r':
-          ctx->fired_count = strtol(optarg, &endptr, 0);
-          if (endptr == NULL || endptr == optarg) { 
-            snprintf(statbuf, sizeof(statbuf), "om_refract_init: "
-              "bad argument to -r option [%s], should be numeric, rules fired count", optarg);
+              "bad argument to -r option [%s], should be numeric, rules fired count", argv[argcnt]);
             m_dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
             *status = strdup(statbuf);
             free(*context);
             return(-1);
           }
           ctx->filter_bitstring |= OM_FILTER_RULES;
-          break;
+    break;
   
-        default:
-          snprintf(statbuf, sizeof(statbuf), "om_refract_init: bad option [%c]", ch);
+      case 'c':
+        ctx->fire_count = strtol(argv[argcnt], &endptr, 0);
+        if (endptr == NULL || endptr == argv[argcnt]) { 
+          snprintf(statbuf, sizeof(statbuf), "om_refract_init: "
+           "bad argument to -c option [%s], should be numeric firing count", argv[argcnt]);
           m_dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
           *status = strdup(statbuf);
           free(*context);
-          return (-1);
-      }
-      argcnt++;
+return(-1);
+        }
+    break;
+  
+      default:
+        snprintf(statbuf, sizeof(statbuf), "om_refract_init: bad option [%c]", ch);
+        m_dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
+        *status = strdup(statbuf);
+        free(*context);
+return (-1);
     }
   }
 
