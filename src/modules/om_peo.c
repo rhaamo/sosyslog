@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.68 2001/03/23 00:12:30 alejo Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.69 2001/04/05 20:56:25 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -170,7 +170,7 @@ char		*macfile;
 void
 
 /* XXX remove this! */
-release()
+release(void)
 {
 	if (keyfile != default_keyfile)
 		free(keyfile);
