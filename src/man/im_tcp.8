@@ -1,4 +1,4 @@
-.\"	$CoreSDI: im_tcp.8,v 1.2 2001/03/07 21:35:13 alejo Exp $
+.\"	$CoreSDI: im_tcp.8,v 1.3 2001/04/09 20:12:08 alejo Exp $
 .\"
 .\" Copyright (c) 2001
 .\"	Core-SDI SA. All rights reserved.
@@ -37,8 +37,8 @@
 input module used to receive from tcp connections
 .Sh SYNOPSIS
 .Nm tcp
-.Op Fl h Ar host
-.Op Fl p Ar port
+.Op Ar host
+.Op Ar port
 .Sh DESCRIPTION
 .Nm tcp input module 
 allows
@@ -52,7 +52,7 @@ The following command installs
 daemon and activates tcp system accepting remote connections on local
 addres machinename.somedomainexample.com port 3210:
 .Pp
-.Dl syslogd -i 'tcp -h machinename.somedomainexample.com -p 3210'
+.Dl syslogd -i 'tcp machinename.somedomainexample.com 3210'
 .El
 .Pp
 .Sh BUGS
