@@ -8,34 +8,31 @@ RUNNING WARNING: Now you MUST specify "-i bsd", it isn't default. comments?
 Uncompress msyslog-0.9a.tar.gz and do a "./configure" and then a "make".
 If everything goes well (it should! ;), do a "make install".
 
-FreeBSD
-=======
+This version of "msyslog" is full compatible with previous configuration files
+from BSD syslog.
 
-No thorough testing yet, so no help available yet.
-
-NetBSD
-======
-
-No thorough testing yet, so no help available yet.
+Change /etc/rc.conf line of syslogd to simething like: '-i bsd -i unix:/dev/log'
 
 RedHat GNU/Linux
 ================
 
-No thorough testing yet, so no help available yet.
+Take care with special Linux configuration file enhancements. Some are yet to be
+supported by msyslog. 
 
-Debian GNU/Linux
-================
+Also there is a module under developmente for replacing klogd's functionality
+with kernel. Meanwhile keep using klogd.
 
-No thorough testing yet, so no help available yet.
+FreeBSD
+=======
 
-SuSe GNU/Linux
-==============
+No thorough testing yet, so no help available yet. But everything should work
+just fine.
 
-No thorough testing yet, so no help available yet.
+NetBSD
+======
 
-SuSe GNU/Linux
-==============
+No thorough testing yet, so no help available yet. But everythyng should work
+just fine.
 
-No thorough testing yet, so no help available yet.
 
 
