@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.25 2001/03/06 21:51:46 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.26 2001/03/07 21:35:12 alejo Exp $
 #
 # Copyright (c) 2001, Core SDI S.A., Argentina
 # All rights reserved
@@ -49,7 +49,6 @@ install-recursive:
 	done
 
 modules:
-	echo "entra en modules"
 	cd $(MODULES_SUBDIR) && make all
 
 modules-install:
