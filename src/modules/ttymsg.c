@@ -54,7 +54,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #ifdef HAVE_PATHS_H
-#include <paths.h>
+# include <paths.h>
 #endif
 #include <signal.h>
 #include <stdio.h>

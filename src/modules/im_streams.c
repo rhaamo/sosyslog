@@ -1,4 +1,4 @@
-/*      $CoreSDI: im_streams.c,v 1.14 2001/03/23 00:12:29 alejo Exp $   */
+/*      $CoreSDI: im_streams.c,v 1.15 2001/05/01 02:26:16 alejo Exp $   */
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -74,7 +74,7 @@ im_streams_read (struct i_module *im, int infd, struct im_msg *ret)
 {
 	struct strbuf ctl, dat;
 	struct log_ctl     lc;
-	char   msgbuf[ret->im_mlen];
+	char   msgbuf[MAXLINE];
 	int    r, flags = 0;
 
 	ctl.maxlen = sizeof(lc);
