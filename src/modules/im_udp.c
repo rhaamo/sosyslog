@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.29 2000/05/29 19:11:42 fgsch Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.30 2000/05/29 19:24:33 fgsch Exp $	*/
 
 /*
  * im_udp -- input from INET using UDP
@@ -57,7 +57,7 @@ im_udp_getLog(im, ret)
 
 	slen = sizeof(frominet);
 	ret->im_len = recvfrom(finet, ret->im_msg, MAXLINE, 0,
-		(struct sockaddr *)&frominet, &slen);
+		(struct sockaddr *)&frominet, (socklen_t *)&slen);
 	if (ret->im_len > 0) {
 		ret->im_msg[ret->im_len] = '\0';
 		hent = gethostbyaddr((char *) &frominet.sin_addr,
