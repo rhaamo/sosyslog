@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.63 2000/05/24 17:58:50 fgsch Exp $	*/
+/*	$CoreSDI: modules.c,v 1.64 2000/05/24 21:22:16 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -107,7 +107,7 @@ modules_load()
 	OModules[OM_MYSQL].om_init 		= om_mysql_init;
 	OModules[OM_MYSQL].om_close 		= om_mysql_close;
 	OModules[OM_MYSQL].om_flush 		= om_mysql_flush;
-#endif
+#endif /* HAVE_MYSQL */
   
 	/* peo module */
 	OModules[OM_PEO].om_name		= "peo";

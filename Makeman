@@ -1,5 +1,0 @@
-#       $CoreSDI$
-
-MAN= man8/syslogd.8 man5/syslog.conf.5 peo/man8/om_peo.8 peo/man8/peochk.8
-
-.include <bsd.man.mk>
