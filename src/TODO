@@ -1,22 +1,20 @@
-/*	$CoreSDI: TODO,v 1.41 2000/09/28 23:52:40 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.42 2000/09/29 01:10:02 alejo Exp $	*/
 
 Things to do:
 
-- solaris port
-- finish log structure stuff, including some queue handling
+- remove memory leaks
 - do not generate coredumps (via resource limits)
-- divide classic in om_file, om_udp, om_console, om_wall, om_user.
-- warn the when ignoring a line
-- define STYLE for names (ie. underscore or caps)
-- tell about -i linux in syslogd(8)
+- define STYLE for names (ie. underscore or caps, indentation)
+- solaris port
+- reconnect on SQL
+- module configuration file (ie. no more passwds in syslog.conf)
+- warn the when ignoring a line (DONE, TEST it)
 - fix time and date usage on syslogd.c and modules. it is UGLY.
-- thinker about wall mesages
-- create a single file with all networking primitives used
-- debug levels
-- redo line format while keeping "<" and ">" usage (prevent new syslog proto)
-- minimize global variables even more
-- check pager stuff formats
-- check M$ MAPI
+- minimize global variables even more (ie. now)
+- redo parsing functions
+- tell about -i linux in syslogd(8)
+- no more static modules
+- decide on default command line options
 - CHECK LIBC and GLIBC's way to work
 
 FOR FUTURE WORKING
@@ -27,12 +25,19 @@ get in the exactly same state as before the error).
 
 Check for buffer overflows, as we now may get things from the outside world.
 
+- finish log structure stuff, including some queue handling
+- divide classic in om_file, om_udp, om_console, om_wall, om_user.
 - We need to change the decode function on syslogd.c and use the strcasecmp()
   function
 - Kill filed structure, associate ins and outs so no for(;;) is needed
 - Optimize each input/output module
 - Create good Makefiles
 - Complete and fix man pages
+- create a single file with all networking primitives used
+- chroot
+- new syntax on config files
+- debug levels
+- redo line format while keeping "<" and ">" usage (prevent new syslog proto)
 - Allow not only one module type on each configuration line
 - Add linux extensions on selector field on configuration file
 - We can't do select when im->path = NULL and im->fd >= 0 but the module
@@ -57,3 +62,6 @@ Check for buffer overflows, as we now may get things from the outside world.
 - Make syslogd's cfline more verbose on errors
 - src/Makefile should warn if modules.conf changed to use ./configure
 - Check why messages to console take a while to pop up
+- Support Linux's ! != etc syslog.conf format
+- check M$ MAPI
+- check pager stuff formats
