@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.39 2000/05/26 16:53:35 fgsch Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.40 2000/05/26 18:31:39 fgsch Exp $	*/
 
 /*
  *  im_bsd -- classic behaviour module for BDS like systems
@@ -20,8 +20,6 @@
 #include <syslog.h>
 #include <unistd.h>
 #include "syslogd.h"
-
-void	logmsg __P((int, char *, char *, int));
 
 /*
  * initialize BSD input
