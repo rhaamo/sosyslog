@@ -1,4 +1,4 @@
-dnl $Id: configure.in,v 1.154 2002/09/27 22:21:57 alejo Exp $
+dnl $Id: configure.in,v 1.155 2002/09/27 22:28:29 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)
 AC_CONFIG_HEADER(src/config.h)
@@ -61,7 +61,7 @@ then
 	CFLAGS="$CFLAGS -Wall"
 fi
 
-MSYSLOG_VERSION="1.09b"
+MSYSLOG_VERSION="1.09c"
 
 AC_DEFINE_UNQUOTED(MSYSLOG_VERSION_STR, "$MSYSLOG_VERSION")
 echo msyslog version... $MSYSLOG_VERSION

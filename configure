@@ -3576,7 +3576,7 @@ then
 	CFLAGS="$CFLAGS -Wall"
 fi
 
-MSYSLOG_VERSION="1.09b"
+MSYSLOG_VERSION="1.09c"
 
 cat >>confdefs.h <<EOF
 #define MSYSLOG_VERSION_STR "$MSYSLOG_VERSION"
