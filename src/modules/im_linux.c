@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.19 2000/06/12 18:51:39 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.20 2000/06/12 20:44:51 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -249,12 +249,12 @@ im_linux_getLog(im, ret)
 /* syscall not supported yet */
 #if 0
 	if (im->im_path == NULL || flags & KLOG_USE_SYSCALL)
-		/* i = klogctl(2, im->im_buf, sizeof(im->im_buf)); */ /* this blocks */
-		i = klogctl(4, im->im_buf, sizeof(im->im_buf));	/* ;;;this don't block... testing */
+		/* i = klogctl(2, im->im_buf, sizeof(im->im_buf)-1); */ /* this blocks */
+		i = klogctl(4, im->im_buf, sizeof(im->im_buf)-1);	/* ;;;this don't block... testing */
 	else
 #endif
 
-		i = read(im->im_fd, im->im_buf, sizeof(im->im_buf));
+		i = read(im->im_fd, im->im_buf, sizeof(im->im_buf)-1);
 
 	if (i < 0 && errno != EINTR) {
 		logerror("im_linux_getLog");
@@ -262,7 +262,7 @@ im_linux_getLog(im, ret)
 	}
 
 	if (i) {
-		im->im_buf[i-1] = '\0';
+		im->im_buf[i] = '\0';
 
 		/* log each msg line */
 		i = 0;
@@ -273,6 +273,7 @@ im_linux_getLog(im, ret)
 			if (i >= 3 && ptr[0] == '<' && ptr[2] == '>' && isdigit(ptr[1])) {
 				ret->im_pri = ptr[1] - '0';
 				ptr += 3;
+				i -= 3;
 			}
 			else
 				ret->im_pri = LOG_WARNING;	/* from printk.c: DEFAULT_MESSAGE_LOGLEVEL */
