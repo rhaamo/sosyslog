@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.47 2000/11/01 18:18:03 alejo Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.48 2000/11/03 20:10:08 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -78,7 +78,7 @@ im_udp_getLog(struct imodule *im, struct im_msg *ret)
 	ret->im_flags = 0;
 
 	slen = sizeof(frominet);
-	ret->im_len = recvfrom(finet, ret->im_msg, MAXLINE, 0,
+	ret->im_len = recvfrom(finet, ret->im_msg, ret->im_mlen, 0,
 		(struct sockaddr *)&frominet, (socklen_t *)&slen);
 	if (ret->im_len > 0) {
 		ret->im_msg[ret->im_len] = '\0';

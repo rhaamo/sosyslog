@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.147 2000/11/06 18:32:25 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.148 2000/11/06 18:58:52 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.147 2000/11/06 18:32:25 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.148 2000/11/06 18:58:52 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -162,7 +162,7 @@ int     decode(const char *, CODE *);
 void    domark(int);
 void    doLog(struct filed *, int, char *);
 void    init(int);
-void    printline(char *, char *, int);
+void    printline(char *, char *, size_t, int);
 void    reapchild(int);
 void    usage(void);
 int     modules_load(void);
@@ -173,6 +173,7 @@ int	imodules_destroy(struct imodule *);
 void    logerror(char *);
 void    logmsg(int, char *, char *, int);
 void    die(int);
+int	getmsgbufsize(void);
 
 
 extern	struct  omodule *omodules;
@@ -183,6 +184,7 @@ int
 main(int argc, char **argv) {
 	int ch;
 	char *p;
+	struct im_msg log;
 
 	Inputs.im_next = NULL;
 	Inputs.im_fd = -1;
@@ -395,11 +397,16 @@ main(int argc, char **argv) {
 	init(0);
 	(void)signal(SIGHUP, init);
 
+	log.im_mlen = getmsgbufsize();
+	if (log.im_mlen < MAXLINE)
+		log.im_mlen = MAXLINE;
+	log.im_mlen++;
+	log.im_msg = malloc(log.im_mlen);
+
 	for (;;) {
 		fd_set readfds;
 		int nfds = 0;
 		struct i_module *im;
-		struct im_msg log;
 
 		FD_ZERO(&readfds);
 
@@ -430,10 +437,13 @@ main(int argc, char **argv) {
 			if (im->im_fd != -1 && FD_ISSET(im->im_fd, &readfds)) {
 				int i = 0;
 
-				memset(&log, 0,sizeof(struct im_msg));
+				log.im_pid = 0;
+				log.im_pri = 0;
+				log.im_flags = 0;
 
-				if ( !(im->im_func->im_getLog) || (i =
-				    (*im->im_func->im_getLog)(im, &log)) < 0) {
+				if ( !im->im_func || !(im->im_func->im_getLog)
+				    || (i = (*im->im_func->im_getLog)(im, &log))
+				    < 0) {
 					dprintf("Syslogd: Error calling input "
 					    "module %s, for fd %d\n",
 					    im->im_name, im->im_fd);
@@ -442,7 +452,7 @@ main(int argc, char **argv) {
 				/* log it if normal (1), (2) already logged */
 				if (i == 1) {
 					printline(log.im_host, log.im_msg,
-					    im->im_flags);
+					    log.im_len, im->im_flags);
 				}
 			}
 
@@ -476,8 +486,8 @@ usage(void) {
  * on the appropriate log files.
  */
 void
-printline(char *hname, char *msg, int flags) {
-	char *p, *q, line[MAXLINE + 1];
+printline(char *hname, char *msg, size_t len, int flags) {
+	char *p, *q, line[len + 2];
 	unsigned char c;
 	int pri;
 
@@ -1075,6 +1085,25 @@ cfline(char *line, struct filed *f, char *prog) {
 	if (omodule_create(p, f, NULL) == -1) {
 		dprintf("Error initializing modules!\n");
 	}
+}
+
+/*
+ * Retrieve the size of the kernel message buffer, via sysctl.
+ */
+int
+getmsgbufsize()
+{
+	int msgbufsize, mib[2];
+	size_t size;
+                
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_MSGBUFSIZE;
+	size = sizeof msgbufsize;
+	if (sysctl(mib, 2, &msgbufsize, &size, NULL, 0) == -1) {
+		dprintf("couldn't get kern.msgbufsize\n");
+		return (0);
+	}
+	return (msgbufsize);
 }
 
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.36 2000/11/01 18:18:03 alejo Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.37 2000/11/03 20:10:09 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -70,8 +70,11 @@ im_unix_getLog(struct i_module *im, struct im_msg  *ret)
 	ret->im_flags = 0;
 
 	slen = sizeof(fromunix);
-	ret->im_len = recvfrom(im->im_fd, ret->im_msg, MAXLINE, 0,
+
+	ret->im_len = recvfrom(im->im_fd, ret->im_msg, ret->im_mlen <
+	    SSIZE_MAX ? ret->im_mlen : SSIZE_MAX, 0,
 	    (struct sockaddr *)&fromunix, (socklen_t *)&slen);
+
 	if (ret->im_len > 0) {
 		ret->im_msg[ret->im_len] = '\0';
 		strncpy(ret->im_host, LocalHostName, sizeof(ret->im_host));

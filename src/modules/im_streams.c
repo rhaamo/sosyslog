@@ -1,4 +1,4 @@
-/*      $CoreSDI: im_streams.c,v 1.0 2000/11/03 22:18:49 alejo Exp $   */
+/*      $CoreSDI: im_streams.c,v 1.1 2000/11/03 23:25:51 alejo Exp $   */
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -70,7 +70,7 @@ im_streams_getLog (struct i_module *im, struct im_msg *ret)
 {
 	struct strbuf ctl, dat;
 	struct log_ctl     lc;
-	char   msgbuf[sizeof(ret->im_msg)];
+	char   msgbuf[ret->im_mlen];
 	int    r, flags = 0;
 
 	ctl.maxlen = sizeof(lc);
@@ -79,8 +79,6 @@ im_streams_getLog (struct i_module *im, struct im_msg *ret)
 	dat.buf    = (char *)msgbuf;
 	ctl.len    = ctl.maxlen;
 	dat.len    = 0;
-
-	memset (ret, 0, sizeof(struct im_msg));
 
 	if (im->im_fd < 0)
 		return (-1);

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.66 2000/10/31 19:42:14 alejo Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.67 2000/11/01 18:18:03 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -86,8 +86,8 @@ im_bsd_getLog(struct i_module *im, struct im_msg *ret)
 	char *p, *q, *lp;
 	int i, c;
 
-	(void)strncpy(ret->im_msg, _PATH_UNIX, sizeof(ret->im_msg) - 3);
-	(void)strncat(ret->im_msg, ": ", 2);
+	strncpy(ret->im_msg, _PATH_UNIX, ret->im_mlen - 3);
+	strncat(ret->im_msg, ": ", 2);
 	lp = ret->im_msg + strlen(ret->im_msg);
 
 	i = read(im->im_fd, im->im_buf, sizeof(im->im_buf) - 1);
@@ -112,7 +112,7 @@ im_bsd_getLog(struct i_module *im, struct im_msg *ret)
 				ret->im_pri = DEFSPRI;
 			q = lp;
 			while (*p != '\0' && (c = *p++) != '\n' &&
-			    q < (ret->im_msg+sizeof ret->im_msg))
+			    q < (ret->im_msg + ret->im_mlen))
 				*q++ = c;
 			*q = '\0';
 			strncpy(ret->im_host, LocalHostName,

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.36 2000/10/31 19:42:14 alejo Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.37 2000/11/01 18:18:03 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -319,19 +319,19 @@ im_linux_getLog (struct i_module *im, struct im_msg *ret)
 			/* parse kernel/module symbols */
 			if (flags & KSYM_TRANSLATE)
 				ret->im_len = ksym_snprintf(ret->im_msg,
-						     sizeof(ret->im_msg), ptr);
+				    ret->im_mlen, ptr);
 			else
 				ret->im_len = snprintf(ret->im_msg,
-					sizeof(ret->im_msg), "kernel: %s", ptr);
+				    ret->im_mlen, "kernel: %s", ptr);
 
 			/* log msg */
 			if (ret->im_len < 0)
-				ret->im_len = sizeof(ret->im_msg);
+			    ret->im_len = ret->im_mlen;
 			strncpy(ret->im_host, LocalHostName,
-				sizeof(ret->im_host));
+			    sizeof(ret->im_host));
 			ret->im_host[sizeof(ret->im_host)-1] = '\0';
 			logmsg(ret->im_pri, ret->im_msg,
-					 ret->im_host, ret->im_flags);
+			    ret->im_host, ret->im_flags);
 			ptr += i + 1;
 			i = 0;
 		}
