@@ -35,9 +35,6 @@
  */
 
 #ifndef lint
-#if 0
-static char sccsid[] = "@(#)ttymsg.c	8.2 (Berkeley) 11/16/93";
-#endif
 static char rcsid[] = "$OpenBSD: ttymsg.c,v 1.3 1996/10/25 06:06:30 downsj Exp $";
 #endif /* not lint */
 
