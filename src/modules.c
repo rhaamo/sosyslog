@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.160 2001/05/03 22:44:58 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.161 2001/05/03 23:11:01 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -397,7 +397,7 @@ omodule_create(char *c, struct filed *f, char *prog)
 
 omodule_create_bad:
 
-	logerror(err_buf);
+	dprintf(MSYSLOG_SERIOUS, err_buf);
 
 	if (line)
 		free(line);
@@ -406,7 +406,7 @@ omodule_create_bad:
 	if (f->f_omod == om) {
 		f->f_omod = NULL;
 	} else if (om_prev)
-			om_prev->om_next = NULL;
+		om_prev->om_next = NULL;
 
 	if (om)
 		free(om);
