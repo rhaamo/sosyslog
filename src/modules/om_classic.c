@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.68 2001/03/06 01:18:29 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.69 2001/03/06 21:49:43 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -78,7 +78,6 @@
 #endif
 
 
-#include "../../config.h"
 #include "../modules.h"
 #include "../syslogd.h"
 
