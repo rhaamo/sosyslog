@@ -82,33 +82,13 @@ im_udp_init(I, argc, argv, c)
 	struct im_udp_ctx *ctx;
 	int i;
 	char line[MAXLINE + 1];
+	struct sockaddr_un
 
 	*c = (struct im_header_ctx *) calloc(1, sizeof(struct im_udp_ctx));
 	ctx = (struct im_udp_ctx *) *c;
 
 
-#ifndef SUN_LEN
-#define SUN_LEN(unp) (strlen((unp)->sun_path) + 2)
-#endif
-        for (i = 0; i < nfunix; i++) {
-                (void)unlink(funixn[i]);
-
-                memset(&sunx, 0, sizeof(sunx));
-                sunx.sun_family = AF_UNIX;
-                (void)strncpy(sunx.sun_path, funixn[i], sizeof(sunx.sun_path));
-                funix[i] = socket(AF_UNIX, SOCK_DGRAM, 0);
-                if (funix[i] < 0 ||
-                    bind(funix[i], (struct sockaddr *)&sunx, SUN_LEN(&sunx)) < 0 ||
-                    chmod(funixn[i], 0666) < 0) {
-                        (void) snprintf(line, sizeof line, "cannot create %s",
-                            funixn[i]);
-                        logerror(line);
-                        dprintf("cannot create %s (%d)\n", funixn[i], errno);
-                        if (i == 0)
-                                die(0);
-                }
-        }
-        finet = socket(AF_INET, SOCK_DGRAM, 0);
+        I->fd = socket(AF_INET, SOCK_DGRAM, 0);
         if (finet >= 0) {
                 struct servent *sp;
 
