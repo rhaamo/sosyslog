@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.10 2000/06/27 19:30:28 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.11 2000/07/04 16:44:09 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -155,7 +155,7 @@ om_regex_doLog(struct filed *f, int flags, char *msg,
 	ctx = (struct om_regex_ctx *) context;
 
 	if (msg == NULL || !strcmp(msg, "")) {
-		logerror("om_regex_doLog: no message!");
+		sglobals->logerror("om_regex_doLog: no message!");
 		return(-1);
 	}
 

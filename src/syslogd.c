@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.102 2000/06/26 18:38:34 claudio Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.103 2000/07/04 16:44:03 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -152,6 +152,9 @@ main(int argc, char **argv)
 	sglobals->LogPort = -1;
 	sglobals->Debug = 0;
 	sglobals->InetInuse = 0;
+	sglobals->logerror = logerror;
+	sglobals->logmsg = logmsg;
+	sglobals->die = die;
 
 	/* assign functions and init input */
 	if ((ch = modules_load()) < 0) {

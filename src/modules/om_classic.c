@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.36 2000/06/30 22:43:07 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.37 2000/07/04 16:44:07 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -59,7 +59,7 @@
 #include "syslogd.h"
 #include "modules.h"
 
-void	wallmsg (struct filed *, struct iovec *);
+void	wallmsg (struct filed *, struct iovec *, struct sglobals *);
 char   *ttymsg (struct iovec *, int, char *, int);
 
 int
@@ -73,7 +73,7 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 
 
 	if (msg == NULL || !strcmp(msg, "")) {
-		logerror("om_classic_doLog: no message!");
+		sglobals->logerror("om_classic_doLog: no message!");
 		return(-1);
 	}
 
@@ -126,7 +126,7 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 			    (struct sockaddr *)&f->f_un.f_forw.f_addr,
 			    sizeof(f->f_un.f_forw.f_addr)) != l) {
 				f->f_type = F_UNUSED;
-				logerror("sendto");
+				sglobals->logerror("sendto");
 			}
 			break;
 
@@ -159,14 +159,14 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 					    O_WRONLY|O_APPEND, 0);
 					if (f->f_file < 0) {
 						f->f_type = F_UNUSED;
-						logerror(f->f_un.f_fname);
+						sglobals->logerror(f->f_un.f_fname);
 					} else
 						goto again;
 				} else {
 					f->f_type = F_UNUSED;
 					f->f_file = -1;
 					errno = e;
-					logerror(f->f_un.f_fname);
+					sglobals->logerror(f->f_un.f_fname);
 				}
 			} else if (flags & SYNC_FILE)
 				(void)fsync(f->f_file);
@@ -177,7 +177,7 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 			dprintf("\n");
 			v->iov_base = "\r\n";
 			v->iov_len = 2;
-			wallmsg(f, iov);
+			wallmsg(f, iov, sglobals);
 			break;
 	}
 	f->f_prevcount = 0;
@@ -213,7 +213,7 @@ om_classic_init( int argc, char **argv, struct filed *f,
 		if (hp == NULL) {
 			extern int h_errno;
 
-			logerror((char *)hstrerror(h_errno));
+			sglobals->logerror((char *)hstrerror(h_errno));
 			break;
 		}
 		memset(&f->f_un.f_forw.f_addr, 0,
@@ -230,7 +230,7 @@ om_classic_init( int argc, char **argv, struct filed *f,
 		f->f_un.f_fname[sizeof f->f_un.f_fname]=0;
 		if ((f->f_file = open(p, O_WRONLY|O_APPEND, 0)) < 0) {
 			f->f_type = F_UNUSED;
-			logerror(p);
+			sglobals->logerror(p);
 			break;
 		}
 		if (isatty(f->f_file))
@@ -303,10 +303,7 @@ om_classic_flush(struct filed *f, struct om_hdr_ctx *context,
  *	world, or a list of approved users.
  */
 void
-wallmsg(f, iov)
-	struct filed *f;
-	struct iovec *iov;
-{
+wallmsg( struct filed *f, struct iovec *iov, struct sglobals *sglobals) {
 	static int reenter;			/* avoid calling ourselves */
 	FILE *uf;
 	struct utmp ut;
@@ -317,7 +314,7 @@ wallmsg(f, iov)
 	if (reenter++)
 		return;
 	if ( (uf = fopen(_PATH_UTMP, "r")) == NULL) {
-		logerror(_PATH_UTMP);
+		sglobals->logerror(_PATH_UTMP);
 		reenter = 0;
 		return;
 	}
@@ -337,7 +334,7 @@ wallmsg(f, iov)
 		if (f->f_type == F_WALL) {
 			if ((p = ttymsg(iov, 6, line, TTYMSGTIME)) != NULL) {
 				errno = 0;	/* already in msg */
-				logerror(p);
+				sglobals->logerror(p);
 			}
 			continue;
 		}
@@ -350,7 +347,7 @@ wallmsg(f, iov)
 				if ((p = ttymsg(iov, 6, line, TTYMSGTIME))
 								!= NULL) {
 					errno = 0;	/* already in msg */
-					logerror(p);
+					sglobals->logerror(p);
 				}
 				break;
 			}

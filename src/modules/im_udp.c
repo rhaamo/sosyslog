@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.38 2000/06/16 00:26:58 alejo Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.39 2000/07/04 16:44:06 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -98,7 +98,7 @@ im_udp_getLog(struct imodule *im, struct im_msg *ret, struct sglobals *sglobals)
 			strncpy(ret->im_host, inet_ntoa(frominet.sin_addr),
 			    sizeof(ret->im_host));
 	} else if (ret->im_len < 0 && errno != EINTR)
-		logerror("recvfrom inet");
+		sglobals->logerror("recvfrom inet");
 
 	return(1);
 }
@@ -127,8 +127,8 @@ im_udp_init(struct i_module *I, char **argv, int argc, struct sglobals *sglobals
 	sp = getservbyname("syslog", "udp");
 	if (sp == NULL) {
 		errno = 0;
-		logerror("syslog/udp: unknown service");
-		die(0);
+		sglobals->logerror("syslog/udp: unknown service");
+		sglobals->die(0);
 	}
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;
@@ -138,9 +138,9 @@ im_udp_init(struct i_module *I, char **argv, int argc, struct sglobals *sglobals
 		sin.sin_port = sglobals->LogPort = sp->s_port;
 
 	if (bind(sglobals->finet, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
-		logerror("bind");
+		sglobals->logerror("bind");
 		if (!sglobals->Debug)
-		die(0);
+		sglobals->die(0);
 	} else {
 		sglobals->InetInuse = 1;
 	}

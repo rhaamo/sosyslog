@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.55 2000/06/27 21:21:45 claudio Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.56 2000/07/04 16:44:05 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -118,11 +118,11 @@ im_bsd_getLog(struct i_module *im, struct im_msg *ret, struct sglobals *sglobals
 			strncat(ret->im_host, sglobals->LocalHostName,
 			    sizeof(ret->im_host) - 1);
 			ret->im_len = strlen(ret->im_msg);
-			logmsg(ret->im_pri, ret->im_msg, ret->im_host,
+			sglobals->logmsg(ret->im_pri, ret->im_msg, ret->im_host,
 			    ret->im_flags);
 		}
 	} else if (i < 0 && errno != EINTR) {
-		logerror("im_bsd_getLog");   
+		sglobals->logerror("im_bsd_getLog");   
 		im->im_fd = -1;
 	}
 

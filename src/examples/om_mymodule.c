@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mymodule.c,v 1.1 2000/06/07 21:25:17 fgsch Exp $	*/
+/*	$CoreSDI: om_mymodule.c,v 1.2 2000/07/03 22:11:43 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -54,18 +54,17 @@ extern time_t now;
 
 int
 om_mymodule_doLog (struct filed *f, int flags, char *msg,
-                   struct om_hdr_ctx *context)
+                   struct om_hdr_ctx *context, struct sglobals* sglobals) {
 /*
  * struct filed *f;    		Current filed struct
  * int flags;          		Flags for this message
  * char *msg;          		The message string
  * struct om_hdr_ctx *context; 	Our context
  */
-{
 
 	/* always check, just in case ;) */
 	if (msg == NULL || !strcmp(msg, "")) {
-		logerror("om_mymodule_doLog: no message!");
+		sglobals->logerror("om_mymodule_doLog: no message!");
 		return(-1);
 	}
 
@@ -89,8 +88,8 @@ om_mymodule_doLog (struct filed *f, int flags, char *msg,
  *
  */
 int
-om_mymodule_init (int argc, char **argv, struct filed *f,
-	          char *prog, struct om_hdr_ctx **context)
+om_mymodule_init (int argc, char **argv, struct filed *f, char *prog,
+		struct om_hdr_ctx **context, struct sglobals *sglobals) {
 /*
  * int argc;			Argumemt count
  * char **argv;			Argumemt array, like main()
@@ -98,7 +97,6 @@ om_mymodule_init (int argc, char **argv, struct filed *f,
  * char *prog;			Program name doing this log
  * struct om_hdr_ctx **context; Our context
  */
-{
 	char *myArg;
 
 	/* for debugging purposes */
@@ -145,8 +143,8 @@ om_mymodule_init (int argc, char **argv, struct filed *f,
  * xx_close and xx_flush functions are not mandatory, you can omit them
  */
 int
-om_mymodule_close (struct filed *f, struct om_hdr_ctx *ctx)
-{
+om_mymodule_close (struct filed *f, struct om_hdr_ctx *ctx,
+		struct sglobals *sglobals) {
 	/* flush any buffered data and close this output */
 
 	/* return:
@@ -157,8 +155,8 @@ om_mymodule_close (struct filed *f, struct om_hdr_ctx *ctx)
 }
 
 int
-om_mymodule_flush (struct filed *f, struct om_hdr_ctx *context)
-{
+om_mymodule_flush (struct filed *f, struct om_hdr_ctx *context,
+		struct sglobals *sglobals) {
 	/* flush any pending output */
 
 	/* return:

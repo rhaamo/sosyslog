@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.29 2000/06/16 00:26:58 alejo Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.30 2000/07/04 16:44:07 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -75,7 +75,7 @@ im_unix_getLog(struct i_module *im, struct im_msg  *ret, struct sglobals *sgloba
 		ret->im_msg[ret->im_len] = '\0';
 		strncpy(ret->im_host, sglobals->LocalHostName, sizeof(ret->im_host));
 	} else if (ret->im_len < 0 && errno != EINTR) {
-		logerror("recvfrom unix");
+		sglobals->logerror("recvfrom unix");
 		ret->im_msg[0] = '\0';
 		ret->im_len = 0;
 		ret->im_host[0] = '\0';
@@ -113,7 +113,7 @@ im_unix_init(struct i_module *I, char **argv, int argc, struct sglobals *sglobal
 	    chmod(argv[1], 0666) < 0) {
 		(void) snprintf(I->im_buf, sizeof(I->im_buf),
 		    "cannot create %s", argv[1]);
-		logerror(I->im_buf);
+		sglobals->logerror(I->im_buf);
 		dprintf("cannot create %s (%d)\n", argv[1], errno);
 		return (-1);
 	}

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.62 2000/06/27 01:22:08 claudio Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.63 2000/07/04 16:44:04 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -125,6 +125,9 @@ struct sglobals {
 	int	LogPort;	/* port number for INET connections */
 	int	Debug;			/* debug flag */
 	int	InetInuse;		/* non-zero if INET sockets are open */
+	void	(*logerror)(char *);
+	void	(*logmsg)(int, char *, char *, int);
+	void	(*die)(int);
 };
 
 /* standard output module header variables in context */

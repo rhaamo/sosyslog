@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.27 2000/07/04 16:44:06 alejo Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.28 2000/07/04 17:47:40 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -279,7 +279,7 @@ im_linux_getLog(struct i_module *im, struct im_msg *ret, struct sglobals *sgloba
 		i = read(im->im_fd, im->im_buf, sizeof(im->im_buf)-1);
 
 	if (i < 0 && errno != EINTR) {
-		logerror("im_linux_getLog");
+		sglobals->logerror("im_linux_getLog");
 		return(-1);
 	}
 
@@ -311,7 +311,7 @@ im_linux_getLog(struct i_module *im, struct im_msg *ret, struct sglobals *sgloba
 				ret->im_len = sizeof(ret->im_msg);
 			strncpy(ret->im_host, sglobals->LocalHostName, sizeof(ret->im_host));
 			ret->im_host[sizeof(ret->im_host)-1] = '\0';
-			logmsg(ret->im_pri, ret->im_msg, ret->im_host, ret->im_flags);
+			sglobals->logmsg(ret->im_pri, ret->im_msg, ret->im_host, ret->im_flags);
 			ptr += i + 1;
 			i = 0;
 		}
