@@ -39,11 +39,11 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: m_peo.c,v 1.5 2000/04/03 16:44:18 gera Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.1 2000/04/06 22:29:32 alejo Exp $";
 #endif /* not lint */
 
 /*
- *  m_peo -- peo autentication
+ *  om_peo -- peo autentication
  *
  * Author: Alejo Sanchez for Core-SDI SA
  *
@@ -64,7 +64,7 @@ static char rcsid[] = "$Id: m_peo.c,v 1.5 2000/04/03 16:44:18 gera Exp $";
 #include "modules.h"
 
 int
-m_peo_doLog(f, flags, msg, context)
+om_peo_doLog(f, flags, msg, context)
 	struct filed *f;
 	int flags;
 	char *msg;
@@ -74,12 +74,12 @@ m_peo_doLog(f, flags, msg, context)
 }
 
 /*
- *  INIT -- Initialize m_peo
+ *  INIT -- Initialize om_peo
  *
  *  taken mostly from syslogd's cfline
  */
 int
-m_peo_init(argc, argv, f, prog, context)
+om_peo_init(argc, argv, f, prog, context)
 	int argc;
 	char **argv;
 	struct filed *f;
@@ -90,7 +90,7 @@ m_peo_init(argc, argv, f, prog, context)
 }
 
 int
-m_peo_close(f, context)
+om_peo_close(f, context)
 	struct filed *f;
 	void *context;
 {
@@ -98,7 +98,7 @@ m_peo_close(f, context)
 }
 
 int
-m_peo_flush(f, context)
+om_peo_flush(f, context)
 	struct filed *f;
 	void *context;
 {

@@ -39,11 +39,11 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: m_classic.c,v 1.12 2000/04/05 19:25:39 gera Exp $";
+static char rcsid[] = "$Id: om_classic.c,v 1.1 2000/04/06 22:29:31 alejo Exp $";
 #endif /* not lint */
 
 /*
- *  m_classic -- classic behaviour module
+ *  om_classic -- classic behaviour module
  *
  * Author: Alejo Sanchez for Core-SDI SA
  *         form syslogd.c Eric Allman  and Ralph Campbell
@@ -69,11 +69,11 @@ char   *ttymsg __P((struct iovec *, int, char *, int));
 
 
 int
-m_classic_doLog(f, flags, msg, context)
+om_classic_doLog(f, flags, msg, context)
 	struct filed *f;
 	int flags;
 	char *msg;
-	struct m_header *context;
+	struct om_header *context;
 {
 	struct iovec iov[6];
 	struct iovec *v;
@@ -198,24 +198,24 @@ m_classic_doLog(f, flags, msg, context)
 
 
 /*
- *  INIT -- Initialize m_classic
+ *  INIT -- Initialize om_classic
  *
  *  taken mostly from syslogd's cfline
  */
 int
-m_classic_init(argc, argv, f, prog, context)
+om_classic_init(argc, argv, f, prog, context)
 	int argc;
 	char **argv;
 	struct filed *f;
 	char *prog;
-	struct m_header **context;
+	struct om_header **context;
 {
 	struct hostent *hp;
 	int i, pri;
 	char *bp, *p, *q;
 	char buf[MAXLINE], ebuf[100];
 
-	dprintf("m_classic init\n");
+	dprintf("om_classic init\n");
 
 	p = argv[1];
 
@@ -284,9 +284,9 @@ m_classic_init(argc, argv, f, prog, context)
 }
 
 int
-m_classic_close(f, context)
+om_classic_close(f, context)
 	struct filed *f;
-	struct m_header **context;
+	struct om_header **context;
 {
 	int ret;
 
@@ -305,13 +305,13 @@ m_classic_close(f, context)
 }
 
 int
-m_classic_flush(f, context)
+om_classic_flush(f, context)
 	struct filed *f;
-	struct m_header *context;
+	struct om_header *context;
 {
 	/* flush any pending output */
 	if (f->f_prevcount)
-		m_classic_doLog(f, 0, (char *)NULL, NULL);
+		om_classic_doLog(f, 0, (char *)NULL, NULL);
 
 }
 

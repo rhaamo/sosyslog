@@ -39,11 +39,11 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: m_mysql.c,v 1.20 2000/04/06 00:35:45 alejo Exp $";
+static char rcsid[] = "$Id: om_mysql.c,v 1.1 2000/04/06 22:29:31 alejo Exp $";
 #endif /* not lint */
 
 /*
- *  m_mysql -- MySQL database syupport Module
+ *  om_mysql -- MySQL database syupport Module
  *
  * Author: Alejo Sanchez for Core-SDI SA
  *         form syslogd.c Eric Allman  and Ralph Campbell
@@ -70,7 +70,7 @@ static char rcsid[] = "$Id: m_mysql.c,v 1.20 2000/04/06 00:35:45 alejo Exp $";
 
 #define MAX_QUERY	8192
 
-struct m_mysql_ctx {
+struct om_mysql_ctx {
 	short	flags;
 	int	size;
 	MYSQL	*h;
@@ -85,13 +85,13 @@ struct m_mysql_ctx {
 
 
 int
-m_mysql_doLog(f, flags, msg, context)
+om_mysql_doLog(f, flags, msg, context)
 	struct filed *f;
 	int flags;
 	char *msg;
-	struct m_header *context;
+	struct om_header *context;
 {
-	struct m_mysql_ctx *c;
+	struct om_mysql_ctx *c;
 	char	*dummy, *y, *m, *d, *h, *host, mymsg[1024];
         time_t now;
 	int	mn;
@@ -103,7 +103,7 @@ m_mysql_doLog(f, flags, msg, context)
 	if (f == NULL)
 		return (-1);
 
-	c = (struct m_mysql_ctx *) context;
+	c = (struct om_mysql_ctx *) context;
 	memset(c->query, 0, MAX_QUERY);
 
         if (msg == NULL) {
@@ -152,7 +152,7 @@ m_mysql_doLog(f, flags, msg, context)
 
 
 /*
- *  INIT -- Initialize m_mysql
+ *  INIT -- Initialize om_mysql
  *
  *  Parse options and connect to database
  *
@@ -169,15 +169,15 @@ m_mysql_doLog(f, flags, msg, context)
 extern char *oprtarg;
 
 int
-m_mysql_init(argc, argv, f, prog, c)
+om_mysql_init(argc, argv, f, prog, c)
 	int	argc;
 	char	**argv;
 	struct filed *f;
 	char *prog;
-	struct m_header **c;
+	struct om_header **c;
 {
 	MYSQL *h;
-	struct m_mysql_ctx	*context;
+	struct om_mysql_ctx	*context;
 	char	*host, *user, *passwd, *db, *table, *p;
 	int	port, client_flag, createTable;
 	int	ch, i;
@@ -244,10 +244,10 @@ m_mysql_init(argc, argv, f, prog, c)
 	}
 
 	/* save handle and stuff on context */
-	*c = (struct m_header *) calloc(1, sizeof(struct m_mysql_ctx));
+	*c = (struct om_header *) calloc(1, sizeof(struct om_mysql_ctx));
 
-	context = (struct m_mysql_ctx *) *c;
-	context->size = sizeof(struct m_mysql_ctx);
+	context = (struct om_mysql_ctx *) *c;
+	context->size = sizeof(struct om_mysql_ctx);
 	context->h = h;
 	context->host = host;
 	context->port = port;
@@ -261,8 +261,8 @@ m_mysql_init(argc, argv, f, prog, c)
 }
 
 void
-m_mysql_destroy_ctx(context)
-	struct m_mysql_ctx *context;
+om_mysql_destroy_ctx(context)
+	struct om_mysql_ctx *context;
 {
 	free(context->h);
 	free(context->host);
@@ -274,15 +274,15 @@ m_mysql_destroy_ctx(context)
 }
 
 int
-m_mysql_close(f, context)
+om_mysql_close(f, context)
 	struct filed *f;
-	struct m_header **context;
+	struct om_header **context;
 {
-	struct m_mysql_ctx *c;
+	struct om_mysql_ctx *c;
 
-	c = (struct m_mysql_ctx *) *context;
+	c = (struct om_mysql_ctx *) *context;
 	mysql_close(c->h);
-	m_mysql_destroy_ctx(c);
+	om_mysql_destroy_ctx(c);
 	free(*context);
 	context = NULL;
 
@@ -290,9 +290,9 @@ m_mysql_close(f, context)
 }
 
 int
-m_mysql_flush(f, context)
+om_mysql_flush(f, context)
 	struct filed *f;
-	struct m_header *context;
+	struct om_header *context;
 {
 	/* this module doesn't need to "flush" data */
 	return (0);
