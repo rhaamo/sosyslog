@@ -18,7 +18,8 @@ dnl This isn't needed
 dnl AC_HEADER_SYS_WAIT
 
 AC_CHECK_HEADERS(fcntl.h limits.h paths.h strings.h sys/ioctl.h \
-    sys/time.h syslog.h unistd.h)dnl
+    sys/time.h syslog.h unistd.h un.h sys/klog.h sys/socket.h \
+    regex.h door.h stropts.h)dnl
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -69,14 +70,16 @@ AC_TRY_LINK([#include <unistd.h>],
         [AC_DEFINE(HAVE_OPTRESET) AC_MSG_RESULT(yes)],
         AC_MSG_RESULT(no))
 
+AC_MSG_CHECKING(pidfile directory)
+
 for dir in "/var/run" "/etc"
 do
 	if test -d $dir ; then
 		break
 	fi
 done
-AC_MSG_RESULT(root-mode pid file will go in $dir)   
-AC_DEFINE_UNQUOTED(PID_DIR, "$dir")
+AC_MSG_RESULT(root-mode pid file will go in $dir)
+AC_DEFINE_UNQUOTED(PID_DIR, "$dir")dnl
 
 dnl search mandir for non bsd systems
 for MANDIR in "/usr/share/man" "/usr/man"
@@ -85,6 +88,20 @@ do
 		break;
 	fi
 done
+
+AC_MSG_CHECKING(for MAXHOSTNAMELEN)
+
+AC_EGREP_CPP(yes,
+	[#include <sys/param.h>
+	 #ifdef MAXHOSTNAMELEN
+	   yes
+	 #endif], [
+	AC_MSG_RESULT(yes)
+	] , [
+	AC_MSG_RESULT(no, using 254)
+	AC_DEFINE(MAXHOSTNAMELEN, 254)
+])dnl
+
 
 echo "setting system linking flags"
 
@@ -142,10 +159,10 @@ AC_ARG_WITH(linux,
 		MANPAGES="$MANPAGES im_linux.8"
 	fi
 ],[
-	if test "$UNAME" = "Linux" ; then
+	AC_CHECK_HEADER(sys/klog.h, [
 		MSRCS="$MSRCS im_linux.c"
 		MANPAGES="$MANPAGES im_linux.8"
-	fi
+	])dnl
 ])dnl
 
 AC_ARG_WITH(udp,
@@ -156,7 +173,9 @@ AC_ARG_WITH(udp,
 		MSRCS="$MSRCS im_udp.c"
 	fi
 ],[
-	MSRCS="$MSRCS im_udp.c"
+	AC_CHECK_HEADER(sys/socket.h, [
+		MSRCS="$MSRCS im_udp.c"
+	])dnl
 ])dnl
 
 AC_ARG_WITH(unix,
@@ -167,7 +186,9 @@ AC_ARG_WITH(unix,
 		MSRCS="$MSRCS im_unix.c"
 	fi
 ],[
-	MSRCS="$MSRCS im_unix.c"
+	AC_CHECK_HEADER(un.h, [
+		MSRCS="$MSRCS im_unix.c"
+	])dnl
 ])dnl
 
 AC_ARG_WITH(doors,
@@ -179,10 +200,10 @@ AC_ARG_WITH(doors,
 		MANPAGES="$MANPAGES im_doors.8"
 	fi
 ],[
-	if test "$UNAME" = "SunOS" -o "$UNAME" = "SysV" ; then
+	AC_CHECK_HEADER(doors.h, [
 		MSRCS="$MSRCS im_doors.c"
 		MANPAGES="$MANPAGES im_doors.8"
-	fi
+	])dnl
 ])
 
 AC_ARG_WITH(streams,
@@ -195,10 +216,10 @@ AC_ARG_WITH(streams,
 		MANPAGES="$MANPAGES im_streams.8"
 	fi
 ],[
-	if test "$UNAME" = "SunOS" -o "$UNAME" = "SysV" ; then
+	AC_CHECK_HEADER(stropts.h, [
 		MSRCS="$MSRCS im_streams.c"
 		MANPAGES="$MANPAGES im_streams.8"
-	fi
+	])dnl
 ])
 
 AC_ARG_WITH(classic,
@@ -284,8 +305,10 @@ AC_ARG_WITH(regex,
 		MANPAGES="$MANPAGES om_regex.8"
 	fi
 ],[
-	MSRCS="$MSRCS om_regex.c"
-	MANPAGES="$MANPAGES om_regex.8"
+	AC_CHECK_HEADER(regex.h, [
+		MSRCS="$MSRCS om_regex.c"
+		MANPAGES="$MANPAGES om_regex.8"
+	])dnl
 ])
 
 AC_HAVE_TYPES(socklen_t uint32_t uint64_t u_int32_t u_int64_t)dnl

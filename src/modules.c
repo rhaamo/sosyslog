@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.137 2000/12/04 23:25:27 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.138 2000/12/04 23:35:45 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -153,7 +153,9 @@ modules_stop() {
 
 int
 prepare_module_libs(const char *modname, void **ret) {
+#if BUGGY_LIBRARY_OPEN
 	int i;
+#endif
 	char buf[LIB_PATH_MAX];
 
 	dprintf("prepare_module_libs: called for module:%s\n", modname);
@@ -700,7 +702,9 @@ imodules_destroy(struct imodule *i)
     struct imodule *im, *im_next, *last;
     
 	for (im = i, last = NULL; im; im = im_next) {
+#if BUGGY_LIBRARY_OPEN
 		int j;
+#endif
 
 		im_next = im->im_next;
 
@@ -754,7 +758,9 @@ omodules_destroy(struct omodule *o)
     struct omodule *om, *om_next, *last;
     
 	for (om = o, last = NULL; om; om = om_next) {
+#if BUGGY_LIBRARY_OPEN
 		int j;
+#endif
 
 		om_next = om->om_next;
 

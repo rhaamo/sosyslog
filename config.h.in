@@ -112,3 +112,4 @@
 
 #undef MLIBNAME
 
+#undef MAXHOSTNAMELEN
