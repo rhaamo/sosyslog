@@ -1,4 +1,4 @@
-/*	$CoreSDI: ip_misc.c,v 1.7 2001/03/15 20:22:53 alejo Exp $	*/
+/*	$CoreSDI: ip_misc.c,v 1.8 2001/03/23 00:12:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -191,7 +191,7 @@ resolv_name(const char *host, const char *port, socklen_t *salen)
 		struct sockaddr_in6 *sin6;
 
 		sin6 = (struct sockaddr_in6 *)
-		    malloc(sizeof(struct sockaddr_in6));
+		    malloc(sizeof(*sin6));
 		*salen = sizeof(struct sockaddr_in);
 # ifdef HAVE_SOCKADDR_SA_LEN
 		sin6->sin6_len = sizeof(struct sockaddr_in6);

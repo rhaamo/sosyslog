@@ -1,8 +1,9 @@
-/*	$CoreSDI: TODO,v 1.72 2001/03/06 23:11:17 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.73 2001/03/23 22:34:26 alejo Exp $	*/
 
 Things to do:
 
 - DB2 output module
+- Use one function per module, with action as a parameter.
 - Check "" errors on solaris / support spaces intead the tabs on configfile
 - Change strcpy and strncpy to strlcpy (same w/ strlcat)
 - define STYLE for names (ie. underscore or caps, indentation)

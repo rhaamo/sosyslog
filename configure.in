@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.106 2001/03/23 17:54:30 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.107 2001/03/23 18:06:41 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -26,6 +26,8 @@ AC_CHECK_HEADERS(fcntl.h limits.h paths.h strings.h sys/ioctl.h \
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
+AC_TYPE_OFF_T
+AC_TYPE_SIZE_T
 AC_HEADER_TIME
 AC_STRUCT_TM
 
@@ -156,7 +158,6 @@ elif test "$UNAME" = "AIX" ; then
 		remove_fd_input
 		printline
 		EOF
-
 
 	SYSLOGD_LIBS="$SYSLOGD_LIBS -Wl,-bexpall"
 else
