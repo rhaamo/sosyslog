@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_tcp.c,v 1.15 2001/04/24 15:25:00 alejo Exp $	*/
+/*	$CoreSDI: om_tcp.c,v 1.16 2001/04/28 02:12:51 alejo Exp $	*/
 /*
      Copyright (c) 2001, Core SDI S.A., Argentina
      All rights reserved
@@ -240,7 +240,7 @@ om_tcp_write(struct filed *f, int flags, char *msg, void *ctx)
 
 		}
 			
-		dprintf(MSYSLOG_SERIOUS, "om_tcp_write: broken connection "
+		dprintf(MSYSLOG_SERIOUS, "om_tcp_write: no connection "
 		    "to remote host %s, port %s. retry %i...  ", c->host,
 		    c->port, c->inc - 1);
 
