@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.103 2000/06/28 21:22:37 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.104 2000/06/28 22:09:44 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -77,11 +77,17 @@ modules_init (I, line)
 
 	for (im_prev = I; im_prev->im_next != NULL; im_prev = im_prev->im_next);
 	if (im_prev == I && im_prev->im_fd > -1) {
-		im_prev->im_next = (struct i_module *) calloc(1,
-		    sizeof(struct i_module));
+		if((im_prev->im_next = (struct i_module *) calloc(1,
+		        sizeof(struct i_module))) == NULL) {
+		    dprintf("No memory available for calloc\n");
+		    return(-1);
+		}
 		im = im_prev->im_next;
 		im->im_fd = -1;
 		im->im_prev = im_prev;
+	} else {
+		im = im_prev;
+		im->im_prev = NULL;
 	}
 
 	for (p = line; *p != '\0'; p++)
