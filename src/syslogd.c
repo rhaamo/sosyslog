@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.166 2001/02/12 17:19:37 claudio Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.167 2001/02/16 00:34:52 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.166 2001/02/12 17:19:37 claudio Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.167 2001/02/16 00:34:52 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -215,12 +215,6 @@ main(int argc, char **argv)
 	Inputs.im_next = NULL;
 	Inputs.im_fd = -1;
 
-	/* console config line */
-	ctty = (char *) malloc(strlen(_PATH_CONSOLE) + 25);
-	strncpy(ctty, "%classic -t CONSOLE ", 18);
-	strncpy(ctty,_PATH_CONSOLE, strlen(_PATH_CONSOLE));
-	ctty[strlen(_PATH_CONSOLE) + 25] = '\0';
-
 	/* init module list */
 	imodules = NULL;
 	omodules = NULL;
@@ -283,8 +277,14 @@ main(int argc, char **argv)
 		}
 	}
 
-	if ( ((argc -= optind) != 0) || Inputs.im_fd < 0 )
+	if ( Inputs.im_fd < 0 ) {
+		dprintf(DPRINTF_SERIOUS)("syslogd: no inputs active\n");
 		usage();
+	}
+
+	if ( (argc -= optind) != 0 )
+		dprintf(DPRINTF_SERIOUS)("syslogd: remaining command"
+		    " line not parsed!\n");
 
 	if (!Debug) {
 		struct rlimit r;
@@ -327,6 +327,12 @@ main(int argc, char **argv)
 	} else
 		setlinebuf(stdout);
 	
+	/* console config line */
+	ctty = (char *) malloc(strlen(_PATH_CONSOLE) + 25);
+	strncpy(ctty, "%classic -t CONSOLE ", 20);
+	strncpy(ctty + 20,_PATH_CONSOLE, strlen(_PATH_CONSOLE));
+	ctty[strlen(_PATH_CONSOLE) + 20] = '\0';
+
 	/* this should get into Files and be way nicer */
 	if (omodule_create(ctty, &consfile, NULL) == -1) {
 		dprintf(DPRINTF_SERIOUS)("Error initializing classic output "
