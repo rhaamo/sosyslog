@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.81 2000/06/02 01:04:12 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.82 2000/06/05 22:38:17 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -91,7 +91,7 @@ int	im_linux_getLog __P((struct i_module *, struct im_msg *));
 int	im_linux_close __P((struct i_module *));
 #endif
 
-#ifdef WANT_PGSQL
+#ifdef ENABLE_PGSQL
 int	om_pgsql_doLog(struct filed *, int , char *, struct om_hdr_ctx *);
 int	om_pgsql_init(int, char **, struct filed *, char *,
 	    struct om_hdr_ctx **);
@@ -137,7 +137,7 @@ modules_load()
 	OModules[OM_MYSQL].om_flush 		= om_mysql_flush;
 #endif /* ENABLE_MYSQL */
 
-#ifdef WANT_PGSQL
+#ifdef ENABLE_PGSQL
 	/* pgsql module */
 	OModules[OM_PGSQL].om_name              = "pgsql";
 	OModules[OM_PGSQL].om_type              = OM_PGSQL;
