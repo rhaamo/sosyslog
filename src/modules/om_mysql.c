@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.60 2001/01/27 01:04:19 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.61 2001/02/22 20:10:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -58,6 +58,7 @@
 #include <string.h>
 #include <syslog.h>
 #include <unistd.h>
+#include <dlfcn.h>
 #include "../../config.h"
 #include "../modules.h"
 #include "../syslogd.h"
@@ -77,6 +78,12 @@ struct om_mysql_ctx {
 	char	*user;
 	char	*passwd;
 	char	*db;
+	void	*lib;
+	int	(*mysql_ping)(void *);
+	void *	(*mysql_init)(void *);
+	void *	(*mysql_real_connect)(void *, char *, char *, char *,
+	    char *, int, void *, int);
+	void *	(*mysql_query)(void *, char *);
 };
 
 int om_mysql_close(struct filed *, void *);
@@ -85,10 +92,6 @@ int om_mysql_close(struct filed *, void *);
  * Define our prototypes for MySQL functions
  */
 
-int mysql_ping(void *);
-void *mysql_init(void *);
-void *mysql_real_connect(void *, char *,char *,char *,char *, int, void *, int);
-void *mysql_query(void *, char *);
 #define MYSQL_PORT 3306
 
 
@@ -108,9 +111,9 @@ om_mysql_write(struct filed *f, int flags, char *msg, void *ctx)
 	/* ignore sigpipes   for mysql_ping */
 	sigsave = place_signal(SIGPIPE, SIG_IGN);
 
-	if ((mysql_ping(c->h) != 0) && ((mysql_init(c->h) == NULL) ||
-	    (mysql_real_connect(c->h, c->host, c->user, c->passwd, c->db,
-	    c->port, NULL, 0) == NULL))) {
+	if ( ((c->mysql_ping)(c->h)) != 0 && (((c->mysql_init)(c->h) == NULL)
+	    || ((c->mysql_real_connect)(c->h, c->host, c->user, c->passwd, c->db,
+	    c->port, NULL, 0)) == NULL) ) {
 
 		/* restore previous SIGPIPE handler */
 		place_signal(SIGPIPE, sigsave);
@@ -161,7 +164,7 @@ om_mysql_write(struct filed *f, int flags, char *msg, void *ctx)
 		dprintf(DPRINTF_INFORMATIVE2)("om_mysql_write: query [%s]\n",
 		    query);
 
-		if (mysql_query(c->h, query) < 0)
+		if ((c->mysql_query)(c->h, query) < 0)
 			return (-1);
 	}
 
@@ -179,7 +182,7 @@ om_mysql_write(struct filed *f, int flags, char *msg, void *ctx)
 	dprintf(DPRINTF_INFORMATIVE2)("om_mysql_write: query [%s]\n",
 	    query);
 
-	return (mysql_query(c->h, query) < 0? -1 : 1);
+	return ((c->mysql_query)(c->h, query) < 0 ? -1 : 1);
 }
 
 /*
@@ -212,6 +215,25 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 	if ((*c = (void *) calloc(1, sizeof(struct om_mysql_ctx))) == NULL)
 		return (-1);
 	ctx = (struct om_mysql_ctx *) *c;
+
+	if ((ctx->lib = dlopen("libmysqlclient.so", DLOPEN_FLAGS)) == NULL) {
+		dprintf(DPRINTF_SERIOUS)("om_mysql_init: Error loading"
+		    " api library, %s\n", dlerror());
+		free(ctx);  
+		return (-1);
+	}
+
+	if ( !(ctx->mysql_ping = dlsym(ctx->lib, SYMBOL_PREFIX "mysql_ping"))
+	    || !(ctx->mysql_init = dlsym(ctx->lib, SYMBOL_PREFIX "mysql_init"))
+	    || !(ctx->mysql_real_connect = dlsym(ctx->lib, SYMBOL_PREFIX
+	    "mysql_real_connect"))
+	    || !(ctx->mysql_query = dlsym(ctx->lib, SYMBOL_PREFIX
+	    "mysql_query"))) {
+		dprintf(DPRINTF_SERIOUS)("om_mysql_init: Error resolving"
+		    " api symbols, %s\n", dlerror());
+		free(ctx);  
+		return (-1);
+	}
 
 	/* parse line */
 	optind = 1;
@@ -247,18 +269,12 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 		}
 	}
 
-	if (ctx->user == NULL || ctx->passwd == NULL || ctx->db == NULL
-	    || ctx->port == 0 || ctx->host == NULL || ctx->table == NULL)
+	if (ctx->user == NULL || ctx->db == NULL || ctx->port == 0 ||
+	    ctx->host == NULL || ctx->table == NULL)
 		goto om_mysql_init_bad;
 
-	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: calling "
-	    "mysql_init %p\n", mysql_init);
-
-	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: params %p\n",
-	    ctx->h);
-
 	/* connect to the database */
-	if (! (ctx->h = mysql_init(NULL))) {
+	if (! (ctx->h = (ctx->mysql_init)(NULL)) ) {
 
 		snprintf(err_buf, sizeof(err_buf), "om_mysql_init: Error "
 		    "initializing handle");
@@ -269,14 +285,11 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: mysql_init returned %p\n",
 	    ctx->h);
 
-	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: calling "
-	    "mysql_real_connect %p\n", mysql_real_connect);
-
 	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: params %p %s %s %s %s %i \n",
-	    ctx->h, ctx->host, ctx->user, ctx->passwd, ctx->db, ctx->port);
+	    ctx->h, ctx->host, ctx->user, "<passwd>", ctx->db, ctx->port);
 
-	if (!mysql_real_connect(ctx->h, ctx->host, ctx->user, ctx->passwd,
-	    ctx->db, ctx->port, NULL, 0)) {
+	if (!((ctx->mysql_real_connect)(ctx->h, ctx->host, ctx->user, ctx->passwd,
+	    ctx->db, ctx->port, NULL, 0)) ) {
 
 		snprintf(err_buf, sizeof(err_buf), "om_mysql_init: Error "
 		    "connecting to db server [%s:%i] user [%s] db [%s]",
@@ -318,6 +331,8 @@ om_mysql_close(struct filed *f, void *ctx)
 		free(c->passwd);
 	if (c->db)
 		free(c->db);
+	if (c->lib)
+		dlclose(c->lib);
 
 	return (0);
 }

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.32 2000/12/14 00:16:45 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.33 2001/01/27 01:04:20 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -70,6 +70,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <dlfcn.h>
 #include "../../config.h"
 #include "../modules.h"
 #include "../syslogd.h"
@@ -81,18 +82,10 @@
  * Define needed PostgreSQL functions
  */
 
-int PQstatus(void *);
-int PQresultStatus(void *);
-void PQreset(void *);
-void *PQexec(void *, char *);
-char *PQresultErrorMessage(void *);
-void PQclear(void *);
-void *PQsetdbLogin(char *, char *, void *, void *, char *, char *,char *);
-void PQfinish(void *); 
 typedef enum
 {
-                CONNECTION_OK,
-                CONNECTION_BAD
+	CONNECTION_OK,
+	CONNECTION_BAD
 } Some_psql_needed_ConnStatusType;
 typedef enum
 {
@@ -107,6 +100,16 @@ struct om_pgsql_ctx {
 	void	*h;
 	char	*table;
 	int	lost;
+	void	*lib;
+	int	(*PQstatus)(void *);
+	int	(*PQresultStatus)(void *);
+	void	(*PQreset)(void *);
+	void *	(*PQexec)(void *, char *);
+	char *	(*PQresultErrorMessage)(void *);
+	void	(*PQclear)(void *);
+	void *	(*PQsetdbLogin)(char *, char *, void *, void *,
+	    char *, char *,char *);
+	void	(*PQfinish)(void *); 
 };
 
 int
@@ -128,13 +131,13 @@ om_pgsql_write(struct filed *f, int flags, char *msg, void *ctx)
 		return (-1);
 	}
 
-	if (PQstatus(c->h) == CONNECTION_BAD) {
+	if ((c->PQstatus(c->h)) == CONNECTION_BAD) {
 
 		/* try to reconnect */
-		PQreset(c->h);
+		(c->PQreset(c->h));
 
 		/* connection can't be established */
-		if (PQstatus(c->h) == CONNECTION_BAD) {
+		if ((c->PQstatus(c->h)) == CONNECTION_BAD) {
 
 			c->lost++;
 			if (c->lost == 1) {
@@ -180,13 +183,13 @@ om_pgsql_write(struct filed *f, int flags, char *msg, void *ctx)
 		dprintf(DPRINTF_INFORMATIVE2)("om_pgsql_write: query [%s]\n",
 		    query);
 
-		r = PQexec(c->h, query);
-		if (PQresultStatus(r) != PGRES_COMMAND_OK) {
+		r = (c->PQexec(c->h, query));
+		if ((c->PQresultStatus(r)) != PGRES_COMMAND_OK) {
 			dprintf(DPRINTF_SERIOUS)("om_pgsql_write: %s\n",
-			    PQresultErrorMessage(r));
+			    (c->PQresultErrorMessage(r)));
 			return (-1);
 		}
-		PQclear(r);
+		(c->PQclear(r));
 	}
 
 	/* put message escaping special SQL characters */
@@ -203,13 +206,14 @@ om_pgsql_write(struct filed *f, int flags, char *msg, void *ctx)
 	dprintf(DPRINTF_INFORMATIVE2)("om_pgsql_write: query [%s]\n", query);
 
 	err = 1;
-	r = PQexec(c->h, query);
-	if (PQresultStatus(r) != PGRES_COMMAND_OK) {
-		dprintf(DPRINTF_INFORMATIVE)("%s\n", PQresultErrorMessage(r));
+	r = (c->PQexec(c->h, query));
+	if ((c->PQresultStatus(r)) != PGRES_COMMAND_OK) {
+		dprintf(DPRINTF_INFORMATIVE)("%s\n",
+		    (c->PQresultErrorMessage(r)));
 		err = -1;
 	}
 
-	PQclear(r);
+	(c->PQclear(r));
 
 	return (err);
 }
@@ -231,10 +235,10 @@ om_pgsql_write(struct filed *f, int flags, char *msg, void *ctx)
 int
 om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 {
-	void  *h;
-	struct  om_pgsql_ctx *ctx;
-	char    *host, *user, *passwd, *db, *table, *port, *p;
-	int     ch = 0;
+	void	*h;
+	struct	om_pgsql_ctx *ctx;
+	char	*host, *user, *passwd, *db, *table, *port, *p;
+	int	ch = 0;
 
 	dprintf(DPRINTF_INFORMATIVE)("om_pgsql_init: entering "
 	    "initialization\n");
@@ -245,6 +249,35 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 
 	user = NULL; passwd = NULL; db = NULL; port = 0; host = NULL;
 	table = NULL;
+
+	/* save handle and stuff on context */
+	if (! (*c = calloc(1, sizeof(struct om_pgsql_ctx))))
+		return (-1);
+	ctx = (struct om_pgsql_ctx *) *c;
+
+	if ((ctx->lib = dlopen("libpq.so", DLOPEN_FLAGS)) == NULL) {
+		dprintf(DPRINTF_SERIOUS)("om_pgsql_init: Error loading"
+		    " api library, %s\n", dlerror());
+		free(ctx);
+		return (-1);
+	}
+
+	if ( !(ctx->PQstatus = dlsym(ctx->lib, SYMBOL_PREFIX "PQstatus"))   
+	    || !(ctx->PQresultStatus = dlsym(ctx->lib, SYMBOL_PREFIX
+	    "PQresultStatus"))   
+	    || !(ctx->PQreset = dlsym(ctx->lib, SYMBOL_PREFIX "PQreset"))   
+	    || !(ctx->PQexec = dlsym(ctx->lib, SYMBOL_PREFIX "PQexec"))   
+	    || !(ctx->PQresultErrorMessage = dlsym(ctx->lib, SYMBOL_PREFIX
+	    "PQresultErrorMessage"))   
+	    || !(ctx->PQclear = dlsym(ctx->lib, SYMBOL_PREFIX "PQclear"))   
+	    || !(ctx->PQsetdbLogin = dlsym(ctx->lib, SYMBOL_PREFIX
+	    "PQsetdbLogin"))   
+	    || !(ctx->PQfinish = dlsym(ctx->lib, SYMBOL_PREFIX "PQfinish"))) {
+		dprintf(DPRINTF_SERIOUS)("om_mysql_init: Error resolving"
+		    " api symbols, %s\n", dlerror());
+		free(ctx);
+		return (-1);
+	}
 
 	/* parse line */
 	optind = 1;
@@ -282,32 +315,29 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 		}
 	}
 
-	if (user == NULL || passwd == NULL || db == NULL || table == NULL)
-		return (-3);
+	if (user == NULL || db == NULL || table == NULL) {
+		dprintf(DPRINTF_SERIOUS)("om_pgsql_init: Error missing "
+		    "params!\n");
+		dlclose(ctx->lib);
+		free(ctx);
+		return (-1);
+	}
 
 	/* connect to the database */
 
-	h = PQsetdbLogin( host, port,
-			  NULL, NULL,
-			  db,
-			  user,passwd);
+	h = (ctx->PQsetdbLogin)(host, port, NULL, NULL, db, user,passwd);
 
 	/* check to see that the backend connection was successfully made */
-	if (PQstatus(h) == CONNECTION_BAD)
-	{
+	if ((ctx->PQstatus)(h) == CONNECTION_BAD) {
 		dprintf(DPRINTF_SERIOUS)("om_pgsql_init: Error connecting "
 		    "to db server [%s:%s] user [%s] db [%s]\n",
 		    host?host:"(unix socket)", port?port:"(none)", user, db);
-		PQfinish(h); 
-		return (-5);
+		(ctx->PQfinish)(h); 
+		dlclose(ctx->lib);
+		free(ctx);
+		return (-1);
 	}
 
-	/* save handle and stuff on context */
-	if (! (*c = (void *) calloc(1, sizeof(struct om_pgsql_ctx))))
-		return (-1);
-
-
-	ctx = (struct om_pgsql_ctx *) *c;
 	ctx->h = h;
 	ctx->table = strdup(table);
 
@@ -321,7 +351,7 @@ om_pgsql_close(struct filed *f, void *ctx) {
 	c = (struct om_pgsql_ctx *) ctx;
 
 	if (((struct om_pgsql_ctx *)ctx)->h) {
-		PQfinish(((struct om_pgsql_ctx *)ctx)->h);
+		(c->PQfinish)(((struct om_pgsql_ctx *)ctx)->h);
 	}
 
 	if (c->table)
