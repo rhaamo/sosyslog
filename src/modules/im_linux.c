@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.22 2000/06/13 21:24:16 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.23 2000/06/14 18:34:50 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -153,7 +153,7 @@ im_linux_setConsoleLogLevel (strlv)
 	}
 	warnx("%s: setting console loglevel to <%i>", linux_input_module, loglevel);
 	if (klogctl(8, NULL, loglevel) < 0) {
-		warnx("%s", linux_input_module);
+		warn("%s", linux_input_module);
 		return(-1);
 	}
 	return(0);
