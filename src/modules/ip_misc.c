@@ -1,4 +1,4 @@
-/*	$CoreSDI: ip_misc.c,v 1.8 2001/03/23 00:12:29 alejo Exp $	*/
+/*	$CoreSDI: ip_misc.c,v 1.9 2001/03/26 14:43:41 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -61,10 +61,9 @@
 #include "../modules.h"
 #include "../syslogd.h"
 
-/* recvfrom() and others like soclen_t, Irix doesn't provide it */   
+/* recvfrom() and others like socklen_t, Irix doesn't provide it */   
 #ifndef HAVE_SOCKLEN_T
   typedef int socklen_t;
-# warning using socklen_t as int
 #endif
 
 

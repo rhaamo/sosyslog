@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.58 2001/03/07 21:35:14 alejo Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.59 2001/03/23 00:12:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -58,10 +58,9 @@
 #include "../modules.h"
 #include "../syslogd.h"
 
-/* recvfrom() and others like soclen_t, Irix doesn't provide it */   
+/* recvfrom() and others like socklen_t, Irix doesn't provide it */   
 #ifndef HAVE_SOCKLEN_T
   typedef int socklen_t;
-# warning using socklen_t as int
 #endif
 
 

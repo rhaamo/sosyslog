@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.14 2001/03/15 20:38:17 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.15 2001/03/23 00:12:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -72,10 +72,9 @@
 #include "../modules.h"
 #include "../syslogd.h"
 
-/* recvfrom() and others like soclen_t, Irix doesn't provide it */   
+/* recvfrom() and others like socklen_t, Irix doesn't provide it */   
 #ifndef HAVE_SOCKLEN_T
   typedef int socklen_t;
-# warning using socklen_t as int
 #endif
 
 struct tcp_conn {
