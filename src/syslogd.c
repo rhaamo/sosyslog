@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.28 2000/04/15 00:26:10 alejo Exp $
+/*	$Id: syslogd.c,v 1.29 2000/04/17 22:22:07 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -183,9 +183,6 @@ main(argc, argv)
 		setlinebuf(stdout);
 
 	/* assign functions and init input */
-	memset(&Inputs, 0,sizeof(Inputs));
-	for (im = Inputs; im; im = im->im_next)
-		im->fd = -1;
 	modules_init(&Inputs);
 
 	consfile.f_type = F_CONSOLE;
