@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.13 2000/07/04 19:28:49 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.13.2.4 2000/08/31 22:42:02 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -53,17 +53,18 @@
 #include "modules.h"
 
 /* current time from syslogd */
-extern time_t now;
 
 struct om_regex_ctx {
-	short		 flags;
-	int		 size;
+	short		flags;
+	int			size;
 	regex_t		*exp;
 	int		 filters;
 #define	OM_FILTER_INVERSE	0x01
 #define	OM_FILTER_MESSAGE	0x02
 #define	OM_FILTER_HOST		0x04
-#define	OM_FILTER_TIME		0x08
+#define	OM_FILTER_DATE		0x08
+#define	OM_FILTER_TIME		0x16
+	char		date[16];
 };
 
 
@@ -73,8 +74,8 @@ struct om_regex_ctx {
  */
 int
 om_regex_init(int argc, char ** argv, struct filed *f, char *prog,
-		struct om_hdr_ctx **c) {
-	struct om_regex_ctx *ctx;
+		struct om_hdr_ctx **ctx) {
+	struct om_regex_ctx *c;
 	int ch;
 
 	/* for debugging purposes */
@@ -86,10 +87,10 @@ om_regex_init(int argc, char ** argv, struct filed *f, char *prog,
 		return(-1);
 	}
 
-	if (! (*c = (struct om_hdr_ctx *)
+	if (! (*ctx = (struct om_hdr_ctx *)
 			calloc(1, sizeof(struct om_regex_ctx))))
 		return (-1);
-	ctx = (struct om_regex_ctx *) *c;
+	c = (struct om_regex_ctx *) *ctx;
 
 	/*
 	 * Parse options with getopt(3)
@@ -109,16 +110,19 @@ om_regex_init(int argc, char ** argv, struct filed *f, char *prog,
 	while ((ch = getopt(argc, argv, "vmhdt")) != -1) {
 		switch (ch) {
 			case 'v':
-				ctx->filters |= OM_FILTER_INVERSE;
+				c->filters |= OM_FILTER_INVERSE;
 				break;
 			case 'm':
-				ctx->filters |= OM_FILTER_MESSAGE;
+				c->filters |= OM_FILTER_MESSAGE;
 				break;
 			case 'h':
-				ctx->filters |= OM_FILTER_HOST;
+				c->filters |= OM_FILTER_HOST;
+				break;
+			case 'd':
+				c->filters |= OM_FILTER_DATE;
 				break;
 			case 't':
-				ctx->filters |= OM_FILTER_TIME;
+				c->filters |= OM_FILTER_TIME;
 				break;
 			default:
 				dprintf("om_regex: unknown parameter [%c]\n", ch);
@@ -128,11 +132,11 @@ om_regex_init(int argc, char ** argv, struct filed *f, char *prog,
 	}
 
 
-	ctx = (struct om_regex_ctx *) *c;
-	ctx->size = sizeof(struct om_regex_ctx);
-	ctx->exp = (regex_t *) calloc(1, sizeof(regex_t));
+	c = (struct om_regex_ctx *) *ctx;
+	c->size = sizeof(struct om_regex_ctx);
+	c->exp = (regex_t *) calloc(1, sizeof(regex_t));
 	ch = REG_EXTENDED;
-	if (regcomp(ctx->exp, argv[argc - 1], ch) != 0) {
+	if (regcomp(c->exp, argv[argc - 1], ch) != 0) {
 		dprintf("om_regex: error compiling  regular expression [%s]\n",
 				argv[argc - 1]);
 		return(-1);
@@ -143,39 +147,40 @@ om_regex_init(int argc, char ** argv, struct filed *f, char *prog,
 
 int
 om_regex_doLog(struct filed *f, int flags, char *msg,
-		struct om_hdr_ctx *context) {
-	struct om_regex_ctx *ctx;
+		struct om_hdr_ctx *ctx) {
+	struct om_regex_ctx *c;
 	int ret;
 
-	ctx = (struct om_regex_ctx *) context;
+	c = (struct om_regex_ctx *) ctx;
 
 	if (msg == NULL || !strcmp(msg, "")) {
 		logerror("om_regex_doLog: no message!");
 		return(-1);
 	}
 
-	if (ctx->filters & OM_FILTER_INVERSE) {
-		ret = !(((ctx->filters & OM_FILTER_MESSAGE) &&
-						!regexec(ctx->exp, msg, 0, NULL, 0))
-				|| ((ctx->filters & OM_FILTER_HOST) &&
-						!regexec(ctx->exp, f->f_prevhost, 0, NULL, 0))
-				|| ((ctx->filters & OM_FILTER_TIME) &&
-						!regexec(ctx->exp, ctime(&f->f_time), 0, NULL, 0)));
-	} else {
-		ret = (((ctx->filters & OM_FILTER_MESSAGE) &&
-						!regexec(ctx->exp, msg, 0, NULL, 0))
-				|| ((ctx->filters & OM_FILTER_HOST) &&
-						!regexec(ctx->exp, f->f_prevhost, 0, NULL, 0))
-				|| ((ctx->filters & OM_FILTER_TIME) &&
-						!regexec(ctx->exp, ctime(&f->f_time), 0, NULL, 0)));
-	}
+	/* get message time and separate date and time */
+	strncpy(c->date, f->f_lasttime, sizeof(c->date));
+	c->date[6] = 0;
+
+	ret = (((c->filters & OM_FILTER_MESSAGE) &&
+					!regexec(c->exp, msg, 0, NULL, 0))
+			|| ((c->filters & OM_FILTER_HOST) &&
+					!regexec(c->exp, f->f_prevhost, 0, NULL, 0))
+			|| ((c->filters & OM_FILTER_DATE) &&
+					!regexec(c->exp, c->date, 0, NULL, 0))
+			|| ((c->filters & OM_FILTER_TIME) &&
+					!regexec(c->exp, c->date + 7, 0, NULL, 0)));
 
 	/* return:
 			 1  match  -> successfull
 			 0  nomatch -> stop logging it
 	 */
 
-		return(ret);
+	if (c->filters & OM_FILTER_INVERSE)
+		return(!ret);
+
+	return(ret);
+
 }
 
 
