@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_tcp.c,v 1.13 2001/04/20 00:50:54 alejo Exp $	*/
+/*	$CoreSDI: om_tcp.c,v 1.14 2001/04/24 15:21:04 alejo Exp $	*/
 /*
      Copyright (c) 2001, Core SDI S.A., Argentina
      All rights reserved
@@ -307,6 +307,8 @@ om_tcp_close(struct filed *f, void *ctx)
 
 	if (c->fd);
 		close (c->fd);
+	if (c->saved);
+		free(c->saved);
 
 	return (1);
 }
