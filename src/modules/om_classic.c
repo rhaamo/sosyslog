@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.71 2001/03/06 23:11:18 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.72 2001/03/14 21:38:30 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -97,7 +97,6 @@
 /* names for f_types */
 char    *TypeNames[] = { "UNUSED", "FILE", "TTY", "CONSOLE",
 	    "FORW", "USERS", "WALL", "MODULE", NULL};
-extern char     *ctty;
 
 struct om_classic_ctx {
 	int	fd;
@@ -376,8 +375,6 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 				c->f_type = F_TTY;
 			else
 				c->f_type = F_FILE;
-			if (strcmp(p, ctty) == 0)
-				c->f_type = F_CONSOLE;
 		}
 		if (Debug)
 			snprintf(statbuf, sizeof(statbuf), "om_classic: "
