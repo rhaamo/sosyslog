@@ -1,4 +1,4 @@
-/*	$CoreSDI: TODO,v 1.20.2.1 2000/08/24 23:57:52 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.26 2000/09/09 00:45:45 alejo Exp $	*/
 
 Things to do:
 
@@ -36,3 +36,7 @@ Check for buffer overflows, as we now may get things from the outside world.
 - Keep alive [remote] saying how many messages have been sent from the previous
   keep alive
 - optimize peochk (readline)
+- Create a module configuration file outside /etc/syslog.conf
+- warn if configuration line is wrong
+- what to do with SQL down ?
+- threads per output module
