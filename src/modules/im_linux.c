@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.11 2000/06/06 18:19:59 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.12 2000/06/06 20:23:01 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -41,6 +41,7 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <sys/klog.h>
+#include <sys/param.h>
 
 #include <ctype.h>
 #include <fcntl.h>
@@ -55,17 +56,16 @@
 #include "syslogd.h"
 
 
-#define	TRANSLATE_KSYMBOLS	0x01
-#define USE_SYSCALL		0x02
-int flags;
-
-int parseCommandLine(int, char**);
+#define	KSYM_TRANSLATE		0x01
+#define KSYM_READ_TABLE		0x02
+#define KLOG_USE_SYSCALL	0x04
+int	 flags;
+char	*linux_input_module = "linux input module";
 
 
 /*
  * kernel symbols
  */
-
 #define PATH_KSYM	"/proc/ksyms"
 #define MAX_ADDR_LEN	16
 #define MAX_NAME_LEN	80
@@ -78,65 +78,100 @@ typedef struct {
 } Symbol;
 
 int	 symbols = 0;
-int	 offset = 0;
+int	 ksym_offset = 0;
 FILE	*ksym_fd = NULL;
 char	*ksym_path = PATH_KSYM;
 Symbol	*symbol_table = NULL;
 
-int	 ksym_init(struct i_module*);
+int	 ksym_init();
 void	 ksym_close();
-Symbol	*ksym_lookup(Symbol*, char*);
-int	 ksym_getSymbol(Symbol*);
-int	 ksym_parseLine(char*, Symbol*);
-int	 ksym_copy(char*, char*, int);
+Symbol	*ksym_lookup (Symbol*, char*);
+int	 ksym_getSymbol (Symbol*);
+int	 ksym_parseLine (char*, Symbol*);
+void	 ksym_copyWord (char*, char*, int);
 
 
 /*
- * usage
+ * Usage
  */
 void
 im_linux_usage()
 {
-	fprintf(stderr, "linux input module options:\n"
-			"    [ -k file ]        Use the specified file as source of kernel\n"
-			"                       symbol information instead of %s.\n"
-			"    [ -x ]             Do not translate kernel symbols.\n"
-			"    [ -s ]             Force to use syscall instead of %s to log\n"
-			"                       kernel messages.\n"
-			"Default:\n"
-			"    Reads kernel messages from %s; if this file don't exists it\n"
-			"    uses the syscall method.\n"
-			"    Symbols are translated only if %s exists.\n\n",
-			PATH_KSYM, _PATH_KLOG, _PATH_KLOG, PATH_KSYM);
+	fprintf(stderr,
+		"linux input module options:\n"
+		"    [ -k file ]    Use the specified file as source of kernel\n"
+		"                   symbol information instead of %s.\n"
+		"    [ -r ]         Force read symbol table on memory.\n"
+		"    [ -s ]         Force to use syscall instead of %s\n"
+		"                   to log kernel messages.\n"
+		"    [ -x ]         Do not translate kernel symbols.\n"
+		"Defaults:\n"
+		"    Reads kernel messages from %s; if this file doesn't exists\n"
+		"    it uses the syscall method.\n"
+		"    Symbols are translated only if %s exists.\n\n",
+		PATH_KSYM, _PATH_KLOG, _PATH_KLOG, PATH_KSYM);
 }
 
 
 /*
- * initialize linux kernel input module
+ * Initialize linux input module
  */
-
 int
 im_linux_init(I, argv, argc)
 	struct i_module *I;
 	char	**argv;
 	int	argc;
 {
+	int ch;
+
 	dprintf ("\nim_linux_init...\n");
 
-	if (im_linux_parseCommandLine(argc, argv) < 0)
-		return(-1);
+	/* parse command line */
+	flags = KSYM_TRANSLATE;
+	if (argc > 1) {
+		optind = 1;
+		while ( (ch = getopt(argc, argv, "k:rsxh?")) != -1)
+			switch(ch) {
+			case 'k': /* specify symbol file */
+				if (strcmp(ksym_path, optarg))
+					ksym_path = strdup(optarg);
+				break;
+
+			case 'r': /* force read symbol table */
+				flags |= KSYM_READ_TABLE;
+				break;
+
+			case 's': /* force to use syscall instead of _PATH_KLOG */
+				flags |= KLOG_USE_SYSCALL;
+				break;
+
+			case 'x': /* do not tranlate kernel symbols */
+				flags &= ~KSYM_TRANSLATE;
+				break;
+
+			case 'h': /* usage */
+			case '?':
+			default:
+				im_linux_usage();
+				return(-1);
+			}
+	}
+
 	I->im_path = NULL;
 	I->im_fd = 0;
-	if (flags & ~USE_SYSCALL) {
-		if ((I->im_fd = open(_PATH_KLOG, O_RDONLY, 0)) >= 0)
+	if (flags & ~KLOG_USE_SYSCALL) {
+		if ( (I->im_fd = open(_PATH_KLOG, O_RDONLY, 0)) >= 0)
 			I->im_path = _PATH_KLOG;
 		else if (errno != ENOENT) {
-			dprintf("can;t open %s: %s\n", _PATH_KLOG, strerror(errno));
+			warn("%s: %s: %s\n", linux_input_module, _PATH_KLOG, strerror(errno));
 			return(-1);
 		}
 	}
-	;;;/* hay que agregar la lectura de la symbol table segun flags */
-	;;;	
+
+	/* open/read symbol table file */
+	if (flags & KSYM_TRANSLATE)
+		ksym_init();
+
         I->im_type = IM_LINUX;
         I->im_name = "linux";
         I->im_flags |= IMODULE_FLAG_KERN;
@@ -144,44 +179,9 @@ im_linux_init(I, argv, argc)
 }
 
 
-int
-im_linux_parseCommandLine(argc, argv)
-	int    argc;
-	char **argv;
-{
-	int ch;
-
-	flags = TRANSLATE_KSYMBOLS;
-	if (argc > 1) {
-		optind = 1;
-		while( (ch = getopt(argc, argv, "k:sxh?")) != -1)
-			switch(ch) {
-				case 'k': /* specify symbol file */
-					ksym_path = strdup(optarg);
-					break;
-
-				case 's': /* force to use syscall instead of _PATH_KLOG */
-					flags |= USE_SYSCALL;
-					break;
-
-				case 'x': /* do not tranlate kernel symbols */
-					flags &= ~TRANSLATE_KSYMBOLS;
-					break;
-
-				case 'h': /* usage */
-				case '?':
-				default:
-					im_linux_usage();
-					return(-1);
-			}
-	}
-	return(0);
-}
-
-
 /*
  * get kernel message:
- * take input line from _PATH_KLOG or klogctl(2),
+ * take input line from _PATH_KLOG or klogctl(2)
  * and log it.
  */
 
@@ -197,9 +197,9 @@ im_linux_getLog(im, ret)
 		return (-1);
 
 	/* read message from kernel */
-	if (im->im_path == NULL || flags & USE_SYSCALL)
+	if (im->im_path == NULL || flags & KLOG_USE_SYSCALL)
 		/* readed = klogctl(2, im->im_buf, sizeof(im->im_buf)); */ /* this blocks */
-		readed = klogctl(4, im->im_buf, sizeof(im->im_buf));	/* this don't block... testing */
+		readed = klogctl(4, im->im_buf, sizeof(im->im_buf));	/* ;;;this don't block... testing */
 	else
 		readed = read(im->im_fd, im->im_buf, sizeof(im->im_buf));
 
@@ -222,7 +222,7 @@ im_linux_getLog(im, ret)
 			ret->im_pri = LOG_WARNING;	/* from printk.c: DEFAULT_MESSAGE_LOGLEVEL */
 
 		/* parse kernel/module symbols */
-		if (flags & TRANSLATE_KSYMBOLS) {
+		if (flags & KSYM_TRANSLATE) {
 			;;;
 			;;;
 		}
@@ -284,11 +284,10 @@ im_linux_getLog(im, ret)
 
 
 /*
- * close linux input module
+ * Close linux input module
  */
-
 int
-im_linux_close(im)
+im_linux_close (im)
 	struct i_module *im;
 {
 	ksym_close();
@@ -299,27 +298,51 @@ im_linux_close(im)
 
 
 /*
- * open/load symbol table
+ * Open/load symbol table
+ * Returns 0 on success and -1 on error
  */
-
 int
-ksym_init(I)
-	struct i_module *I;
+ksym_init()
 {
+	char	 buf[128];
+	int	 i;
+	Symbol	*ptr;
+
 	ksym_close();
-	if ( (ksym_fd = fopen(ksym_path, "r")) < 0) {
-		/* read ksym using syscalls */
-		;;;
-		;;;
+	if ( (ksym_fd = fopen(ksym_path, "r")) == NULL) {
+		warn("%s: ksym_init: open: %s: %s\n", linux_input_module, ksym_path, strerror(errno));
+		return(-1);
+	}
+	if (flags & KSYM_READ_TABLE) {
+		while (!feof(ksym_fd) && fgets(buf, sizeof(buf), ksym_fd) != NULL) {
+			if ( (ptr = (Symbol*)realloc(ptr, sizeof(Symbol)*(symbols+1))) == NULL) {
+				warn("%s: ksym_init: realloc: %s: %s\n", linux_input_module, ksym_path, strerror(errno));
+				ksym_close();
+				return(-1);
+			}
+			symbol_table = ptr;
+			symbols++;
+			if (ksym_parseLine(buf, ptr + symbols) < 0) {
+				warn("%s: ksym_init: incorrect line: < %s >\n", linux_input_module, buf);
+				ksym_close();
+				return(-1);
+			}
+		}
+		fclose(ksym_fd);
+		ksym_fd = NULL;
+		if (!symbols) {
+			warn("%s: ksym_init: incorrect symbol file: %s\n", linux_input_module, ksym_path);
+			ksym_close();
+			return(-1);
+		}
 	}
 	return(0);
 }
 
 
 /*
- * close/delete symbol table
+ * Close/delete symbol table
  */
-
 void
 ksym_close()
 {
@@ -338,25 +361,25 @@ ksym_close()
 
 
 /*
- * lookup symbol:
+ * Lookup symbol:
  * search for a symbol on internal table/file that
  * matches an address.
- * if the symbol do not exists it returns NULL
+ * If the symbol do not exists it returns NULL
  */
-
 Symbol*
-ksym_lookup(sym, addr)
+ksym_lookup (sym, addr)
 	Symbol *sym;
 	char *addr;
 {
 	/* reset symbol table/file */
-	if (ksym_fd < 0)
-		offset = 0;
+	if (ksym_fd == NULL)
+		ksym_offset = 0;
 	else
 		fseek(ksym_fd, 0, SEEK_SET);
 
 	/* search for symbol */
-	while(ksym_getSymbol(sym))
+	ksym_offset = 0;
+	while(!ksym_getSymbol(sym))
 		if (!strcasecmp(sym->addr, addr))
 			return(sym);
 
@@ -366,33 +389,30 @@ ksym_lookup(sym, addr)
 
 /*
  * Get a symbol from file or table
+ * returns 0 on success and -1 on end of file/table
  */
-
 int
 ksym_getSymbol (sym)
 	Symbol *sym;
 {
 	char msg[MAXLINE];
 
-	if (ksym_fd != NULL) {
-		if (offset == symbols)
+	if (ksym_fd == NULL) {
+		if (ksym_offset < symbols) {
+			*sym = symbol_table[ksym_offset++];
 			return(0);
-		*sym = symbol_table[offset++];
-	} else {
-		if ( fgets(msg, sizeof(msg), ksym_fd) == NULL)
-			return(0);
-		return(ksym_parseLine(msg, sym));
-	}
-	return(1);
+		}
+	} else if (fgets(msg, sizeof(msg), ksym_fd) != NULL)
+			return(ksym_parseLine(msg, sym));
+	return(-1);
 }
 
 
 /*
- * ksym_parseLine (converts a line onto a Symbol)
- * returns 1 on success and 0 on error
+ * ksym_parseLine: converts a line onto a Symbol
+ * returns 0 on success and -1 on error
  */
-
-#define QUIT_BLANK(p)	while(isblank(*p) && *p != '\0' && *p != '\n') p++;
+#define QUIT_BLANK(a)	while (isblank(*a) && *a != '\0' && *a != '\n') a++;
 
 int
 ksym_parseLine (p, sym)
@@ -400,45 +420,47 @@ ksym_parseLine (p, sym)
 	Symbol *sym;
 {
 	if (sym == NULL || p == NULL || p[0] == '\0')
-		return(0);
+		return(-1);
 
-	/* copy symbol address */
+	/* copy address */
 	QUIT_BLANK(p);
 	if (*p == '\0' || *p == '\n')
-		return(0);
-	if (!ksym_copy(sym->addr, p, MAX_ADDR_LEN))
-		return(0);
+		return(-1);
+ 	ksym_copyWord(sym->addr, p, MAX_ADDR_LEN);
 
-	/* copy symbol name */
+	/* copy name */
 	QUIT_BLANK(p);
 	if (*p == '\0' || *p == '\n')
-		return(0);
-	ksym_copy(sym->name, p, MAX_NAME_LEN);
+		return(-1);
+	ksym_copyWord(sym->name, p, MAX_NAME_LEN);
 
 	/* copy module name (if any) */
 	QUIT_BLANK(p);
-	ksym_copy(sym->mname, p, MAX_MNAME_LEN);
+	ksym_copyWord(sym->mname, p, MAX_MNAME_LEN);
 
-	return(1);
+	return(0);
 }
 
 
 /*
- * copy
+ * copyWord(dst, src, len)
+ * Copy from src to dst until reaches
+ * len bytes or '\0' or '\n'
  */
-
-int
-ksym_copy (src, dst, max)
+void
+ksym_copyWord (dst, src, max)
 	char *dst;
 	char *src;
 	int   max;
 {
 	int i = 0;
 
-	while (!isblank(*src) && *src != '\0' && *src != '\n' && i < max)
-		dst[i++] = *src++;
-	dst[i] = '\0';
-	return((*src == '\0' || *src == '\n') ? 0 : 1);
+	if (max) {
+		max--;
+		while (!isblank(*src) && *src != '\0' && *src != '\n' && i < max)
+			dst[i++] = *src++;
+		dst[i] = '\0';
+	}
 }
 
 

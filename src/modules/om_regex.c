@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_filter.c,v 1.4 2000/06/05 21:43:22 fgsch Exp $	*/
+/*	$CoreSDI: om_filter.c,v 1.5 2000/06/06 00:14:05 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -37,6 +37,8 @@
  */
 
 #include <sys/time.h>
+#include <sys/param.h>
+
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -46,6 +48,7 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <regex.h>
+
 #include "syslogd.h"
 #include "modules.h"
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.39 2000/06/06 00:37:28 fgsch Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.40 2000/06/06 00:53:24 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -41,6 +41,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/param.h>
 
 #include <ctype.h>
 #include <err.h>

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.49 2000/06/05 22:59:22 fgsch Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.50 2000/06/05 23:22:05 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -41,6 +41,8 @@
 
 #include <sys/types.h>
 #include <sys/uio.h>
+#include <sys/param.h>
+
 #include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
@@ -49,6 +51,7 @@
 #include <string.h>
 #include <syslog.h>
 #include <unistd.h>
+
 #include "syslogd.h"
 
 /*

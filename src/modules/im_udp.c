@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.35 2000/06/05 22:59:23 fgsch Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.36 2000/06/05 23:22:06 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -41,6 +41,8 @@
 #include <sys/socket.h>
 #include <sys/uio.h>
 #include <sys/un.h>
+#include <sys/param.h>
+
 #include <netinet/in.h>
 #include <errno.h>
 #include <netdb.h>
@@ -49,6 +51,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
 #include "modules.h"
 #include "syslogd.h"
 
