@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.29 2000/06/09 20:27:02 gera Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.30 2000/06/09 20:39:43 gera Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -76,7 +76,7 @@ om_mysql_doLog(f, flags, msg, ctx)
 	struct om_hdr_ctx *ctx;
 {
 	struct om_mysql_ctx *c;
-	char	*dummy, *y, *m, *d, *h, *host;
+	char	*dummy, *y, *m, *d, *h, *host, *msg_q;
 	time_t now;
 
 	dprintf("MySQL doLog: entering [%s] [%s]\n", msg, f->f_prevline);
@@ -106,17 +106,20 @@ om_mysql_doLog(f, flags, msg, ctx)
 	*(y + 4) = '\0';
 	if (*d == ' ')
 		*d = '0';
-	free(dummy);
 
-	if (NULL==(dummy=to_sql(msg))) {
+	if (NULL==(msg_q=to_sql(msg))) {
+		free(dummy);
 		free(y);
 		return -1;
 	}
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
 	snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s"
 			" VALUES('%s-%.2d-%s', '%s', '%s', '%s')",
-			c->table, y, month_number(m), d, h, host, dummy);
+			c->table, y, month_number(m), d, h, host, msg_q);
 
+	dprintf("SQL statement:%s\n",c->query);
+
+	free(msg_q);
 	free(dummy);
 	free(y);
 
