@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.17 2000/04/13 18:48:41 alejo Exp $
+/*	$Id: syslogd.c,v 1.18 2000/04/13 18:59:30 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -139,7 +139,7 @@ main(argc, argv)
 	int argc;
 	char *argv[];
 {
-	int ch, i, fklog, len;
+	int ch, i, len;
 	struct sockaddr_un sunx, fromunix;
 	struct sockaddr_in sin, frominet;
 	FILE *fp;
@@ -203,9 +203,6 @@ main(argc, argv)
 	(void)signal(SIGCHLD, reapchild);
 	(void)signal(SIGALRM, domark);
 	(void)alarm(TIMERINTVL);
-
-	if ((fklog = open(_PATH_KLOG, O_RDONLY, 0)) < 0)
-		dprintf("can't open %s (%d)\n", _PATH_KLOG, errno);
 
 	/* tuck my process id away */
 	if (!Debug) {

@@ -101,6 +101,11 @@ im_bsd_init(argc, argv, c)
                         InetInuse = 1;
                 }
         }
+
+        if ((fklog = open(_PATH_KLOG, O_RDONLY, 0)) < 0)
+                dprintf("can't open %s (%d)\n", _PATH_KLOG, errno);
+
+
  
 
 
