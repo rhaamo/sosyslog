@@ -1,4 +1,4 @@
-dnl	$CoreSDI: aclocal.m4,v 1.11 2000/08/22 18:38:57 alejo Exp $
+dnl	$CoreSDI: aclocal.m4,v 1.12 2000/08/25 22:37:51 alejo Exp $
 
 dnl
 dnl MSYSLOG_GREP patt file comm
@@ -211,7 +211,7 @@ dnl	adds a new static input module
 dnl
 AC_DEFUN(MSYSLOG_ADD_im, [
 SMODULES_HEADER="$SMODULES_HEADER \
-int im_$1_init (struct i_module*, char**, int, ); \
+int im_$1_init (struct i_module*, char**, int); \
 int im_$1_getLog (struct i_module*, struct im_msg*);"
 
 SMODULES_LOAD="$SMODULES_LOAD \
