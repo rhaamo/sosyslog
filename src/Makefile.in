@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.9 2000/06/16 00:26:54 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.10 2000/06/16 20:11:45 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -29,12 +29,14 @@
 #
 
 CC=		@CC@
-SH=		@SH@
 CFLAGS=		@CFLAGS@
 SCFLAGS=	@SCFLAGS@
 LDFLAGS=	@LDFLAGS@
 LIBS=		@LIBS@
 
+SH=		/bin/sh
+STATICSI=	bsd udp unix
+STATICSO=	classic peo regex
 PROG=		syslogd
 SRCS=		modules.c syslogd.c ttymsg.c  imodules.c omodules.c
 SSRCS=		modules/im_bsd.c modules/im_udp.c modules/im_unix.c \
@@ -59,30 +61,9 @@ all: $(PROG)
 
 modules.o: config.h
 
-<<<<<<< Makefile.in
 $(PROG): 
-	ifndef STATICSI
-	$(SH) ./statics_headers_create.sh imodules.c im bsd unix udp
-	else
-	$(SH) ./statics_headers_create.sh imodules.c im $(STATICSI)
-	endif
-	ifndef STATICSO
-	$(SH) ./statics_headers_create.sh omodules.c om classic peo regex
-	else
-	$(SH) ./statics_headers_create.sh omodules.c om $(STATICSO)
-	endif
-	$(OBJS)
-$(PROG): 
-	ifndef STATICSI
-	$(SH) ./statics_headers_create.sh imodules.c im bsd unix udp
-	else
-	$(SH) ./statics_headers_create.sh imodules.c im $(STATICSI)
-	endif
-	ifndef STATICSO
-	$(SH) ./statics_headers_create.sh omodules.c om classic peo regex
-	else
-	$(SH) ./statics_headers_create.sh omodules.c om $(STATICSO)
-	endif
+	$(SH) static_headers_create.sh imodules.c im $(STATICSI)
+	$(SH) static_headers_create.sh omodules.c om $(STATICSO)
 	$(OBJS)
 	$(SOBJS)
 	$(CC) -o $@ $(OBJS) $(LDFLAGS) $(LIBS)

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.95 2000/06/16 00:26:56 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.96 2000/06/16 21:04:12 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -495,14 +495,14 @@ doLog(struct filed *f, int flags, char *message)
 	}
 
 	for (om = f->f_omod; om; om = om->om_next) {
-		if(omodules[om->om_type].om_doLog == NULL) {
+		if(om->om_func->om_doLog == NULL) {
 			dprintf("Unsupported module type [%i] "
 				"for message [%s]\n", om->om_type, msg);
 			continue;
 		};
 
 		/* call this module doLog */
-		ret = (*(omodules[om->om_type].om_doLog))(f,flags,msg,om->ctx);
+		ret = (*(om->om_func->om_doLog))(f,flags,msg,om->ctx);
 		if( ret < 0) {
 			dprintf("doLog error with module type [%i] "
 				"for message [%s]\n", om->om_type, msg);
@@ -628,12 +628,12 @@ init(int signo)
 		for (om = f->f_omod; om; om = om->om_next) {
 			/* flush any pending output */
 			if (f->f_prevcount &&
-			    omodules[om->om_type].om_flush != NULL) {
-				(*omodules[om->om_type].om_flush) (f,om->ctx);
+			    om->om_func->om_flush != NULL) {
+				(*om->om_func->om_flush) (f,om->ctx);
 			}
 
-			if (omodules[om->om_type].om_close != NULL) {
-				(*omodules[om->om_type].om_close) (f,om->ctx);
+			if (om->om_func->om_close != NULL) {
+				(*om->om_func->om_close) (f,om->ctx);
 			}
 		}
 		next = f->f_next;
@@ -734,7 +734,7 @@ init(int signo)
 				break;
 			case F_MODULE:
 				for (om = f->f_omod; om; om = om->om_next) 
-					printf("%s, ", omodules[om->om_type].om_name);
+					printf("%s, ", om->om_func->om_name);
 				break;
 			}
 			if (f->f_program)
