@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.33 2000/06/12 20:44:51 claudio Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.34 2000/06/12 21:13:29 claudio Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,6 +41,8 @@
  *
  */
 
+#include "config.h"
+
 #include <sys/time.h>
 #include <sys/param.h>
 #include <sys/socket.h>
@@ -56,7 +58,6 @@
 
 #include "syslogd.h"
 #include "modules.h"
-
 
 void	wallmsg (struct filed *, struct iovec *);
 char   *ttymsg (struct iovec *, int, char *, int);
@@ -328,15 +329,22 @@ wallmsg(f, iov)
 
 	if (reenter++)
 		return;
-	if ((uf = fopen(_PATH_UTMP, "r")) == NULL) {
+	if ( (uf = fopen(_PATH_UTMP, "r")) == NULL) {
 		logerror(_PATH_UTMP);
 		reenter = 0;
 		return;
 	}
 	/* NOSTRICT */
-	while (fread((char *)&ut, sizeof(ut), 1, uf) == 1) {
+	while (fread(&ut, sizeof(ut), 1, uf) == 1) {
+
+#ifndef HAVE_LINUX
 		if (ut.ut_name[0] == '\0')
+#else
+		if ((ut.ut_type != USER_PROCESS && ut.ut_type != LOGIN_PROCESS) ||
+		    ut.ut_line[0] == ':' /* linux logs users that are not logged in (?!) */)
+#endif
 			continue;
+
 		strncpy(line, ut.ut_line, sizeof(ut.ut_line));
 		line[sizeof(ut.ut_line)] = '\0';
 		if (f->f_type == F_WALL) {
