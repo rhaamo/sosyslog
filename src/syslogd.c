@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.133 2000/09/20 19:56:23 fgsch Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.134 2000/09/26 00:19:18 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.133 2000/09/20 19:56:23 fgsch Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.134 2000/09/26 00:19:18 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -277,7 +277,7 @@ main(int argc, char **argv) {
 	consfile.f_type = F_CONSOLE;
         /* this should get into Files and be way nicer */
 	if (omodule_create(ctty, &consfile, NULL) == -1) {
-		dprintf("Error initializing classic output module!\n");
+		dprintf("Error initializing console output!\n");
 	}
 
 	(void)strncpy(consfile.f_un.f_fname, ctty,
