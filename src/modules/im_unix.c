@@ -17,6 +17,7 @@
 #include <netinet/in.h>
 #include <errno.h>
 #include <string.h>
+#include <signal.h>
 
 
 char   *cvthname __P((struct sockaddr_in *));
