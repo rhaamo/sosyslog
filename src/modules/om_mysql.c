@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.47 2000/10/31 21:31:32 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.48 2000/11/01 18:18:03 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -173,8 +173,8 @@ int
 om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 {
 	struct om_mysql_ctx	*ctx;
-	char	*host, *user, *passwd, *db, *table, *p, err_buf[256];
-	int	port, ch;
+	char	*p, err_buf[256];
+	int	ch;
 
 	dprintf("om_mysql_init: entering initialization\n");
 
@@ -182,8 +182,10 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 	    c == NULL || *c != NULL)
 		return (-1);
 
-	user = NULL; passwd = NULL; db = NULL; port = 0;
-	host = NULL; table = NULL;
+	/* alloc context */
+	if ((*c = (void *) calloc(1, sizeof(struct om_mysql_ctx))) == NULL)
+		return (-1);
+	ctx = (struct om_mysql_ctx *) *c;
 
 	/* parse line */
 	optind = 1;
@@ -195,45 +197,33 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 		case 's':
 			/* get database host name and port */
 			if ((p = strstr(optarg, ":")) == NULL) {
-				port = MYSQL_PORT;
+				ctx->port = MYSQL_PORT;
 			} else {
 				*p = '\0';
-				port = atoi(++p);
+				ctx->port = atoi(++p);
 			}
-			host = optarg;
+			ctx->host = optarg;
 			break;
 		case 'u':
-			user = optarg;
+			ctx->user = optarg;
 			break;
 		case 'p':
-			passwd = optarg;
+			ctx->passwd = optarg;
 			break;
 		case 'd':
-			db = optarg;
+			ctx->db = optarg;
 			break;
 		case 't':
-			table = optarg;
+			ctx->table = optarg;
 			break;
 		default:
-			return (-1);
+			goto om_mysql_init_bad;
 		}
 	}
 
-	if (user == NULL || passwd == NULL || db == NULL || port == 0 ||
-	    host == NULL || table == NULL)
-		return (-1);
-
-	/* alloc context */
-	if ((*c = (void *) calloc(1, sizeof(struct om_mysql_ctx))) == NULL)
-		return (-1);
-	ctx = (struct om_mysql_ctx *) *c;
-
-	ctx->table = strdup(table);
-	ctx->host = strdup(host);
-	ctx->port = port;
-	ctx->user = strdup(user);
-	ctx->passwd = strdup(passwd);
-	ctx->db = strdup(db);
+	if (ctx->user == NULL || ctx->passwd == NULL || ctx->db == NULL
+	    || ctx->port == 0 || ctx->host == NULL || ctx->table == NULL)
+		goto om_mysql_init_bad;
 
 	/* connect to the database */
 	if (!mysql_init(&ctx->h)) {
@@ -241,20 +231,29 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 		snprintf(err_buf, sizeof(err_buf), "om_mysql_init: Error "
 		    "initializing handle");
 		logerror(err_buf);
-		return (-1);
+		goto om_mysql_init_bad;
 	}
 
-	if (!mysql_real_connect(&ctx->h, host, user, passwd, db, port,
-	    NULL, 0)) {
+	if (!mysql_real_connect(&ctx->h, ctx->host, ctx->user, ctx->passwd,
+	    ctx->db, ctx->port, NULL, 0)) {
 
 		snprintf(err_buf, sizeof(err_buf), "om_mysql_init: Error "
 		    "connecting to db server [%s:%i] user [%s] db [%s]",
-		    host, port, user, db);
+		    ctx->host, ctx->port, ctx->user, ctx->db);
 		logerror(err_buf);
 		return (1);
 	}
 
 	return (1);
+
+om_mysql_init_bad:
+	if (ctx) {
+		om_mysql_close(f, ctx);
+		free(ctx);
+		*c = NULL;
+	}
+
+	return(-1);
 
 }
 
