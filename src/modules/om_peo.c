@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.28 2000/05/23 21:47:10 fgsch Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.29 2000/05/26 21:24:29 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_peo.c,v 1.29 2000/05/26 21:24:29 fgsch Exp $";
+static char rcsid[] = "$Id: om_peo.c,v 1.30 2000/05/29 19:01:50 fgsch Exp $";
 #endif /* not lint */
 
 /*
@@ -50,6 +50,8 @@ static char rcsid[] = "$Id: om_peo.c,v 1.29 2000/05/26 21:24:29 fgsch Exp $";
  * Author: Claudio Castiglia for Core-SDI SA
  *
  */
+
+#include "../config.h"
 
 #include <sys/time.h>
 #include <sys/types.h>
@@ -166,9 +168,9 @@ om_peo_doLog(f, flags, msg, ctx)
 
 extern char	*optarg;
 extern int	 optind;
-#ifndef HAVE_LINUX
+#ifdef HAVE_OPTRESET
 extern int	optreset;
-#endif /* HAVE_LINUX */
+#endif /* HAVE_OPTRESET */
 char		*keyfile;
 char		*macfile;
 
@@ -206,9 +208,9 @@ om_peo_init(argc, argv, f, prog, ctx)
 	mfd = 0;
 
 	/* parse command line */
-	#ifndef HAVE_LINUX
-		optreset = 1;
-	#endif
+#ifdef HAVE_OPTRESET
+	optreset = 1;
+#endif /* HAVE_OPTRESET */
 	optind = 1;
 	while ((ch = getopt(argc, argv, "k:lm:")) != -1) {
 		switch(ch) {

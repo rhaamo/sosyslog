@@ -1,6 +1,8 @@
-/*	$CoreSDI: config.h.in,v 1.3 2000/05/24 21:24:47 fgsch Exp $	*/
+/*	$CoreSDI: config.h.in,v 1.4 2000/05/24 23:04:16 fgsch Exp $	*/
 
 #undef HAVE_PATHS_H
+
+#undef HAVE_OPTRESET
 
 #undef MYSQL_ENABLE
 
