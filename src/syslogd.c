@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.99 2000/06/21 22:14:59 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.100 2000/06/21 22:26:01 claudio Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -202,7 +202,7 @@ main(int argc, char **argv)
 
 	consfile.f_type = F_CONSOLE;
         /* this should get into Files and be way nicer */
-	if (omodule_create("%classic /dev/console", &consfile, NULL) == -1) {
+	if (omodule_create(ctty, &consfile, NULL) == -1) {
 		dprintf("Error initializing classic output module!\n");
 	}
 
