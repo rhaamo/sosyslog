@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.69 2000/05/26 18:41:41 fgsch Exp $	*/
+/*	$CoreSDI: modules.c,v 1.70 2000/05/26 19:18:13 claudio Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -201,6 +201,11 @@ modules_init (I, line)
 	    if (im_udp_init(im, argv, argc) < 0) {
 	    	dprintf("Error initializing module %s [%s]\n", argv[0], line);
 	        die(0);
+	    }
+	} else if (!strncmp(argv[0], "linux", 5)) {
+	    if (im_linux_init(im, argv, argc) < 0) {
+		dprintf("Error initializing module %s [%s]\n", argv[0], line);
+		die(0);
 	    }
 	}
 
