@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.41 2000/07/04 21:13:26 claudio Exp $
+dnl	$CoreSDI: configure.in,v 1.42 2000/07/04 21:20:46 claudio Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -62,6 +62,16 @@ do
 done
 AC_MSG_RESULT(syslogd and tools will be installed on $INSTALL_DIR)
 AC_SUBST(INSTALL_DIR)
+
+for MANDIR in "/usr/share/man" "/usr/man" 
+do
+	if test -d $MANDIR
+	then
+		break;
+	fi
+done
+AC_MSG_RESULT(man path... $MANDIR)
+AC_SUBST(MANDIR)
 
 #AC_ARG_WITH(mysql,
 #	[  --with-mysql=DIR        enable MySQL support using libraries in DIR],
@@ -302,3 +312,4 @@ AC_OUTPUT([Makefile
 	   src/Makefile src/static_modules.h src/static_modules.c
 	   src/modules/Makefile
 	   src/peo/Makefile])
+dnl	   src/man/Makefile])
