@@ -1,4 +1,4 @@
-/*      $Id: peochk.c,v 1.27 2000/05/10 17:15:14 claudio Exp $
+/*      $Id: peochk.c,v 1.28 2000/05/11 19:25:49 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
@@ -92,7 +92,7 @@ usage()
 		"Usage:\n"
 		"Check mode:\n"
 		"    peochk [-f logfile] [-i key0file] [-k keyfile]"
-		"[-m hash_method] [logfile]\n\n"
+		"[-m hash_method] [-q] [logfile]\n\n"
 		"Initial key generator mode:\n"
 		"    peochk -g [-k keyfile] [-m hash_method] [logfile]\n\n"
 		"hash_method options:\n"
@@ -105,15 +105,16 @@ usage()
 		"is used and data is readed from that file.\n"
 		"If the logfile is specified but not the keyfile, the default key"
 		"file is\n"
-		"/var/ssyslog/key.xxx where xxx is the logfile with all '/' "
+		"/var/ssyslog/xxx.key where xxx is the logfile with all '/' "
 		"replaced by '.'\n\n"
 		"Default values:\n"
 		"\tlogfile    : /var/log/messages\n"
-		"\tkeyfile    : /var/ssyslog/key.var.log.messages\n"
-		"\tkey0file   : strcat(keyfile, \"0\");\n"
+		"\tkeyfile    : /var/ssyslog/var.log.messages.key\n"
+		"\tkey0file   : keyfile+\"0\"\n"
 		"\thash_method: sha1\n\n"
 		"If -l switch is specified, the mac'ed log file is "
-		"strcat(keyfile, \".mac\");\n");
+		"keyfile+\".mac\"\n"
+		"The q option means quiet mode.\n");
 	exit(-1);
 }
 
@@ -402,11 +403,19 @@ main (argc, argv)
 
 	/* if keyfile was not specified converted logfile is used instead */
 	if (keyfile == default_keyfile && logfile != default_logfile) {
-		if ( (keyfile = strallocat("/var/log/ssyslog/key.", logfile)) == NULL) {
+		char *tmp;
+
+		if ( (tmp = strallocat("/var/log/ssyslog", logfile)) == NULL) {
 			release();
 			err(-1, "buffer for keyfile");
 		}
-		strdot(&keyfile[17]);
+		if ( (keyfile = strallocat(tmp, ".key")) == NULL) {
+			free(tmp);
+			release();
+			err(-1, "buffer for keyfile");
+		}
+		free(tmp);
+		strdot(&keyfile[16]);
 	}
 
 	/* if key0file was not specified create one */
