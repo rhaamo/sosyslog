@@ -120,17 +120,13 @@ m_mysql_doLog(f, flags, msg, context)
 	y = dummy + 16;
 
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, programname,  msg  */ 
-	if (snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s
-			VALUES('%s-%s-%s', '%s', '%s', '%s', '%s',
-			'%s", c->table, y, m, d, h, mymsg)
-			== MAX_QUERY - 2 ) {
-		/* force termination if msg filled the buffer */
-		c->query[MAX_QUERY - 2] = '\'';
-		c->query[MAX_QUERY - 1] = ')';
-		c->query[MAX_QUERY]     = '\0';
-	}
+	snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s"
+			" VALUES('%s-%s-%s', '%s', '%s', '%s', '%s',"
+			"'%s')", c->table, y, m, d, h, mymsg);
 
 	free(dummy);
+	dummy = c->query;
+
 	return (mysql_query(c->h, c->query));
 }
 
