@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.56 2000/07/04 16:44:05 alejo Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.57 2000/07/04 18:56:37 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -115,7 +115,7 @@ im_bsd_getLog(struct i_module *im, struct im_msg *ret, struct sglobals *sglobals
 			    q < (ret->im_msg+sizeof ret->im_msg))
 				*q++ = c;
 			*q = '\0';
-			strncat(ret->im_host, sglobals->LocalHostName,
+			strncpy(ret->im_host, sglobals->LocalHostName,
 			    sizeof(ret->im_host) - 1);
 			ret->im_len = strlen(ret->im_msg);
 			sglobals->logmsg(ret->im_pri, ret->im_msg, ret->im_host,
