@@ -1,3 +1,4 @@
+dnl $CoreSDI: Id$
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(config.h)dnl
