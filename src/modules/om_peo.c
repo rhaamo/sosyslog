@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.70 2001/04/06 18:00:50 alejo Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.71 2001/05/02 22:36:23 claudio Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -97,7 +97,7 @@ om_peo_write(struct filed *f, int flags, char *msg, void *ctx)
 
 	c = (struct om_peo_ctx *) ctx;
 
-	strftime(time_buf, sizeof(time_buf), "%b %d %H:%M:%S", &f->f_tm);
+	strftime(time_buf, sizeof(time_buf), "%b %e %H:%M:%S", &f->f_tm);
 	time_buf[15] = '\0';
 	len = snprintf((char *) m, MAXBUF, "%s %s %s\n", time_buf,
 	    f->f_prevhost, msg ? msg : f->f_prevline) - 1;
