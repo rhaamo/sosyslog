@@ -1,4 +1,4 @@
-/*	$Id: im_tcp.c,v 1.43 2002/09/17 06:30:41 alejo Exp $	*/
+/*	$Id: im_tcp.c,v 1.44 2003/02/22 03:40:58 jkohen Exp $	*/
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
  * All rights reserved
@@ -362,7 +362,8 @@ return (0);
 				m_dprintf(MSYSLOG_INFORMATIVE,
 					      "im_tcp_read: append current line with prior partial message: [%s] [%s]\n",
 					      con->saveline, thisline);
-				strncat(con->saveline, thisline, sizeof(con->saveline) - 1);
+				strncat(con->saveline, thisline,
+					sizeof(con->saveline) - strlen(con->saveline) - 1);
 				con->saveline[sizeof(con->saveline) - 1] = '\0';
 				thisline = con->saveline;
 			}

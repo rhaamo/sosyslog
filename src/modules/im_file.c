@@ -1,4 +1,4 @@
-/*	$Id: im_file.c,v 1.8 2002/09/17 05:20:27 alejo Exp $	*/
+/*	$Id: im_file.c,v 1.9 2003/02/22 03:40:58 jkohen Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -303,7 +303,8 @@ return (0);
       m_dprintf(MSYSLOG_INFORMATIVE,
           "im_file_read: append current line with prior partial message: [%s] [%s]\n",
           c->saveline, thisline);
-      strncat(c->saveline, thisline, sizeof(c->saveline) - 1);
+      strncat(c->saveline, thisline,
+	      sizeof(c->saveline) - strlen(c->saveline) - 1);
       c->saveline[sizeof(c->saveline) - 1] = '\0';
       thisline = c->saveline;
     }
@@ -358,8 +359,10 @@ return (0);
 
       /* put the hostname into the message */
       /*
-		  strncat(ret->im_msg, c->name, sizeof(ret->im_msg) - 1);
-	  	strncat(ret->im_msg, ":", sizeof(ret->im_msg) - 1);
+		  strncat(ret->im_msg, c->name,
+		  sizeof(ret->im_msg) - strlen(ret->im_msg) - 1);
+	  	strncat(ret->im_msg, ":",
+		sizeof(ret->im_msg) - strlen(ret->im_msg) - 1);
 	  	m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: reformed header: [%s]\n", ret->im_msg);
       */
 

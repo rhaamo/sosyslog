@@ -261,7 +261,8 @@ return (0);
       m_dprintf(MSYSLOG_INFORMATIVE,
           "im_serial_read: append current line with prior partial message: [%s] [%s]\n",
           c->saveline, thisline);
-      strncat(c->saveline, thisline, sizeof(c->saveline) - 1);
+      strncat(c->saveline, thisline,
+	      sizeof(c->saveline) - strlen(c->saveline) - 1);
       c->saveline[sizeof(c->saveline) - 1] = '\0';
       thisline = c->saveline;
     }
@@ -315,8 +316,10 @@ return (0);
 		  }
 
       /* put the hostname into the message */
-		  strncat(ret->im_msg, c->name, sizeof(ret->im_msg) - 1);
-	  	strncat(ret->im_msg, ":", sizeof(ret->im_msg) - 1);
+		  strncat(ret->im_msg, c->name,
+			  sizeof(ret->im_msg) - strlen(ret->im_msg) - 1);
+	  	strncat(ret->im_msg, ":",
+			sizeof(ret->im_msg) - strlen(ret->im_msg) - 1);
 	  	m_dprintf(MSYSLOG_INFORMATIVE, "im_serial_read: reformed header: [%s]\n", ret->im_msg);
 
 	  	if (ret->im_pri &~ (LOG_FACMASK|LOG_PRIMASK)) ret->im_pri = DEFSPRI;
