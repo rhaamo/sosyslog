@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: m_mysql.c,v 1.16 2000/04/05 23:18:08 alejo Exp $";
+static char rcsid[] = "$Id: m_mysql.c,v 1.17 2000/04/06 00:15:24 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -92,7 +92,7 @@ m_mysql_doLog(f, flags, msg, context)
 	struct m_header *context;
 {
 	struct m_mysql_ctx *c;
-	char	*dummy, *y, *m, *d, *h, mymsg[1024];
+	char	*dummy, *y, *m, *d, *h, *host, mymsg[1024];
         time_t now;
 
 	dprintf("MySQL doLog: entering [%s] [%s]\n", msg, f->f_prevline);
@@ -111,7 +111,7 @@ m_mysql_doLog(f, flags, msg, context)
         	}
         }
 
-	/* get date and time */
+	host = f->f_prevhost;
 
 	/* mysql needs 2000-01-25 like format */
 	dummy = strdup(f->f_lasttime);
@@ -120,21 +120,26 @@ m_mysql_doLog(f, flags, msg, context)
 	m = dummy;
 	d = dummy + 4;
 	h = dummy + 7;
-	y = dummy + 16;
+	y = strdup(dummy + 16);
 
 	if(strcmp(y, "") == 0) {
 		time_t now;
 
 		(void) time(&now);
-		y = ctime(&now) + 20;
+		y = strdup(ctime(&now) + 20);
 	}
+
+	*(y + 4) = '\0';
+	if (*d == ' ')
+		*d = '0';
 
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, programname,  msg  */ 
 	snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s"
-			" VALUES('%s-%s-%s', '%s', '%s', '%s', '%s',"
-			"'%s')", c->table, y, m, d, h, mymsg);
+			" VALUES('%s-%s-%s', '%s', '%s', '%s')",
+			c->table, y, m, d, h, host, mymsg, MAX_QUERY);
 
 	free(dummy);
+	free(y);
 
 	return (mysql_query(c->h, c->query));
 }
