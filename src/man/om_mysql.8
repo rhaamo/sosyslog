@@ -1,4 +1,4 @@
-.\"	$CoreSDI: om_mysql.8,v 1.10 2001/03/07 21:35:13 alejo Exp $
+.\"	$CoreSDI: om_mysql.8,v 1.11 2001/04/30 19:45:49 alejo Exp $
 .\"
 .\" Copyright (c) 2001
 .\"	Core-SDI SA. All rights reserved.
@@ -56,14 +56,14 @@ must have enough permissions to insert on the specified database and table.
 .It Fl p Ar password
 The plaintext password for this MySQL user. Thus it is recommended NOT to
 leave
-.It Fl D
-Do DELAYED inserts. See your MySQL documentation.
 .Xr syslog.conf 5
 world readable if this module is used.
 .It Fl d Ar database
 The database name to use on the specified MySQL server.
 .It Fl t Ar table
 The table name to use on the specified MySQL database.
+.It Fl D
+Do DELAYED inserts. See your MySQL documentation.
 .Sh EXAMPLES
 The table should have a format like this:
 .Pp

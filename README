@@ -1,4 +1,4 @@
-/*	$CoreSDI: README,v 1.11 2000/11/04 00:08:26 alejo Exp $	*/
+/*	$CoreSDI: README,v 1.12 2000/11/09 19:44:21 alejo Exp $	*/
 
 Installation
 ------------
@@ -29,7 +29,6 @@ The more you describe the bug, the faster we can fix it.
 Known Bugs
 ----------
 
-- Still no support for '!' and '=' on syslog.conf
 - If a module blocks on I/O the hole daemon blocks, and messages can get lost
   on extremely busy hosts.
 
@@ -47,32 +46,27 @@ A new notation was made for configuration of modules.
 
 This new approach allows adding new functionality without complicating the code.
 
-Current available output modules are classic, mysql, peo, pgsql and regex.
-Available input modules are bsd, linux, unix, and udp. Current modules under
-development or in the makings range from tcp transport, to a special module
-for setting up triggers on actions and priority redirection.
-
+Current available output modules are classic, mysql, peo, pgsql, regex and
+tcp.  Available input modules are bsd, linux, unix, tcp and udp.
 
 Classic Output Module
 ---------------------
 
-Performs the previous BSD syslogd output tasks: save to a file, forward
-to a remote host though UDP, mail a user, send a message to a console,
+Performs the previous BSD syslogd output tasks: save to a file or pipe,
+forward to a remote host though UDP, mail a user, send a message to a console,
 send a message to a tty, send message to all users (WALL).
 
 MySQL Output Module
 -------------------
 
 Performs loggin in a MySQL server, either local or remote. The table format
-must be specified as om_mysql(8) manpage specifies.
-
+must be specified as om_mysql(8) manpage.
 
 PostgreSQL Output Module
 -------------------
 
-Performs loggin in a PostgreSQL server, either local or remote. Since this
-module is similar to the MySQL one, the table format must be specified as
-om_mysql(8) manpage specifies.
+Performs loggin in a PostgreSQL server, either local or remote. The table
+format must be specified as om_pgsql(8) manpage.
 
 Regular Expression Output Module
 --------------------------------
@@ -85,8 +79,15 @@ messages. See om_regex(8) manpage for more details.
 Peo Output Module
 -----------------
 
-This module does hash protection on logs. See om_peo(8) manpage for
-more information on useage.
+This module does hash protection on logs. See om_peo(8) manpage for more
+information on useage.
+
+TCP Output Module
+-----------------
+
+Send messages t an TCP socket. Use it simply as this on command line
+-i tcp -h <host> -p <port number> -s <bytes>. You may specify an optional
+buffer to save lines on dropped connections with -s.
 
 BSD Input Module
 ----------------
@@ -106,6 +107,12 @@ UDP Input Module
 Read messages from an UDP socket. Use it simply as this on command line
 -i udp <port number>. The port number is optional, and default is
 the one specified on /etc/services for "udp" and "syslog".
+
+TCP Input Module
+----------------
+
+Read messages from an TCP socket. Use it simply as this on command line
+-i tcp -h <host> -p <port number>.
 
 Unix Input Module
 -----------------
