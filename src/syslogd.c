@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.24 2000/04/14 23:59:20 alejo Exp $
+/*	$Id: syslogd.c,v 1.25 2000/04/15 00:01:06 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -227,23 +227,11 @@ main(argc, argv)
 		struct i_module *im;
 
 		FD_ZERO(&readfds);
-		from (im = Inputs; im ; im++) {
+		from (im = Inputs; im ; im = im->im_next) {
 			if (im->fd != -1) {
 				FD_SET(im->fd, &readfds);
 				if (im->fd > nfds)
 					nfds = im->fd;
-			}
-		}
-		if (finet != -1) {
-			FD_SET(finet, &readfds);
-			if (finet > nfds)
-				nfds = finet;
-		}
-		for (i = 0; i < nfunix; i++) {
-			if (funix[i] != -1) {
-				FD_SET(funix[i], &readfds);
-				if (funix[i] > nfds)
-					nfds = funix[i];
 			}
 		}
 
