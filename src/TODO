@@ -1,4 +1,4 @@
-/*	$CoreSDI: TODO,v 1.26 2000/09/09 00:45:45 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.27 2000/09/12 23:01:29 alejo Exp $	*/
 
 Things to do:
 
@@ -40,3 +40,4 @@ Check for buffer overflows, as we now may get things from the outside world.
 - warn if configuration line is wrong
 - what to do with SQL down ?
 - threads per output module
+- Debug levels. A better macro. No need of newlines.
