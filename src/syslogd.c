@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.47 2000/04/26 23:34:42 alejo Exp $
+/*	$Id: syslogd.c,v 1.48 2000/04/27 17:27:00 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -292,7 +292,7 @@ usage()
 
 	(void)fprintf(stderr,
 	    "usage: syslogd [-u] [-f conffile] [-m markinterval] [-p logpath] "
-            "[-a logpath] [-i input]\n Flag -i is mandatory\n");
+            "[-a logpath] -i input\n");
 	exit(1);
 }
 
