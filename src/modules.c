@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.10 2000/03/29 22:15:23 gera Exp $
+/*	$Id: modules.c,v 1.11 2000/03/29 22:37:59 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -115,10 +115,7 @@ int modules_create(p, f, prog)
 			case '%':
 				/* get this module name */
 				argv[argc++]=++p;
-				for (i = 0; p && i < MAX_MODULE_NAME_LEN &&
-						(isalnum(*p) || *p == '_'); p++, i++);
-				if (!i)
-					return(-1);
+				while (!isspace(*p)) p++;
 
 				*p++=0;
 
@@ -140,8 +137,8 @@ int modules_create(p, f, prog)
 					quotes = (*p=='"' || *p=='\'')?quotes=*p++:0;
 						
 					argv[argc++]=p;
-					if (quotes) while (*++p != quotes);
-						else while (!isspae(*p++));
+					if (quotes) while (*p != quotes) p++;
+						else while (!isspace(*p)) p++;
 					*p++=0;
 				}
 
