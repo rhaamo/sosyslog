@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.30 2000/05/29 19:01:50 fgsch Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.31 2000/05/29 20:37:13 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -133,7 +133,7 @@ om_peo_doLog(f, flags, msg, ctx)
 	}
 	write(fd, newkey, newkeylen);
 	close(fd);
-	return(0);
+	return(1);
 }
 
 
