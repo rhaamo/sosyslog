@@ -1,0 +1,21 @@
+/*
+ * Static modules initialization file
+ */
+
+#include <sys/param.h>
+#include <syslog.h>
+#include <stdlib.h>
+
+#include "syslogd.h"
+#include "static_modules.h"
+
+extern struct imodule *imodules;
+extern struct omodule *omodules;
+
+int
+modules_load()
+{
+	int i;
+	if ( (imodules = (struct imodule*)calloc(INPUT_MODULES, sizeof(struct imodule))) == NULL ||
+	     (omodules = (struct omodule*)calloc(OUTPUT_MODULES, sizeof(struct omodule))) == NULL)
+		return(-1);
