@@ -1,4 +1,4 @@
-$Id: AUTHORS,v 1.4 2002/08/14 14:32:19 phreed Exp $
+$Id: AUTHORS,v 1.5 2002/09/24 19:34:29 alejo Exp $
 
 We are probably omiting some authors. If you know about them, please notify
 developers by mail at core.devel.alat@corest.com
@@ -14,6 +14,7 @@ Federico Schwindt (fgsch@corest.com) did configure
 Claudio Castiglia (claudio@corest.com) did makefile work, peo and linux module.
 The Core-SDI consulting project did security audit for msyslog 1.0
 
-Current Wisdom project (msyslog, auditd, etc.) coordinator is Ariel Aizenberg,
-Msyslog mantainer/developer is Alejo Sanchez, and Audit[d] mantainer/developer is
-Claudio Castiglia.
+Current Msyslog mantainer/developer is Alejo Sanchez (but no longer for CoreSDI)
+
+Fredrick Paul Eisele (phreed@netarx.com) joined the team and did more modules and general fixing
+Florin Andrei (florin@sgi.com) joined the team long ago, and helped debug and improve the project
