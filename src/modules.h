@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.21 2000/05/29 22:04:36 alejo Exp $	*/
+/*	$CoreSDI: modules.h,v 1.22 2000/06/02 01:04:13 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -76,10 +76,10 @@ extern int	repeatinterval[];
 /* standard output module header variables in context */
 struct om_hdr_ctx {
 	short	flags;
-#define M_FLAG_INITIALIZED 0x1
-#define M_FLAG_ERROR 0x2
-#define M_FLAG_LOCKED 0x4
-#define M_FLAG_ROTATING 0x8
+#define OM_FLAG_INITIALIZED 0x1
+#define OM_FLAG_ERROR	0x2
+#define OM_FLAG_LOCKED	0x4
+#define OM_FLAG_REVERSE	0x8
 	int	size;
 };
 

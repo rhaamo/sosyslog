@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_filter.c,v 1.6 2000/05/30 00:08:59 alejo Exp $	*/
+/*	$CoreSDI: om_filter.c,v 1.1 2000/06/02 01:04:13 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -98,6 +98,7 @@ om_filter_init(argc, argv, f, prog, c)
 	struct om_hdr_ctx **c; /* our context */
 {
 	struct om_filter_ctx *ctx;
+	char *expression;
 
 	/* for debugging purposes */
 	dprintf("om_filter init\n");
@@ -106,11 +107,11 @@ om_filter_init(argc, argv, f, prog, c)
 	 * Parse your options with getopt(3)
 	 *
 	 * we give an example for a -s argument
-	 *
+	 * -v flag means REVERSE matching
 	 *
 	 */
 
-	if (argc != 2 || argv == NULL || argv[1] == NULL) {
+	if (argc < 2 || argv == NULL || argv[1] == NULL) {
 		dprintf("om_filter: error on initialization\n");
 		return(-1);
 	}
@@ -122,7 +123,13 @@ om_filter_init(argc, argv, f, prog, c)
 
 	ctx = (struct om_filter_ctx *) *c;
 	ctx->size = sizeof(struct om_filter_ctx);
-	ctx->exp = regcomp(argv[1]);
+	ctx->exp = regcomp(argv[argc - 1]);
+
+	if (argc == 3) {
+		if (!strncmp(argv[1], "-v", 2))
+			ctx->flags |= OM_FLAG_REVERSE;
+	}
+
 	
 	return(1);
 }
