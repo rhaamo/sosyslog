@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.13 2000/06/07 21:27:37 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.14 2000/06/08 01:06:49 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -32,7 +32,7 @@
 /*
  *  im_linux -- input module to log linux kernel messages
  *      
- * Author: Claudio Castiglia, Core-SDI SA
+ * Author: Claudio Castiglia, Core-SDI S.A.
  *    
  */
 
@@ -86,23 +86,11 @@ Symbol	*ksym_current = NULL;
 
 int	 ksym_init();
 void	 ksym_close();
+int	 ksym_snprintf (char*, int, char*, int);
 Symbol	*ksym_lookup (Symbol*, char*);
 int	 ksym_getSymbol (Symbol*);
 int	 ksym_parseLine (char*, Symbol*);
 char	*ksym_copyWord (char*, char*, int);
-
-
-/*
- * readline
- */
-int
-readline (fd, buf, max)
-	int	 fd;
-	char	*buf;
-	int	 max;
-{
-	return(-1);
-}
 
 
 /*
@@ -135,11 +123,14 @@ getLine (buf, i)
 	char *buf;
 	int  *i;
 {
-	if (buf[*i] == '\0')
+	if (*buf == '\0')
 		return(NULL);
 	while (buf[*i] != '\n' && buf[*i] != '\0')
 		(*i)++;
-	buf[*i] = '\0';
+	if (buf[*i] == '\0')
+		(*i)--;
+	else
+		buf[*i] = '\0';
 	return(buf);
 }
 
@@ -160,7 +151,9 @@ im_linux_init(I, argv, argc)
 	dprintf ("\nim_linux_init...\n");
 
 	/* parse command line */
-	current_optind = optind;
+	current_optind = optind;	/* syslogd calls im_linux_int when parsing command line
+					 * This should be changed
+					 */
 	flags = KSYM_TRANSLATE;
 	if (argc > 1) {
 		optind = 1;
@@ -168,18 +161,22 @@ im_linux_init(I, argv, argc)
 			switch(ch) {
 			case 'k': /* specify symbol file */
 				if (strcmp(ksym_path, optarg))
-					ksym_path = strdup(optarg);
+					if ( (ksym_path = strdup(optarg)) == NULL) {
+						warn("%s", linux_input_module);
+						return(-1);
+					}
 				break;
 
-			case 'r': /* force read symbol table */
+			case 'r': /* force to read symbol table and keep it in memory */
 				flags |= KSYM_READ_TABLE;
 				break;
-
+/* not supported yet */
+#ifdef 0
 			case 's': /* force to use syscall instead of _PATH_KLOG */
 				flags |= KLOG_USE_SYSCALL;
 				break;
-
-			case 'x': /* do not tranlate kernel symbols */
+#endif
+			case 'x': /* do not translate kernel symbols */
 				flags &= ~KSYM_TRANSLATE;
 				break;
 
@@ -226,8 +223,6 @@ im_linux_getLog(im, ret)
 	struct im_msg  *ret;
 {
 	int   i;
-	int   j;
-	int   readed;
 	char *ptr;
 
 	if (im->im_fd < 0)
@@ -235,27 +230,26 @@ im_linux_getLog(im, ret)
 
 	/* read message from kernel */
 	if (im->im_path == NULL || flags & KLOG_USE_SYSCALL)
-		/* readed = klogctl(2, im->im_buf, sizeof(im->im_buf)); */ /* this blocks */
-		readed = klogctl(4, im->im_buf, sizeof(im->im_buf));	/* ;;;this don't block... testing */
+		/* i = klogctl(2, im->im_buf, sizeof(im->im_buf)); */ /* this blocks */
+		i = klogctl(4, im->im_buf, sizeof(im->im_buf));	/* ;;;this don't block... testing */
 	else
-		readed = read(im->im_fd, im->im_buf, sizeof(im->im_buf));
+		i = read(im->im_fd, im->im_buf, sizeof(im->im_buf));
 
-	if (readed < 0 && errno != EINTR) {
+	if (i < 0 && errno != EINTR) {
 		logerror("im_linux_getLog");
 		return(-1);
 	}
 
-	if (readed) {
-		im->im_buf[readed-1] = '\0';
+	if (i) {
+		im->im_buf[i-1] = '\0';
 
 		/* log each msg line */
-		i = j = 0;
-		while ( (ptr = getLine(im->im_buf + i, &j)) != NULL && readed) {
-			i += j + 1;
-			readed -= j;
+		i = 0;
+		ptr = im->im_buf;
+		while ( (ptr = getLine(ptr, &i)) != NULL) {
 			
 			/* get priority */
-			if (j >= 3 && ptr[0] == '<' && ptr[2] == '>' && isdigit(ptr[1])) {
+			if (i >= 3 && ptr[0] == '<' && ptr[2] == '>' && isdigit(ptr[1])) {
 				ret->im_pri = ptr[1] - '0';
 				ptr += 3;
 			}
@@ -263,19 +257,20 @@ im_linux_getLog(im, ret)
 				ret->im_pri = LOG_WARNING;	/* from printk.c: DEFAULT_MESSAGE_LOGLEVEL */
 
 			/* parse kernel/module symbols */
-			if (flags & KSYM_TRANSLATE) {
-				;;;
-				;;;
-			}
+			if (flags & KSYM_TRANSLATE)
+				/* ;;; 
+				ret->im_len = ksym_snprintf(ret->im_msg, sizeof(ret->im_msg), ptr, strlen(ptr));
+				*/
+				ret->im_len = snprintf(ret->im_msg, sizeof(ret->im_msg), "kernel: %s", ptr);
+			else
+				ret->im_len = snprintf(ret->im_msg, sizeof(ret->im_msg), "kernel: %s", ptr);
 
 			/* log msg */
-			ret->im_len = snprintf(ret->im_msg, sizeof(ret->im_msg), "kernel: %s", ptr);
 			strncpy(ret->im_host, LocalHostName, sizeof(ret->im_host));
 			ret->im_host[sizeof(ret->im_host)-1] = '\0';
 			logmsg(ret->im_pri, ret->im_msg, ret->im_host, ret->im_flags);
-
-
-			;;;detectar el final de la linea verdadera => con readed
+			ptr += i + 1;
+			i = 0;
 		}
 	}
 	return(0);
@@ -403,6 +398,50 @@ ksym_close()
 	}
 	if (ksym_path != PATH_KSYM)
 		free(ksym_path);
+}
+
+
+/*
+ * ksym_printf
+ *
+ */
+int
+ksym_snprintf (buf, bufsize, raw, rawsize)
+	char *buf;
+	int   bufsize;
+	char *raw;
+	int   rawsize;
+{
+	int     i;
+	char   *p1;
+	char   *p2;
+	Symbol  sym;
+
+	/* search for a possible kernel symbol: "[< addr >]" */
+	if ( (p1 = strstr(raw, "[<")) != NULL && ( p2 = strstr(p1, ">]")) != NULL) {
+		p1 += 2;
+		*(p2 - 1) = '\0';
+
+		/* "addr" should be an hexadecimal number */
+		for (i = 0; p1 + i < p2 && isxdigit(p1[i]); i++);
+		if (p1 + i < p2) {
+
+			/* search kernel symbol */
+			if (ksym_lookup(&sym, p1) != NULL) {
+			}
+			else 
+				while (raw < p1 - 2) {
+					*buf = *raw;
+					raw++;
+					buf++;
+				}
+
+			/* HACER BIEN ESTA PORQUERIA */
+			
+
+		}
+	}
+	return(snprintf(buf, bufsize, "kernel: %s", raw));
 }
 
 

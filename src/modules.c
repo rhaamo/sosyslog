@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.89 2000/06/06 20:19:57 fgsch Exp $	*/
+/*	$CoreSDI: modules.c,v 1.90 2000/06/07 23:00:44 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -119,12 +119,14 @@ modules_load()
 	OModules[OM_CLASSIC].om_flush 		= om_classic_flush;
 
 	/* regex module */
+/*
 	OModules[OM_FILTER].om_name 		= "regex";
 	OModules[OM_FILTER].om_type 		= OM_FILTER;
 	OModules[OM_FILTER].om_doLog	 	= om_regex_doLog;
 	OModules[OM_FILTER].om_init 		= om_regex_init;
 	OModules[OM_FILTER].om_close 		= om_regex_close;
 	OModules[OM_FILTER].om_flush 		= om_regex_flush;
+*/
 
 #ifdef ENABLE_MYSQL
 	/* mysql module */
