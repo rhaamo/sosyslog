@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.58 2001/01/02 21:42:57 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.59 2001/01/03 22:57:10 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -93,7 +93,7 @@ void *mysql_query(void *, char *);
 
 
 int
-om_mysql_doLog(struct filed *f, int flags, char *msg, void *ctx)
+om_mysql_write(struct filed *f, int flags, char *msg, void *ctx)
 {
 	struct om_mysql_ctx *c;
 	char	query[MAX_QUERY], err_buf[100];
@@ -158,7 +158,7 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 		else
 			query[sizeof(query) - 1] = '\0';
 
-		dprintf(DPRINTF_INFORMATIVE2)("om_mysql_doLog: query [%s]\n",
+		dprintf(DPRINTF_INFORMATIVE2)("om_mysql_write: query [%s]\n",
 		    query);
 
 		if (mysql_query(c->h, query) < 0)
@@ -176,7 +176,7 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 	else
 		query[sizeof(query) - 1] = '\0';
 
-	dprintf(DPRINTF_INFORMATIVE2)("om_mysql_doLog: query [%s]\n",
+	dprintf(DPRINTF_INFORMATIVE2)("om_mysql_write: query [%s]\n",
 	    query);
 
 	return (mysql_query(c->h, query) < 0? -1 : 1);

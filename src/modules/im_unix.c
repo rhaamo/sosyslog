@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.42 2000/12/05 00:01:22 alejo Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.43 2000/12/14 00:16:44 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -71,7 +71,7 @@
  */
 
 int
-im_unix_getLog(struct i_module *im, struct im_msg  *ret)
+im_unix_read(struct i_module *im, struct im_msg  *ret)
 {
 	struct sockaddr_un fromunix;
 	int slen;
@@ -141,6 +141,8 @@ im_unix_init(struct i_module *I, char **argv, int argc)
 	}
 
 	I->im_path = strdup(logger);
+
+	add_fd_input(I->im_fd , I);
 
 	return (1);
 }

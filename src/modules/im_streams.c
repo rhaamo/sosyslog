@@ -1,4 +1,4 @@
-/*      $CoreSDI: im_streams.c,v 1.6 2000/12/14 00:16:44 alejo Exp $   */
+/*      $CoreSDI: im_streams.c,v 1.7 2001/01/03 22:57:09 alejo Exp $   */
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -69,7 +69,7 @@ void streams_datfmt ();
  */
 
 int
-im_streams_getLog (struct i_module *im, struct im_msg *ret)
+im_streams_read (struct i_module *im, struct im_msg *ret)
 {
 	struct strbuf ctl, dat;
 	struct log_ctl     lc;
@@ -89,9 +89,9 @@ im_streams_getLog (struct i_module *im, struct im_msg *ret)
 	r = getmsg (im->im_fd, &ctl, &dat, &flags);
 
 	if (r & MORECTL) {
-		dprintf(DPRINTF_SERIOUS)("im_streams_getLog: getmsg() "
+		dprintf(DPRINTF_SERIOUS)("im_streams_read: getmsg() "
 		    "returned too much control information\n");
-		logerror("im_streams_getLog: getmsg() returned too much"
+		logerror("im_streams_read: getmsg() returned too much"
 		    " control information");
 		return (-1);
 	}
@@ -99,7 +99,7 @@ im_streams_getLog (struct i_module *im, struct im_msg *ret)
 	do {
 		if (r & MOREDATA) {
 			/* message is too long for im_msg */
-			dprintf(DPRINTF_INFORMATIVE)("im_streams_getLog: "
+			dprintf(DPRINTF_INFORMATIVE)("im_streams_read: "
 			    "STREAMS device offered too much data (remainder "
 			    "to come) ...\n");
 		}
@@ -116,9 +116,9 @@ im_streams_getLog (struct i_module *im, struct im_msg *ret)
 			logmsg (ret->im_pri, ret->im_msg,
 			    LocalHostName, ret->im_flags);
 		} else {
-			dprintf(DPRINTF_INFORMATIVE)("im_streams_getLog: "
+			dprintf(DPRINTF_INFORMATIVE)("im_streams_read: "
 			    "STREAMS device offered no data?\n");
-			logerror("im_streams_getLog: STREAMS device offered"
+			logerror("im_streams_read: STREAMS device offered"
 			    " no data?");
 		}
 	} while (r & MOREDATA);
@@ -194,6 +194,7 @@ int do_streams_init (I)
 			close (I->im_fd);
 			return (-1);
 		}
+		add_fd_input(I->im_fd , I);
 	}
 
 	return (1);

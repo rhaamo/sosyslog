@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.25 2000/12/04 23:25:29 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.26 2000/12/14 00:16:45 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -182,7 +182,7 @@ bad:
 }
 
 int
-om_regex_doLog(struct filed *f, int flags, char *msg, void *ctx)
+om_regex_write(struct filed *f, int flags, char *msg, void *ctx)
 {
 	struct om_regex_ctx *c;
 	char time_buf[16];
@@ -190,7 +190,7 @@ om_regex_doLog(struct filed *f, int flags, char *msg, void *ctx)
 	c = (struct om_regex_ctx *) ctx;
 
 	if (msg == NULL || !strcmp(msg, "")) {
-		logerror("om_regex_doLog: no message!");
+		logerror("om_regex_write: no message!");
 		return (-1);
 	}
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mymodule.c,v 1.8 2000/12/04 23:25:28 alejo Exp $	*/
+/*	$CoreSDI: om_mymodule.c,v 1.9 2000/12/14 00:16:44 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -65,7 +65,7 @@
 extern time_t now;
 
 int
-om_mymodule_doLog (struct filed *f, int flags, char *msg,
+om_mymodule_write(struct filed *f, int flags, char *msg,
                    void *context) {
 /*
  * struct filed *f;    		Current filed struct
@@ -76,7 +76,7 @@ om_mymodule_doLog (struct filed *f, int flags, char *msg,
 
 	/* always check, just in case ;) */
 	if (msg == NULL || !strcmp(msg, "")) {
-		logerror("om_mymodule_doLog: no message!");
+		logerror("om_mymodule_write: no message!");
 		return (-1);
 	}
 

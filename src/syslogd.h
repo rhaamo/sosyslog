@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.87 2000/12/19 21:25:06 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.88 2001/01/12 01:48:31 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -149,10 +149,8 @@ void die(int);
 struct omodule {
 	struct	omodule *om_next;
 	char	*om_name;
-	int	(*om_init) (int, char **, struct filed *, char *,
-		void **);
-	int	(*om_doLog) (struct filed *, int, char *,
-		void *);
+	int	(*om_init) (int, char **, struct filed *, char *, void **);
+	int	(*om_write) (struct filed *, int, char *, void *);
 	int	(*om_flush) (struct filed *, void *);
 	int	(*om_close) (struct filed *, void *);
 	void	*h;  /* handle to open dynamic library */
@@ -163,10 +161,11 @@ struct imodule {
 	struct	imodule *im_next;
 	char   *im_name;
 	int	(*im_init) (struct i_module *, char **, int);
-	int	(*im_getLog) (struct i_module *, struct im_msg *);
-	int	(*im_close) (struct i_module *);
+	int	(*im_read) (struct i_module *, struct im_msg *);
+	int	(*im_close) (struct i_module *); /* close input, optional */
+	int	(*im_set) (struct i_module *, fd_set *); /* extra fds, opt */
+	int	(*im_check) (struct i_module *, fd_set *); /* extra fds, opt */
 	void	*h;  /* handle to open dynamic library */
-	void	*ih[MLIB_MAX];  /* handle to other dynamic libraries */
 };
 
 	

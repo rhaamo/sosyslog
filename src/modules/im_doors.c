@@ -1,4 +1,4 @@
-/*      $CoreSDI: im_doors.c,v 1.4 2000/12/04 23:25:29 alejo Exp $   */
+/*      $CoreSDI: im_doors.c,v 1.5 2000/12/14 00:16:44 alejo Exp $   */
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -65,7 +65,7 @@ void im_door_func ();
  */
 
 int
-im_doors_getLog(struct i_module *im, struct im_msg *ret)
+im_doors_read(struct i_module *im, struct im_msg *ret)
 {
 	return(0);
 }

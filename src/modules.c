@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.142 2001/01/02 21:42:57 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.143 2001/01/12 01:49:53 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -614,7 +614,7 @@ addImodule(char *name)
 
 	if (prepare_module_libs(buf, &im->h) == -1 ||
 	    get_symbol(buf, "init", im->h, (void *) &im->im_init) == -1 ||
-	    get_symbol(buf, "getLog", im->h, (void *) &im->im_getLog) == -1) {
+	    get_symbol(buf, "read", im->h, (void *) &im->im_read) == -1) {
 
 		if (imodules == im) {
 			imodules = NULL;
@@ -634,6 +634,8 @@ addImodule(char *name)
 
 	/* this is not mandatory */
 	get_symbol(buf, "close", im->h, (void *) &im->im_close); 
+	get_symbol(buf, "set", im->h, (void *) &im->im_set); 
+	get_symbol(buf, "check", im->h, (void *) &im->im_check); 
 
 	im->im_name = strdup(name);
 
@@ -666,7 +668,7 @@ addOmodule(char *name)
 
 	if (prepare_module_libs(buf, &om->h) == -1 ||
 	    get_symbol(buf, "init", om->h, (void *) &om->om_init) == -1 ||
-	    get_symbol(buf, "doLog", om->h, (void *) &om->om_doLog) == -1) {
+	    get_symbol(buf, "write", om->h, (void *) &om->om_write) == -1) {
 
 		if (omodules == om) {
 			omodules = NULL;

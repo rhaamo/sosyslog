@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.42 2000/12/04 23:25:29 alejo Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.43 2000/12/14 00:16:44 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -260,6 +260,7 @@ im_linux_init (struct i_module *I, char **argv, int argc)
         I->im_name = "linux";
         I->im_flags |= IMODULE_FLAG_KERN;
 	optind = current_optind;
+	add_fd_input(I->im_fd , I);
         return (I->im_fd);
 }
 
@@ -270,7 +271,7 @@ im_linux_init (struct i_module *I, char **argv, int argc)
  * and log it.
  */
 int
-im_linux_getLog (struct i_module *im, struct im_msg *ret)
+im_linux_read (struct i_module *im, struct im_msg *ret)
 {
 	int   i;
 	char *ptr;
@@ -293,7 +294,7 @@ im_linux_getLog (struct i_module *im, struct im_msg *ret)
 		i = read(im->im_fd, im->im_buf, sizeof(im->im_buf)-1);
 
 	if (i < 0 && errno != EINTR) {
-		logerror("im_linux_getLog");
+		logerror("im_linux_read");
 		return (-1);
 	}
 
@@ -453,7 +454,7 @@ ksym_snprintf (char *buf, int bufsize, char *raw)
 
 					/* we need to solve some things
  					 * about buf and msg params on
-					 * im_xxxxx_getLog.
+					 * im_xxxxx_read.
 					 * so, i think that is better
 					 * not to change raw data ;;;
 					 */

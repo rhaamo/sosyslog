@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.51 2000/12/04 23:25:29 alejo Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.52 2000/12/14 00:16:44 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -70,7 +70,7 @@
  */
 
 int
-im_udp_getLog(struct imodule *im, struct im_msg *ret)
+im_udp_read(struct imodule *im, struct im_msg *ret)
 {
 	struct sockaddr_in frominet;
 	struct hostent *hent;
@@ -148,6 +148,8 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 		DaemonFlags |= SYSLOGD_INET_IN_USE;
 		DaemonFlags |= SYSLOGD_INET_READ;
         }
+
+	add_fd_input(I->im_fd , I);
 
         dprintf(DPRINTF_INFORMATIVE)("im_udp: running\n");
         return (1);

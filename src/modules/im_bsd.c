@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.71 2000/12/04 23:25:28 alejo Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.72 2000/12/14 00:16:44 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -72,6 +72,7 @@ im_bsd_init(struct i_module *I, char **argv, int argc)
 	
 	I->im_path = _PATH_KLOG;
 	I->im_flags |= IMODULE_FLAG_KERN;
+	add_fd_input(I->im_fd , I);
 	return (I->im_fd);
 }
 
@@ -83,7 +84,7 @@ im_bsd_init(struct i_module *I, char **argv, int argc)
  */
 
 int
-im_bsd_getLog(struct i_module *im, struct im_msg *ret)
+im_bsd_read(struct i_module *im, struct im_msg *ret)
 {
 	char *p, *q, *lp;
 	int i, c;
@@ -124,7 +125,7 @@ im_bsd_getLog(struct i_module *im, struct im_msg *ret)
 			    ret->im_flags);
 		}
 	} else if (i < 0 && errno != EINTR) {
-		logerror("im_bsd_getLog");   
+		logerror("im_bsd_read");   
 		im->im_fd = -1;
 	}
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.160 2001/01/04 20:17:37 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.161 2001/01/12 01:48:31 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.160 2001/01/04 20:17:37 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.161 2001/01/12 01:48:31 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -104,6 +104,7 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.160 2001/01/04 20:17:37 alejo Exp
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <poll.h>
 
 #define SYSLOG_NAMES
 #include <syslog.h>
@@ -194,17 +195,18 @@ int modules_start(void);
 void modules_stop(void);
 
 
-extern	struct  omodule *omodules;
-extern	struct  imodule *imodules;
+extern	struct   omodule *omodules;
+extern	struct   imodule *imodules;
 struct	i_module Inputs;
+struct	pollfd   *fd_inputs = NULL;
+int	fd_in_count = 0;
+struct i_module **fd_inputs_mod = NULL;
 
 int
 main(int argc, char **argv) {
 	int ch;
 	char *p;
 	struct im_msg log;
-	fd_set *fdsr = NULL;
-	int fdsrmax = 0;
 
 	Inputs.im_next = NULL;
 	Inputs.im_fd = -1;
@@ -445,53 +447,28 @@ main(int argc, char **argv) {
 	log.im_msg = malloc(log.im_mlen);
 
 	for (;;) {
-		int nfds = 0;
-		struct i_module *im;
+		int count, i, done;
 
-		/*
-		 * first find the max fd and stor it on nfds
-		 */
-
-		/* this may not be on inputs */
-		if (finet != -1 && finet > nfds)
-			nfds = finet;
-
-		for (im = &Inputs; im ; im = im->im_next)
-			if (im->im_fd != -1 && im->im_fd > nfds)
-				nfds = im->im_fd;
-
-		if (fdsrmax < nfds) {
-			if (fdsr) 
-				free(fdsr);
-
-			fdsr = (fd_set *)calloc(howmany(nfds+1, NFDBITS),
-			    sizeof(fd_mask));
-
-			if (fdsr == NULL) {
-				dprintf(DPRINTF_CRITICAL)("calloc fd_set");
-				exit(1);
-			}
-
-			fdsrmax = nfds;
-		} else
-			bzero(fdsr, howmany(fdsrmax+1, NFDBITS) *
-			    sizeof(fd_mask));
+		if (fd_inputs == NULL) {
+			dprintf(DPRINTF_CRITICAL)("calloc fd_set");
+			exit(1);
+		}
 
 		/* this may not be on inputs */
-		if (finet != -1)
-			FD_SET(finet, fdsr);
+		if (finet != -1 && !(DaemonFlags & SYSLOGD_INET_READ))
+			add_fd_input(finet, NULL);
 
-		for (im = &Inputs; im ; im = im->im_next)
-			if (im->im_fd != -1)
-				FD_SET(im->im_fd, fdsr);
-
-		switch (select(nfds+1, fdsr, (fd_set *)NULL,
-			(fd_set *)NULL, (struct timeval *)NULL)) {
+		/* count will always be less than fd_in_count */
+		switch (count = poll(fd_inputs, fd_in_count, -1)) {
 
 			case 0:
+				dprintf(DPRINTF_INFORMATIVE)("main: poll "
+				    "returned 0\n");
 				continue;
 
 			case -1:
+				dprintf(DPRINTF_INFORMATIVE)("main: poll "
+				    "returned -1\n");
 				if (errno != EINTR)
 					logerror("select");
 				continue;
@@ -500,45 +477,52 @@ main(int argc, char **argv) {
 		if (DaemonFlags && SYSLOGD_MARK)
 			markit();
 
-		for (im = &Inputs; im ; im = im->im_next) {
-			if (im->im_fd != -1 && FD_ISSET(im->im_fd, fdsr)) {
-				int i = 0;
+		dprintf(DPRINTF_INFORMATIVE)("main: going to check pollfd "
+		    "array\n");
+
+		for (i = 0, done = 0; done < count; i++) {
+			if (fd_inputs[i].revents && POLLIN) {
+				int val = -1;
 
 				log.im_pid = 0;
 				log.im_pri = 0;
 				log.im_flags = 0;
 
-				if ( !im->im_func || !(im->im_func->im_getLog)
-				    || (i = (*im->im_func->im_getLog)(im, &log))
-				    < 0) {
+				if (!fd_inputs_mod[i]) {
+					/* silently DROP what comes */
+					if (fd_inputs[i].fd == finet) {
+						struct sockaddr_in frominet;
+						int len = sizeof(frominet);
+						char line[MAXLINE];
+
+						recvfrom(finet, line, MAXLINE, 0,
+						    (struct sockaddr *) &frominet, &len);
+					}
+				} else if (!fd_inputs_mod[i]->im_func ||
+				    !fd_inputs_mod[i]->im_func->im_read ||
+				    (val = (*fd_inputs_mod[i]->im_func->im_read)
+				    (fd_inputs_mod[i], &log) < 0)) {
 					dprintf(DPRINTF_SERIOUS)("Syslogd: "
 					    "Error calling input module %s, "
-					    "for fd %d\n", im->im_name,
-					    im->im_fd);
-				}
+					    "for fd %d\n", fd_inputs_mod[i]->im_name,
+					    fd_inputs[i].fd);
 
-				/* log it if normal (1), (2) already logged */
-				if (i == 1) {
+				} else if (val == 1)    /* log it */
 					printline(log.im_host, log.im_msg,
-					    log.im_len, im->im_flags);
-				}
-			}
+					    log.im_len,
+					    fd_inputs_mod[i]->im_flags);
 
-			/* silently DROP what comes */
-			if ((finet > 0) && !(DaemonFlags & SYSLOGD_INET_READ) &&
-					(FD_ISSET(finet, fdsr))) {
-				struct sockaddr_in frominet;
-				int len = sizeof(frominet);
-				char line[MAXLINE];
+				done++; /* one less */
 
-				recvfrom(finet, line, MAXLINE, 0,
-				    (struct sockaddr *) &frominet, &len);
 			}
 
 		}
 	}
-	if (fdsr)
-		free(fdsr);
+
+	if (fd_inputs)
+		free(fd_inputs);
+	if (fd_inputs_mod)
+		free(fd_inputs_mod);
 
 }
 
@@ -778,15 +762,15 @@ doLog(struct filed *f, int flags, char *message) {
 
 	time(&f->f_time);
 	for (om = f->f_omod; om; om = om->om_next) {
-		if (!om->om_func || !om->om_func->om_doLog) {
-			dprintf(DPRINTF_SERIOUS)("doLog: error, no doLog "
+		if (!om->om_func || !om->om_func->om_write) {
+			dprintf(DPRINTF_SERIOUS)("doLog: error, no write "
 			    "function in output module [%s], message [%s]\n",
 			    om->om_func->om_name, msg);
 			continue;
 		};
 
-		/* call this module doLog */
-		ret = (*(om->om_func->om_doLog))(f,flags,msg,om->ctx);
+		/* call this module write */
+		ret = (*(om->om_func->om_write))(f,flags,msg,om->ctx);
 		if (ret < 0) {
 			dprintf(DPRINTF_SERIOUS)("doLog: error with output "
 			    "module [%s] for message [%s]\n",
@@ -1244,5 +1228,32 @@ decode(const char *name, CODE *codetab) {
 			return (c->c_val);
 
 	return (-1);
+}
+
+
+/*
+ * add this fd to array
+ *
+ * grow by 50
+ *
+ */
+
+int
+add_fd_input(int fd, struct i_module *im) {
+
+	/* do we need bigger arrays? */
+	if (!fd_inputs || fd_in_count % 50 == 0) {
+		fd_inputs = (struct pollfd *) realloc(fd_inputs,
+		    (size_t) fd_in_count + 50);
+		fd_inputs_mod = (struct i_module **) realloc(fd_inputs_mod,
+		    (size_t) fd_in_count + 50);
+	}
+
+	fd_inputs[fd_in_count].fd = fd;
+	fd_inputs[fd_in_count].events = POLLIN;
+	fd_inputs_mod[fd_in_count] = im;
+	fd_in_count++;
+	
+	return(1);
 }
 

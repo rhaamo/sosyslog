@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.59 2000/12/14 00:16:45 alejo Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.60 2000/12/19 21:25:06 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -85,14 +85,14 @@ struct om_peo_ctx {
 };
 
 int
-om_peo_doLog(struct filed *f, int flags, char *msg, void *ctx)
+om_peo_write(struct filed *f, int flags, char *msg, void *ctx)
 {
 	struct om_peo_ctx *c;
 	int	 fd, mfd, len, keylen, newkeylen;
 	u_char	 key[41], mkey[41];
 	char	 m[MAXBUF], newkey[41], time_buf[16];
 
-	dprintf(DPRINTF_INFORMATIVE)("om_peo_doLog: Entering\n");
+	dprintf(DPRINTF_INFORMATIVE)("om_peo_write: Entering\n");
 	
 	if (f == NULL || ctx == NULL)
 		return (-1);
@@ -104,7 +104,7 @@ om_peo_doLog(struct filed *f, int flags, char *msg, void *ctx)
 	len = snprintf(m, MAXBUF, "%s %s %s\n", time_buf, f->f_prevhost,
 	    msg ? msg : f->f_prevline) - 1;
 
-	dprintf(DPRINTF_INFORMATIVE)("om_peo_doLog: len = %i, msg = %s\n ",
+	dprintf(DPRINTF_INFORMATIVE)("om_peo_write: len = %i, msg = %s\n ",
 	    len, m);
 
 	/* open keyfile and read last key */
@@ -117,7 +117,7 @@ om_peo_doLog(struct filed *f, int flags, char *msg, void *ctx)
 	bzero(key, sizeof(key));
 	if ( (keylen = read(fd, key, 40)) == -1) {
 		close(fd);
-		dprintf(DPRINTF_SERIOUS)("om_peo_doLog: reading form: %s:"
+		dprintf(DPRINTF_SERIOUS)("om_peo_write: reading form: %s:"
 		    " %s\n", c->keyfile, strerror(errno));
 		return (-1);
 	}
@@ -126,14 +126,14 @@ om_peo_doLog(struct filed *f, int flags, char *msg, void *ctx)
 	if (c->macfile) {
 		if ( (mfd = open(c->macfile, O_WRONLY, 0)) == -1) {
 			close(fd);
-			dprintf(DPRINTF_SERIOUS)("om_peo_doLog: opening "
+			dprintf(DPRINTF_SERIOUS)("om_peo_write: opening "
 			    "macfile: %s: %s\n", c->macfile,
 			    strerror(errno));
 			return (-1);
 		}
 		lseek(mfd, (off_t)0, SEEK_END);
 		write(mfd, mkey, mac2(key, keylen, m, len, mkey));
-		dprintf(DPRINTF_INFORMATIVE)("om_peo_doLog: write to macfile"
+		dprintf(DPRINTF_INFORMATIVE)("om_peo_write: write to macfile"
 		    " ok\n");
 		close(mfd);
 	}
@@ -144,7 +144,7 @@ om_peo_doLog(struct filed *f, int flags, char *msg, void *ctx)
 	if ( (newkeylen = mac(c->hash_method, key, keylen, m,
 	    len, newkey)) == -1) {
 		close(fd);
-		dprintf(DPRINTF_INFORMATIVE)("om_peo_doLog: generating "
+		dprintf(DPRINTF_INFORMATIVE)("om_peo_write: generating "
 		    "key[i+1]: keylen = %i: %s\n", newkeylen,
 		    strerror(errno));
 		return (-1);

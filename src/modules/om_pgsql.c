@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.31 2000/12/04 23:25:29 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.32 2000/12/14 00:16:45 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -40,7 +40,7 @@
  * 06/08/2000 - Gerardo_Richarte@core-sdi.com
  *   Moved to_sql() to sql_misc.c to reuse it in om_mysql
  *   removed some code regarding msg being NULL, this is checked before calling
- *   doLog
+ *   write
  * 10/10/2000 - Federico Schwindt
  *   Cleanup code
  * 10/12/2000 - Alejo Sanchex
@@ -110,7 +110,7 @@ struct om_pgsql_ctx {
 };
 
 int
-om_pgsql_doLog(struct filed *f, int flags, char *msg, void *ctx)
+om_pgsql_write(struct filed *f, int flags, char *msg, void *ctx)
 {
 	void	*r;
 	struct	om_pgsql_ctx *c;
@@ -123,7 +123,7 @@ om_pgsql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 	c = (struct om_pgsql_ctx *) ctx;
 
 	if ((c->h) == NULL) {
-		dprintf(DPRINTF_SERIOUS)("om_pgsql_doLog: error, no "
+		dprintf(DPRINTF_SERIOUS)("om_pgsql_write: error, no "
 		    "connection\n");
 		return (-1);
 	}
@@ -177,12 +177,12 @@ om_pgsql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 		else
 			query[sizeof(query) - 1] = '\0';
 
-		dprintf(DPRINTF_INFORMATIVE2)("om_pgsql_doLog: query [%s]\n",
+		dprintf(DPRINTF_INFORMATIVE2)("om_pgsql_write: query [%s]\n",
 		    query);
 
 		r = PQexec(c->h, query);
 		if (PQresultStatus(r) != PGRES_COMMAND_OK) {
-			dprintf(DPRINTF_SERIOUS)("om_pgsql_doLog: %s\n",
+			dprintf(DPRINTF_SERIOUS)("om_pgsql_write: %s\n",
 			    PQresultErrorMessage(r));
 			return (-1);
 		}
@@ -200,7 +200,7 @@ om_pgsql_doLog(struct filed *f, int flags, char *msg, void *ctx)
 	else
 		query[sizeof(query) - 1] = '\0';
 
-	dprintf(DPRINTF_INFORMATIVE2)("om_pgsql_doLog: query [%s]\n", query);
+	dprintf(DPRINTF_INFORMATIVE2)("om_pgsql_write: query [%s]\n", query);
 
 	err = 1;
 	r = PQexec(c->h, query);

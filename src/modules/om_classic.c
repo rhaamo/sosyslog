@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.57 2000/12/04 23:25:29 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.58 2000/12/14 00:16:44 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -92,7 +92,7 @@ void wallmsg (struct filed *, struct iovec *);
 char *ttymsg(struct iovec *, int , char *, int);
 
 int
-om_classic_doLog(struct filed *f, int flags, char *msg, void *context)
+om_classic_write(struct filed *f, int flags, char *msg, void *context)
 {
 	struct iovec iov[6];
 	struct iovec *v;
@@ -101,7 +101,7 @@ om_classic_doLog(struct filed *f, int flags, char *msg, void *context)
 	time_t now;
 
 	if (msg == NULL || !strcmp(msg, "")) {
-		logerror("om_classic_doLog: no message!");
+		logerror("om_classic_write: no message!");
 		return (-1);
 	}
 
@@ -147,7 +147,7 @@ om_classic_doLog(struct filed *f, int flags, char *msg, void *context)
 	
 	case F_FORW:
 		if (finet < 0) {
-			dprintf(DPRINTF_SERIOUS)("om_classic: doLog: "
+			dprintf(DPRINTF_SERIOUS)("om_classic: write: "
 			    "can't forward message, socket down\n");
 			break;
 		}
@@ -346,7 +346,7 @@ om_classic_flush(struct filed *f, void *context)
 {
 	/* flush any pending output */
 	if (f->f_prevcount)
-		om_classic_doLog(f, 0, (char *)NULL, NULL);
+		om_classic_write(f, 0, (char *)NULL, NULL);
 
 	return (1);
 

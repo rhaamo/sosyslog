@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_mymodule.c,v 1.5 2000/12/04 23:25:28 alejo Exp $	*/
+/*	$CoreSDI: im_mymodule.c,v 1.6 2000/12/14 00:16:44 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -60,14 +60,14 @@ struct im_mymodule_ctx {
  */
 
 int
-im_mymodule_getLog (struct i_module *im, struct im_msg *ret)
+im_mymodule_read (struct i_module *im, struct im_msg *ret)
 {
 
-	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_getLog: Entering\n");
+	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_read: Entering\n");
 
 	/* read from input */
 
-	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_getLog: Leaving\n");
+	dprintf(DPRINTF_INFORMATIVE)("om_mymodule_read: Leaving\n");
 
 	return (1);
 }
