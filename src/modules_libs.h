@@ -4,12 +4,13 @@
  *
  */
 
+#define MLIB_MAX 10
+
 struct {
 	char *name;
-	char **req; /* list of required libs */
-} mlibs [] = {
-		{ "mysql", {"libmysqlclient", NULL} },
-		{ "pgsql", {"libpg", NULL} },
-		NULL, NULL
-};
-
+	char *libs[MLIB_MAX];
+} mlibs[] = {
+		{"mysql", {"mysqlclient", NULL} },
+		{"pgsql", {"pq", NULL} },
+		{ NULL, { NULL } }
+	};

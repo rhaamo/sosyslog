@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.115 2000/08/05 00:40:30 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.116 2000/08/05 01:10:25 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -277,7 +277,7 @@ struct imodule *
 addImodule(char *name) {
 	struct imodule *im;
 	char buf[LIB_PATH_MAX], *r;
-	int i;
+	int i, j;
 
 	if (name == NULL)
 		return(NULL);
@@ -291,13 +291,16 @@ addImodule(char *name) {
 		im = im->im_next;
 	}
 
-	for(i = 0; mlibs[i].name; i++) {
-		for(r = *mlibs[i].req; r; r++) {
-			dprintf("addImodule: going to open library %s for module "
-					"%s\n", name, r);
-			if (dlopen(r, RTLD_LAZY) == NULL) {
-			   	dprintf("Error [%s] on file [%s]\n", dlerror(), r);
-			   	return(NULL);
+	for( i = 0; mlibs[i].name; i++) {
+		if(!strcmp(name, mlibs[i].name)) {
+			for(j = 0; (r = mlibs[i].libs[j]) && j < MLIB_MAX; j++) { 
+				dprintf("addImodule: going to open library %s "
+						"for module %s\n", name, r);
+				if (dlopen(r, RTLD_LAZY) == NULL) {
+				   	dprintf("Error [%s] on file [%s]\n",
+							dlerror(), r);
+				   	return(NULL);
+				}
 			}
 		}
 	}
