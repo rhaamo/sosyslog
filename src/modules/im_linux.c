@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.2 2000/05/29 20:35:42 fgsch Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.3 2000/05/29 22:59:43 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -100,8 +100,8 @@ im_linux_getLog(im, ret)
 	if (im->im_path)
 		readed = read(im->im_fd, im->im_buf, sizeof(im->im_buf));
 	else
-		/* readed = sysklog(2, im->im_buf, sizeof(im->im_buf)); */ /* this blocks */
-		readed = sysklog(4, im->im_buf, sizeof(im->im_buf));/*this don't block,testing!*/
+		/* readed = klogctl(2, im->im_buf, sizeof(im->im_buf)); */ /* this blocks */
+		readed = klogctl(4, im->im_buf, sizeof(im->im_buf));/*this don't block,testing!*/
 
 	if (readed < 0)
 		if (errno != EINTR) {
@@ -116,7 +116,7 @@ im_linux_getLog(im, ret)
 	;;;
 
 	/* get priority */
-	if (readed >= 3 && im->im_buf[0] == '<' && im->im_buf[2] == '>' && isdigit(im_buf[1]))
+	if (readed >= 3 && im->im_buf[0] == '<' && im->im_buf[2] == '>' && isdigit(im->im_buf[1]))
 		pri = im->im_buf[1] - '9';
 	else
 		pri = LOG_WARNING;	/* from printk.c: DEFAULT_MESSAGE_LOGLEVEL */
@@ -188,7 +188,7 @@ im_linux_close(im)
 	if (im->im_name != NULL)
 		free(im->im_name);
 
-	if (im->path != NULL) {
+	if (im->im_path != NULL) {
 		free(im->im_path);
 		return(close(im->im_fd));
 	}
