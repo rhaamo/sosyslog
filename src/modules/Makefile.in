@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.10 2000/06/30 19:46:15 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.11 2000/06/30 22:04:11 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -42,8 +42,10 @@ DBSD=		@Dbsd@
 DLINUX=		@Dlinux@
 DCLASSIC=	@Dclassic@
 DPEO=		@Dpeo@
-HASH_SRCS=	@HASH_SRCS@
-HASH_OBJS=	$(HASH_SRCS:.c=.o)
+SHASH_SRCS=	@SHASH_SRCS@
+DHASH_SRCS=	@DHASH_SRCS@
+SHASH_OBJS=	$(SHASH_SRCS:.c=.o)
+DHASH_OBJS=	$(DHASH_SRCS:.c=.o)
 DMYSQL=		@Dmysql@
 DPGSQL=		@Dpgsql@
 DREGEX=		@Dregex@
@@ -71,10 +73,10 @@ all: DYNAMIC_LIBS $(SOBJS)
 $(SOBJS) DYNAMIC_LIBS: ../config.h
 
 $(SOBJS):
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $(SSRCS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $(SSRCS) $(SHASH_SRCS:%=../peo/%)
 
 DYNAMIC_LIBS:	$(DUNIX) $(DUDP) $(DBSD) $(DLINUX) \
-		$(DCLASSIC) $(DPEO) $(DMYSQL) $(DPGSQL) $(REGEX)
+		$(DCLASSIC) $(DPEO) $(DMYSQL) $(DPGSQL) $(DREGEX)
 
 $(DUNIX):
 	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DUNIX_SRC)
@@ -97,8 +99,8 @@ $(DCLASSIC):
 	$(LD) -Bshareable -o $@ $(DCLASSIC_OBJ)
 
 $(DPEO):
-	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DPEO_SRC) $(HASH_SRCS:%=../peo/%)
-	$(LD) -Bshareable -o $@ $(DPEO_OBJ) $(HASH_OBJS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DPEO_SRC) $(DHASH_SRCS:%=../peo/%)
+	$(LD) -Bshareable -o $@ $(DPEO_OBJ) $(DHASH_OBJS)
 
 $(DMYSQL):
 	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DMYSQL_SRC)

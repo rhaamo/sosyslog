@@ -1,4 +1,4 @@
-#	$CoreSDI: Id$
+#	$CoreSDI: configure.in,v 1.31 2000/06/30 22:04:09 claudio Exp $
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
 
@@ -14,11 +14,13 @@ AC_PROG_INSTALL
 UNAME=`uname`
 if test "$UNAME" = "OpenBSD"
 then
+	echo OpenBSD system detected
 	AC_DEFINE(HAVE_OPENBSD)
-	AC_MSG_RESULT(OpenBSD system detected)
 elif test "$UNAME" = "Linux"
 then
+	echo Linux system detected
 	LIBS="$LIBS -ldl"
+	AC_DEFINE(HAVE_LINUX)
 fi
 
 AC_CHECK_HEADERS(paths.h)
@@ -111,7 +113,6 @@ AC_CHECK_FUNC(SHA1Init, AC_DEFINE(HAVE_SHA1),
 	HASH_SRCS="$HASH_SRCS sha1.c")
 AC_CHECK_FUNC(RMD160Init, AC_DEFINE(HAVE_RMD160),
 	HASH_SRCS="$HASH_SRCS rmd160.c")
-AC_SUBST(HASH_SRCS)
 
 AC_DEFUN(CONF_MYSQL, [
 for ac_dir in /usr/local/lib/mysql /usr/local/mysql
@@ -249,6 +250,13 @@ CHECK_MODULE(bsd, $bsd, im_bsd.c, im)
 CHECK_MODULE(linux, $linux, im_linux.c, im)
 CHECK_MODULE(classic, $classic, om_classic.c, om)
 CHECK_MODULE(peo, $peo, om_peo.c, om)
+if test "x$peo" = "xstatic"
+then
+	SHASH_SRCS=$HASH_SRCS
+elif test "x$peo" = "xdynamic"
+then
+	DHASH_SRCS=$DHASH_SRCS
+fi
 CHECK_MODULE(mysql, $mysql, om_mysql.c sql_misc.c, om)
 if test "x$mysql" = "xstatic" -o "x$mysql" = "xdynamic"
 then
@@ -258,6 +266,9 @@ CHECK_MODULE(pgsql, $pgsql, om_pgsql.c sql_misc.c, om)
 CHECK_MODULE(regex, $regex, om_regex.c, om)
 END_MODULES_CONF()
 
+AC_SUBST(HASH_SRCS)
+AC_SUBST(SHASH_SRCS)
+AC_SUBST(DHASH_SRCS)
 AC_SUBST(LIBS)
 AC_SUBST(CFLAGS)
 AC_SUBST(LDFLAGS)
