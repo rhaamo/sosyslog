@@ -1,4 +1,4 @@
-/*	$Id: options.c,v 1.2 2002/09/17 05:20:26 alejo Exp $	*/
+/*	$Id: options.c,v 1.3 2002/10/01 16:33:32 alejo Exp $	*/
 /*
    Copyright (c) 2001
   	Core-SDI S.A., all rights reserved.
@@ -31,10 +31,8 @@
    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
    SUCH DAMAGE.
  */
-
 /*
  * Modular Syslog generic module configuration functions
- *
  * Author: Alejo Sanchez for Core-SDI
  */
 
@@ -48,9 +46,11 @@
  *	ease command line parsing for modules, similar to getopt(3)
  *	use like this
  *
+ *	prog <-p pvalue|-popt pvalue> <-n> <-h|-help>
+ *
  *	int cnt = 0;
  *
- *	while ((ch = getxopt(argc, argv, "p!popt: n:nopt! h!help:", &cnt)) != -1) {
+ *	while ((ch = getxopt(argc, argv, "p!popt: n!no h!help", &cnt)) != -1) {
  *		switch (ch):
  *		case 'p':
  *			(void)strlcpy(argpval, argv[cnt], sizeof(argpval));
