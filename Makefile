@@ -19,33 +19,16 @@ syslogd:	syslogd.c\
 		im_udp.c\
 		im_unix.c\
 		iolib.c\
-		hash.o\
-		rmd160.o\
-		om_peo.o
+		peo/om_peo.o\
+		peo/hash.o\
+		peo/rmd160.o
 	$(LINK)
 	
-peochk:		hash.o\
-		rmd160.o\
-		peochk.o
-	$(LINK)
+peochk:
+	@cd peo; make peochk; cd ..
 
-peochk.o:	peo/peochk.c
-	$(COMPILE)
-
-hash.o:		peo/hash.c
-	$(COMPILE)
-
-rmd160.o:	peo/rmd160.c
-	$(COMPILE)
-
-om_peo.o:	peo/om_peo.c
-	$(COMPILE)
-
-peo/hash.c\
-peo/rmd160.c\
-peo/om_peo.c\
-peo/peochk.c:	peo/hash.h syslogd.h	
-
+peo/om_peo.o peo/hash.o peo/rmd160.o:
+	@cd peo; make om_peo; cd ..
 
 clean:
 	rm *.o
