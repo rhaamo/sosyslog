@@ -39,7 +39,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_mysql.c,v 1.5 2000/04/19 19:06:20 alejo Exp $";
+static char rcsid[] = "$Id: om_mysql.c,v 1.6 2000/04/19 20:47:27 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -221,7 +221,7 @@ om_mysql_init(argc, argv, f, prog, c)
 			case 'c':
 				createTable++;
 				break;
-			default;
+			default:
 				return(-1);
 		}
 	}

@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.30 2000/04/19 19:06:19 alejo Exp $
+/*	$Id: modules.c,v 1.31 2000/04/19 20:47:26 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -111,7 +111,7 @@ int omodule_create(c, f, prog)
 {
 	char	*line, *p;
 	char	*argv[20];
-	char	argc;
+	int	argc;
 	struct o_module		*m;
 	char quotes=0;
 	int	i;
@@ -188,6 +188,7 @@ int omodule_create(c, f, prog)
 		(OModules[m->om_type].om_init)(argc, argv, f, prog, (void *) &(m->context));
 	}
 	free(line);
+	return(1);
 }
 
 char *getomodulename(type)
@@ -230,4 +231,5 @@ int imodule_create(c, f, prog)
 	struct filed *f;
 	char *prog;
 {
+	return(-1);
 }

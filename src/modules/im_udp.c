@@ -26,6 +26,7 @@
 
 char   *cvthname __P((struct sockaddr_in *));
 void    logerror __P((char *));
+void    die __P((int));
 
 
 /* standard input module header variables in context */
@@ -45,8 +46,8 @@ struct im_udp_ctx {
  */
 
 int
-im_udp_getLog( i, ret)
-	int   i;
+im_udp_getLog( val, ret)
+	int   val;
 	struct im_msg	*ret;
 {
 	struct sockaddr_in frominet;
@@ -66,17 +67,16 @@ im_udp_getLog( i, ret)
 	} else {
 		if (i > 0) {
 			line[i] = '\0';
-			printline(cvthname(&frominet), line);
+			ret->pid = -1;
+			ret->pri = -1;
+			ret->flags = 0;
+			ret->len = strlen(line);
+			ret->msg = strdup(line);
+			ret->host = NULL;
 		} else if (i < 0 && errno != EINTR)
 			logerror("recvfrom inet");
 	}
 
-	ret->pid = -1;
-	ret->pri = -1;
-	ret->flags = 0;
-	ret->len = strlen(line);
-	ret->msg = strdup(line);
-	ret->host = NULL;
 	return(-1);
 
 }
@@ -98,7 +98,6 @@ im_udp_init(I, argc, argv, c)
 	struct im_header_ctx  **c;
 {
 	struct im_udp_ctx *ctx;
-	int i;
 	struct sockaddr_in sin;
 	struct servent *sp;
 
