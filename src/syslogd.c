@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.202 2001/05/03 23:01:02 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.203 2001/07/30 21:03:06 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.202 2001/05/03 23:01:02 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.203 2001/07/30 21:03:06 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -203,7 +203,7 @@ int	imodules_destroy(struct imodule *);
 void	logerror(char *);
 void	logmsg(int, char *, char *, int);
 int	getmsgbufsize(void);
-void	*main_lib;
+void	*main_lib = NULL;
 
 extern struct	omodule *omodules;
 extern struct	imodule *imodules;
@@ -1089,8 +1089,11 @@ init(int signo)
 		free(f);
 	}
 
-	if (main_lib)
+#ifdef REOPEN_MAIN_LIBRARY_ON_HUP
+	if (main_lib) {
 		dlclose(main_lib);
+		main_lib = NULL;
+	}
 
 	/* Load main modules library */
 	if ( (main_lib = dlopen(INSTALL_LIBDIR "/" MLIBNAME_STR, DLOPEN_FLAGS))
@@ -1100,6 +1103,7 @@ init(int signo)
 	            "file [%s]\n", dlerror(), INSTALL_LIBDIR "/" MLIBNAME_STR);
 	        exit(-1);
 	}
+#endif
 
 	/* list of filed is now empty */
 	Files = NULL;
