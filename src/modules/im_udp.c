@@ -1,4 +1,4 @@
- /*	$Id: im_udp.c,v 1.80 2003/02/22 03:40:58 jkohen Exp $	*/
+ /*	$Id: im_udp.c,v 1.81 2003/04/01 21:07:26 phreed Exp $	*/
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
  * All rights reserved
@@ -230,11 +230,12 @@ im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 			ret->im_msg[n1++] = ret->im_msg[n2++];
 		ret->im_msg[n1] = '\0';
 
-		strncat(ret->im_host, host,
+		strncpy(ret->im_host, host,
 			sizeof(ret->im_host) - strlen(ret->im_host) - 1);
 		ret->im_host[sizeof (ret->im_host) - 1] = '\0';
 	}
 
+	m_dprintf(MSYSLOG_INFORMATIVE, "im_udp_read: ... leaving.\n");
 	return (1);
 }
 
