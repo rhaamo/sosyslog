@@ -14,7 +14,7 @@ AC_CHECK_HEADERS(paths.h)
 
 AC_MSG_CHECKING(for optreset)
 AC_TRY_LINK([#include <unistd.h>],
-	[extern int optreset;],
+	[extern int optreset; optreset = 1;],
 	[AC_DEFINE(HAVE_OPTRESET) AC_MSG_RESULT(yes)],
 	AC_MSG_RESULT(no))
 
