@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.48 2000/11/03 20:10:08 alejo Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.49 2000/11/06 23:11:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -52,8 +52,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "../syslogd.h"
 #include "../modules.h"
+#include "../syslogd.h"
 
 
 /*

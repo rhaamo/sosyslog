@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.151 2000/11/22 00:38:15 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.152 2000/11/22 00:49:42 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.151 2000/11/22 00:38:15 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.152 2000/11/22 00:49:42 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -105,6 +105,7 @@ extern char *strptime(const char *, const char *, struct tm *);
 
 #define SYSLOG_NAMES
 #include <syslog.h>
+#include "modules.h"
 #include "syslogd.h"
 #include "conditional.h"
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.54 2000/11/03 20:10:09 alejo Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.55 2000/11/06 18:12:16 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -56,8 +56,8 @@
 #include <syslog.h>
 #include <strings.h>
 
-#include "../syslogd.h"
 #include "../modules.h"
+#include "../syslogd.h"
 #if 1
 #include "../peo/hash.h"
 #else

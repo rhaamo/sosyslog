@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.82 2000/11/09 20:02:28 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.83 2000/11/15 18:44:27 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -47,19 +47,14 @@
 #ifdef HAVE_PATHS_H
 #include <paths.h>
 #endif /* HAVE_PATHS_H */
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/uio.h>
-#include <utmp.h>
 
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#include "modules.h"
-
 #ifndef _PATH_KLOG
 #define	_PATH_KLOG	"/dev/klog"
+#warning using 	_PATH_KLOG	"/dev/klog"
 #endif
 
 #define	_PATH_LOGCONF	"/etc/syslog.conf"

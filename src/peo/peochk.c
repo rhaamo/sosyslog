@@ -1,4 +1,4 @@
-/*	$CoreSDI: peochk.c,v 1.40 2000/10/31 19:42:15 alejo Exp $	*/
+/*	$CoreSDI: peochk.c,v 1.41 2000/11/03 20:52:40 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -81,6 +81,7 @@
 #include <unistd.h>
 
 #include "hash.h"
+#include "../modules.h"
 #include "../syslogd.h"
 
 #define CHECK	0x01

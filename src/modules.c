@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.89.2.6.2.4.4.10 2000/11/21 23:47:03 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.135 2000/11/22 00:38:15 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -47,8 +47,8 @@
 #include <unistd.h>
 #include <dlfcn.h>
 #include <limits.h>
-#include "syslogd.h"
 #include "modules.h"
+#include "syslogd.h"
 
 #ifdef _POSIX_PATH_MAX
 #define LIB_PATH_MAX _POSIX_PATH_MAX

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.51 2000/11/03 20:10:09 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.52 2000/11/03 20:14:23 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -49,8 +49,8 @@
 #include <unistd.h>
 #include <mysql.h>
 #include "../config.h"
-#include "../syslogd.h"
 #include "../modules.h"
+#include "../syslogd.h"
 #include "sql_misc.h"
 
 /* size of  query buffer */

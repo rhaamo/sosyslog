@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.54 2000/11/01 18:18:03 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.55 2000/11/14 01:07:24 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -46,6 +46,8 @@
 #include <sys/time.h>
 #include <sys/param.h>
 #include <sys/socket.h>
+#include <sys/uio.h>
+#include <sys/uio.h>
 
 #include <ctype.h>
 #include <errno.h>
@@ -55,10 +57,11 @@
 #include <string.h>
 #include <syslog.h>
 #include <unistd.h>
+#include <utmp.h>
 
-#include "../syslogd.h"
-#include "../modules.h"
 #include "../conditional.h"
+#include "../modules.h"
+#include "../syslogd.h"
 
 #define TTYMSGTIME	1		/* timeout passed to ttymsg */
 

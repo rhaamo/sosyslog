@@ -1,4 +1,4 @@
-/*      $CoreSDI: im_doors.c,v 1.1 2000/11/03 23:25:50 alejo Exp $   */
+/*      $CoreSDI: im_doors.c,v 1.2 2000/11/07 20:16:11 alejo Exp $   */
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -46,8 +46,8 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <door.h>
-#include "syslogd.h"
-#include "modules.h"
+#include "../modules.h"
+#include "../syslogd.h"
 
 
 void im_door_func ();
