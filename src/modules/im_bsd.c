@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.79 2001/03/07 21:35:14 alejo Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.80 2001/03/23 00:12:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -93,7 +93,7 @@ im_bsd_read(struct i_module *im, int infd, struct im_msg *ret)
 	char *p, *q, *lp;
 	int i, c;
 
-	strncpy(ret->im_msg, _PATH_KLOG, ret->im_mlen - 3);
+	strncpy(ret->im_msg, _PATH_UNIX, ret->im_mlen - 3);
 	strncat(ret->im_msg, ": ", 2);
 	lp = ret->im_msg + strlen(ret->im_msg);
 
