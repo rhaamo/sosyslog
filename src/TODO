@@ -46,3 +46,8 @@ get in the exactly same state as before the error).
 
 Check for buffer overflows, as we now may get things from the outside world.
 
+11-May-2000
+
+1- We need to change the decode function on syslogd.c and use the strcasecmp()
+function
+
