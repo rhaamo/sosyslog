@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.9 2000/05/30 23:43:12 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.10 2000/06/05 22:40:57 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -212,7 +212,7 @@ om_pgsql_init(argc, argv, f, prog, c)
 	char    **argv;
 	struct filed *f;
 	char *prog;
-	struct om_header_ctx **c;
+	struct om_hdr_ctx **c;
 {
 	PGconn  *h;
 	PGresult *r;
@@ -310,7 +310,7 @@ om_pgsql_init(argc, argv, f, prog, c)
 
 
 	/* save handle and stuff on context */
-	if (! (*c = (struct om_header_ctx *)
+	if (! (*c = (struct om_hdr_ctx *)
 		calloc(1, sizeof(struct om_pgsql_ctx))))
 		return (-1);
 
@@ -351,7 +351,7 @@ om_pgsql_destroy_ctx(ctx)
 int
 om_pgsql_close(f, ctx)
 	struct filed *f;
-	struct om_header_ctx *ctx;
+	struct om_hdr_ctx *ctx;
 {
 	PQfinish(((struct om_pgsql_ctx *)ctx)->h);
 	om_pgsql_destroy_ctx(ctx);

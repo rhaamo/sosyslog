@@ -1,11 +1,20 @@
-/*	$CoreSDI$	*/
+/*	$CoreSDI: README,v 1.4 2000/06/02 23:28:10 fgsch Exp $	*/
 
-Main differences with previous syslog
--------------------------------------
+Main differences with previous BSD syslog
+-----------------------------------------
 
-We have now outout modules (classic, mysql, peo, etc) and input
-modules (afux, pipe, tcp, udp, etc).
+The whole internal structure was redesigned to work with inpput and output modules,
+standarizing interfaces to facilitate development for using special devices and
+flexible configuratios.
 
+Special care was taken to remain backwards compatible on config files. You can
+use you previous BSD config files with this improved version of syslog. A new
+notation was made for configuration of modules.
 
-NEW MODULE CONFIG ('%') IS NOT BACKWARDS COMPATIBLE!!
+This new approach allows adding new functionality without complicating the code.
+
+Current availble outout modules are classic, mysql, peo, pgsql and filter.
+Available input modules are bsd, unix, and udp. curren modules under development
+or in the makings range from a linux kernel input module, to a special module
+for setting up triggers on actions and priority redirection.
 
