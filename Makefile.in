@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.22 2000/10/31 19:42:11 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.23 2000/12/04 23:25:26 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -55,12 +55,6 @@ modules:
 modules-install:
 	cd $(MODULES_SUBDIR) && make install
 
-install-recursive:
-	@target=`echo $@ | sed s/-recursive//`; \
-	list='$(INSTALL_SUBDIRS)'; \
-	for subdir in $$list; do \
-		(cd $$subdir && exec $(MAKE) $$target) \
-	done
 
 .PHONY: clean distclean install
 clean: clean-recursive
