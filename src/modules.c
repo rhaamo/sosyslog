@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.41 2000/04/28 00:12:23 alejo Exp $
+/*	$Id: modules.c,v 1.42 2000/04/28 20:39:37 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -43,7 +43,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <sys/syslog.h>
+#include <syslog.h>
 #include "syslogd.h"
 #include "modules.h"
 
@@ -65,6 +65,8 @@ int im_bsd_close(struct i_module *);
 int im_unix_init(struct i_module *);
 int im_unix_getLog(struct i_module *, struct im_msg *);
 int im_unix_close(struct i_module *);
+
+void    die __P((int));
 
 /* assign module functions to generic pointer */
 int modules_init (I, inputs)
@@ -115,7 +117,7 @@ int modules_init (I, inputs)
 
 	*I = (struct i_module *) calloc(1, sizeof(struct i_module));
 	if (inputs & IM_BSD)
-	    if (im_bsd_init(*I) < 0) {
+	    if (im_bsd_init(*I) < 0)
 	if (inputs & IM_UNIX)
 	    if (im_unix_init(*I) < 0) {
 	        die(0);
@@ -130,7 +132,8 @@ int modules_init (I, inputs)
 
 
 /* close all modules of a specific filed */
-int modules_close(f)
+int
+modules_close(f)
 	struct filed *f;
 {
 	/* close all modules */

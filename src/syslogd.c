@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.51 2000/04/28 00:54:49 alejo Exp $
+/*	$Id: syslogd.c,v 1.52 2000/04/28 20:39:37 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -118,6 +118,19 @@ int	SecureMode = 1;		/* when true, speak only unix domain socks */
 int nfunix = 1;
 char *funixn[MAXFUNIX] = { _PATH_LOG };
 int funix[MAXFUNIX];
+
+void    cfline __P((char *, struct filed *, char *));
+int     decode __P((const char *, CODE *));
+void    die __P((int));
+void    domark __P((int));
+void    doLog __P((struct filed *, int, char *));
+void    init __P((int));
+void    logerror __P((char *));
+void    logmsg __P((int, char *, char *, int));
+void    printline __P((char *, char *));
+void    reapchild __P((int));
+void    usage __P((void));
+
 
 int
 main(argc, argv)
