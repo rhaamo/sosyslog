@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.141 2000/12/19 21:25:05 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.142 2001/01/02 21:42:57 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -257,7 +257,13 @@ get_symbol(const char *modname, const char *funcname, void *h, void **ret) {
 
 }
 
-/* assign module functions to generic pointer */
+/*
+ * Create a new input module, and assign module functions to generic pointer
+ *
+ *  I is a pointer to a list of input modules, where new one will be appended
+ *  line is the command line of the input module
+ */
+
 int
 imodule_create(struct i_module *I, char *line)
 {
@@ -360,7 +366,16 @@ imodule_create_bad:
 
 }
 
-/* create all necesary modules for a specific filed */
+/*
+ * Create a new input module, and assign module functions to generic pointer
+ * while addinf it to a filed
+ *
+ *  c (line) is the command line of the input module
+ *  f is a pointer to a filed structure
+ *  prog is the program to match
+ *
+ */
+
 int
 omodule_create(char *c, struct filed *f, char *prog)
 {
