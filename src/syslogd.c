@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.130 2000/09/16 00:38:13 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.131 2000/09/16 00:41:22 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.130 2000/09/16 00:38:13 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.131 2000/09/16 00:41:22 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -715,7 +715,7 @@ doLog(struct filed *f, int flags, char *message) {
 	}
 
 	for (om = f->f_omod; om; om = om->om_next) {
-		if(!om->om_func || !om->om_func->om_doLog) {
+		if(!om->om_func || !om->om_func || !om->om_func->om_doLog) {
 			dprintf("doLog: error, no doLog function in output "
 				"module [%s], message [%s]\n", om->om_func->om_name, msg);
 			continue;
