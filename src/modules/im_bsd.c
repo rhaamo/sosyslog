@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.44 2000/05/26 21:33:39 fgsch Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.45 2000/05/27 02:03:59 alejo Exp $	*/
 
 /*
  * im_bsd -- classic behaviour module for BSD like systems
@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <fcntl.h>
+#include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
