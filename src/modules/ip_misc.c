@@ -1,4 +1,4 @@
-/*	$CoreSDI: ip_misc.c,v 1.1 2001/03/06 01:18:29 alejo Exp $	*/
+/*	$CoreSDI: ip_misc.c,v 1.2 2001/03/06 18:21:05 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -36,7 +36,7 @@
  * 
  */
 
-#include "../../config.h"
+#include "config.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -117,7 +117,7 @@ resolv_addr(struct sockaddr *addr, socklen_t addrlen)
  */
 
 struct sockaddr *
-resolv_name(const char *host, const char *port)
+resolv_name(const char *host, const char *port, int *salen)
 {
 	struct sockaddr *sa;
 #ifdef HAVE_GETADDRINFO
@@ -139,6 +139,7 @@ resolv_name(const char *host, const char *port)
 
 	sa = (struct sockaddr *) malloc(res->ai_addrlen);
 	memcpy(sa, res->ai_addr, res->ai_addrlen);
+	*salen = res->ai_addrlen;
 	freeaddrinfo(res);
 
 #else	/* we are on an extremely outdated and ugly api */
@@ -162,6 +163,7 @@ resolv_name(const char *host, const char *port)
 
 		sin4 = (struct sockaddr_in *)
 		    malloc(sizeof(struct sockaddr_in));
+		*salen = sizeof(struct sockaddr_in);
 #ifdef HAVE_SOCKADDR_SA_LEN
 		sin4->sin_len = sizeof(struct sockaddr_in);
 #endif
@@ -178,6 +180,7 @@ resolv_name(const char *host, const char *port)
 
 		sin6 = (struct sockaddr_in6 *)
 		    malloc(sizeof(struct sockaddr_in6));
+		*salen = sizeof(struct sockaddr_in);
 # ifdef HAVE_SOCKADDR_SA_LEN
 		sin6->sin6_len = sizeof(struct sockaddr_in6);
 # endif
@@ -207,8 +210,9 @@ int
 connect_tcp(const char *host, const char *port) {
 	int fd, n;
 	struct sockaddr *sa;
+	socklen_t salen;
 
-	if ( (sa = resolv_name(host, port)) == NULL)
+	if ( (sa = resolv_name(host, port, &salen)) == NULL)
 		return (-1);
 
 	n = TCP_KEEPALIVE;
@@ -225,18 +229,7 @@ connect_tcp(const char *host, const char *port) {
 	if ( (fd = socket(sa->sa_family, SOCK_STREAM, 0)) > -1 )
 
 		if ( (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &n,
-		    sizeof(n)) != 0) || (connect(fd, sa,
-#ifdef HAVE_SOCKADDR_SA_LEN
-		    sa->sa_len
-#else
-# ifndef AF_INET6
-		    sizeof(struct sockaddr_in)
-# else /* ifndef AF_INET6 */
-		    sa->sa_family == AF_INET? sizeof(struct sockaddr_in) : 
-		    sizeof(struct sockaddr_in6)
-# endif /* ifndef AF_INET6 */
-#endif
-		    ) != 0) ) {
+		    sizeof(n)) != 0) || (connect(fd, sa, salen) != 0) ) {
 			close(fd); /* couldn't set option or connect */
 			fd = -1;
 		}
@@ -256,7 +249,7 @@ listen_tcp(const char *host, const char *port, socklen_t *addrlenp) {
 	int fd, n;
 	struct sockaddr *sa;
 
-	if ( (sa = resolv_name(host, port)) == NULL)
+	if ( (sa = resolv_name(host, port, addrlenp)) == NULL)
 		return (-1);
 
 	n = TCP_KEEPALIVE;
@@ -264,13 +257,12 @@ listen_tcp(const char *host, const char *port, socklen_t *addrlenp) {
 	if ( (fd = socket(sa->sa_family, SOCK_STREAM, 0)) > -1 )
 
 		if ( (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &n,
-		    sizeof(n)) != 0) || (bind(fd, sa, sa->sa_len) != 0)
+		    sizeof(n)) != 0) || (bind(fd, sa, *addrlenp) != 0)
 		    || (listen(fd, LISTENQ) != 0) ) {
 			close(fd); /* couldn't set option or connect */
 			fd = -1;
 		}
 
-	*addrlenp = sa->sa_len;
 	free(sa);
 
 	return (fd);

@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.40 2001/01/31 20:43:46 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.41 2001/02/12 17:19:37 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -47,7 +47,7 @@ all: $(PROG)
 .c.o:
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
-modules.o: ../config.h
+modules.o: config.h
 
 $(OBJS): $(SRCS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $(@:.o=.c) -o $@

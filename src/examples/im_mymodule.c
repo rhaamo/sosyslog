@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_mymodule.c,v 1.7 2001/01/27 01:04:18 alejo Exp $	*/
+/*	$CoreSDI: im_mymodule.c,v 1.8 2001/02/08 18:01:53 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -37,7 +37,7 @@
  */
 
 /* Get system information */
-#include "../../config.h"
+#include "config.h"
 
 #include <sys/types.h>
 #include <errno.h>

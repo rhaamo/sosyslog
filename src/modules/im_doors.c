@@ -1,4 +1,4 @@
-/*      $CoreSDI: im_doors.c,v 1.9 2001/02/22 20:10:28 alejo Exp $   */
+/*      $CoreSDI: im_doors.c,v 1.10 2001/02/28 23:47:42 alejo Exp $   */
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -36,7 +36,7 @@
  *    
  */
 
-#include "../../config.h"
+#include "config.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>

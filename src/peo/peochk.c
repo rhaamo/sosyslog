@@ -1,4 +1,4 @@
-/*	$CoreSDI: peochk.c,v 1.42 2000/11/24 21:55:26 alejo Exp $	*/
+/*	$CoreSDI: peochk.c,v 1.43 2000/12/04 23:25:30 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -62,7 +62,7 @@
  *
  */
 
-#include "../../config.h"
+#include "config.h"
 
 #include <sys/param.h>
 #include <sys/stat.h>

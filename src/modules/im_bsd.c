@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.76 2001/02/22 20:10:27 alejo Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.77 2001/03/01 01:41:05 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -37,7 +37,7 @@
  *    
  */
 
-#include "../../config.h"
+#include "config.h"
 
 #include <sys/types.h>
 #include <sys/uio.h>

@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.149 2001/02/26 22:43:34 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.150 2001/02/28 23:47:41 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -36,7 +36,7 @@
  *          Federico Schwindt for Core-SDI S.A.
  */
 
-#include "../config.h"
+#include "config.h"
 
 #include <sys/param.h>
 #include <sys/types.h>
@@ -327,7 +327,8 @@ omodule_create(char *c, struct filed *f, char *prog)
 						    !isspace((int)*p))
 							p++;
 					}
-					*p++ = 0;
+					if (*p != 0)
+						*p++ = 0;
 					while (*p != '\0' &&
 					    isspace((int) *p))	
 						p++;

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_tcp.c,v 1.8 2001/02/28 23:47:42 alejo Exp $	*/
+/*	$CoreSDI: om_tcp.c,v 1.9 2001/03/06 01:18:29 alejo Exp $	*/
 /*
      Copyright (c) 2000, Core SDI S.A., Argentina
      All rights reserved
@@ -35,7 +35,7 @@
  *
  */
 
-#include "../../config.h"
+#include "config.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>

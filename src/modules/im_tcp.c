@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.10 2001/03/01 00:09:56 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.11 2001/03/06 01:18:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -45,7 +45,7 @@
  * 
  */
 
-#include "../../config.h"
+#include "config.h"
 
 
 #if TIME_WITH_SYS_TIME

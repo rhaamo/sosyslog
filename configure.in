@@ -1,7 +1,7 @@
-dnl $CoreSDI: configure.in,v 1.92 2001/03/06 16:01:28 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.93 2001/03/06 18:21:04 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
-AC_CONFIG_HEADER(config.h)dnl
+AC_CONFIG_HEADER(src/config.h)dnl
 
 dnl Checks for programs.
 AC_PROG_CC

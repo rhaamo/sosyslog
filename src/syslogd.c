@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.176 2001/03/01 20:56:40 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.177 2001/03/06 01:18:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.176 2001/03/01 20:56:40 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.177 2001/03/06 01:18:28 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -68,7 +68,7 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.176 2001/03/01 20:56:40 alejo Exp
  *
  */
 
-#include "../config.h"
+#include "config.h"
 
 #include <sys/param.h>
 #include <sys/stat.h>
@@ -232,8 +232,8 @@ main(int argc, char **argv)
         }
 
 	/* console config line */
-	ctty = (char *) malloc(sizeof(_PATH_CONSOLE) + 24);
-	sprintf(ctty, "%%classic -t CONSOLE " _PATH_CONSOLE);
+	ctty = (char *) malloc(sizeof(_PATH_CONSOLE) + 19);
+	strcpy(ctty, "%classic -t CONSOLE " _PATH_CONSOLE);
 
 	/* use ':' at start to allow -d to be used without argument */
 	opterr = 0;
@@ -372,7 +372,7 @@ main(int argc, char **argv)
 	
 	/* this should get into Files and be way nicer */
 	if (omodule_create(ctty, &consfile, NULL) == -1) {
-		dprintf(DPRINTF_SERIOUS)("Error initializing classic output "
+		dprintf(DPRINTF_SERIOUS)("Error initializing console's output "
 		    "module!\n");
 	}
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: sql_misc.c,v 1.7 2000/10/31 19:42:15 alejo Exp $	*/
+/*	$CoreSDI: sql_misc.c,v 1.8 2000/12/04 23:25:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -37,7 +37,7 @@
  *
  */
 
-#include "../../config.h"
+#include "config.h"
 
 #include <stdlib.h>
 #include <string.h>

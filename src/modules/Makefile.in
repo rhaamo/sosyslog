@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.58 2000/11/15 18:44:27 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.60 2000/12/04 23:25:28 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -32,7 +32,7 @@ CC=		@CC@
 LD=		ld
 CFLAGS=		@CFLAGS@ -Wall
 DCCFLAGS=	@DCCFLAGS@
-CPPFLAGS=	@CPPFLAGS@
+CPPFLAGS=	-I.. @CPPFLAGS@
 
 INSTALL=	@INSTALL@
 INSTALL_LIBDIR=	@prefix@/lib/alat
@@ -47,7 +47,7 @@ HASH_OBJS=	$(HASH_SRCS_ORI:.c=.o)
 
 SHARED_PARAMS=	@SHARED_PARAMS@
 
-$(MSRCS) $(HASH_SRCS): ../../config.h
+$(MSRCS) $(HASH_SRCS): ../config.h
 
 $(HASH_OBJS): $(HASH_SRCS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(DCCFLAGS) -c $(@:%.o=../peo/%.c) -o $@

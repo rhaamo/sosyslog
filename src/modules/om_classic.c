@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.67 2001/02/28 23:47:42 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.68 2001/03/06 01:18:29 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@
  *
  */
 
-#include "../../config.h"
+#include "config.h"
 
 #if TIME_WITH_SYS_TIME
 # include <sys/time.h>
@@ -270,6 +270,13 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 
 	dprintf(DPRINTF_INFORMATIVE)("om_classic_init: Entering\n");
 
+	/* accepts "%classic /file" or "%classic -t TYPE /file" */
+	if ( (argc != 2 && argc != 4) || argv == NULL) {
+		dprintf(DPRINTF_SERIOUS)("om_classic_init: incorrect "
+		    "parameters %d args\n", argc);
+		return (-1);
+	}
+
 	if ((*ctx = (void *) calloc(1, sizeof(struct om_classic_ctx))) == NULL) {
 		dprintf(DPRINTF_SERIOUS)("om_classic_init: cannot allocate "
 		    "context\n");
@@ -277,15 +284,6 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	}
 
 	c = (struct om_classic_ctx *) *ctx;
-
-	/* accepts "%classic /file" or "%classic -t TYPE /file" */
-	if ( (argc != 2 && argc != 4) || argv == NULL) {
-		dprintf(DPRINTF_SERIOUS)("om_classic_init: incorrect "
-		    "parameters %d args\n", argc);
-		free(*ctx);
-		*ctx = NULL;
-		return (-1);
-	}
 
 	if (argc > 2) {
 

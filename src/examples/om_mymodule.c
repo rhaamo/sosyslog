@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mymodule.c,v 1.9 2000/12/14 00:16:44 alejo Exp $	*/
+/*	$CoreSDI: om_mymodule.c,v 1.10 2001/01/27 01:04:18 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -38,7 +38,7 @@
  */
 
 /* Get system information */
-#include "../../config.h"
+#include "config.h"
 
 #if TIME_WITH_SYS_TIME
 # include <sys/time.h>
