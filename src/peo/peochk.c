@@ -1,4 +1,4 @@
-/*	$CoreSDI: peochk.c,v 1.50 2001/04/06 17:27:47 alejo Exp $	*/
+/*	$CoreSDI: peochk.c,v 1.51 2001/05/02 22:36:24 claudio Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -145,43 +145,45 @@ usage(void)
 
 
 /*
- * readline
+ * readline()
  */
 int
-readline (int fd, char *buf, size_t len)
+readline(int fd, char *buf, size_t len, FILE **f)
 {
-	int readed;
-	int r;
+	char	*st;
+	size_t	 i;
 
-	readed = 0;
-	while (len) {
-		if ( (r = read(fd, buf, 1)) == -1)
+	if (*f == NULL) {
+		*f = fdopen(fd, "r");
+		if (*f == NULL)
 			return (-1);
-		if (!r || *buf == '\n')
-			break;
-		buf++;
-		readed++;
-		len--;
+	}
+	st = fgets(buf, len, *f);
+	if (st != NULL) {
+		i = strlen(buf) - 1;
+		if (*(buf + i) == '\n')
+			*(buf + i ) = '\0';
+		return (i);
 	}
 	*buf = '\0';
-	return readed;
+	return (0);
 }
 
 
 /*
- * exit:
+ * eexit()
  *	Prints a message on stdout and exits with a status
  */
 void
-eexit (int status, char *fmt, ...)
+eexit(int status, char *fmt, ...)
 {
 	va_list ap;
 	if (fmt) {
-		va_start (ap, fmt);
+		va_start(ap, fmt);
 #ifdef HAVE_VPRINTF
-		vfprintf (stdout, fmt, ap);
+		vfprintf(stdout, fmt, ap);
 #elif defined(HAVE_DOPRNT)
-		_doprnt (stdout, fmt, ap);
+		_doprnt(stdout, fmt, ap);
 #else
 #error No vfprintf and no doprnt
 #endif
@@ -197,6 +199,7 @@ eexit (int status, char *fmt, ...)
 void
 check(void)
 {
+	FILE *finput;
 	int   i;
 	int   input;
 	int   mfd;
@@ -271,12 +274,14 @@ check(void)
 		if (actionf & QUIET)
 			eexit(1, "1\n");
 		else
-			eexit(1, "(1) %s and/or %s %s\n", key0file, keyfile, corrupted);
+			eexit(1, "(1) %s and/or %s %s\n", key0file, keyfile,
+			    corrupted);
 	}
 
 	/* check it */
 	line = 1;
-	while( (msglen = readline(input, msg, MAXLINE)) > 0) {
+	finput = NULL;
+	while ( (msglen = readline(input, msg, MAXLINE, &finput)) > 0) {
 		if (macfile) {
 			if ( ((mkey1len = mac2(key, keylen,
 			    (unsigned char *) msg, msglen, mkey1)) < 0) ||
@@ -302,7 +307,10 @@ check(void)
 		}
 	}
 
-	if (macfile)
+	if (finput != NULL)
+		fclose(finput);
+
+	if (macfile != NULL)
 		close(mfd);
 
 	if (i < 0) {
@@ -350,12 +358,14 @@ generate(void)
 		perror("fatal");
 		exit(-1);
 	}
-	if ( (kfd = open(keyfile, O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR)) == -1) {
+	if ( (kfd = open(keyfile, O_WRONLY|O_CREAT|O_EXCL,
+	    S_IRUSR|S_IWUSR)) == -1) {
 		release();
 		perror(keyfile);
 		exit(-1);
 	}
-	if ( (k0fd = open(key0file, O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR)) == -1) {
+	if ( (k0fd = open(key0file, O_WRONLY|O_CREAT|O_EXCL,
+	    S_IRUSR|S_IWUSR)) == -1) {
 		unlink(keyfile);
 		close(kfd);
 		release();
@@ -375,7 +385,7 @@ generate(void)
  * main
  */
 int
-main (int argc, char **argv)
+main(int argc, char **argv)
 {
 	int	 ch;
 	int	 mac;
