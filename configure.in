@@ -41,7 +41,8 @@ done
 AC_MSG_RESULT(dynamic modules will be installed on $INSTALL_LIBDIR)
 AC_SUBST(INSTALL_LIBDIR)
 
-for INSTALL_DIR in "/sbin" "/usr/sbin" "/usr/local/sbin" "bin" "/usr/bin" "/usr/local/bin"
+for INSTALL_DIR in "/sbin" "/usr/sbin" "/usr/local/sbin"\
+		   "bin" "/usr/bin" "/usr/local/bin"
 do
 	if test -d $INSTALL_DIR
 	then
@@ -97,8 +98,20 @@ AC_CHECK_FUNC(RMD160Init, AC_DEFINE(HAVE_RMD160),
 	HASH_SRCS="$HASH_SRCS rmd160.c")
 AC_SUBST(HASH_SRCS)
 
+AC_DEFUN(GREP, [
+if test -e "$2"
+then
+	if test "`grep $1 $2`"
+	then
+		$3
+	fi
+fi
+])
+	
+
 AC_DEFUN(BEGIN_MODULES_CONF, [
 STATIC_MODULES="src/static_modules"
+MODULES_DIR="src/modules"
 FIRST_ADD_OUTPUT=1
 FIRST_ADD_INPUT=1
 cp -f $STATIC_MODULES.c.in $STATIC_MODULES.c
@@ -122,17 +135,14 @@ eval `cat ./modules.conf`
 
 AC_DEFUN(END_MODULES_CONF, [
 AC_SUBST(SSRCS)
-printf "\treturn(0);\n}\n" >> $STATIC_MODULES.c
-])
+printf "\treturn(0);\n}\n" >> $STATIC_MODULES.c ])
 
 AC_DEFUN(add_om, [ 
 printf "\
 extern int om_%s_init (int, char**, struct filed*, char*,\
 struct om_hdr_ctx**);\n\
-extern int om_%s_doLog (struct filed*, int, char*, struct om_hdr_ctx*);\n\
-extern int om_%s_flush (struct filed*, struct om_hdr_ctx*);\n\
-extern int om_%s_close (struct filed*, struct om_hdr_ctx*);\n" \
-$1 $1 $1 $1 >> $STATIC_MODULES.h
+extern int om_%s_doLog (struct filed*, int, char*, struct om_hdr_ctx*);\n" \
+$1 $1 >> $STATIC_MODULES.h
 
 printf "\
 \tif ( (om = (struct omodule*)calloc(1, sizeof(struct omodule))) == NULL)\n\
@@ -149,18 +159,26 @@ fi
 printf "\
 \tolast->om_name=\"%s\";\n\
 \tolast->om_init=om_%s_init;\n\
-\tolast->om_doLog=om_%s_doLog;\n\
-\tolast->om_flush=om_%s_flush;\n\
-\tolast->om_close=om_%s_close;\n\n" \
-$1 $1 $1 $1 $1 >> $STATIC_MODULES.c
+\tolast->om_doLog=om_%s_doLog;\n" $1 $1 $1 >> $STATIC_MODULES.c
+
+GREP(om_$1_flush, "$MODULES_DIR/$2", [
+printf "extern int om_%s_flush (struct filed*, struct om_hdr_ctx*);\n" \
+$1 >> $STATIC_MODULES.h
+printf "\tolast->om_flush=om_%s_flush;\n" $1 >> $STATIC_MODULES.c
+]) 
+
+GREP(om_$1_close, "$MODULES_DIR/$2", [
+printf "extern int om_%s_close (struct filed*, struct om_hdr_ctx*);\n" \
+$1 >> $STATIC_MODULES.h
+printf "\tolast->om_close=om_%s_close;\n\n" $1 >> $STATIC_MODULES.c ]) 
+
 ])
 
 AC_DEFUN(add_im, [
 printf "\
 extern int im_%s_init (struct i_module*, char**, int);\n\
-extern int im_%s_getLog (struct i_module*, struct im_msg*);\n\
-extern int im_%s_close (struct i_module*);\n" \
-$1 $1 $1 >> $STATIC_MODULES.h
+extern int im_%s_getLog (struct i_module*, struct im_msg*);\n" \
+$1 $1 >> $STATIC_MODULES.h
 
 printf "\
 \tif ( (im = (struct imodule*)calloc(1, sizeof(struct imodule))) == NULL)\n\
@@ -177,9 +195,12 @@ fi
 printf "\
 \tilast->im_name=\"%s\";\n\
 \tilast->im_init=im_%s_init;\n\
-\tilast->im_getLog=im_%s_getLog;\n\
-\tilast->im_close=im_%s_close;\n\n" \
-$1 $1 $1 $1 >> $STATIC_MODULES.c
+\tilast->im_getLog=im_%s_getLog;\n" $1 $1 $1 >> $STATIC_MODULES.c
+
+GREP(im_$1_close, "$MODULES_DIR/$2", [
+printf "extern int im_%s_close (struct i_module*);\n" $1 >> $STATIC_MODULES.h
+printf "\tilast->im_close=im_%s_close;\n\n" $1 >> $STATIC_MODULES.c ]) 
+
 ])
 
 AC_DEFUN(CHECK_MODULE, [
@@ -187,7 +208,7 @@ AC_MSG_CHECKING([configuration for $1 module])
 if test "x$2" = "xstatic"
 then
 	SSRCS="$SSRCS $3" 
-	add_$4($1)
+	add_$4($1, $3)
 	AC_MSG_RESULT([static]);
 elif test "x$2" = "xdynamic"
 then
