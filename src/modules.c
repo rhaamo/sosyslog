@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.28 2000/04/18 22:25:19 alejo Exp $
+/*	$Id: modules.c,v 1.29 2000/04/19 19:04:17 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -81,6 +81,7 @@ int modules_init (I)
 	OModules[M_CLASSIC].om_close 		= om_classic_close;
 	OModules[M_CLASSIC].om_flush 		= om_classic_flush;
 
+#ifndef HAVE_LINUX
 	/* mysql module */
 	OModules[M_MYSQL].om_name 		= "mysql";
 	OModules[M_MYSQL].om_type 		= M_MYSQL;
@@ -88,6 +89,7 @@ int modules_init (I)
 	OModules[M_MYSQL].om_init 		= om_mysql_init;
 	OModules[M_MYSQL].om_close 		= om_mysql_close;
 	OModules[M_MYSQL].om_flush 		= om_mysql_flush;
+#endif
 
   
 }
