@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.130 2000/11/01 18:18:02 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.131 2000/11/01 19:13:18 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -470,6 +470,7 @@ addImod_bad:
 			i->im_next = NULL;
 	}
 	free(im);
+	return(NULL);
 }
 
 
