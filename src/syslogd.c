@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.94 2000/06/09 19:43:23 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.95 2000/06/16 00:26:56 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -126,8 +126,8 @@ void    printline(char *, char *, int);
 void    reapchild(int);
 void    usage(void);
 
-extern	struct  omodule omodules[];
-extern	struct  imodule imodules[];
+extern	struct  omodule *omodules;
+extern	struct  imodule *imodules;
 struct	i_module Inputs;
 
 int
