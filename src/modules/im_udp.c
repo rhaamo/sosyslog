@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.27 2000/05/26 21:28:49 fgsch Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.28 2000/05/27 02:04:00 alejo Exp $	*/
 
 /*
  * im_udp -- input from INET using UDP
@@ -22,8 +22,6 @@
 #include <unistd.h>
 #include "modules.h"
 #include "syslogd.h"
-
-void    die __P((int));
 
 extern int      finet;                  /* Internet datagram socket */
 extern int      LogPort;                /* port number for INET connections */

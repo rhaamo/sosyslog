@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.72 2000/05/26 21:15:36 gera Exp $	*/
+/*	$CoreSDI: modules.c,v 1.73 2000/05/26 21:40:39 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -85,9 +85,7 @@ int	im_linux_getLog __P((struct i_module *, struct im_msg *));
 int	im_linux_close __P((struct i_module *));
 #endif
 
-void    die __P((int));
-
-int parseParams(char ***, char *);
+int	parseParams __P((char ***, char *));
 
 extern struct OModule OModules[];
 extern struct IModule IModules[];

@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_mymodule.c, alejo Exp $	*/
+/*	$CoreSDI: im_mymodule.c,v 1.1 2000/05/27 02:03:59 alejo Exp $	*/
 
 /*
  * im_mymodule -- Give some description
@@ -14,9 +14,6 @@
 #include <syslog.h>
 #include "modules.h"
 #include "syslogd.h"
-
-/* you need to die() if input initializes wrongly */
-void    die __P((int));
 
 extern int      finet;         /* Internet datagram socket */
 extern int      LogPort;       /* port number for INET connections */

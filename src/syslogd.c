@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.75 2000/05/26 18:31:40 fgsch Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.76 2000/05/26 18:34:46 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -119,7 +119,6 @@ int	MarkSeq = 0;		/* mark sequence number */
 
 void    cfline __P((char *, struct filed *, char *));
 int     decode __P((const char *, CODE *));
-void    die __P((int));
 void    domark __P((int));
 void    doLog __P((struct filed *, int, char *));
 void    init __P((int));
