@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.14 2000/04/10 20:16:36 alejo Exp $
+/*	$Id: syslogd.c,v 1.15 2000/04/11 20:49:03 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -162,7 +162,7 @@ main(argc, argv)
 		case 'u':		/* allow udp input port */
 			SecureMode = 0;
 			break;
-		case 'a':
+		case 'a':		/* AF_UNIX socket name */
 			if (nfunix < MAXFUNIX)
 				funixn[nfunix++] = optarg;
 			else
