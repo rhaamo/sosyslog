@@ -1,4 +1,4 @@
-$Id: INSTALL,v 1.12 2000/11/04 00:08:26 alejo Exp $
+$Id: INSTALL,v 1.13 2001/04/30 19:00:06 alejo Exp $
 ==============================================================================
                          Modular Syslog package
                              INSTALL file
@@ -10,9 +10,12 @@ $Id: INSTALL,v 1.12 2000/11/04 00:08:26 alejo Exp $
 
   Msyslog has been tested on the following platforms:
 
-	- OpenBSD 2.6, 2.7
-	- Linux RedHat 6.2
-	- Caldera OpenLinux 2.2
+	- OpenBSD 2.6, 2.7, 2.8, 2.9
+	- RedHat 6.2, 7.0
+	- Debian
+	- Solaris 7
+	- Irix
+	- Aix 4.3
 
   Arthur Korn made a package for Debian users. You can contact him by mail
 at: arthur@korn.ch.
@@ -47,46 +50,23 @@ are placed. All other steps assume you are on that directory.
 
 1.c. Configuring 
 
-  Edit the file named modules.conf to match your criteria. Look at the
-following example:
+  The modules are now automatically configured (since 1.04 version). You
+only have to be sure the libraries you need are on the ld path. For example,
+for MySQL you have to check your libmysqlclient.so.X.X is on you library path.
+For mor information see your MySQL install docs.
 
-	UNIX=static
-	BSD=static
-	LINUX=
-	UDP=static
-	DOORS=static
-	STREAMS=static
-	CLASSIC=static
-	PEO=static
-	REGEX=static
-	MYSQL=
-	PGSQL=
+  You must run the script "configure" to prepare the compilation headers and
+makefiles for your system.
 
-  When you want a specific module, you have to put the word 'static'
-or 'dynamic' on it's value. Dynamic modules are useful for vendor
-specific modules, or to save memory on systems with more than one
-msyslog daemon running; if you don't want a module, just leave it
-without asignment.
-
-NOTE FOR LINUX USERS: set the input module LINUX to log kernel messages!
-NOTE FOR SOLARIS USERS: set the input module STREAMS instead of
-the BSD input module. You may need DOORS input module too.
-
-  Then, you must run the script "configure" to prepare the compilation
-headers and Makefiles for your system. You can also specify the include
-and lib paths for mysql and pgsql modules (run "configure --help" for
-more information).
-
-  The standard distribution will be installed on /usr/local directory,
-to change this, you may specify prefix when running configure (ie.:
-"configure --prefix=/usr".
-
-  You must run "configure" each time you modify modules.conf file.
+  The standard distribution will be installed on /usr/local directory, to
+change this, you may specify prefix when running configure (ie.:
+"configure --prefix=/usr").
 
   NOTE: If you are compiling on a new OS you may want to start a new
 configuration file, using the autoconf package available at
 http://www.gnu.org/. We would like to help new plataform ports, please
-contact the developer's mailing list (see note on mailing-lists).
+contact the developer's mailing list (see note on mailing-lists). It should be
+quite easy, since most branches of the *nix family tree are working already.
 
 
 1.d. Compiling
@@ -98,22 +78,15 @@ contact the developer's mailing list (see note on mailing-lists).
   Login as root and execute:
 		make install
 
-  If you successfully compile on a new platform not listed above,
-please contact the developers in order to include the changes in the 
-official distribution (see note on contacting us below).
+  If you successfully compile on a new platform not listed above, please
+contact the developers in order to include the changes in the official
+distribution (see note on contacting us below).
 
 	
 2. PLATAFORM SPECIFIC NOTES
 ===========================
 
 2.a Linux
-
-  Under Linux you need to have 'linux' module activated (either static or
-  dynamic) to log kernel messages; this module acts like klogd daemon so,
-  if you have it installed on your system, you should kill it before
-  running msyslog, otherwise im_linux will conflict with it.
-  The 'BSD' module is the kernel logger on bsd-like system, you should
-  not to activate it on Linux.
 
   Before starting msyslog, first stop running the old syslogd and also
 stop running klogd.
@@ -164,5 +137,4 @@ subscribe list-name
 in the message body, replacing list-name by the name of the
 choosen list. You can also send an email to  the developers only
 at core.devel.alat@core-sdi.com.
-
 
