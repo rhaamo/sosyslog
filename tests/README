@@ -1,0 +1,22 @@
+<html>
+<head><title>msyslog test suite</title></head>
+<body>
+<h2>msyslog Test Suite</h2>
+<div class="abstract">
+<p>
+ The msyslog test suite consists of utilities for feeding test data to msyslog.  
+ The messages which will be fed to msyslog.
+ The configuration files for configuring msyslog.
+ Expected output from msyslog.
+</p>
+</div>
+
+<div class="section">
+<p>
+ Most utilities are scripts that start msyslog, send input to 
+its opened ports and compare the actual output to the exepected output.
+</p>
+</div>
+
+</body>
+</html>

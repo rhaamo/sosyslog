@@ -1,0 +1,19 @@
+#This lines are equivalent we recommend the latter for msyslog
+*.*		/var/log/all
+*.*		%classic /var/log/all
+
+#This lines are equivalent we recommend the latter for msyslog
+#This sends a WALL message. A message to all logged users
+*.emerg		*
+*.emerg		%classic *
+
+#This lines are equivalent we recommend the latter for msyslog
+#This sends syslog output to a logging host through UDP transport
+*.notice		@loghost.domain.com
+*.notice		%classic @loghost.domain.com
+
+#This lines are equivalent we recommend the latter for msyslog
+#This sends all alert and higher messages to root
+*.alert		root
+*.alert		%classic root
+

@@ -259,6 +259,7 @@ om_regex_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 			break;
 		}
 
+	  m_dprintf(MSYSLOG_INFORMATIVE, "om_regex_write: type[%d]: [%s]\n", i, str);
 		if ((regexec(creg, str, 0, NULL, 0) != 0) ^ iflag)
 				return (0);
 	}

@@ -1,0 +1,12 @@
+#
+# SECURITY NOTE!!
+#
+# Since msyslog needs here the password to log to MySQL,
+# this file shouldn't be world readable!!!
+#
+
+# Log to server logger.mydomain.edu through MySQL
+*.*	%mysql -s logger.mydomain.edu -u loguser -p loguserpassword -d syslogDB -t syslogTB
+
+# Log to server logger.mydomain.edu through MySQL, using DELAYED inserts
+*.*	%mysql -D -s logger.mydomain.edu -u loguser -p loguserpassword -d syslogDB -t syslogTB

@@ -1,0 +1,13 @@
+# PASS only logs NOT containing the string 'connection reset by peer' to next module
+*.emerg	%regex -v -m 'connection reset by peer' %classic root
+
+# PASS only logs containing the string 'disk full' to next module
+*.emerg	%regex -m 'disk full' %classic root
+
+# PASS ONLY logs with host matching 'www'
+*.emerg	%regex -h 'www' %classic /var/log/webserver
+
+# PASS ONLY logs with host from 8pm to 9am  (20:00:00 to 09:00:00)
+# and also matching 'root'
+auth.info	%regex -v -t '^1' %regex -m 'root' %classic /var/log/webserver
+

@@ -1,0 +1,3 @@
+# Protect a log of classic module
+auth.info	%peo -l -k /var/lib/msyslog/.var.log.authlog.key %classic /var/log/authlog
+
