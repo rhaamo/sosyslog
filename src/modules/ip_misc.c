@@ -1,4 +1,4 @@
-/*	$CoreSDI: ip_misc.c,v 1.9 2001/03/26 14:43:41 alejo Exp $	*/
+/*	$CoreSDI: ip_misc.c,v 1.10 2001/03/27 23:21:07 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -56,6 +56,7 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <stdio.h>
+#include <inttypes.h>
 #include <syslog.h>
 
 #include "../modules.h"
@@ -156,12 +157,14 @@ resolv_name(const char *host, const char *port, socklen_t *salen)
 	struct servent *se;
 	short portnum;
 
-	if ( port && (portnum = atoi(port)) != 0)
-		portnum = htons(portnum);
+	if (port)
+		portnum = strtol(port, NULL, 10);
 	else if ((se = getservbyname(port, "tcp")) != NULL)
 		portnum = se->s_port;
 	else
 		portnum = 0;
+
+	portnum = htons(portnum);
 
 	if ( (hp = gethostbyname(host)) == NULL ) {
 		dprintf(MSYSLOG_SERIOUS, "resolv_name: error resolving "
