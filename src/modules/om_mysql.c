@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.30 2000/06/09 20:39:43 gera Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.31 2000/06/09 20:57:05 gera Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -116,8 +116,6 @@ om_mysql_doLog(f, flags, msg, ctx)
 	snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s"
 			" VALUES('%s-%.2d-%s', '%s', '%s', '%s')",
 			c->table, y, month_number(m), d, h, host, msg_q);
-
-	dprintf("SQL statement:%s\n",c->query);
 
 	free(msg_q);
 	free(dummy);
