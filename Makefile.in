@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.19 2000/08/22 19:43:38 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.20 2000/08/25 23:15:01 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -28,7 +28,7 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-SUBDIRS = src src/modules src/peo src/man
+SUBDIRS = src/modules src/peo src src/man
 INSTALL_SUBDIRS = src/modules src/peo src/man src
 
 all: all-recursive

@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.26 2000/07/10 23:58:39 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.27 2000/08/22 19:43:38 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -56,11 +56,14 @@ all: $(PROG)
 
 modules.o: config.h
 
-$(PROG): $(OBJS) MODULES
+$(OBJS): $(SRCS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDDFLAGS) $(LDFLAGS) $(LIBS) -c $(SRCS)
+
+$(PROG): $(OBJS) $(SOBJS:%=modules/%) $(SHASH_OBJS:%=modules/%)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDDFLAGS) $(LDFLAGS) $(LIBS) \
       	      $(OBJS) $(SOBJS:%=modules/%) $(SHASH_OBJS:%=modules/%) -o $@
 
-MODULES:
+$(SOBJS:%=modules/%) $(SHASH_OBJS:%=modules/%):
 	@cd modules && make && cd ..
 
 .PHONY:	clean distclean
@@ -72,7 +75,7 @@ distclean: clean
 	-rm -f Makefile config.h static_modules.c static_modules.h
 
 install-prog:
-	-$(INSTALL) $(PROG) $(INSTALL_DIR) ;
+	$(INSTALL) $(PROG) $(INSTALL_DIR) ;
 
 install: install-prog
 	@echo -e \
@@ -118,5 +121,4 @@ install: install-prog
 	"**                                                      **\n"\
 	"**********************************************************\n"\
 	"**********************************************************\n"
-       
 

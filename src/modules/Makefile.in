@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.35 2000/08/08 21:07:54 claudio Exp $
+# $CoreSDI: Makefile.in,v 1.36 2000/08/22 19:43:38 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -97,11 +97,11 @@ DCC=	$(CC) $(CFLAGS) $(CPPFLAGS) $(DCCFLAGS) -c
 LDK=	$(LD) -Bshareable
 
 
-all: STATIC DYNAMIC
+all: $(SOBJS) DYNAMIC
 
-STATIC DYNAMIC: ../config.h
+$(SSRCS) DYNAMIC: ../config.h
 
-STATIC: $(SOBJS)
+$(SOBJS): $(SSRCS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $(SSRCS) $(SHASH_SRCS:%=../peo/%)
 
 DYNAMIC:	$(DUNIX) $(DUDP) $(DBSD) $(DLINUX) \
@@ -162,7 +162,7 @@ install:
 	@-if [ "$(DMYSQL)" -a -f "$(DMYSQL)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DMYSQL) $(INSTALL_LIBDIR)/$(DMYSQL:.$(MSYSLOG_VERSION)=); fi
 	@-if [ "$(DPGSQL)" -a -f "$(DPGSQL)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DPGSQL) $(INSTALL LIBDIR)/$(DPGSQL:.$(MSYSLOG_VERSION)=); fi
 	@-if [ "$(DREGEX)" -a -f "$(DREGEX)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DREGEX) $(INSTALL_LIBDIR)/$(DREGEX:.$(MSYSLOG_VERSION)=); fi
-	-$(INSTALL) libmsyslog_*.so.* $(INSTALL_LIBDIR)
+	$(INSTALL) libmsyslog_*.so.* $(INSTALL_LIBDIR)
 	@echo updating run-time link database...
 	@-if test "$(UNAME)" = "Linux"; \
 	then \
