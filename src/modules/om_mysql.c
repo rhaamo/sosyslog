@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.62 2001/02/26 22:34:38 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.63 2001/02/28 23:47:42 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -286,15 +286,19 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: mysql_init returned %p\n",
 	    ctx->h);
 
-	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: params %p %s %s %s %s %i \n",
-	    ctx->h, ctx->host, ctx->user, "<passwd>", ctx->db, ctx->port);
+	dprintf(DPRINTF_INFORMATIVE)("om_mysql_init: params %p %s %s %s %i"
+	    " \n", ctx->h, ctx->host, ctx->user, ctx->db, ctx->port);
 
-	snprintf(statbuf, sizeof(statbuf), "om_mysql: sending messages to host %s, "
-	    "database %s, table %s.", ctx->host, ctx->db, ctx->table);
-	*status = strdup(statbuf);
+	if (Debug) {
+		snprintf(statbuf, sizeof(statbuf), "om_mysql: sending "
+		    "messages to %s, database %s, table %s.", ctx->host,
+		    ctx->db, ctx->table);
+		*status = strdup(statbuf);
+	} else
+		*status = NULL;
 
-	if (!((ctx->mysql_real_connect)(ctx->h, ctx->host, ctx->user, ctx->passwd,
-	    ctx->db, ctx->port, NULL, 0)) ) {
+	if (!((ctx->mysql_real_connect)(ctx->h, ctx->host, ctx->user,
+	    ctx->passwd, ctx->db, ctx->port, NULL, 0)) ) {
 
 		snprintf(err_buf, sizeof(err_buf), "om_mysql_init: Error "
 		    "connecting to db server [%s:%i] user [%s] db [%s]",
@@ -312,8 +316,9 @@ om_mysql_init_bad:
 		*c = NULL;
 	}
 
-	return(-1);
+	*status = NULL;
 
+	return(-1);
 }
 
 

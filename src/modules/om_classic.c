@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.66 2001/02/22 20:10:28 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.67 2001/02/28 23:47:42 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -101,6 +101,7 @@ extern char     *ctty;
 
 
 struct om_classic_ctx {
+	int	fd;
 	union {
 		char    f_uname[MAXUNAMES][UT_NAMESIZE+1];
 		struct {
@@ -215,28 +216,28 @@ om_classic_write(struct filed *f, int flags, char *msg, void *ctx)
 			v->iov_len = 1;
 		}
 		again:
-		if (writev(f->f_file, iov, 6) < 0) {
+		if (writev(c->fd, iov, 6) < 0) {
 			int e = errno;
-			(void)close(f->f_file);
+			(void)close(c->fd);
 			/*
 			 * Check for errors on TTY's due to loss of tty
 			 */
 			if ((e == EIO || e == EBADF) && c->f_type != F_FILE) {
-				f->f_file = open(c->f_un.f_fname,
+				c->fd = open(c->f_un.f_fname,
 				    O_WRONLY|O_APPEND, 0);
-				if (f->f_file < 0) {
+				if (c->fd < 0) {
 					c->f_type = F_UNUSED;
 					logerror(c->f_un.f_fname);
 				} else
 					goto again;
 			} else {
 				c->f_type = F_UNUSED;
-				f->f_file = -1;
+				c->fd = -1;
 				errno = e;
 				logerror(c->f_un.f_fname);
 			}
 		} else if (flags & SYNC_FILE)
-			(void)fsync(f->f_file);
+			(void)fsync(c->fd);
 		break;
 
 	case F_USERS:
@@ -264,8 +265,8 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 {
 	struct hostent *hp;
 	struct  om_classic_ctx *c;
-	int i;
-	char *p, *q, buf[MAXHOSTNAMELEN + 1000];
+	int i, statbuf_len;
+	char *p, *q, statbuf[1024];
 
 	dprintf(DPRINTF_INFORMATIVE)("om_classic_init: Entering\n");
 
@@ -361,34 +362,36 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		memmove(&c->f_un.f_forw.f_addr.sin_addr, hp->h_addr,
 		    sizeof(struct in_addr));
 		c->f_type = F_FORW;
-		snprintf(buf, sizeof(buf), "om_classic: forwarding messages "
-		    "through UDP to host %s", c->f_un.f_forw.f_hname);
-		*status = strdup(buf);
+		if (Debug)
+			snprintf(statbuf, sizeof(statbuf), "om_classic: "
+			    "forwarding messages through UDP to host %s",
+			    c->f_un.f_forw.f_hname);
 		break;
 
 	case '/':
 		strncpy(c->f_un.f_fname, p, sizeof c->f_un.f_fname);
 		c->f_un.f_fname[sizeof (c->f_un.f_fname) - 1]=0;
-		if ((f->f_file = open(p, O_WRONLY|O_APPEND, 0)) < 0) {
+		if ((c->fd = open(p, O_WRONLY|O_APPEND, 0)) < 0) {
 			c->f_type = F_UNUSED;
 			logerror(p);
 			break;
 		}
-		if (isatty(f->f_file))
+		if (isatty(c->fd))
 			c->f_type = F_TTY;
 		else
 			c->f_type = F_FILE;
 		if (strcmp(p, ctty) == 0)
 			c->f_type = F_CONSOLE;
-		snprintf(buf, sizeof(buf), "om_classic: saving messages "
-		    "to file %s", c->f_un.f_fname);
-		*status = strdup(buf);
+		if (Debug)
+			snprintf(statbuf, sizeof(statbuf), "om_classic: "
+			    "saving messages to file %s", c->f_un.f_fname);
 		break;
 
 	case '*':
 		c->f_type = F_WALL;
-		*status = strdup("om_classic: sending messages to all logged"
-		    " users");
+		if (Debug)
+			snprintf(statbuf, sizeof(statbuf), "om_classic: sending "
+			    "messages to all logged users");
 		break;
 
 	default:
@@ -405,17 +408,23 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 			p = q;
 		}
 		c->f_type = F_USERS;
-		snprintf(buf, sizeof(buf), "om_classic: forwarding messages "
-		    "to users:");
-		for (i = 0; i < MAXUNAMES &&
-		    c->f_un.f_uname[i][0] != '\0'; i++) {
-			strncat(buf, " ", sizeof(buf) - 1);
-			strncat(buf, c->f_un.f_uname[i], sizeof(buf) - 1);
+		if (Debug) {
+			statbuf_len = snprintf(statbuf, sizeof(statbuf),
+			    "om_classic: forwarding messages to users:");
+			for (i = 0; i < MAXUNAMES &&
+			    c->f_un.f_uname[i][0] != '\0'; i++) {
+				statbuf_len += snprintf(statbuf,
+				    sizeof(statbuf) - statbuf_len, " %s",
+				    c->f_un.f_uname[i]);
+			}
 		}
-		buf[sizeof(buf) - 1] = '\0';
-		*status = strdup(buf);
 		break;
 	}
+
+	if (Debug)
+		*status = strdup(statbuf);
+	else
+		*status = NULL;
 
 	return (1);
 }
@@ -431,7 +440,7 @@ om_classic_close(struct filed *f, void *ctx)
 	case F_FILE:
 	case F_TTY:
 	case F_CONSOLE:
-		return (close(f->f_file));
+		return (close(c->fd));
 	case F_FORW:
 		if ((finet > -1) && (DaemonFlags & SYSLOGD_INET_IN_USE)
 		    && !(DaemonFlags & SYSLOGD_INET_READ))

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.29 2001/02/26 22:32:29 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.30 2001/02/28 23:47:42 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -39,6 +39,7 @@
 #include "../../config.h"
 
 #if TIME_WITH_SYS_TIME
+
 # include <sys/time.h>
 # include <time.h>
 #else
@@ -58,6 +59,7 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <regex.h>
+
 #include "../modules.h"
 #include "../syslogd.h"
 
@@ -67,11 +69,11 @@ struct om_regex_ctx {
 	short		flags;
 	int		size;
 	int		filters;
-#define	OM_FILTER_INVERSE	0x01
-#define	OM_FILTER_MESSAGE	0x02
-#define	OM_FILTER_HOST		0x04
-#define	OM_FILTER_DATE		0x08
-#define	OM_FILTER_TIME		0x10
+#define	OM_FILTER_MESSAGE	0x01
+#define	OM_FILTER_HOST		0x02
+#define	OM_FILTER_DATE		0x04
+#define	OM_FILTER_TIME		0x08
+#define	OM_FILTER_INVERSE	0x10
 	regex_t		msg_exp;
 	regex_t		host_exp;
 	regex_t		date_exp;
@@ -89,8 +91,8 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 {
 	struct	om_regex_ctx *c;
 	regex_t	*creg;
-	int	ch;
-	char	statbuf[1048];
+	int	ch, statbuf_len;
+	char	statbuf[1048], *p;
 
 	creg = NULL;
 
@@ -109,19 +111,23 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	c = (struct om_regex_ctx *) *ctx;
 	c->size = sizeof(struct om_regex_ctx);
 
-	snprintf(statbuf, sizeof(statbuf), "om_regex: filtering");
+	statbuf_len = 0;  /* make compiler happy */
+	if (Debug)
+		statbuf_len = snprintf(statbuf, sizeof(statbuf),
+		    "om_regex: filtering");
 
 	/*
 	 * Parse options with getopt(3)
 	 *
 	 * we give an example for a -s argument
 	 * -v flag means INVERSE matching
-	 * -m flag match message (default)
+	 * -m flag match message
 	 * -h flag match host
 	 * -d flag match date
 	 * -t flag match time
 	 *
 	 */
+	p = NULL;
 	optind = 1;
 #ifdef HAVE_OPTRESET
 	optreset = 1;
@@ -130,39 +136,39 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		switch (ch) {
 		case 'v':
 			c->filters |= OM_FILTER_INVERSE;
-			strncat(statbuf, " inverse,", sizeof(statbuf) - 1);
+			if(Debug){
+				statbuf_len += snprintf(statbuf,
+				    sizeof(statbuf) - statbuf_len, " inverse");
+				p = NULL;
+			}
 			continue;
 
 		case 'm':
 			c->filters |= OM_FILTER_MESSAGE;
 			creg = &c->msg_exp;
-			strncat(statbuf, " message [", sizeof(statbuf) - 1);
-			strncat(statbuf, optarg, sizeof(statbuf) - 1);
-			strncat(statbuf, "]", sizeof(statbuf) - 1);
+			if(Debug)
+				p = " message,";
 			break;
 
 		case 'h':
 			c->filters |= OM_FILTER_HOST;
 			creg = &c->host_exp;
-			strncat(statbuf, " host [", sizeof(statbuf) - 1);
-			strncat(statbuf, optarg, sizeof(statbuf) - 1);
-			strncat(statbuf, "]", sizeof(statbuf) - 1);
+			if(Debug)
+				p = " host";
 			break;
 
 		case 'd':
 			c->filters |= OM_FILTER_DATE;
 			creg = &c->date_exp;
-			strncat(statbuf, " date [", sizeof(statbuf) - 1);
-			strncat(statbuf, optarg, sizeof(statbuf) - 1);
-			strncat(statbuf, "]", sizeof(statbuf) - 1);
+			if(Debug)
+				p = " date";
 			break;
 
 		case 't':
 			c->filters |= OM_FILTER_TIME;
 			creg = &c->time_exp;
-			strncat(statbuf, " time [", sizeof(statbuf) - 1);
-			strncat(statbuf, optarg, sizeof(statbuf) - 1);
-			strncat(statbuf, "]", sizeof(statbuf) - 1);
+			if(Debug)
+				p = " time";
 			break;
 
 		default:
@@ -178,10 +184,16 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 			free(*ctx);
 			return (-1);
 		}
+
+		if (Debug && p)
+			statbuf_len += snprintf(statbuf, sizeof(statbuf)
+			    - statbuf_len, " %s [%s]", p, optarg);
 	}
 
-	statbuf[sizeof(statbuf) - 1] = '\0';
-	*status = strdup(statbuf);
+	if (Debug && (statbuf_len > 0))
+		*status = strdup(statbuf);
+	else
+		*status = NULL;
 
 	return (1);
 }

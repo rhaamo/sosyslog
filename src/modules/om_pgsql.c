@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.34 2001/02/26 22:34:38 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.35 2001/02/28 23:47:42 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -239,7 +239,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	void	*h;
 	struct	om_pgsql_ctx *ctx;
 	char	*host, *user, *passwd, *db, *table, *port, *p;
-	char	statbuf[MAXHOSTNAMELEN + 100];
+	char	statbuf[1024];
 	int	ch = 0;
 
 	dprintf(DPRINTF_INFORMATIVE)("om_pgsql_init: entering "
@@ -343,9 +343,13 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	ctx->h = h;
 	ctx->table = strdup(table);
 
-	snprintf(statbuf, sizeof(statbuf), "om_pgsql: sending messages to host"
-	    " %s, database %s, table %s", host, db, table);
-	*status = strdup(statbuf);
+	if (Debug) {
+		snprintf(statbuf, sizeof(statbuf), "om_pgsql: sending "
+		    "messages to host %s, database %s, table %s", host,
+		    db, table);
+		*status = strdup(statbuf);
+	} else
+		*status = NULL;
 
 	return (1);
 }

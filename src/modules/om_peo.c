@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.62 2001/02/12 17:19:38 claudio Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.63 2001/02/28 23:47:42 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -260,10 +260,13 @@ om_peo_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	c->macfile = macfile;
 	*ctx = (void *) c;
 
-	snprintf(statbuf, sizeof(statbuf), "om_peo: method: %d\nkeyfile: %s\nmacfile: %s\n",
-	    hash_method, keyfile, macfile);
-	*status = strdup(statbuf);
-	dprintf(DPRINTF_INFORMATIVE)("%s", statbuf);
+	if (Debug) {
+		snprintf(statbuf, sizeof(statbuf), "om_peo: method: "
+		    "%d\nkeyfile: %s\nmacfile: %s\n", hash_method, keyfile,
+		    macfile);
+		*status = strdup(statbuf);
+	} else
+		*status = NULL;
 
 	return (1);
 }

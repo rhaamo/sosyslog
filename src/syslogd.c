@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.175 2001/03/01 01:41:05 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.176 2001/03/01 20:56:40 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.175 2001/03/01 01:41:05 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.176 2001/03/01 20:56:40 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -231,6 +231,10 @@ main(int argc, char **argv)
                 return(-1);
         }
 
+	/* console config line */
+	ctty = (char *) malloc(sizeof(_PATH_CONSOLE) + 24);
+	sprintf(ctty, "%%classic -t CONSOLE " _PATH_CONSOLE);
+
 	/* use ':' at start to allow -d to be used without argument */
 	opterr = 0;
 
@@ -366,12 +370,6 @@ main(int argc, char **argv)
 	} else
 		setlinebuf(stdout);
 	
-	/* console config line */
-	ctty = (char *) malloc(strlen(_PATH_CONSOLE) + 25);
-	strncpy(ctty, "%classic -t CONSOLE ", 20);
-	strncpy(ctty + 20,_PATH_CONSOLE, strlen(_PATH_CONSOLE));
-	ctty[strlen(_PATH_CONSOLE) + 20] = '\0';
-
 	/* this should get into Files and be way nicer */
 	if (omodule_create(ctty, &consfile, NULL) == -1) {
 		dprintf(DPRINTF_SERIOUS)("Error initializing classic output "
@@ -750,15 +748,18 @@ logmsg(int pri, char *msg, char *from, int flags)
 
 	/* log the message to the particular outputs */
 	if (!Initialized) {
-		f = &consfile;
-		f->f_file = open(ctty, O_WRONLY, 0);
-
-		if (f->f_file >= 0) {
-			doLog(f, flags, msg);
-			close(f->f_file);
-			f->f_file = -1;
+		if (ctty && omodule_create(ctty, &consfile, NULL) != -1) {
+			doLog(&consfile, flags, msg);
+			if (consfile.f_omod && consfile.f_omod->om_func
+			    && consfile.f_omod->om_func->om_close != NULL)
+				(*consfile.f_omod->om_func->om_close)
+				    (&consfile, consfile.f_omod->ctx);
+			if (consfile.f_omod->ctx)
+				free(consfile.f_omod->ctx);
+			if (consfile.f_omod->status)
+				free(consfile.f_omod->status);
 		}
-		(void)sigprocmask(SIG_SETMASK, &omask, NULL);
+		sigprocmask(SIG_SETMASK, &omask, NULL);
 		return;
 	}
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.94 2001/02/22 20:10:27 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.95 2001/02/28 23:47:42 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -106,7 +106,6 @@
 
 struct filed {
 	struct  filed *f_next;	  /* next in linked list */
-	short   f_file;		 /* file descriptor */
 	time_t  f_time;		 /* time this was last written */
 	u_char  f_pmask[LOG_NFACILITIES+1];     /* priority mask */
 	char    *f_program;	     /* program this applies to */

@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.89 2001/03/01 00:46:01 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.90 2001/03/01 01:41:04 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(config.h)dnl
@@ -264,11 +264,11 @@ AC_ARG_WITH(tcp,
 	Use tcp input and output modules. Activated by default.
 ],[
 	if test $with_tcp = "yes" ; then
-		MSRCS="$MSRCS om_tcp.c im_tcp.c"
+		MSRCS="$MSRCS om_tcp.c im_tcp.c ip_misc.c"
 		MANPAGES="$MANPAGES om_tcp.8 im_tcp.8"
 	fi
 ],[
-	MSRCS="$MSRCS om_tcp.c im_tcp.c"
+	MSRCS="$MSRCS om_tcp.c im_tcp.c ip_misc.c"
 	MANPAGES="$MANPAGES om_tcp.8 im_tcp.8"
 ])
 
@@ -303,18 +303,6 @@ AC_ARG_WITH(pgsql,
 if test "$USESQL" = "yes" ; then
 	MSRCS="$MSRCS sql_misc.c"
 fi
-
-AC_ARG_WITH(db2,
-[  --without-db2
-	Use db2 output module. Activated by default.
-],[
-	if test $with_db2 = "yes" ; then
-		MSRCS="$MSRCS om_db2.c"
-	fi
-],[
-	MSRCS="$MSRCS om_db2.c"
-	USESQL="yes"
-])
 
 AC_ARG_WITH(peo,
 [  --without-peo
