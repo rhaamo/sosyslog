@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_tcp.c,v 1.5 2001/02/22 20:10:28 alejo Exp $	*/
+/*	$CoreSDI: om_tcp.c,v 1.6 2001/02/23 00:56:12 alejo Exp $	*/
 /*
      Copyright (c) 2000, Core SDI S.A., Argentina
      All rights reserved
@@ -255,15 +255,13 @@ om_tcp_close(struct filed *f, void *ctx)
 
 int
 connect_tcp(const char *host, const char *port) {
-	struct addrinfo hints, *res, *ressave;
 	int fd, n;
+#ifdef HAVE_GETADDRINFO
+	struct addrinfo hints, *res, *ressave;
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-
-	dprintf(DPRINTF_INFORMATIVE)("connect_tcp: called for host %s , "
-	    "port %s\n", host, port);
 
 	if ( (n = getaddrinfo(host, port, &hints, &res)) != 0) {
 
@@ -276,6 +274,7 @@ connect_tcp(const char *host, const char *port) {
 	}
 
 	n = OM_TCP_KEEPALIVE;
+	fd = -1;
 
 	for (ressave = res; res != NULL; res = res->ai_next) {
 
@@ -293,17 +292,72 @@ connect_tcp(const char *host, const char *port) {
 			break; /* ok! */
 
 		close(fd); /* couldn't connect */
+		fd = -1;
 
 	};
 
-	if (res == NULL) {
-		dprintf(DPRINTF_INFORMATIVE)("connect_tcp: error connecting "
-		    "to remote host %s, %s\n", host, port);
-		freeaddrinfo(ressave);
+	freeaddrinfo(ressave);
+
+#else	/* we are on an extremely outdated and ugly api */
+	struct hostent *hp;
+	struct servent *sp;
+	struct sockaddr_in servaddr;
+	struct in_addr **paddr;
+	short portnum;
+
+	if ( (sp = getservbyname(port, "tcp")) == NULL) {
+		if ( (portnum = htons((short) atoi(port))) == 0 ) {
+			dprintf(DPRINTF_SERIOUS)("tcp_listen: error resolving "
+			    "port number %s, %s\n", host, port);
+			return (-1);
+		}
+	} else
+		portnum = sp->s_port;
+
+	if ( (hp = gethostbyname(host)) == NULL ) {
+		dprintf(DPRINTF_SERIOUS)("tcp_listen: error resolving "
+		    "host address %s, %s\n", host, port);
 		return (-1);
 	}
 
-	freeaddrinfo(ressave);
+	paddr = (struct in_addr **) hp->h_addr_list;
+	fd = -1;
+
+	for ( ; *paddr != NULL; paddr++) {
+
+		if ( (fd = socket( AF_INET, SOCK_STREAM, 0)) < 0) {
+			dprintf(DPRINTF_SERIOUS)("tcp_listen: error creating socket "
+			    "for host address %s, %s\n", host, port);
+			return (-1);
+		}
+
+		i = 1;
+
+		if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &i, sizeof(i)) != 0) {
+			dprintf(DPRINTF_SERIOUS)("tcp_listen: error setting socket "
+			    "options for host address %s, %s\n", host, port);
+			return (-1);
+		}
+
+		memset(&servaddr, 0, sizeof(servaddr)); 
+		servaddr.sin_family = AF_INET;
+		servaddr.sin_port = portnum;
+		memcpy(&servaddr.sin_addr, *paddr, sizeof(servaddr.sin_addr));
+
+		if (connect(fd, (struct sockaddr *) &servaddr, sizeof(servaddr)) == 0)
+			break; /* ok! */
+
+		close(fd); /* couldn't bind */
+		fd = -1;
+	}
+
+#endif
+
+	if (fd == -1) {
+		dprintf(DPRINTF_INFORMATIVE)("connect_tcp: error connecting "
+		    "to remote host %s, %s\n", host, port);
+		return (-1);
+	}
 
 	return (fd);
 

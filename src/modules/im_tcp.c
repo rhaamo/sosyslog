@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.6 2001/02/19 23:42:01 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.7 2001/02/22 20:10:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -123,7 +123,7 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 	c = (struct im_tcp_ctx *) I->im_ctx;
 
 	if ( (I->im_fd = listen_tcp(argv[1], argv[2], &c->addrlen)) < 0) {
-        	dprintf(DPRINTF_SERIOUS)("im_tcp: error n listen()\n");
+        	dprintf(DPRINTF_SERIOUS)("im_tcp: error with listen_tcp()\n");
 		return (-1);
 	}
 
@@ -151,6 +151,11 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 	struct im_tcp_ctx *c;
 	struct tcp_conn *con;
 	int n;
+#ifndef HAVE_GETNAMEINFO
+	struct hostent *hp;
+	struct sockaddr_in *sin4;
+	struct sockaddr_in6 *sin6;
+#endif
 
 	if (im == NULL || ret == NULL) {
 		dprintf(DPRINTF_SERIOUS)("im_tcp_read: arg %s%s is null\n",
@@ -165,7 +170,8 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		socklen_t slen;
 		int fd;
 
-		if ( (cliaddrp = malloc(c->addrlen)) == NULL)
+		if ( (cliaddrp = (struct sockaddr *)
+			calloc(1, c->addrlen)) == NULL)
 			return (-1);
 		slen = c->addrlen;
 
@@ -206,11 +212,35 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		con->cliaddr  = cliaddrp;
 		con->addrlen  = slen;
 
-		if (getnameinfo((struct sockaddr *) con->cliaddr, con->addrlen,
-		    con->name, sizeof(con->name) - 1, NULL, 0, 0) != 0) {
+#ifdef HAVE_GETNAMEINFO
+		n = getnameinfo((struct sockaddr *) con->cliaddr, con->addrlen,
+		    con->name, sizeof(con->name) - 1, NULL, 0, 0);
+#else
+		hp = NULL;
+		if (con->cliaddr->sa_family == AF_INET) {
+			sin4 = (struct sockaddr_in *) con->cliaddr;
+			hp = gethostbyaddr((char *) &sin4->sin_addr,
+			    sizeof(sin4->sin_addr), sin4->sin_family);
+		} else if (con->cliaddr->sa_family == AF_INET6) {
+			sin6 = (struct sockaddr_in6 *) con->cliaddr;
+			hp = gethostbyaddr((char *) &sin6->sin6_addr,
+			    sizeof(sin6->sin6_addr), sin6->sin6_family);
+		}
+
+		if (hp == NULL) {
+			n = -1;
+		} else {
+			strncpy(con->name, hp->h_name, sizeof(con->name) - 1);
+			con->name[sizeof(con->name) - 1] = '\0';
+			n = 0;
+		}
+#endif
+
+
+		if (n != 0) {
 			
-        		dprintf(DPRINTF_SERIOUS)("im_tcp: error resolving "
-			    "remote host name!\n");
+        		dprintf(DPRINTF_INFORMATIVE)("im_tcp: error resolving "
+			    "remote host name! [%d]\n", n);
 
 			inet_ntop(con->cliaddr->sa_family, &con->cliaddr,
 			    con->name, sizeof(con->name) - 1);
@@ -360,8 +390,9 @@ im_tcp_close(struct i_module *im)
 
 int
 listen_tcp(const char *host, const char *port, socklen_t *addrlenp) {
-	struct addrinfo hints, *res, *ressave;
 	int fd, i;
+#ifdef HAVE_GETADDRINFO
+	struct addrinfo hints, *res, *ressave;
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_flags = AI_PASSIVE;
@@ -370,7 +401,7 @@ listen_tcp(const char *host, const char *port, socklen_t *addrlenp) {
 
 	if ( (i = getaddrinfo(host, port, &hints, &res)) != 0) {
 
-		dprintf(DPRINTF_INFORMATIVE)("im_tcp_init: error on address "
+		dprintf(DPRINTF_INFORMATIVE)("listen_tcp: error on address "
 		    "to listen %s, %s: %s\n", host, port,
 		    gai_strerror(i));
 
@@ -396,11 +427,12 @@ listen_tcp(const char *host, const char *port, socklen_t *addrlenp) {
 			break; /* ok! */
 
 		close(fd); /* couldn't connect */
+		fd = -1;
 
 	};
 
 	if (res == NULL) {
-		dprintf(DPRINTF_INFORMATIVE)("im_tcp_init: error binding "
+		dprintf(DPRINTF_INFORMATIVE)("listen_tcp: error binding "
 		    "to host address %s, %s\n", host, port);
 		freeaddrinfo(ressave);
 		return (-1);
@@ -408,8 +440,69 @@ listen_tcp(const char *host, const char *port, socklen_t *addrlenp) {
 
 	freeaddrinfo(ressave);
 
+#else	/* we are on an extremely outdated and ugly api */
+	struct hostent *hp;
+	struct servent *sp;
+	struct sockaddr_in servaddr;
+	struct in_addr **paddr;
+	short portnum;
+
+	if ( (sp = getservbyname(port, "tcp")) == NULL) {
+		if ( (portnum = htons((short) atoi(port))) == 0 ) {
+			dprintf(DPRINTF_SERIOUS)("tcp_listen: error resolving "
+			    "port number %s, %s\n", host, port);
+			return (-1);
+		}
+	} else
+		portnum = sp->s_port;
+
+	if ( (hp = gethostbyname(host)) == NULL ) {
+		dprintf(DPRINTF_SERIOUS)("tcp_listen: error resolving "
+		    "host address %s, %s\n", host, port);
+		return (-1);
+	}
+
+	paddr = (struct in_addr **) hp->h_addr_list;
+	fd = -1;
+
+	for ( ; *paddr != NULL; paddr++) {
+
+		if ( (fd = socket( AF_INET, SOCK_STREAM, 0)) < 0) {
+			dprintf(DPRINTF_SERIOUS)("tcp_listen: error creating socket "
+			    "for host address %s, %s\n", host, port);
+			return (-1);
+		}
+
+		i = 1;
+
+		if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &i, sizeof(i)) != 0) {
+			dprintf(DPRINTF_SERIOUS)("tcp_listen: error setting socket "
+			    "options for host address %s, %s\n", host, port);
+			return (-1);
+		}
+
+		memset(&servaddr, 0, sizeof(servaddr)); 
+		servaddr.sin_family = AF_INET;
+		servaddr.sin_port = portnum;
+		memcpy(&servaddr.sin_addr, *paddr, sizeof(servaddr.sin_addr));
+
+		if (bind(fd, (struct sockaddr *) &servaddr, sizeof(servaddr)) == 0)
+			break; /* ok! */
+
+		close(fd); /* couldn't bind */
+		fd = -1;
+	}
+
+#endif
+
+	if (fd == -1) {
+		dprintf(DPRINTF_SERIOUS)("tcp_listen: error binding "
+		    "to host address %s, %s\n", host, port);
+		return (-1);
+	}
+
 	if (listen(fd, LISTENQ) != 0) {
-		dprintf(DPRINTF_INFORMATIVE)("im_tcp_init: error listening "
+		dprintf(DPRINTF_SERIOUS)("tcp_listen: error listening "
 		    "on host address %s, %s\n", host, port);
 		return (-1);
 	}
