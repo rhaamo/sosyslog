@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.28 2000/06/09 20:09:56 gera Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.29 2000/06/09 20:27:02 gera Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -51,6 +51,7 @@
 #include "config.h"
 #include "modules.h"
 #include "syslogd.h"
+#include "sql_misc.h"
 
 #define MAX_QUERY	8192
 
