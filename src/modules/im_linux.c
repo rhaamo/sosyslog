@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.14 2000/06/08 01:06:49 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.15 2000/06/08 21:08:01 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -171,7 +171,7 @@ im_linux_init(I, argv, argc)
 				flags |= KSYM_READ_TABLE;
 				break;
 /* not supported yet */
-#ifdef 0
+#if 0
 			case 's': /* force to use syscall instead of _PATH_KLOG */
 				flags |= KLOG_USE_SYSCALL;
 				break;
