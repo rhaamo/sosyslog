@@ -1,0 +1,121 @@
+# $CoreSDI: Id$
+#
+# Copyright (c) 2000, Core SDI S.A., Argentina
+# All rights reserved
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. Neither name of the Core SDI S.A. nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+# IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+# IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+# THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+CC=		@CC@
+LD=		ld
+CFLAGS=		@CFLAGS@
+LDFLAGS=	@LDFLAGS@
+CPPFLAGS=	-I. -I..
+INSTALL_LIBDIR=	@INSTALL_LIBDIR@
+
+SSRCS=		@SSRCS@
+SOBJS=		$(SSRCS:.c=.o)
+DUDP=		@DUDP@
+DBSD=		@DBSD@
+DLINUX=		@DLINUX@
+DCLASSIC=	@DCLASSIC@
+DPEO=		@DPEO@
+HASH_EXTRA=	@HASH_EXTRA@
+HASH_OJBS=	$(HASH_EXTRA:.c=.o)
+DMYSQL=		@DMYSQL@
+DPGSQL=		@DPGSQL@
+DREGEX=		@DREGEX@
+DUNIX_SRC=	@DUNIX_SRC@
+DUDP_SRC=	@DUDP_SRC@
+DBSD_SRC=	@DBSD_SRC@
+DLINUX_SRC=	@DLINUX_SRC@
+DCLASSIC_SRC=	@DCLASSIC_SRC@
+DPEO_SRC=	@DPEO_SRC@
+DMYSQL_SRC=	@DMYSQL_SRC@
+DPGSQL_SRC=	@DPGSQL_SRC@
+DREGEX_SRC=	@DREGEX_SRC@
+DUNIX_OBJ=	$(DUNIX_SRC:.c=.o)
+DUDP_OBJ=	$(DUDP_SRC:.c.o)
+DBSD_OBJ=	$(DBSD_SRC:.c=.o)
+DLINUX_OBJ=	$(DLINUX_SRC:.c=.o)
+DCLASSIC_OBJ=	$(DCLASSIC_SRC:.c=.o)
+DPEO_OBJ=	$(DPEO_SRC:.c=.o)
+DMYSQL_OBJ=	$(DMYSQL_SRC:.c=.o)
+DPGSQL_OBJ=	$(DPGSQL_SRC:.c=.o)
+DREGEX_OBJ=	$(DREGEX_SRC:.c=.o)
+
+all: DYNAMIC_LIBS $(SOBJS)
+
+$(SOBJS) DYNAMIC_LIBS: ../config.h
+
+$(SOBJS):
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $(SSRCS)
+
+DYNAMIC_LIBS:	$(DUNIX) $(DUDP) $(DBSD) $(DLINUX) \
+		$(DCLASSIC) $(DPEO) $(DMYSQL) $(DPGSQL) $(REGEX)
+
+$(DUNIX):
+	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DUNIX_SRC)
+	$(LD) -Bshareable -o $@ $(notdir $(DUNIX_OBJ))
+
+$(DUDP): 
+	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DUDP_SRC)
+	$(LD) -Bshareable -o $@ $(notdir $(DUDP_OBJ))
+
+$(DBSD):
+	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DBSD_SRC)
+	$(LD) -Bshareable -o $@ $(notdir $(DBSD_OBJ))
+
+$(DLINUX):
+	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DLINUX_SRC)
+	$(LD) -Bshareable -o $@ $(notdir $(DLINUX_OBJ))
+
+$(DCLASSIC):
+	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DCLASSIC_SRC)
+	$(LD) -Bshareable -o $@ $(notdir $(DCLASSIC_OBJ))
+
+$(DPEO):
+	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DPEO_SRC) $(addprefix ../peo/, $(HASH_OBJS))
+	$(LD) -Bshareable -o $@ $(notdir $(DPEO_OBJ)) $(addprefix ../peo/, $(HASH_OBJS))
+
+$(DMYSQL):
+	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DMYSQL_SRC)
+	$(LD) -Bshareable -o $@ $(notdir $(DMYSQL_OBJ))
+
+$(DPGSQL):
+	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DPGSQL_SRC)
+	$(LD) -Bshareable -o $@ $(notdir $(DPGSQL_OBJ))
+
+$(DREGEX):
+	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $(DREGEX_SRC)
+	$(LD) -Bshareable -o $@ $(notdir $(DREGEX_OBJ))
+
+.PHONY:	clean distclean
+clean:
+	-rm -f core *.core *.o *.so
+
+distclean: clean
+	-rm -f Makefile
+
