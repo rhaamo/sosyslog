@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.101 2001/09/19 10:52:06 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.102 2001/10/22 22:49:42 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -68,6 +68,10 @@
  * informative and up are just for debugging purposes
  *
  */
+
+#ifdef dprintf
+#undef dprintf
+#endif
 
 int dprintf(int, char const *, ...); /* level, format, ... */
 
