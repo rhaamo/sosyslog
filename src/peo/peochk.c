@@ -39,6 +39,7 @@
 #include <unistd.h>
 
 #include "hash.h"
+#include "../syslogd.h"
 
 char	*default_logfile = "/var/log/messages";
 char	*keyfile;
@@ -56,12 +57,12 @@ extern char *optarg;
 void
 release()
 {
-if (keyfile != default_keyfile)
-	free(keyfile);
-if (key0file)
-	free(key0file);
-if (logfile != default_logfile)
-	free(logfile);
+	if (keyfile != default_keyfile)
+		free(keyfile);
+	if (key0file)
+		free(key0file);
+	if (logfile != default_logfile)
+		free(logfile);
 }
 
 
@@ -88,7 +89,7 @@ usage()
 	"is used and data is not read from the standard input.\n"
 	"If the logfile is specified but not the keyfile, the default key "
 	"file is /var/ssyslog/xxx\n"
-	"where xxx is the logfile with all '.' replaced by ','\n\n"
+	"where xxx is the logfile with all '/' replaced by '.'\n\n"
 	"Default values:\n"
 	"\tlogfile    : /var/log/messages\n"
 	"\tkeyfile    : /var/ssyslog/.var.log.messages.key\n"
@@ -104,10 +105,35 @@ usage()
 void
 check()
 {
-	int input;
-
+	int  i;
+	int  input;
+	char key[41];
+	int  keylen;
+	char msg[MAXLINE];
+	
+	/* open logfile */
 	if (use_stdin)
 		input = STDIN_FILENO;
+	else {
+		if ( (input = open(logfile, O_RDONLY, 0)) == -1)
+			err(1, keyfile);
+	}
+
+	/* read initial key */
+	if ( (i = open(key0file, O_RDONLY, 0)) == -1)
+		err(1, keyfile);
+	if ( (keylen = read(i, key, 40)) == -1) 
+		err(1, keyfile);
+	if (keylen == 0)
+		errx(1, "%s: Initial key file corrupted", key0file);
+	key[keylen] = 0;
+	close(i);
+
+	/* check it */
+	while( (i = read(input, msg, MAXLINE)) > 0) {
+		if (i < 0)
+			errx(1, "error reading logs");
+		
 
 	
 }
@@ -122,7 +148,7 @@ generate()
 	char	 newkey[41];
 	int	 len;
 	int	 fkey;
-	int	 fkey0;
+	INT	 FKey0;
 	time_t	 t;
 
 	time(&t);
