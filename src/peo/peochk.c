@@ -1,4 +1,4 @@
-/*	$CoreSDI: peochk.c,v 1.45 2001/03/07 21:35:16 alejo Exp $	*/
+/*	$CoreSDI: peochk.c,v 1.46 2001/03/14 21:50:56 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -90,6 +90,7 @@
 # endif
 #endif
 #include <unistd.h>
+#include <netdb.h>
 
 #include "hash.h"
 #include "../modules.h"
