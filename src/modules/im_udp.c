@@ -1,9 +1,9 @@
-/*	$CoreSDI: im_udp.c,v 1.25 2000/05/26 18:31:39 fgsch Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.26 2000/05/26 19:41:38 claudio Exp $	*/
 
 /*
- *  im_udp -- classic behaviour module for BDS like systems
+ * im_udp -- classic behaviour module for BSD like systems
  *      
- * Author: Alejo Sanchez for Core-SDI SA
+ * Author: Alejo Sanchez for Core SDI S.A.
  *         form syslogd.c by Eric Allman and Ralph Campbell
  *    
  */
@@ -38,8 +38,6 @@ struct im_udp_ctx {
 	int	fd;
 };
 
-
-
 /*
  * get messge
  *
@@ -68,16 +66,18 @@ im_udp_getLog(im, ret)
 		(struct sockaddr *)&frominet, &slen);
 	if (ret->im_len > 0) {
 		ret->im_msg[ret->im_len] = '\0';
-		hent = gethostbyaddr((char *) &frominet.sin_addr, sizeof frominet.sin_addr,
-				frominet.sin_family);
-		if (hent!=NULL) strncpy(ret->im_host, hent->h_name, sizeof ret->im_host);
-			else strncpy(ret->im_host, inet_ntoa(frominet.sin_addr),
-					sizeof ret->im_host);
+		hent = gethostbyaddr((char *) &frominet.sin_addr,
+		    sizeof(frominet.sin_addr), frominet.sin_family);
+		if (hent)
+			strncpy(ret->im_host, hent->h_name,
+			    sizeof(ret->im_host));
+		else
+			strncpy(ret->im_host, inet_ntoa(frominet.sin_addr),
+			    sizeof(ret->im_host));
 	} else if (ret->im_len < 0 && errno != EINTR)
 		logerror("recvfrom inet");
 
 	return(1);
-
 }
 
 /*
@@ -136,5 +136,3 @@ im_udp_close(im)
 
         return(close(im->im_fd));
 }
-
-
