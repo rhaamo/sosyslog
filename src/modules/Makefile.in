@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.33 2000/08/04 01:55:10 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.34 2000/08/05 01:12:14 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -97,7 +97,7 @@ LDK=	$(LD) -Bshareable
 
 all: STATIC DYNAMIC
 
-STATIC DYNAMIC_LIBS: ../config.h
+STATIC DYNAMIC: ../config.h
 
 STATIC: $(SOBJS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $(SSRCS) $(SHASH_SRCS:%=../peo/%)
@@ -107,7 +107,7 @@ DYNAMIC:	$(DUNIX) $(DUDP) $(DBSD) $(DLINUX) \
 
 $(DUNIX):
 	$(DCC) $(DUNIX_SRCS)
-	$(DLK) -o $@ $(DUNIX_OBJS)
+	$(LDK) -o $@ $(DUNIX_OBJS)
 
 $(DUDP): 
 	$(DCC) $(DUDP_SRCS)
