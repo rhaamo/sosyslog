@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.163 2001/01/29 21:41:20 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.164 2001/02/08 18:01:52 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.163 2001/01/29 21:41:20 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.164 2001/02/08 18:01:52 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -174,14 +174,20 @@ int	DaemonFlags = 0;
 
 char *libdir = NULL;
 
+/* To raise SIGSTOP after flush all output modules */
+static int must_suspend = 0;
+
+RETSIGTYPE domark(int);
+RETSIGTYPE reapchild(int);
+RETSIGTYPE init(int);
+RETSIGTYPE die(int);
+RETSIGTYPE suspend(int);
+RETSIGTYPE get_up(int);
 void    cfline(char *, struct filed *, char *);
 int     decode(const char *, CODE *);
-RETSIGTYPE   domark(int);
 void    markit(void);
 void    doLog(struct filed *, int, char *);
-void    init(int);
 void    printline(char *, char *, size_t, int);
-void    reapchild(int);
 void    usage(void);
 int     imodule_create(struct i_module *, char *);
 int     omodule_create(char *, struct filed *, char *);
@@ -189,10 +195,9 @@ int	omodules_destroy(struct omodule *);
 int	imodules_destroy(struct imodule *);
 void    logerror(char *);
 void    logmsg(int, char *, char *, int);
-void    die(int);
 int	getmsgbufsize(void);
-int modules_start(void);
-void modules_stop(void);
+int	modules_start(void);
+void	modules_stop(void);
 
 
 extern	struct   omodule *omodules;
@@ -205,7 +210,8 @@ struct i_module **fd_inputs_mod = NULL;
 int	*fd_inputs_index = NULL;
 
 int
-main(int argc, char **argv) {
+main(int argc, char **argv)
+{
 	int ch;
 	char *p;
 	struct im_msg log;
@@ -343,6 +349,8 @@ main(int argc, char **argv) {
 	(void)signal(SIGCHLD, reapchild);
 	(void)signal(SIGALRM, domark);
 	(void)signal(SIGPIPE, SIG_IGN);
+	(void)signal(SIGUSR1, suspend);
+	(void)signal(SIGUSR2, get_up);
 	(void)alarm(TIMERINTVL);
 
 	snprintf(pidfile, PID_PATH_MAX, "%s/syslog.pid", PID_DIR);
@@ -525,7 +533,8 @@ main(int argc, char **argv) {
 }
 
 void
-usage(void) {
+usage(void)
+{
 
 	(void)fprintf(stderr,
 	    "Modular Syslog vesion " MSYSLOG_VERSION_STR "\n\n"
@@ -542,7 +551,8 @@ usage(void) {
  * on the appropriate log files.
  */
 void
-printline(char *hname, char *msg, size_t len, int flags) {
+printline(char *hname, char *msg, size_t len, int flags)
+{ 
 	char *p, *q, line[len + 2];
 	unsigned char c;
 	int pri;
@@ -594,7 +604,8 @@ printline(char *hname, char *msg, size_t len, int flags) {
  * the priority.
  */
 void
-logmsg(int pri, char *msg, char *from, int flags) {
+logmsg(int pri, char *msg, char *from, int flags)
+{
 	struct filed *f;
 	int fac, msglen, prilev, i;
 	sigset_t mask, omask;
@@ -743,8 +754,9 @@ logmsg(int pri, char *msg, char *from, int flags) {
 }
 
 void
-doLog(struct filed *f, int flags, char *message) {
-	struct	o_module *om;
+doLog(struct filed *f, int flags, char *message)
+{
+	struct o_module *om;
 	char	repbuf[80], *msg;
 	int	ret;
 
@@ -777,11 +789,20 @@ doLog(struct filed *f, int flags, char *message) {
 			/* stop going on */
 			break;
 	}
+
+	if (must_suspend) {
+		sigset_t mask;
+		sigfillset(&mask);
+		sigdelset(&mask, SIGUSR2);
+		sigsuspend(&mask);
+		must_suspend = 0;
+	}
 }
 
 
 RETSIGTYPE
-reapchild(int signo) {
+reapchild(int signo)
+{
 	int status;
 	int save_errno = errno;
 
@@ -791,12 +812,14 @@ reapchild(int signo) {
 }
 
 RETSIGTYPE
-domark(int signo) {
+domark(int signo)
+{
 	DaemonFlags |= SYSLOGD_MARK;
 }
 
 void
-markit(void) {
+markit(void)
+{
 	struct filed *f;
 	time_t now;
 
@@ -1241,4 +1264,20 @@ add_fd_input(int fd, struct i_module *im, int index)
 	
 	return(1);
 }
+
+RETSIGTYPE
+suspend(int signo)
+{
+	/* XXX: use sigaction */
+	signal(SIGUSR1, suspend);
+	must_suspend = 1;
+}
+
+RETSIGTYPE
+get_up(int signo)
+{
+	/* XXX: use sigaction */
+	signal(SIGUSR2, get_up);
+}
+
 
