@@ -1,4 +1,4 @@
-#	$CoreSDI: configure.in,v 1.32 2000/06/30 22:59:56 claudio Exp $
+#	$CoreSDI: configure.in,v 1.33 2000/06/30 23:11:17 alejo Exp $
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
 
@@ -11,6 +11,7 @@ LDFLAGS=
 AC_PROG_CC
 AC_PROG_INSTALL
 
+LINUX_INSTALL="no"
 UNAME=`uname`
 if test "$UNAME" = "OpenBSD"
 then
@@ -20,8 +21,10 @@ elif test "$UNAME" = "Linux"
 then
 	echo Linux system detected
 	LIBS="$LIBS -ldl"
+	LINUX_INSTALL="yes"
 	AC_DEFINE(HAVE_LINUX)
 fi
+AC_SUBST(LINUX_INSTALL)
 
 AC_CHECK_HEADERS(paths.h)
 
