@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.77 2000/09/27 22:11:43 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.78 2000/09/27 22:19:36 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -119,37 +119,57 @@
 #define MAXFUNIX	21
 
 /*
+ * This structure stores a message with all its attributes
+ *
+ * An input module writes it, and output module reads it.
+ *
+ * MUST use: - log_getnext() for getting on list
+ *           - log_deref() for dereference of filed{}
+ * 
+ */
+
+struct log_buf {
+	struct	log_buf	*l_next;	/* next in linked list */
+	int		l_refcount;			/* how many filed reference this log */
+	int		l_pri;				/* priority  and facility */
+	struct	tm l_tm;			/* time of message */
+	int		l_hlen;				/* hostname length */
+	int		l_dlen;				/* data length */
+	char	l_host[MAXHOSTNAMELEN]; /* source host */
+	char	l_data[MAXLINE];	/* data of this message */
+};
+
+/* elements l_next and l_refcount are not data */
+#define LOG_BUF_IGNORE_HDR (sizeof(int) * 2)
+
+/*
  * This structure represents the files that will have log
  * copies printed.
  */
 
 struct filed {
-	struct  filed *f_next;	  /* next in linked list */
-	short   f_type;		 /* entry type, see below */
-	time_t  f_time;		 /* time this was last written */
-	u_char  f_pmask[LOG_NFACILITIES+1];     /* priority mask */
-	char    *f_program;	     /* program this applies to */
-	char    f_prevline[MAXSVLINE];	  /* last message logged */
-	char    f_lasttime[16];		 /* time of last occurrence */
-	char    f_prevhost[MAXHOSTNAMELEN];     /* host from which recd. */
-	int     f_prevpri;		      /* pri of f_prevline */
-	int     f_prevlen;		      /* length of f_prevline */
-	int     f_prevcount;		    /* repetition cnt of prevline */
-	int     f_repeatcount;		  /* number of "repeated" msgs */
-	struct	o_module *f_omod;			/* module details */
+	struct	filed *f_next;		/* next in linked list */
+	short	f_type;				/* entry type, see below */
+	time_t	f_time;				/* time this was last written */
+	u_char	f_pmask[LOG_NFACILITIES+1];	/* priority mask */
+	char	*f_program;			/* program this applies to */
+	int		f_prevcount;		/* repetition cnt of prevline */
+	int		f_repeatcount;		/* number of "repeated" msgs */
+	struct	o_module *f_omod;	/* module details */
+	struct	log_buf *last_log;	/* last message buffer */
 };
 
-extern char	*TypeNames[9];		/* names for f_types */
-extern char	*ctty;
+extern char	*TypeNames[9];				/* names for f_types */
+extern char	*ctty;						/* console tty path */
 extern char	LocalHostName[MAXHOSTNAMELEN];	/* our hostname */
-extern char	*LocalDomain;		/* our domain */
-extern int	finet;			/* Internet datagram socket */
-extern int	LogPort;		/* port number for INET connections */
-extern int	Debug;			/* debug flag */
-extern int	DaemonFlags;		/* running daemon flags */
+extern char	*LocalDomain;				/* our domain */
+extern int	finet;						/* Internet datagram socket */
+extern int	LogPort;					/* port number for INET connections */
+extern int	Debug;						/* debug flag */
+extern int	DaemonFlags;				/* running daemon flags */
 #define SYSLOGD_LOCKED_PIDFILE	0x01	/* pidfile is locked */
-#define SYSLOGD_INET_IN_USE	0x02	/* INET sockets are open */
-#define SYSLOGD_FINET_READ	0x04	/* we read */
+#define SYSLOGD_INET_IN_USE		0x02	/* INET sockets are open */
+#define SYSLOGD_FINET_READ		0x04	/* we read */
 #define SYSLOGD_CONSOLE_ACTIVE	0x08	/* console filed active */
 extern time_t  now;
 

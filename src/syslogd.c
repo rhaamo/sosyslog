@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.137 2000/09/27 20:36:53 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.138 2000/09/27 22:10:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.137 2000/09/27 20:36:53 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.138 2000/09/27 22:10:28 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -159,6 +159,9 @@ int	repeatinterval[] = { 30, 120, 600 };	/* # of secs before flush */
 
 struct	filed *Files;
 struct	filed consfile;
+struct	log_buf *log_queue = NULL;
+int		log_queue_in = 0;
+#define LOG_QUEUE_MAX	100;
 
 int	Initialized = 0;	/* set when we have initialized ourselves */
 int	MarkInterval = 20 * 60;	/* interval between marks in seconds */
@@ -275,7 +278,6 @@ main(int argc, char **argv) {
 		setlinebuf(stdout);
 
 	if (!(DaemonFlags & SYSLOGD_CONSOLE_ACTIVE)) {
-		consfile.f_type = F_CONSOLE;
 		/* this should get into Files and be way nicer */
 		if (omodule_create(ctty, &consfile, NULL) == -1) {
 			dprintf("Error initializing console output!\n");
@@ -628,7 +630,6 @@ logmsg(int pri, char *msg, char *from, int flags) {
 	if (!Initialized) {
 
 		if (!(DaemonFlags & SYSLOGD_CONSOLE_ACTIVE)) {
-			consfile.f_type = F_CONSOLE;
 			if (omodule_create(ctty, &consfile, NULL) == -1) {
 				dprintf("Error initializing console output!\n");
 
@@ -1093,3 +1094,112 @@ decode(const char *name, CODE *codetab) {
 
 	return (-1);
 }
+
+struct log_buf *
+log_getnext(void) {
+
+	if (log_buf_queue) {
+		struct log_buf *ret, *last = log_buf_queue;
+
+		for(ret = last; ret->l_next; last = ret, ret = ret->next);
+
+		last->l_next = NULL;
+
+		return(ret_l);
+
+	} else {
+
+		log_buf_avail = (struct logbuf *) calloc(1,sizeof(struct log_buf);
+
+		if (!log_buf_avail) {
+			dprintf("logGetNext: ERROR No memory available for a new log_buffer!\n");
+			return(NULL);
+		}
+
+		return(log_buf_queue);
+
+	}
+
+}
+
+int
+log_deref(struct log_buf *log) {
+
+	if (log == NULL) {
+		dprintf("log_deref: WARNING we received a NULL pointer\n");
+		return (-1);
+	}
+
+	if (log_queue_in > LOG_QUEUE_MAX) {
+		free(log);
+	} else {
+		struct log_buf *l = log_queue;
+
+		if (log_queue != NULL)
+			for(; l->l_next; l = l->l_next);
+
+		l->next = log;
+		log->next = NULL; /* just in case */
+	}
+
+	return(1);
+}
+
+int
+msgAdjust(struct log_buf *log) {
+
+	/* set it first */
+	time(&now);
+
+    /* check if data has original date */
+    if ( log->l_dlen < 16
+			|| log->l_data[3] != ' '
+			|| log->l_data[6] != ' '
+			|| log->l_data[9] != ':'
+			|| log->l_data[12] != ':'
+			|| log->l_data[15] != ' ') {
+
+		/* move original date to l_tm */
+		if (!strptime(log->l_data, "%b %d %T", &log->l_tm) {
+			dprintf("logAdjust: ERROR reading date and time!\n");
+			return (-1);
+		}
+
+		/* move original data to start of l_data */
+		bcopy(log->l_data + 16, log->l_data, log->l_dlen - 16);
+		log->l_dlen -= 16;
+        
+#error finish this sucker
+
+	} else {
+		/* set l_tm to now */
+		localtime_r(&now, &log->l_tm)
+	}
+
+	/* zero all unused data */
+	memset(log->l_data + log->l_dlen, 0, sizeof(log->l_data) - log->l_dlen);
+	memset(log->l_host + log->l_hlen, 0, sizeof(log->l_host) - log->l_hlen);
+
+}
+
+/*
+ * Compares two log buffers
+ * Returns 1 if equal, 0 if different
+ *
+ */
+
+int
+logCompare(struct log_buf *log1, struct log_buf *log2) {
+
+	if (log1 == NULL || log2 == NULL)
+		return(0);
+
+	if (memcmp(log1 + LOG_BUF_IGNORE_HDR,
+			log2 + LOG_BUF_IGNORE_HDR,
+			sizeof(*log1) - LOG_BUF_IGNORE_HDR)
+		return(1);
+	else
+		return(0);
+	
+}
+
