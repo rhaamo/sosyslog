@@ -274,7 +274,6 @@ m_classic_init(line, f, prog, context)
 		break;
 	}
 
-	f->f_mod = NULL;
 	return(0);
 }
 
@@ -304,6 +303,9 @@ m_classic_flush(f, context)
 	struct filed *f;
 	void *context;
 {
-	return (-1);
+	/* flush any pending output */
+	if (f->f_prevcount)
+		fprintlog(f, 0, (char *)NULL);
+
 }
 

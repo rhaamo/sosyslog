@@ -26,6 +26,10 @@
 
 1- take out unused includes on syslogd.c
 
+23-Mar-2000
+
+1- think some way to specify multiple modules on syslog.conf
+
 
 FOR FUTURE WORKING
 

@@ -44,6 +44,8 @@ static char copyright[] =
  */
 
 #include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <sys/syslog.h>
 #include "syslogd.h"
@@ -91,7 +93,7 @@ int modules_create(p, f, prog)
 {
 	char	name[MAX_MODULE_NAME_LEN + 1], *b;
 	char	line[LINE_MAX + 1];
-	struct o_module	*m;
+	struct o_module		*m;
 	struct m_functions	*mf;
 	int	i;
 
@@ -101,6 +103,15 @@ int modules_create(p, f, prog)
 		return (-1);
 
 	/* create context and initialize module for logging */
+	if (f->f_mod == NULL) {
+		f->f_mod = (struct o_module *) calloc(1, sizeof(struct o_module));
+		m = f->f_mod;
+	} else {
+		for (m = f->f_mod; m->m_next; m = m->m_next);
+		m->m_next = (struct o_module *) calloc(1, sizeof(struct o_module));
+		m = m->m_next;
+	}
+
 	switch (*p)
 	{
 	case '%':
@@ -111,13 +122,9 @@ int modules_create(p, f, prog)
 		if (!i)
 			return(-1);
 
-		/* concatenate a new module node */
-		for (m = f->f_mod; m;);
-		m = (struct o_module *) calloc(sizeof(struct o_module));
-
 		/* get this module function */
 		for (mf = m_functions; mf; mf++) {
-			if (strncmp(name, mf->m_name) == 0)
+			if (strncmp(name, mf->m_name, MAX_MODULE_NAME_LEN) == 0)
 				break;
 		}
 		/* no functions for this module where found */
@@ -138,6 +145,7 @@ int modules_create(p, f, prog)
 		/* classic style */
 		/* prog is already on this filed */
 		m_classic_init(p, f, NULL, NULL);
+		
 		break;
 	}
 }

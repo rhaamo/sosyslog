@@ -24,6 +24,8 @@ extern char	*ConfFile;
 extern char	*PidFile;
 extern char	ctty[];
 
+extern int	repeatinterval[];
+
 /*
  * All module functions
  */
@@ -32,5 +34,7 @@ int m_classic_printlog(struct filed *, int , char *, void *);
 int m_classic_init(char *, struct filed *, char *, void *);
 int m_classic_close(struct filed*, void *);
 int m_classic_flush(struct filed*, void *);
+
+
 
 #endif
