@@ -1,9 +1,49 @@
-/*	$CoreSDI: TODO,v 1.85 2001/04/27 20:25:11 alejo Exp $	*/
+/*	$Id: TODO,v 1.87 2002/09/14 20:16:37 alejo Exp $	*/
 
 FOR THIS RELEASE
 
-- More docs on source code
-- unify documentation
+Important
+---------
+
+- option for udp to only resolve once with dns (cache names)
+- om_classic take option to create the file if not present
+- switch to getxopt() all the code
+- switch to strlcpy() and strlcat() all the code
+- sql modules option to override msg date and use local date
+- unify common code for sql modules
+- sql disk cache (available as option)
+- back to single executable (too many shared lib problems)
+- individually compile modules
+- fix or remove doors module
+- regex module rewrite
+- fix working in openbsd when missing bsd.port.mk
+- use the sourceforge compile farm to test and generate binaries
+- fix rpm creation
+- tcpwrappers support
+- divide classic in om_file, om_udp, om_console, om_wall, om_user.
+- use regular expressions to parse input logs
+- allow chroot usage (this requires no input close)
+
+
+Desirable
+---------
+
+- switch to libevent (this implies lots of changes)
+- implement snmp modules
+- openssl module
+- vcr
+- have processing modules
+	- peo
+	- vcr
+	- regex
+- peo and vcr support for sql
+- peo code is a bit arcane, beautify (i.e. readline)
+- general and regression tests
+- unify documentation (docbook or similar)
+- use 2.X configuration system
+- change configuration file to /etc/msyslog.conf
+- jabber modules
+
 
 FOR NEXT RELEASE
 
@@ -12,48 +52,33 @@ FOR NEXT RELEASE
 	- have in mind new standards
 - Move buffer of lost messages out of modules, so all om can use it.
 - Check "" errors on solaris / support spaces intead the tabs on configfile
-- Change strcpy and strncpy to strlcpy (same w/ strlcat)
 - define STYLE for names (ie. underscore or caps, indentation)
 - redo parsing functions
 - CHECK LIBC and GLIBC's way to work
 - use more cache on autoconf
 - %subst module
 - Make source compile on non gcc systems.
-- Makefiles should let compile a single module as a .so
+- We need to allow several others log methods like syscalls (ex.: im_linux)
+- Make a dbm/ndbm output module. talk w/ audit for that
 
 FOR UNKNOWN FUTURE
 
 - Use one function per module, with action as a parameter.
 - Check linux kernel 2.4 potential header problems
 - Let im_tcp do the connect, and om_tcp do the listen.
-
-For handling errors logging in a particular module, create a om_onerror
-function to do proper reinit or whatever (and after that the module should
-get in the exactly same state as before the error).
+- support modules in shared libraries again
+	- Makefiles should let compile a single module as a .so
 
 Check for buffer overflows, as we now may get things from the outside world.
 
-- divide classic in om_file, om_udp, om_console, om_wall, om_user.
-- We need to change the decode function on syslogd.c and use the strcasecmp()
-  function
 - Kill filed structure, associate ins and outs so no for(;;) is needed
 - Optimize each input/output module
-- create a single file with all networking primitives used
-- chroot
-- new syntax on config files
 - redo line format while keeping "<" and ">" usage (prevent new syslog proto)
 - Add linux extensions on selector field on configuration file
-- We need to allow several others log methods like syscalls (ex.: im_linux)
 - Reconfiguing input modules on the fly (syslog -i "unix /dev/klog" when
   syslog is already running)
 - Keep alive [remote] saying how many messages have been sent from the previous
   keep alive
-- optimize peochk (readline)
-- Create a module configuration file outside /etc/syslog.conf
-- threads per output module
-- Create a message structure to be pased from ins to outs
-- Make a dbm/ndbm output module. talk w/ audit for that
 - Check why messages to console take a while to pop up
-- A bug report form
 - check M$ MAPI
 - check pager stuff formats
