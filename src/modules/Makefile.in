@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.46 2000/08/31 23:01:22 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.3.2.12.2.3 2000/09/11 21:15:31 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -41,8 +41,7 @@ LDCONFIG_FLAGS=	@LDCONFIG_FLAGS@
 INSTALL=	@INSTALL@
 prefix=		@prefix@
 exec_prefix=	@exec_prefix@
-MSYSLOG_BASEDIR=@MSYSLOG_BASEDIR@
-INSTALL_LIBDIR=	@INSTALL_LIBDIR@
+INSTALL_LIBDIR=	@MSYSLOG_LIBDIR@
 UNAME=		@UNAME@
 
 SSRCS=		@SSRCS@
@@ -51,26 +50,32 @@ SOBJS=		$(SSRCS:.c=.o)
 MSYSLOG_VERSION=@MSYSLOG_VERSION@
 
 DUNIX=		@Dunix@
+DUNIX_PLAIN=	@Dunix_PLAIN@
 DUNIX_SRCS=	@Dunix_SRCS@
 DUNIX_OBJS=	$(DUNIX_SRCS:.c=.o)
 
 DUDP=		@Dudp@
+DUDP_PLAIN=	@Dudp_PLAIN@
 DUDP_SRCS=	@Dudp_SRCS@
 DUDP_OBJS=	$(DUDP_SRCS:.c=.o)
 
 DBSD=		@Dbsd@
+DBSD_PLAIN=	@Dbsd_PLAIN@
 DBSD_SRCS=	@Dbsd_SRCS@
 DBSD_OBJS=	$(DBSD_SRCS:.c=.o)
 
 DLINUX=		@Dlinux@
+DLINUX_PLAIN=	@Dlinux_PLAIN@
 DLINUX_SRCS=	@Dlinux_SRCS@
 DLINUX_OBJS=	$(DLINUX_SRCS:.c=.o)
 
 DCLASSIC=	@Dclassic@
+DCLASSIC_PLAIN=	@Dclassic_PLAIN@
 DCLASSIC_SRCS=	@Dclassic_SRCS@
 DCLASSIC_OBJS=	$(DCLASSIC_SRCS:.c=.o)
 
 DPEO=		@Dpeo@
+DPEO_PLAIN=	@Dpeo_PLAIN@
 DPEO_SRCS=	@Dpeo_SRCS@
 DPEO_OBJS=	$(DPEO_SRCS:.c=.o)
 SHASH_SRCS=	@SHASH_SRCS@
@@ -79,18 +84,21 @@ DHASH_SRCS=	@DHASH_SRCS@
 DHASH_OBJS=	$(DHASH_SRCS:.c=.o)
 
 DMYSQL=		@Dmysql@
+DMYSQL_PLAIN=	@Dmysql_PLAIN@
 DMYSQL_SRCS=	@Dmysql_SRCS@
 MYSQL_CPPFLAGS=	@MYSQL_CPPFLAGS@
 MYSQL_LIBS=	@MYSQL_LIBS@
 DMYSQL_OBJS=	$(DMYSQL_SRCS:.c=.o)
 
 DPGSQL=		@Dpgsql@
+DPGSQL_PLAIN=	@Dpgsql_PLAIN@
 DPGSQL_SRCS=	@Dpgsql_SRCS@
 PGSQL_CPPFLAGS=	@PGSQL_CPPFLAGS@
 PGSQL_LIBS=	@PGSQL_LIBS@
 DPGSQL_OBJS=	$(DPGSQL_SRCS:.c=.o)
 
 DREGEX=		@Dregex@
+DREGEX_PLAIN=	@Dregex_PLAIN@
 DREGEX_SRCS=	@Dregex_SRCS@
 DREGEX_OBJS=	$(DREGEX_SRCS:.c=.o)
 
@@ -147,23 +155,21 @@ $(DREGEX):
 .PHONY:	clean distclean
 
 clean:
-	-rm -f core *.core *.o *.so.*
+	-rm -f core *.core *.o *.so.* *.so
 
 distclean: clean
 	-rm -f Makefile
 
 install:
-	@echo installing shared libraries...
-	@if [ -f libmsyslog_*.so.* ]; then $(INSTALL) libmsyslog_*.so.* "$(INSTALL_LIBDIR)" ; fi 
-	@if [ "$(DUNIX)" -a -f "$(DUNIX)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DUNIX) $(INSTALL_LIBDIR)/$(DUNIX:.$(MSYSLOG_VERSION)=); fi
-	@if [ "$(DUDP)" -a -f "$(DUDP)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DUDP) $(INSTALL_LIBDIR)/$(DUDP:.$(MSYSLOG_VERSION)=); fi
-	@if [ "$(DBSD)" -a -f "$(DBSD)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DBSD) $(INSTALL_LIBDIR)/$(DBSD:.$(MSYSLOG_VERSION)=); fi
-	@if [ "$(DLINUX)" -a -f "$(DLINUX)*" ]; then ln -fs $(INSTALL_LIBDIR)/$(DLINUX) $(INSTALL_LIBDIR)/$(DLINUX:.$(MSYSLOG_VERSION)=); fi
-	@if [ "$(DCLASSIC)" -a -f "$(DCLASSIC)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DCLASSIC) $(INSTALL_LIBDIR)/$(DCLASSIC:.$(MSYSLOG_VERSION)=); fi
-	@if [ "$(DPEO)" -a -f "$(DPEO)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DPEO) $(INSTALL_LIBDIR)/$(DPEO:.$(MSYSLOG_VERSION)=); fi
-	@if [ "$(DMYSQL)" -a -f "$(DMYSQL)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DMYSQL) $(INSTALL_LIBDIR)/$(DMYSQL:.$(MSYSLOG_VERSION)=); fi
-	@if [ "$(DPGSQL)" -a -f "$(DPGSQL)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DPGSQL) $(INSTALL LIBDIR)/$(DPGSQL:.$(MSYSLOG_VERSION)=); fi
-	@if [ "$(DREGEX)" -a -f "$(DREGEX)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DREGEX) $(INSTALL_LIBDIR)/$(DREGEX:.$(MSYSLOG_VERSION)=); fi
-	@if [ ! -d "$(MSYSLOG_BASEDIR)" ]; then mkdir -p -m 755 "$(MSYSLOG_BASEDIR)" ; fi 
-	@if [ ! -d "$(INSTALL_LIBDIR)" ]; then mkdir -p 755 "$(INSTALL_LIBDIR)" ; fi 
+	@echo "installing shared libraries..."
+	@if [ ! -d "$(INSTALL_LIBDIR)" ]; then echo "creating directory $(INSTALL_LIBDIR)" && mkdir -p -m 755 "$(INSTALL_LIBDIR)" ; fi 
+	@if [ "$(DUNIX)" -a -f "$(DUNIX)" ]; then $(INSTALL) $(DUNIX) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DUNIX) $(INSTALL_LIBDIR)/$(DUNIX_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DUNIX)" ; fi
+	@if [ "$(DUDP)" -a -f "$(DUDP)" ]; then $(INSTALL) $(DUDP) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DUDP) $(INSTALL_LIBDIR)/$(DUDP_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DUDP)" ; fi
+	@if [ "$(DBSD)" -a -f "$(DBSD)" ]; then $(INSTALL) $(DBSD) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DBSD) $(INSTALL_LIBDIR)/$(DBSD_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DBSD)" ; fi
+	@if [ "$(DLINUX)" -a -f "$(DLINUX)" ]; then $(INSTALL) $(DLINUX) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DLINUX) $(INSTALL_LIBDIR)/$(DLINUX_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DLINUX)" ; fi
+	@if [ "$(DCLASSIC)" -a -f "$(DCLASSIC)" ]; then $(INSTALL) $(DCLASSIC) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DCLASSIC) $(INSTALL_LIBDIR)/$(DCLASSIC_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DCLASSIC)" ; fi
+	@if [ "$(DPEO)" -a -f "$(DPEO)" ]; then $(INSTALL) $(DPEO) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DPEO) $(INSTALL_LIBDIR)/$(DPEO_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DPEO)" ; fi
+	@if [ "$(DMYSQL)" -a -f "$(DMYSQL)" ]; then $(INSTALL) $(DMYSQL) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DMYSQL) $(INSTALL_LIBDIR)/$(DMYSQL_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DMYSQL)" ; fi
+	@if [ "$(DPGSQL)" -a -f "$(DPGSQL)" ]; then $(INSTALL) $(DPGSQL) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DPGSQL) $(INSTALL_LIBDIR)/$(DPGSQL_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DPGSQL)" ; fi
+	@if [ "$(DREGEX)" -a -f "$(DREGEX)" ]; then $(INSTALL) $(DREGEX) $(INSTALL_LIBDIR)/ && ln -fs $(INSTALL_LIBDIR)/$(DREGEX) $(INSTALL_LIBDIR)/$(DREGEX_PLAIN) && echo "$(INSTALL_LIBDIR)/$(DREGEX)" ; fi
 
