@@ -1,4 +1,4 @@
-/*	$CoreSDI: ip_misc.c,v 1.12 2001/04/20 21:51:46 alejo Exp $	*/
+/*	$CoreSDI: ip_misc.c,v 1.13 2001/04/26 17:09:26 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -168,9 +168,18 @@ resolv_name(const char *host, const char *port, socklen_t *salen)
 	portnum = htons(portnum);
 #endif
 
-	if ( (hp = gethostbyname(host)) == NULL ) {
-		dprintf(MSYSLOG_SERIOUS, "resolv_name: error resolving "
-		    "host address %s, %s\n", host, port);
+	if (host == NULL) {
+		struct sockaddr_in *sin;
+
+		sin = (struct sockaddr_in *) malloc(sizeof(*sin));
+		sin->sin_len = sizeof(*sin);
+		sin->sin_family = AF_INET;
+		sin->sin_port = portnum;
+		memset(&sin->sin_addr, 0, sizeof(sin->sin_addr));
+		return ((struct sockaddr *) sin);
+	} else if ((hp = gethostbyname(host)) == NULL) {
+		dprintf(MSYSLOG_SERIOUS, "resolv_name: error "
+		    "resolving host address %s, %s\n", host, port);
 		return (NULL);
 	}
 
