@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.13 2000/03/30 00:22:49 alejo Exp $
+/*	$Id: modules.c,v 1.14 2000/04/03 15:52:05 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -101,16 +101,16 @@ int modules_create(p, f, prog)
 	int	i;
 
 	/* create context and initialize module for logging */
-	if (f->f_mod == NULL) {
-		f->f_mod = (struct o_module *) calloc(1, sizeof(struct o_module));
-		m = f->f_mod;
-	} else {
-		for (m = f->f_mod; m->m_next; m = m->m_next);
-		m->m_next = (struct o_module *) calloc(1, sizeof(struct o_module));
-		m = m->m_next;
-	}
-
 	while (*p) {
+		if (f->f_mod == NULL) {
+			f->f_mod = (struct o_module *) calloc(1, sizeof *f->f_mod);
+			m = f->f_mod;
+		} else {
+			for (m = f->f_mod; m->m_next; m = m->m_next);
+			m->m_next = (struct o_module *) calloc(1, sizeof *f->f_mod);
+			m = m->m_next;
+		}
+
 		switch (*p) {
 			case '%':
 				/* get this module name */
@@ -133,7 +133,7 @@ int modules_create(p, f, prog)
 
 				/* build argv and argc, modifies input p */
 				while (isspace(*p)) p++;
-				while (*p && *p!='%' && *p !='\n' && *p!='\r' && argc<20) { 
+				while (*p && *p!='%' && *p !='\n' && *p!='\r' && argc<sizeof(argv)/sizeof(argv[0])) { 
 				
 					quotes = (*p=='"' || *p=='\'')?quotes=*p++:0;
 						
@@ -144,7 +144,6 @@ int modules_create(p, f, prog)
 					while (isspace(*p)) p++;
 				}
 
-				(*mf->m_init)(argc, argv, f, prog, (void *) &(m->context));
 
 				break;
 			case '@':
@@ -153,10 +152,15 @@ int modules_create(p, f, prog)
 			default:
 				/* classic style */
 				/* prog is already on this filed */
+				argc=0;
+				argv[argc++]="auto_classic";
+				argv[argc++]=p;
+				p+=strlen(p);
 				m_classic_init(argc, argv, f, NULL, NULL);
 				
 				break;
 		}
+		(Modules[m->m_type]->m_init)(argc, argv, f, prog, (void *) &(m->context));
 	}
 }
 
