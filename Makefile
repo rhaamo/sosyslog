@@ -31,4 +31,4 @@ peo/om_peo.o peo/hash.o peo/rmd160.o:
 	@cd peo; make om_peo; cd ..
 
 clean:
-	rm *.o
+	rm -f *.o peo/*.o syslogd
