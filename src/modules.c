@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.96 2000/06/16 20:11:45 alejo Exp $	*/
+/*	$CoreSDI: modules.c,v 1.97 2000/06/16 20:56:19 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -50,10 +50,10 @@
 #include "modules.h"
 
 int	parseParams(char ***, char *);
-struct imodule *getImFunc(char *);
-struct omodule *getOmFunc(char *);
-struct imodule *addImFunc(char *);
-struct omodule *addOmFunc(char *);
+struct imodule *getImodule(char *);
+struct omodule *getOmodule(char *);
+struct imodule *addImodule(char *);
+struct omodule *addOmodule(char *);
 
 struct omodule *omodules = NULL;
 struct imodule *imodules = NULL;
@@ -93,8 +93,8 @@ modules_init (I, line)
 	}
 
 	/* is it already initialized ? searching... */
-	if ((im->im_func = getImFunc(argv[0])) == NULL)
-		if ((im->im_func = addImFunc(argv[0])) != NULL) {
+	if ((im->im_func = getImodule(argv[0])) == NULL)
+		if ((im->im_func = addImodule(argv[0])) == NULL) {
 	   		dprintf("Error loading dynamic input module %s [%s]\n", argv[0], line);
 			die(0);
 		}
@@ -143,8 +143,8 @@ omodule_create(char *c, struct filed *f, char *prog)
 				*p++=0;
 
 				/* find for matching module */
-				if ((om->om_func = getOmFunc(argv[0])) == NULL) {
-					if ((om->om_func = addOmFunc(argv[0])) != NULL) {
+				if ((om->om_func = getOmodule(argv[0])) == NULL) {
+					if ((om->om_func = addOmodule(argv[0])) != NULL) {
 				   		dprintf("Error loading dynamic output module "
 								"%s [%s]\n", argv[0], line);
 						die(0);
@@ -181,8 +181,8 @@ omodule_create(char *c, struct filed *f, char *prog)
 				p+=strlen(p);
 				om->om_type = OM_CLASSIC;
 				/* find for matching module */
-				if ((om->om_func = getOmFunc(argv[0])) == NULL) {
-					if ((om->om_func = addOmFunc(argv[0])) != NULL) {
+				if ((om->om_func = getOmodule(argv[0])) == NULL) {
+					if ((om->om_func = addOmodule(argv[0])) != NULL) {
 				   		dprintf("Error loading dynamic output module "
 								"%s [%s]\n", argv[0], line);
 						die(0);
@@ -256,7 +256,7 @@ parseParams(char ***ret, char *c)
 }
 
 struct imodule *
-addImFunc(name)
+addImodule(name)
 	char *name;
 {
 	struct imodule *im;
@@ -312,7 +312,7 @@ imoduleDestroy(im)
 }
 
 struct omodule *
-addOmFunc(name)
+addOmodule(name)
 	char *name;
 {
 	struct omodule *om;
@@ -369,7 +369,7 @@ omoduleDestroy(om)
 }
 
 struct imodule *
-getImFunc(name)
+getImodule(name)
 	char *name;
 {
 	struct imodule *im;
@@ -386,7 +386,7 @@ getImFunc(name)
 }
 
 struct omodule *
-getOmFunc(name)
+getOmodule(name)
 	char *name;
 {
 	struct omodule *om;
