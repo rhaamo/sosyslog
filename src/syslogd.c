@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.127 2000/09/15 21:53:48 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.128 2000/09/15 23:34:06 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.127 2000/09/15 21:53:48 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.128 2000/09/15 23:34:06 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -280,7 +280,7 @@ main(int argc, char **argv) {
 		dprintf("Error initializing classic output module!\n");
 	}
 
-	(void)strncpy(consfile.f_un.f_fname, ctty,
+	(void)strncat(consfile.f_un.f_fname, ctty,
 			sizeof(consfile.f_un.f_fname) - 1);
 	(void)gethostname(LocalHostName, sizeof(LocalHostName));
 	if ((p = strchr(LocalHostName, '.')) != NULL) {
