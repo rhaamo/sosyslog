@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.64 2000/05/24 21:22:16 fgsch Exp $	*/
+/*	$CoreSDI: modules.c,v 1.65 2000/05/24 21:30:22 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -60,12 +60,12 @@ int om_classic_init(int, char **, struct filed *, char *, struct om_hdr_ctx **);
 int om_classic_close(struct filed*, struct om_hdr_ctx *);
 int om_classic_flush(struct filed*, struct om_hdr_ctx *);
 
-#ifdef HAVE_MYSQL
+#ifdef ENABLE_MYSQL
 int om_mysql_doLog(struct filed *, int , char *, struct om_hdr_ctx *);
 int om_mysql_init(int, char **, struct filed *, char *, struct om_hdr_ctx **);
 int om_mysql_close(struct filed*, struct om_hdr_ctx *);
 int om_mysql_flush(struct filed*, struct om_hdr_ctx *);
-#endif /* HAVE_MYSQL */
+#endif /* ENABLE_MYSQL */
 
 int im_bsd_init(struct i_module *, char **, int);
 int im_bsd_getLog(struct i_module *, struct im_msg *);
@@ -99,7 +99,7 @@ modules_load()
 	OModules[OM_CLASSIC].om_close 		= om_classic_close;
 	OModules[OM_CLASSIC].om_flush 		= om_classic_flush;
 
-#ifdef HAVE_MYSQL
+#ifdef ENABLE_MYSQL
 	/* mysql module */
 	OModules[OM_MYSQL].om_name 		= "mysql";
 	OModules[OM_MYSQL].om_type 		= OM_MYSQL;
@@ -107,7 +107,7 @@ modules_load()
 	OModules[OM_MYSQL].om_init 		= om_mysql_init;
 	OModules[OM_MYSQL].om_close 		= om_mysql_close;
 	OModules[OM_MYSQL].om_flush 		= om_mysql_flush;
-#endif /* HAVE_MYSQL */
+#endif /* ENABLE_MYSQL */
   
 	/* peo module */
 	OModules[OM_PEO].om_name		= "peo";

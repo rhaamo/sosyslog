@@ -32,4 +32,17 @@ done
 AC_MSG_RESULT(root-mode pid file will go in $dir)
 AC_DEFINE_UNQUOTED(PID_DIR, "$dir")
 
+AC_ARG_WITH(mysql,
+	[  --with-mysql=DIR        enable mysql support using libraries in DIR],
+	[with_mysql=$withval],
+	[with_mysql=no])
+test "$with_mysql" = "yes" && AC_DEFINE(MYSQL_ENABLE)
+
+if test -n "$with_mysql" -a "$with_mysql" != "no"
+then
+    AC_DEFINE(MYSQL_ENABLE)
+else
+    echo 'Disabling mysql support...'
+fi
+
 AC_OUTPUT(Makefile)
