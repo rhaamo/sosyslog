@@ -1,4 +1,4 @@
-.\"	$CoreSDI: syslogd.8,v 1.13 2000/10/31 19:42:14 alejo Exp $
+.\"	$CoreSDI: syslogd.8,v 1.14 2001/04/09 20:13:10 alejo Exp $
 .\"
 .\" Copyright (c) 1983, 1986, 1991, 1993
 .\"	The Regents of the University of California.  All rights reserved.
@@ -39,7 +39,8 @@ modular
 .Nd log systems messages
 .Sh SYNOPSIS
 .Nm syslogd
-.Op Fl du
+.Op Fl u
+.Op Fl d Ar level
 .Op Fl f Ar config_file
 .Op Fl m Ar mark_interval
 .Op Fl a Ar path
@@ -54,9 +55,16 @@ implementation was based on OpenBSD's syslog daemon.
 .Pp
 Supported command line options are:
 .Bl -tag -width Ds
-.It Fl d
+.It Fl d Ar level
 Enable debugging to the standard output,
-and do not disassociate from the controlling terminal.
+and do not disassociate from the controlling terminal. The
+.Pa level
+is a number used to differentiate wrror reports. Up to 10 reports all
+critical errors that stop the daemon from working; up to 20 are the
+serious errors that stop some input or output; up to 30 are noncritical
+errors; up to 100 are warnings and potential errors; up to 100 are informative
+messages; and finally up to 200 are all possible reporting on what is going
+on.
 .It Fl f Ar config_file
 Specify the pathname of an alternate configuration file;
 the default is
@@ -120,11 +128,11 @@ To run modular
 .Nm
 on BSD systems you should:
 .Pp
-.Dl # syslogd -i bsd -i unix:/dev/log
+.Dl # syslogd
 .Pp
 with the command above two inputs modules are created,
 .Cm bsd,
-that logs kernel messages from
+that reads BSD kernel messages from
 .Pa /dev/klog,
 and
 .Cm unix,
@@ -135,11 +143,11 @@ To run modular
 .Nm
 on Linux systems you should:
 .Pp
-.Dl # syslogd -i linux -i unix:/dev/log
+.Dl # syslogd
 .Pp
 with the command above two inputs modules are created,
 .Cm linux,
-that logs kernel messages from
+that reads linux kernel messages from
 .Pa /dev/klog,
 and
 .Cm unix,
