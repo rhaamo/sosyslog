@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.83 2001/10/22 22:49:42 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.84 2001/10/24 07:58:37 alejo Exp $	*/
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
@@ -103,11 +103,11 @@ struct om_classic_ctx {
 		char    f_uname[MAXUNAMES][UT_NAMESIZE+1];
 		struct {
 			char    f_hname[SIZEOF_MAXHOSTNAMELEN];
-			struct sockaddr      f_addr;
-		} f_forw;	      /* forwarding address */
+			struct sockaddr		f_addr;
+		} f_forw;	/* forwarding address */
 		char    f_fname[MAXPATHLEN];
 	} f_un;
-	int   f_type;		 /* entry type, see below */
+	int	f_type;		 /* entry type, see below */
 };
 
 void wallmsg (struct filed *, struct iovec *, struct om_classic_ctx *c);
@@ -221,10 +221,10 @@ om_classic_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 		if (writev(c->fd, iov, 6) < 0) {
 			int e = errno;
 
-                        /* from sysklogd */
-                        /* If a named pipe is full, just ignore */
-                        if (c->f_type == F_PIPE && e == EAGAIN)
-                                break;
+			/* from sysklogd */
+			/* If a named pipe is full, just ignore */
+			if (c->f_type == F_PIPE && e == EAGAIN)
+				break;
 
 			close(c->fd);
 
@@ -363,7 +363,7 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 
 		if ((sa = resolv_name(c->f_un.f_forw.f_hname, "syslog", "udp",
 		    &salen)) == NULL) {
-                        dprintf(MSYSLOG_SERIOUS, "om_classic: error resolving "
+			dprintf(MSYSLOG_SERIOUS, "om_classic: error resolving "
 			    "host %s\n", c->f_un.f_forw.f_hname);
 			break;
 		}
@@ -380,16 +380,16 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	case '/':
 		strncpy(c->f_un.f_fname, p, sizeof c->f_un.f_fname);
 		c->f_un.f_fname[sizeof (c->f_un.f_fname) - 1] = 0;
-                if ( *p == '|' ) {
+		if ( *p == '|' ) {
 			c->fd = open(++p, O_RDWR|O_NONBLOCK);
-                        c->f_type = F_PIPE;
-                } else {
+			c->f_type = F_PIPE;
+		} else {
 			c->fd = open(p, O_WRONLY|O_APPEND, 0);
-                        c->f_type = F_FILE;
-                }
+			c->f_type = F_FILE;
+		}
 
 		if (c->fd < 0) {
-                        dprintf(MSYSLOG_CRITICAL, "om_classic_init: error "
+			dprintf(MSYSLOG_CRITICAL, "om_classic_init: error "
 			    "opening log file: %s\n", p);
 			free(*ctx);
 			*ctx = NULL;
@@ -493,7 +493,7 @@ wallmsg( struct filed *f, struct iovec *iov, struct om_classic_ctx *c)
 	if (reenter++)
 		return;
 	if ( (uf = fopen(_PATH_UTMP, "r")) == NULL) {
-                dprintf(MSYSLOG_SERIOUS, "om_classic: error opening "
+		dprintf(MSYSLOG_SERIOUS, "om_classic: error opening "
 		    "%s\n", _PATH_UTMP);
 		reenter = 0;
 		return;
@@ -514,7 +514,7 @@ wallmsg( struct filed *f, struct iovec *iov, struct om_classic_ctx *c)
 		if (c->f_type == F_WALL) {
 			if ((p = ttymsg(iov, 6, line, TTYMSGTIME)) != NULL) {
 				errno = 0;	/* already in msg */
-                		dprintf(MSYSLOG_SERIOUS, "om_classic: error "
+				dprintf(MSYSLOG_SERIOUS, "om_classic: error "
 				    "%s\n", p);
 			}
 			continue;
@@ -528,7 +528,7 @@ wallmsg( struct filed *f, struct iovec *iov, struct om_classic_ctx *c)
 				if ((p = ttymsg(iov, 6, line, TTYMSGTIME))
 								!= NULL) {
 					errno = 0;	/* already in msg */
-                			dprintf(MSYSLOG_SERIOUS, "om_classic: error "
+					dprintf(MSYSLOG_SERIOUS, "om_classic: error "
 					    "%s\n", p);
 				}
 				break;
