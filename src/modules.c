@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.25 2000/04/18 20:19:35 alejo Exp $
+/*	$Id: modules.c,v 1.26 2000/04/18 20:47:36 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -57,7 +57,7 @@ int modules_init (I)
 {
 	/* initialize module function assignations */
 	memset(OModules, 0, sizeof(OModules));
-	*I = (struct i_module *) calloc(sizeof(struct i_modules), 1);
+	*I = (struct i_module *) calloc(sizeof(struct i_module), 1);
 	(*I)->fd = -1;
 
 	/* classic module */
