@@ -275,24 +275,18 @@ main(int argc, char **argv) {
 		gettimeofday(&tnow, NULL);
 		timeout.tv_sec = nextcall.tv_sec - tnow.tv_sec;
 		timeout.tv_usec = nextcall.tv_usec - tnow.tv_usec;
-		dprintf("\t** syslogd: nextcall es %li\t%li\n", nextcall.tv_sec,
-				nextcall.tv_usec);
-		dprintf("\t** syslogd: timeout  es %li\t%li\n", timeout.tv_sec,
-				timeout.tv_usec);
-		dprintf("\t** syslogd:    tnow es %li\t%li\n", tnow.tv_sec,
-				tnow.tv_usec);
+		dprintf("\t** syslogd: nextcall es %li\t%li\n"
+				"\t** syslogd: timeout  es %li\t%li\n"
+				"\t** syslogd:    tnow es %li\t%li\n",
+				nextcall.tv_sec, nextcall.tv_usec,
+				timeout.tv_sec, timeout.tv_usec,
+				tnow.tv_sec, tnow.tv_usec);
 
 		if (timeout.tv_sec < 1 && (timeout.tv_usec < SYSLOG_TIMEOUT_MINUSEC ||
-				timeout.tv_usec < -1)) {
+				timeout.tv_usec < -1)) ||
+				timeout.tv_sec > SYSLOG_TIMEOUT_MAXSEC) {
 			timeout.tv_sec = SYSLOG_TIMEOUT_SEC;
 			timeout.tv_usec = SYSLOG_TIMEOUT_USEC;
-
-			dprintf("\t** syslogd: nextcall es %li\t%li\n", nextcall.tv_sec,
-					nextcall.tv_usec);
-			dprintf("\t** syslogd: timeout  es %li\t%li\n", timeout.tv_sec,
-					timeout.tv_usec);
-			dprintf("\t** syslogd:    tnow es %li\t%li\n", tnow.tv_sec,
-					tnow.tv_usec);
 		}
 
 		/* dprintf("readfds = %#x\n", readfds); */
