@@ -1,4 +1,4 @@
-dnl	$CoreSDI: aclocal.m4,v 1.14 2000/08/29 23:56:59 alejo Exp $
+dnl	$CoreSDI: aclocal.m4,v 1.15 2000/08/30 00:57:05 alejo Exp $
 
 dnl
 dnl MSYSLOG_GREP patt file comm
@@ -22,7 +22,7 @@ AC_DEFUN(MSYSLOG_CHECK_MSYSLOG_BASEDIR, [
 AC_ARG_WITH(msyslog-basedir,
 	[--with-msyslog-libdir=DIR        specify msyslog library dir],
 	[MSYSLOG_BASEDIR="$withval"],
-	[MSYSLOG_BASEDIR="/var/ssyslog"]
+	[MSYSLOG_BASEDIR="/var/msyslog"]
 )])
 
 dnl
