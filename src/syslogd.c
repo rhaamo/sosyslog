@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.189 2001/04/05 20:56:25 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.190 2001/04/06 22:46:32 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.189 2001/04/05 20:56:25 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.190 2001/04/06 22:46:32 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -245,8 +245,9 @@ main(int argc, char **argv)
                 printf("syslogd: error exporting%s\n", dlerror());
 #endif
 
-        if ((main_lib = dlopen(INSTALL_LIBDIR "/" MLIBNAME_STR,
-	    DLOPEN_FLAGS)) == NULL) {
+        if ( (main_lib = dlopen(INSTALL_LIBDIR "/" MLIBNAME_STR, DLOPEN_FLAGS))
+	    == NULL && (main_lib = dlopen("./" MLIBNAME_STR, DLOPEN_FLAGS))
+	    == NULL ) {
                 dprintf(MSYSLOG_CRITICAL, "Error opening main library, [%s] "
                     "file [%s]\n", dlerror(), INSTALL_LIBDIR "/" MLIBNAME_STR);
                 return(-1);
