@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.75 2001/08/01 05:07:04 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.76 2001/08/06 20:22:39 claudio Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -193,7 +193,20 @@ om_mysql_write(struct filed *f, int flags, char *msg, void *ctx)
 	dprintf(MSYSLOG_INFORMATIVE2, "om_mysql_write: query [%s]\n",
 	    query);
 
-	return ((c->mysql_query)(c->h, query) < 0 ? -1 : 1);
+	if ((i = (c->mysql_query)(c->h, query)) < 0) {
+		snprintf(err_buf, sizeof(err_buf), "om_mysql_write: error "
+		    "inserting on table [%s]",
+#ifndef mysql_error
+		    (c->mysql_error)
+#else
+		    mysql_error
+#endif
+		    (c->h));
+		dprintf(MSYSLOG_SERIOUS, "%s\n", err_buf);
+		return (-1);
+	}
+
+	return (1);
 }
 
 /*
