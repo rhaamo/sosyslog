@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$Id: om_classic.c,v 1.5 2000/04/19 00:05:49 alejo Exp $";
+static char rcsid[] = "$Id: om_classic.c,v 1.6 2000/04/19 18:44:31 gera Exp $";
 #endif /* not lint */
 
 /*
@@ -242,6 +242,7 @@ om_classic_init(argc, argv, f, prog, context)
 		    sizeof(f->f_un.f_forw.f_addr));
 		f->f_un.f_forw.f_addr.sin_len = sizeof(f->f_un.f_forw.f_addr);
 		f->f_un.f_forw.f_addr.sin_family = AF_INET;
+#error LogPort is not initialized
 		f->f_un.f_forw.f_addr.sin_port = LogPort;
 		memmove(&f->f_un.f_forw.f_addr.sin_addr, hp->h_addr,
 		    hp->h_length);
