@@ -203,7 +203,7 @@ m_classic_init(line, f, prog, context)
 	char *line;
 	struct filed *f;
 	char *prog;
-	void *context;
+	struct m_header **context;
 {
 	struct hostent *hp;
 	int i, pri;
@@ -281,7 +281,7 @@ m_classic_init(line, f, prog, context)
 int
 m_classic_close(f, context)
 	struct filed *f;
-	void *context;
+	struct m_header **context;
 {
 	int ret;
 

@@ -66,13 +66,20 @@ static char rcsid[] = "$NetBSD: syslogd.c,v 1.5 1996/01/02 17:48:41 perry Exp $"
 
 #include "/usr/local/include/mysql/mysql.h"
 
+#define MAX_QUERY	8192
+#define SQL_BADCHARS	",);\"'"
 
 struct m_mysql_ctx {
+	short	flags;
+	int	size;
 	MYSQL	*h;
-	char	*date_col;
-	char	*program_col;
-	char	*host_col;
-	char	*msg_col;
+	char	*host;
+	int	port;
+	char	*user;
+	char	*passwd;
+	char	*db;
+	char	*table;
+	char	*query;		/* speed hack: this is a buffer for querys */
 };
 
 
@@ -81,10 +88,53 @@ m_mysql_printlog(f, flags, msg, context)
 	struct filed *f;
 	int flags;
 	char *msg;
-	void *context;
+	struct m_header *context;
 {
-	return (-1);
+	struct m_mysql_ctx *c;
+	char	badchars[] = SQL_BADCHARS;
+	char	*p, *q, *r;
+	char	*msgbuf;
+	int	i;
+
+	c = (struct m_mysql_ctx *) context;
+	memset(c->query, 0, MAX_QUERY);
+	msgbuf = (char *) calloc(1, strlen(msg + 10));
+
+	/* get args names */
+
+	/* find if some funny thing is going on here bangin' SQL */
+	for (p = msg, i = 0, r = msgbuf; p; p++, r++) {
+
+		if (iscntrl(*p)) {
+			*r = 'X';
+			i++;
+			break;
+		}
+
+		for (q = badchars; q; q++) {
+			if ( *p == *q ) {
+				*r = 'X';
+				i++;
+				break;
+			}
+		}
+	}
+
+	/* get args names */
+
+	if (snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s VALUES('%s', '%s',
+			'%s', '%s', '%s', '%s",
+			c->table, date, time, host, progname, pid, msg) = MAX_QUERY - 2 ) {
+		/* force termination if msg filled the buffer */
+		(c->query + MAX_QUERY - 2) = '\'';
+		(c->query + MAX_QUERY - 1) = ')';
+		(c->query + MAX_QUERY)     = '\0';
+	}
+
+	return (mysql_query(c->h, buf));
+
 }
+
 
 /*
  *  INIT -- Initialize m_mysql
@@ -95,13 +145,9 @@ m_mysql_printlog(f, flags, msg, context)
  *         -s <host:port>
  *         -u <user>
  *         -p <password>
- *         -d <database_name>
+ *         -b <database_name>
  *         -t <table_name>
  *         -c			create table
- *         -d <date_column>
- *         -n <program_name_column>
- *         -h <host_name>
- *         -m <message_column>
  *
  */
 
@@ -110,14 +156,14 @@ m_mysql_init(line, f, prog, c)
 	char *line;
 	struct filed *f;
 	char *prog;
-	void *c;
+	struct m_header **c;
 {
 	char *p, *q;
 	MYSQL *h;
 	char	*host, *user, *passwd, *db, *ux_sock;
-	char	*table; *date_col, *program_col, *host_col, *msg_col;
+	char	*table;
 	int	port, client_flag, createTable;
-	void	*context;
+	struct m_mysql_ctx	*context;
 	int	i;
 
 	if (line == NULL || f == NULL || prog == NULL || c == NULL)
@@ -169,7 +215,7 @@ m_mysql_init(line, f, prog, c)
 				for (q = passwd; i--; *q++ = *p++);
 				*q = '\0';
 				break;
-			case 'd':
+			case 'b':
 				for (i = 0; *++p != '\0' && *p != ':'; i++);
 				db = (char *) calloc(1, i + 1);
 				for (q = db; i--; *q++ = *p++);
@@ -184,30 +230,6 @@ m_mysql_init(line, f, prog, c)
 			case 'c':
 				createTable++;
 				break;
-			case 'd':
-				for (i = 0; *++p != '\0' && *p != ':'; i++);
-				date_col = (char *) calloc(1, i + 1);
-				for (q = date_col; i--; *q++ = *p++);
-				*q = '\0';
-				break;
-			case 'n':
-				for (i = 0; *++p != '\0' && *p != ':'; i++);
-				program_col = (char *) calloc(1, i + 1);
-				for (q = program_col; i--; *q++ = *p++);
-				*q = '\0';
-				break;
-			case 'h':
-				for (i = 0; *++p != '\0' && *p != ':'; i++);
-				host_col = (char *) calloc(1, i + 1);
-				for (q = host_col; i--; *q++ = *p++);
-				*q = '\0';
-				break;
-			case 'm':
-				for (i = 0; *++p != '\0' && *p != ':'; i++);
-				msg_col = (char *) calloc(1, i + 1);
-				for (q = msg_col; i--; *q++ = *p++);
-				*q = '\0';
-				break;
 			default:
 				break;
 		}
@@ -218,34 +240,60 @@ m_mysql_init(line, f, prog, c)
 		return (-3);
 
 	/* clean up the mess */
-	if (!mysql_init(&h)) {
+	if (!mysql_init(h)) {
 		dprintf("Error initializing handle\n");
 		return(-4);
 	}
 	if (!mysql_real_connect(h, host, user, passwd, db, port,
-			unix_socket, client_flag)) {
+			NULL, client_flag)) {
 		dprintf("Error connecting to db server [%s:%i] user [%s] db [%s]\n",
 				host, port, user, db);
 		return(-5);
 	}
 
-	if (host != NULL) free(host); if (user != NULL) free(user);
-	if (passwd != NULL) free(passwd); if (db != NULL) free(db);
-	if (date_col != NULL) free(date_col); if (program_col != NULL) free(program_col);
-	if (host_col != NULL) free(host_col); if (msg_col != NULL) free(msg_col);
+	/* save handle and stuff on context */
+	*c = (struct m_header *) calloc(1, sizeof(struct m_mysql_ctx));
 
-	/* save handle on context */
-	*c = (void *) calloc(1, sizeof(struct m_mysql_ctx));
 	context = (struct m_mysql_ctx *) *c;
+	context->size = sizeof(struct m_mysql_ctx);
+	context->h = h;
+	context->host = host;
+	context->port = port;
+	context->user = user;
+	context->passwd = passwd;
+	context->db = db;
+	context->table = table;
+	context->query = (char *) calloc(MAX_QUERY);
 
 	return (0);
+}
+
+void
+m_mysql_destroy_ctx(context)
+	struct m_mysql_ctx *context;
+{
+	free(context->h);
+	free(context->host);
+	free(context->user);
+	free(context->passwd);
+	free(context->db);
+	free(context->table);
+	free(context->query);
 }
 
 int
 m_mysql_close(f, context)
 	struct filed *f;
-	void *context;
+	struct m_header **context;
 {
+	struct m_mysql_ctx *c;
+
+	c = (struct m_mysql_ctx *) *context;
+	mysql_close(c->h);
+	m_mysql_destroy_ctx(c);
+	free(*context);
+	context = NULL;
+
 	return (-1);
 }
 

@@ -78,16 +78,6 @@
 #define S_MODULE_KEYWORD "s_mod"
 #define MAX_MODULE_NAME_LEN 255
 
-/*
- * This structure represents main details for the output modules
- */
-
-struct o_module {
-	struct	o_module *m_next;
-	short	m_type;
-	void	*context;
-};
-
 /* standard module header variables in context */
 struct m_header {
 	short	flags;
@@ -95,6 +85,17 @@ struct m_header {
 #define M_FLAG_ERROR 0x2
 #define M_FLAG_LOCKED 0x4
 #define M_FLAG_ROTATING 0x8
+	int	size;
+};
+
+/*
+ * This structure represents main details for the output modules
+ */
+
+struct o_module {
+	struct	o_module *m_next;
+	short	m_type;
+	struct m_header	*context;
 };
 
 /*
@@ -131,9 +132,8 @@ struct	Modules {
 	char	*m_name;
 	short	m_type;
 	int	(*m_printlog) (struct filed *, int, char *, void *);
-	/* take care we get here anotherpointer!!!! */
-	int	(*m_init) (char *, struct filed *, char *, void *);
-	int	(*m_close) (struct filed *, void *);
+	int	(*m_init) (char *, struct filed *, char *, struct m_header **);
+	int	(*m_close) (struct filed *, struct m_header **);
 	int	(*m_flush) (struct filed *, void *);
 } Modules[MAX_N_MODULES];
 

@@ -31,8 +31,8 @@ extern int	repeatinterval[];
  */
 
 int m_classic_printlog(struct filed *, int , char *, void *);
-int m_classic_init(char *, struct filed *, char *, void *);
-int m_classic_close(struct filed*, void *);
+int m_classic_init(char *, struct filed *, char *, struct m_header **);
+int m_classic_close(struct filed*, struct m_header **);
 int m_classic_flush(struct filed*, void *);
 
 

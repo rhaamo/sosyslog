@@ -802,7 +802,7 @@ init(signo)
 			}
 
 			if (Modules[m->m_type].m_close != NULL) {
-				(*Modules[m->m_type].m_close) (f,m->context);
+				(*Modules[m->m_type].m_close) (f,&(m->context));
 			}
 		}
 		next = f->f_next;

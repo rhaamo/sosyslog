@@ -5,5 +5,6 @@ SRCS=	syslogd.c ttymsg.c modules.c m_classic.c m_mysql.c
 .PATH:	${.CURDIR}/../../usr.bin/wall
 MAN=	syslogd.8 syslog.conf.5
 DEBUG=	-ggdb
+LDADD= -L/usr/local/lib/mysql -lmysqlclient
 
 .include <bsd.prog.mk>
