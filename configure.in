@@ -1,4 +1,4 @@
-dnl	$CoreSDI: configure.in,v 1.43 2000/07/05 18:56:19 claudio Exp $
+dnl	$CoreSDI: configure.in,v 1.44 2000/07/05 22:44:40 claudio Exp $
 
 AC_INIT(src/syslogd.h)
 AC_CONFIG_HEADER(src/config.h)
@@ -9,24 +9,11 @@ MSYSLOG_VERSION=`awk '/#define VERSION/ { print $3 }' src/syslogd.h`
 echo msyslog version... $MSYSLOG_VERSION
 
 CFLAGS="-Wall -O -ggdb"
-LDDFLAGS=""
+LDFLAGS=
+LDDFLAGS=
 DCCFLAGS="-fPIC"
 LDCONFIG_FLAGS="-m"
-
 UNAME=`uname`
-
-if test "$UNAME" = "OpenBSD"
-then
-	echo OpenBSD system detected
-	AC_DEFINE(HAVE_OPENBSD)
-elif test "$UNAME" = "Linux"
-then
-	echo Linux system detected
-	LIBS="$LIBS -ldl"
-	DCCFLAGS=""
-	LDDFLAGS="-Xlinker -E"
-	AC_DEFINE(HAVE_LINUX)
-fi
 
 AC_CHECK_HEADERS(paths.h)
 
@@ -46,7 +33,7 @@ done
 AC_MSG_RESULT(root-mode pid file will go in $dir)
 AC_DEFINE_UNQUOTED(PID_DIR, "$dir")
 
-for INSTALL_LIBDIR in "/usr/local/lib" "/usr/lib" "/lib"
+for INSTALL_LIBDIR in "/usr/lib" "/usr/local/lib" "/lib"
 do
 	if test -d $INSTALL_LIBDIR
 	then
@@ -55,8 +42,8 @@ do
 done
 AC_MSG_RESULT(dynamic modules will be installed on $INSTALL_LIBDIR)
 
-for INSTALL_DIR in "/sbin" "/usr/sbin" "/usr/local/sbin"\
-		   "bin" "/usr/bin" "/usr/local/bin"
+for INSTALL_DIR in "/usr/sbin" "/usr/local/sbin" "/sbin" \
+		   "/usr/bin" "/usr/local/bin" "/bin"
 do
 	if test -d $INSTALL_DIR
 	then
@@ -65,14 +52,14 @@ do
 done
 AC_MSG_RESULT(syslogd and tools will be installed on $INSTALL_DIR)
 
-for MANDIR in "/usr/share/man/cat" "/usr/man" 
+for MANDIR in "/usr/share/man" "/usr/man"
 do
 	if test -d $MANDIR
 	then
 		break;
 	fi
 done
-AC_MSG_RESULT(man path... $MANDIR)
+AC_MSG_RESULT(man pages will be installed on $MANDIR)
 
 #AC_ARG_WITH(mysql,
 #	[  --with-mysql=DIR        enable MySQL support using libraries in DIR],
@@ -272,6 +259,20 @@ else
 	AC_MSG_RESULT([not activated])
 fi
 ])
+
+
+if test "$UNAME" = "OpenBSD"
+then
+	echo Configuring for OpenBSD system
+	AC_DEFINE(HAVE_OPENBSD)
+elif test "$UNAME" = "Linux"
+then
+	echo Configuring for Linux system
+	LIBS="$LIBS -ldl"
+	DCCFLAGS=
+	LDDFLAGS="-Xlinker -E"
+	AC_DEFINE(HAVE_LINUX)
+fi
 
 
 BEGIN_MODULES_CONF()
