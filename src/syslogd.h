@@ -81,6 +81,11 @@
 
 #define MAX_MODULE_NAME_LEN 255
 
+/*
+ * maximum number of unix sockets
+ */
+#define MAXFUNIX        21
+
 /* standard output module header variables in context */
 struct om_header {
 	short	flags;

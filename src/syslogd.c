@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.13 2000/04/07 22:57:57 alejo Exp $
+/*	$Id: syslogd.c,v 1.14 2000/04/10 20:16:36 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -129,8 +129,6 @@ void	printline __P((char *, char *));
 void	printsys __P((char *));
 void	reapchild __P((int));
 void	usage __P((void));
-
-#define MAXFUNIX	21
 
 int nfunix = 1;
 char *funixn[MAXFUNIX] = { _PATH_LOG };

@@ -17,6 +17,7 @@ struct im_bsd_ctx {
 #define M_FLAG_INITIALIZED 0x1
 #define M_FLAG_ERROR 0x2
 	int	size;
+	int	fd;
 };
 
 
@@ -49,13 +50,22 @@ struct IModules {
  *
  */
 
+extern int nfunix;
+extern char *funixn[];
+extern int *funix[];
+
 int
-im_bsd_init(i, line, c)
-	char   *buf;
-	int   size;
+im_bsd_init(argc, argv, c)
+	int   argc;
+	char   *argv[];
 	struct im_header  **c;
 {
-	struct 
+	struct im_bsd_ctx *ctx;
+
+	*c = (struct im_header *) calloc(1, sizeof(struct im_bsd_ctx));
+	ctx = (struct im_bsd_ctx *) *c;
+
+	
 }
 
 
@@ -64,13 +74,15 @@ im_bsd_init(i, line, c)
  *
  */
 
-int
-im_bsd_getmsg(buf, size, c)
-	char   *buf;
-	int   size;
+char *
+im_bsd_getmsg(c)
 	struct im_header  *c;
 {
-	struct 
+	struct im_bsd_ctx *ctx;
+
+	ctx = (struct im_bsd_ctx *) c;
+
+	
 }
 
 
