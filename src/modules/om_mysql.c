@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.40 2000/09/14 01:11:25 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.41 2000/09/15 00:10:33 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -100,7 +100,7 @@ om_mysql_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *ctx)
 	tp = localtime(f->f_time);
 
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
-	snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s "
+	snprintf(c->query, MAX_QUERY, "INSERT INTO %s "
 	    "VALUES('%d-%02d-%02d', '%02d:%02d:%02d', '%s', '%s')",
 	    c->table, t->tm_year + 1900, t->tm_mon + 1, t->tm_day,
 	    t->tm_hour, t->tm_min, t->tm_sec, f->f_prevhost, msg_q);

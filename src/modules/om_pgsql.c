@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.17.2.4.2.2 2000/09/14 01:09:32 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.21 2000/09/14 01:12:43 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -123,7 +123,7 @@ om_pgsql_doLog(struct filed *f, int flags, char *msg, struct om_hdr_ctx *ctx) {
 		return (-1);
 
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
-	snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s"
+	snprintf(c->query, MAX_QUERY, "INSERT INTO %s"
 			" VALUES('%s-%02d-%s', '%s', '%s', '%s')",
 			c->table, y, month_number(mo), d, h, host, m);
 
