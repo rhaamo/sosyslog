@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.20 2000/05/27 02:04:00 alejo Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.21 2000/05/29 20:41:39 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -72,7 +72,7 @@ im_unix_getLog(im, ret)
 
 	slen = sizeof(fromunix);
 	ret->im_len = recvfrom(im->im_fd, ret->im_msg, MAXLINE, 0,
-			(struct sockaddr *)&fromunix, &slen);
+	    (struct sockaddr *)&fromunix, &slen);
 	if (ret->im_len > 0) {
 		ret->im_msg[ret->im_len] = '\0';
 		strncpy(ret->im_host, LocalHostName, sizeof(ret->im_host));
@@ -92,7 +92,6 @@ im_unix_getLog(im, ret)
  *
  */
 
-
 int
 im_unix_init(I, argv, argc)
 	struct i_module *I;
@@ -102,7 +101,7 @@ im_unix_init(I, argv, argc)
 	struct sockaddr_un sunx;
 
 	if (I == NULL || argv == NULL || argc != 2)
-	    return(-1);
+		return(-1);
 
 #ifndef SUN_LEN
 #define SUN_LEN(unp) (strlen((unp)->sun_path) + 2)
@@ -116,8 +115,8 @@ im_unix_init(I, argv, argc)
 	if (I->im_fd < 0 ||
 	    bind(I->im_fd, (struct sockaddr *)&sunx, SUN_LEN(&sunx)) < 0 ||
 	    chmod(argv[1], 0666) < 0) {
-		(void) snprintf(I->im_buf, sizeof(I->im_buf), "cannot create %s",
-		    argv[1]);
+		(void) snprintf(I->im_buf, sizeof(I->im_buf),
+		    "cannot create %s", argv[1]);
 		logerror(I->im_buf);
 		dprintf("cannot create %s (%d)\n", argv[1], errno);
 		return (-1);
@@ -135,7 +134,6 @@ im_unix_close(im)
 	struct i_module *im;
 {
 	int ret;
-
 
 	if (im->im_path) {
 		ret = unlink(im->im_path);
