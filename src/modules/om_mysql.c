@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.22 2000/06/05 22:40:56 fgsch Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.23 2000/06/05 23:00:29 gera Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -113,6 +113,8 @@ om_mysql_doLog(f, flags, msg, ctx)
 	mn++;
 
 	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
+	// Quotes must be scaped for security reasons (not only security,
+	// suppose msg = "this log won't work", it'll be a syntax error
 	snprintf(c->query, MAX_QUERY - 2, "INSERT INTO %s"
 			" VALUES('%s-%.2d-%s', '%s', '%s', '%s')",
 			c->table, y, mn, d, h, host, msg);
