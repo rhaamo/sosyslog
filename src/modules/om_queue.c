@@ -300,19 +300,22 @@ return (-1);
             "output type (%s) specified\n", ((ctx->outtype == 'x') ? "xml":"raw"));
         break;
       case 't':  /* target  (where you want the ticket to go) */
-        ctx->target_len = strnlen(optarg, MAXTARGET);
+        if ((ctx->target_len = strlen(optarg)) > MAXTARGET)
+        	ctx->target_len = MAXTARGET;
         ctx->target = (char*) malloc( ctx->target_len+1 );
         strncpy( ctx->target, optarg, ctx->target_len );
         ctx->target[ctx->target_len] = '\0';
         break;
       case 'd':  /* semaphore (a directory path) */
-        ctx->directory_len = strnlen(optarg, MAXDIRECTORY);
+        if ((ctx->directory_len = strlen(optarg)) > MAXDIRECTORY)
+        	ctx->directory_len = MAXDIRECTORY;
         ctx->directory = (char*) malloc( ctx->directory_len+1 );
         strncpy( ctx->directory, optarg, ctx->directory_len );
         ctx->directory[ctx->directory_len] = '\0';
         break;
       case 'k':  /* key for the message */
-        ctx->key_len = strnlen(optarg, MAXKEY);
+        if ((ctx->key_len = strlen(optarg)) > MAXKEY)
+        	ctx->key_len = MAXKEY;
         ctx->key = (char*) malloc( ctx->key_len+1 );
         strncpy( ctx->key, optarg, ctx->key_len );
         ctx->key[ctx->key_len] = '\0';
@@ -320,7 +323,8 @@ return (-1);
             "key (%s) specified\n", ctx->key);
         break;
       case 'n':  /* namespace for the message */
-        ctx->namespace_len = strnlen(optarg, MAXELEMENT);
+        if ((ctx->namespace_len = strlen(optarg)) > MAXELEMENT)
+	        ctx->namespace_len = MAXELEMENT;
         ctx->namespace = (char*) malloc( ctx->namespace_len+1 );
         strncpy( ctx->namespace, optarg, ctx->namespace_len );
         ctx->namespace[ctx->namespace_len] = '\0';
@@ -335,7 +339,8 @@ return (-1);
 
         node->type = ch;
         node->payload = NULL;
-        node->element_len = strnlen(optarg, MAXELEMENT);
+        if ((node->element_len = strlen(optarg)) > MAXELEMENT)
+        	node->element_len = MAXELEMENT;
         node->element = (char*) malloc( node->element_len+1 );
         strncpy( node->element, optarg, node->element_len );
         node->element[node->element_len] = '\0';

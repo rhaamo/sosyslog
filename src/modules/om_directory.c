@@ -147,7 +147,8 @@ return (-1);
          "filename (%s)\n", filename);
 
   /* write to the file */
-  write( filedes, msg->msg, strnlen(msg->msg, MAXMSG) ); 
+	write(filedes, msg->msg,
+	    strlen(msg->msg) > MAXMSG? MAXMSG : strlen(msg->msg)); 
   close( filedes );
 
   /* unlock the file by changing its permission to allow reading */
@@ -217,7 +218,8 @@ return (-1);
   while ((ch = getopt(argc, argv, "s:")) != -1) {
     switch (ch) { 
       case 's':  /* semaphore (a directory path) */
-        ctx->directory_len = strnlen(optarg, MAXDIRECTORY);
+        if ((ctx->directory_len = strlen(optarg)) > MAXDIRECTORY)
+        	ctx->directory_len = MAXDIRECTORY;
         ctx->directory = (char*) malloc( ctx->directory_len+1 );
         strncpy( ctx->directory, optarg, ctx->directory_len );
         ctx->directory[ctx->directory_len] = '\0';
@@ -284,7 +286,7 @@ return(-1);
   if (ctx->semaphore >= 0) break;
     if (ix > 5) {
       snprintf(statbuf, sizeof(statbuf), "om_directory: "
-            "semaphore set for key (0x%x) NOT created", semkey);
+            "semaphore set for key (0x%lx) NOT created", semkey);
       m_dprintf(MSYSLOG_SERIOUS, "%s\n", statbuf);
       *status = strdup(statbuf);
 return (-1);
