@@ -1,4 +1,4 @@
-/*	$Id: om_classic.c,v 1.18 2000/05/17 17:27:55 gera Exp $
+/*	$Id: om_classic.c,v 1.19 2000/05/17 17:33:05 gera Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -236,7 +236,8 @@ om_classic_init(argc, argv, f, prog, context)
 		break;
 
 	case '/':
-		(void)strncpy(f->f_un.f_fname, pi, sizeof f->f_un.f_name);
+		(void)strncpy(f->f_un.f_fname, p, sizeof f->f_un.f_fname);
+		f->f_un.f_fname[sizeof f->f_un.f_fname]=0;
 		if ((f->f_file = open(p, O_WRONLY|O_APPEND, 0)) < 0) {
 			f->f_type = F_UNUSED;
 			logerror(p);
