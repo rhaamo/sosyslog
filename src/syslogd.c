@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.90.2.9.2.4.4.15 2000/11/21 23:20:21 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.151 2000/11/22 00:38:15 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.90.2.9.2.4.4.15 2000/11/21 23:20:21 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.151 2000/11/22 00:38:15 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -485,6 +485,7 @@ void
 usage(void) {
 
 	(void)fprintf(stderr,
+	    "Modular Syslog vesion " MSYSLOG_VERSION_STR "\n\n"
 	    "usage: syslogd [-d] [-u] [-f conffile] [-m markinterval] \\\n"
 	    " [-p logpath] [-a logpath] -i input1 [-i input2] [-i inputn]\n\n");
 	exit(1);
