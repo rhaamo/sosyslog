@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.71 2000/05/26 19:25:08 claudio Exp $	*/
+/*	$CoreSDI: modules.c,v 1.72 2000/05/26 21:15:36 gera Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -79,9 +79,11 @@ int	im_unix_close __P((struct i_module *));
 int	im_udp_init __P((struct i_module *, char **, int));
 int	im_udp_getLog __P((struct i_module *, struct im_msg *));
 int	im_udp_close __P((struct i_module *));
+#ifdef HAVE_LINUX
 int	im_linux_init __P((struct i_module *, char **, int));
 int	im_linux_getLog __P((struct i_module *, struct im_msg *));
 int	im_linux_close __P((struct i_module *));
+#endif
 
 void    die __P((int));
 
@@ -144,12 +146,14 @@ modules_load()
 	IModules[IM_UDP].im_getLog		= im_udp_getLog;
   	IModules[IM_UDP].im_close		= im_udp_close;
 
+#ifdef HAVE_LINUX
 	/* linux kernel input module */
 	IModules[IM_LINUX].im_name		= "linux";
 	IModules[IM_LINUX].im_type		= IM_LINUX;
 	IModules[IM_LINUX].im_init		= im_linux_init;
 	IModules[IM_LINUX].im_getLog		= im_linux_getLog;
 	IModules[IM_LINUX].im_close		= im_linux_close;
+#endif
 	
 	return(1);
 }
@@ -202,11 +206,13 @@ modules_init (I, line)
 	    	dprintf("Error initializing module %s [%s]\n", argv[0], line);
 	        die(0);
 	    }
+#ifdef HAVE_LINUX
 	} else if (!strncmp(argv[0], "linux", 5)) {
 	    if (im_linux_init(im, argv, argc) < 0) {
 		dprintf("Error initializing module %s [%s]\n", argv[0], line);
 		die(0);
 	    }
+#endif
 	}
 
 	return(1);
