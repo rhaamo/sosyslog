@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.61 2001/02/08 18:01:53 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.62 2001/02/16 00:34:52 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -268,25 +268,44 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 
 	dprintf(DPRINTF_INFORMATIVE)("om_classic init: Entering\n");
 
-	if ((*ctx = (void *) calloc(1, sizeof(struct om_classic_ctx))) == NULL)
+	if ((*ctx = (void *) calloc(1, sizeof(struct om_classic_ctx))) == NULL) {
+		dprintf(DPRINTF_SERIOUS)("om_classic_init: cannot allocate "
+		    "context\n", argc);
 		return (-1);
+	}
+
 	c = (struct om_classic_ctx *) *ctx;
 
 	/* accepts "%classic /file" or "%classic -t TYPE /file" */
-	if ( (argc != 2 && argc != 4) || argv == NULL);
-		return(-1);
+	if ( (argc != 2 && argc != 4) || argv == NULL) {
+		dprintf(DPRINTF_SERIOUS)("om_classic_init: incorrect "
+		    "parameters %d args\n", argc);
+		free(*ctx);
+		*ctx = NULL;
+		return (-1);
+	}
 
-	if (argc == 2) {
+	if (argc > 2) {
 		int i;
 
-		if ( ! strncmp(argv[1], "-t", 2))
+		if (strncmp(argv[1], "-t", 2)) {
+			dprintf(DPRINTF_SERIOUS)("om_classic_init: incorrect" 
+			    " parameter %s, should be '-t' %d\n", argv[1], i);
+			free(*ctx);
+			*ctx = NULL;
 			return (-1);
+		}
 
 		/* look for entry # in table */
 		for (i = 0; TypeNames[i] && strncmp(TypeNames[i], argv[2],
 		    strlen(argv[2])); i++);
-		if (TypeNames[i] == NULL)
+		if (TypeNames[i] == NULL) {
+			dprintf(DPRINTF_SERIOUS)("om_classic_init: couldn't" 
+			    " determine type %s\n", argv[2]);
+			free(*ctx);
+			*ctx = NULL;
 			return (-1);
+		}
 
 		c->f_type = i;
 		p = argv[3];
@@ -307,6 +326,8 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 			if (sp == NULL) {
 				errno = 0;
 				logerror("syslog/udp: unknown service");
+				free(*ctx);
+				*ctx = NULL;
    				return (-1);
 			}
 			memset(&sin, 0, sizeof(sin));
@@ -316,6 +337,8 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx)
 			if (bind(finet, (struct sockaddr *)&sin,
 					sizeof(sin)) < 0) {
 				logerror("bind");
+				free(*ctx);
+				*ctx = NULL;
 				return (-1);
 			} else {
 				DaemonFlags |= SYSLOGD_INET_IN_USE;
