@@ -1,4 +1,4 @@
-/*	$CoreSDI: README,v 1.14 2001/08/15 05:13:25 alejo Exp $	*/
+/*	$CoreSDI: README,v 1.15 2001/10/18 20:32:35 alejo Exp $	*/
 
 Installation
 ------------
@@ -15,6 +15,9 @@ This project is intended as a whole revision of previous Secure Syslogd
 project (wich is unsupported by now). It has all functionalities and some
 more. The remaining things are Solaris support and Audit compatibility
 (on the works).
+
+There are also a few lines taken from the sysklogd project, wich got them
+modified from BSD. Specifically the '!', '=' use on configuration.
 
 Reporting Bugs
 --------------
