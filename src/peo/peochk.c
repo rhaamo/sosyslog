@@ -1,4 +1,4 @@
-/*      $Id: peochk.c,v 1.23 2000/05/08 21:11:32 claudio Exp $
+/*      $Id: peochk.c,v 1.24 2000/05/08 23:48:38 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
@@ -236,7 +236,7 @@ check()
 		if (macfile) {
 			if ( (mkey1len = mac2(key, keylen, msg, msglen, mkey1)) < 0)
 				qerr(0, ERR, -1, macfile);
-			if ( (mkey2len = readline(mfd, mkey2, mkey1len)) < 0)
+			if ( (mkey2len = read(mfd, mkey2, mkey1len)) < 0)
 				qerr(0, ERR, -1, macfile);
 			if ((mkey2len != mkey1len) || memcmp(mkey2, mkey1, mkey1len))
 				qerr(actionf & QUIET, ERRX, line, "%s %s on line %i\n", logfile, corrupted, line);
