@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.28 2000/05/29 19:24:34 fgsch Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.29 2000/05/29 21:08:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -180,7 +180,7 @@ om_classic_doLog(f, flags, msg, context)
 			break;
 	}
 	f->f_prevcount = 0;
-	return(0);
+	return(1);
 }
 
 

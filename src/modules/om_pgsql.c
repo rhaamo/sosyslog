@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.7 2000/05/29 23:39:10 fgsch Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.8 2000/05/29 23:39:41 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -170,7 +170,7 @@ om_pgsql_doLog(f, flags, msg, ctx)
 	free(dummy);
 	free(y); 
 
-	err=0;
+	err=1;
 	r=PQexec(c->h, c->query);
 	if(PQresultStatus(r) != PGRES_COMMAND_OK)
 	{

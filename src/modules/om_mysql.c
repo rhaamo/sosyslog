@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.19 2000/05/29 21:08:29 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.20 2000/05/29 23:35:06 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -121,7 +121,7 @@ om_mysql_doLog(f, flags, msg, ctx)
 	free(dummy);
 	free(y);
 
-	return (mysql_query(c->h, c->query));
+	return (mysql_query(c->h, c->query) < 0? -1 : 1);
 }
 
 
