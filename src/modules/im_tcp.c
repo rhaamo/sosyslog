@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.12 2001/03/06 21:49:43 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.13 2001/03/07 21:35:14 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -109,6 +109,7 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 {
 	struct im_tcp_ctx *c;
 
+        dprintf(DPRINTF_INFORMATIVE)("im_tcp_init: entering\n");
         if (argc != 3) {
         	dprintf(DPRINTF_SERIOUS)("im_tcp: error on params! %d, should "
 		    "be 3\n", argc);
