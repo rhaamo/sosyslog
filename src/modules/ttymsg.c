@@ -136,10 +136,7 @@ ttymsg(struct iovec *iov, int iovcnt, char *line, int tmout)
 				++iov;
 				--iovcnt;
 			}
-			if (wret) {
-				iov->iov_base += wret;
-				iov->iov_len -= wret;
-			}
+			/* we assume writev() writes whole chunks.  posix? */
 			continue;
 		}
 		if (errno == EWOULDBLOCK) {
