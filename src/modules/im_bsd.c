@@ -38,6 +38,9 @@ im_bsd_init(I, argv, argc)
 		dprintf("can't open %s (%d)\n", _PATH_KLOG, errno);
 	}
 	
+        I->im_type = IM_BSD;
+        I->im_name = "bsd";
+        I->context = NULL;  
         return(I->fd);
 }
 

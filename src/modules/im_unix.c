@@ -1,4 +1,4 @@
-/*      $Id: im_unix.c,v 1.11 2000/05/06 00:58:57 alejo Exp $
+/*      $Id: im_unix.c,v 1.12 2000/05/10 23:58:29 alejo Exp $
  *  im_unix -- classic behaviour module for BDS like systems
  *      
  * Author: Alejo Sanchez for Core-SDI SA
@@ -104,6 +104,9 @@ im_unix_init(I, argv, argc)
 		dprintf("cannot create %s (%d)\n", argv[1], errno);
 		return (-1);
 	}
+	I->im_type = IM_UNIX;
+	I->im_name = "unix";
+	I->context = NULL;
 	return(1);
 }
 

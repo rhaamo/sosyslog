@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.52 2000/05/10 21:04:05 alejo Exp $
+/*	$Id: modules.c,v 1.53 2000/05/10 23:58:29 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -121,10 +121,20 @@ modules_init (I, line)
 {
 	int argc;
 	char **argv, *p;
+	struct i_module *im;
 
 	/* create initial node for Inputs list */
-	*I = (struct i_module *) calloc(1, sizeof(struct i_module));
-	(*I)->fd = -1;
+	if (*I == NULL) {
+	    *I = (struct i_module *) calloc(1, sizeof(struct i_module));
+	    im = *I;
+	} else {
+	    for(im = *I; im->im_next != NULL; im = im->im_next);
+	    im->im_next = (struct i_module *) calloc(1, sizeof(struct i_module));
+	    im = im->im_next;
+	}
+
+	im->fd = -1;
+
 	for(p = line;*p != '\0'; p++)
 	    if (*p == ':')
 	        *p = ' ';

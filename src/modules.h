@@ -30,6 +30,16 @@ extern int	repeatinterval[];
 
 #define MAX_MODULE_NAME_LEN 255
 
+/* standard input module header variables in context */
+struct im_header_ctx {
+	short	flags;
+#define M_FLAG_INITIALIZED 0x1
+#define M_FLAG_ERROR 0x2
+#define M_FLAG_LOCKED 0x4
+#define M_FLAG_ROTATING 0x8
+	int	size;
+};
+
 /* standard output module header variables in context */
 struct om_header_ctx {
 	short	flags;
@@ -59,7 +69,6 @@ struct i_module {
 	short	im_type;
 	int	fd;	/*  for use with select() */
 	char	*im_name;
-	char	*im_arg;
 	struct  im_header_ctx	*context;
 };
 

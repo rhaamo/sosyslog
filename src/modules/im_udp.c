@@ -118,5 +118,8 @@ im_udp_init(I, argv, argc)
                         InetInuse = 1;
 	}
 
+        I->im_type = IM_UDP;
+        I->im_name = "udp";
+        I->context = NULL;  
         return(1);
 }
