@@ -213,8 +213,10 @@ extern struct	imodule *imodules;
 struct i_module	Inputs;
 
 struct pollfd	 *fd_inputs = NULL;
-int		  fd_in_count = 0;
-struct i_module	**fd_inputs_mod = NULL;
+int		 fd_inputs_cnt = 0;
+
+struct i_module	**input_modules = NULL;
+int		 input_modules_cnt = 0;
 
 int
 main(int argc, char **argv)
@@ -272,11 +274,13 @@ main(int argc, char **argv)
 	 * -p -path -a 		[additional unix input module in /dev/log]
 	 */
 
-	argcnt = 1;	/* skip argv[0] getxopt() */
 
-	while ((ch = getxopt(argc, argv, "d!debug: i!input: f!conf:"
-	    " m!markinterval: P!pidfile: c!console A!localdomain"
-	    " n!nodefault h!help", &argcnt)) != -1) {
+	for ( argcnt = 1;	/* skip argv[0] getxopt() */
+        ((ch = getxopt(argc, argv, "d!debug: i!input: f!conf:"
+	       " m!markinterval: P!pidfile: c!console A!localdomain"
+	       " n!nodefault h!help", &argcnt)) != -1);
+        argcnt++ )
+  {
 		char buf[512];
 
 		switch (ch) {
@@ -332,7 +336,6 @@ main(int argc, char **argv)
 		default:
 			usage();
 		}
-		argcnt++;
 	}
 
 	if ( default_inputs && Inputs.im_fd < 0 && Inputs.im_next == NULL ) {
@@ -395,12 +398,11 @@ main(int argc, char **argv)
 		switch (fork()) {
 			case -1:
 				perror("fork");
-				exit(-1);
-				break;
+exit(-1);
 			case 0:
 				break;
 			default:
-				exit(0);
+exit(0);
 		}
 
 		/* child */
@@ -436,7 +438,7 @@ main(int argc, char **argv)
 
 	if ( (alt_stack.ss_sp = malloc(SIGSTKSZ)) == NULL) {
 		m_dprintf(MSYSLOG_CRITICAL, "malloc altstack struct");
-		exit(-1);
+exit(-1);
 	}
 #if 0 /* should we do this on some OSs (ie. Aix)? */
 	/* adjust ss_sp to point to base of stack */
@@ -446,7 +448,7 @@ main(int argc, char **argv)
 	alt_stack.ss_flags = 0;
 	if (alt_stack.ss_sp == NULL) {
 		perror(strerror(errno));
-		exit(-1);
+exit(-1);
 	}
 	sigemptyset(&sa.sa_mask);
 	sigaddset(&sa.sa_mask, SIGTSTP);
@@ -458,7 +460,7 @@ main(int argc, char **argv)
 	    sigaction(SIGTSTP, &sa, NULL) < 0 ) {
 		free(alt_stack.ss_sp);
 		perror(strerror(errno));
-		exit(-1);
+exit(-1);
 	}
 	alarm(TIMERINTVL);
 
@@ -561,23 +563,23 @@ main(int argc, char **argv)
    * Wait for for an event on any of those file descriptors.
    */
 	for (;;) {
-		int count, i, done;
+		int count, ix;
+		struct imodule *current_module = NULL;
+    int poll_timeout = 5000; /* milliseconds */
 
-		if (DaemonFlags & SYSLOGD_MARK)
-			markit();
-		if (WantDie)
-			die(WantDie);
+		if (DaemonFlags & SYSLOGD_MARK) markit();
+		if (WantDie) die(WantDie);
 
 		if (fd_inputs == NULL) {
 			m_dprintf(MSYSLOG_CRITICAL, "no input struct");
-			exit(-1);
+exit(-1);
 		}
 
-		/* count will always be less than fd_in_count */
-		switch (count = poll(fd_inputs, fd_in_count, -1)) {
+		/* count will always be less than fd_inputs_cnt */
+		switch (count = poll(fd_inputs, fd_inputs_cnt, poll_timeout)) {
 		case 0:
 			m_dprintf(MSYSLOG_INFORMATIVE, "main: poll returned 0\n");
-	continue;
+	  break;  /* timeout */
 
 		case -1:
 			m_dprintf(MSYSLOG_INFORMATIVE, "main: poll error: [%d]\n", errno);
@@ -589,53 +591,82 @@ main(int argc, char **argv)
     break;
 		}
 
-    /* process each of the file descriptor events */
-		for (i = 0, done = 0; done < count; i++) {
-			char	*mname;
-			int	fd;
+    /* examine/process each of the input modules */
+
+		for (ix = 0; ix < input_modules_cnt; ix++)
+    {
+      struct i_module *current_module = input_modules[ix];
+      struct imodule *current_function = NULL;
+			char *mname = current_function->im_name;
 			int	val = -1;
 
-			m_dprintf(MSYSLOG_INFORMATIVE2, "main: file descriptor event: [%d] [%x] [%x]\n",
-                      fd_inputs[i].fd, fd_inputs[i].events, fd_inputs[i].revents);
-		  if (! fd_inputs[i].revents & POLLIN) {
+			if (!current_module) {
+				m_dprintf(MSYSLOG_SERIOUS, "syslogd: "
+              "Error calling input module %s\n", mname);
     continue;
+      }
+
+      *current_function = current_module->im_func;
+			if (!current_function) {
+              "Error calling input module %s\n", mname);
+    continue;
+      }
+
+     /* attempt to read the module if either the poll indicated an event or
+      * the poll function indicates an event
+      */ 
+      if ( current_function->im_flags & IM_POLLABLE ) { /* is the flag on? */
+        if ( ! current_function->im_pollfd->revent & POLLIN ) {
+    continue;
+        }
+      }
+      else {
+			  if ( !current_function->im_poll ) {
+			  	m_dprintf(MSYSLOG_SERIOUS, "syslogd: "
+			  	    "Error calling input module %s, for fd %i\n",
+              mname, fd_inputs[i].fd);
+          done++;
+    continue;  /* try the next one */
+        }
+
+		  	m_dprintf(MSYSLOG_INFORMATIVE2, "main: input module: [%d] [%x] [%x]\n",
+           current_function->im_pollfd->fd, current_module->im_func->im_pollfd->events,
+           current_function->im_pollfd->revents);
+
+        if ( ! (*current_function->im_poll) (current_module, current_function->im_pollfd->fd, &log) ) {
+    continue;
+        }
       }
 
 			log.im_pid = 0;
 			log.im_pri = 0;
 			log.im_flags = 0;
 
-			mname = fd_inputs_mod[i]->im_func->im_name;
-			fd = fd_inputs[i].fd;
-
-			if (!fd_inputs_mod[i] ||
-			    !fd_inputs_mod[i]->im_func ||
-			    !fd_inputs_mod[i]->im_func->im_read) {
+			if ( !current_function->im_read) {
 				m_dprintf(MSYSLOG_SERIOUS, "syslogd: "
 				    "Error calling input module %s, "
-				    "for fd %i\n", mname, fd);
+				    "for fd %i\n", mname, current_function->im_pollfd->fd);
         done++;
-    continue;  /* try the next one */
+    continue; 
       }
 
-      val = (*fd_inputs_mod[i]->im_func->im_read) (fd_inputs_mod[i], fd_inputs[i].fd, &log);
+      val = (*current_function->im_read) (current_module, current_function->im_pollfd->fd, &log);
+
       if (val < 0) {        
 		 	  m_dprintf(MSYSLOG_SERIOUS, "syslogd: "
 			    "Error [%d] executing input module %s, "
-			    "for fd %i\n", val, mname, fd);
+			    "for fd %i\n", val, mname, fd_inputs[i].fd);
 			}
       else if (val == 1) {   /* one message returned that needs logging */
-			  printline(log.im_host, log.im_msg, log.im_len, fd_inputs_mod[i]->im_flags);
+			  printline(log.im_host, log.im_msg, log.im_len, current_module->im_flags);
       }
       else if (val == 0) { } /* input module logged the messages, or none need be logged */
       else if (val > 1) { }  /* more than one message to print? not currently supported */
-
-			done++;
 		}
 	}
 
-	/* NOT REACHED */
-	return(1);
+	/* NOT REACHABLE */
+return(1);
 }
 
 void
@@ -647,7 +678,7 @@ usage(void)
 	    "[-P pidfile] [-n] [-m markinterval] \\\n [-p logpath] "
 	    "[-a logpath] -i input1 [-i input2] [-i inputn]\n %s\n"
 	    "%s\n\n", copyright, rcsid);
-	exit(1);
+exit(1);
 }
 
 /*
@@ -1088,7 +1119,7 @@ die(int signo) {
 			logerror("error deleting pidfile");
 	}
 
-	exit(0);
+exit(0);
 }
 
 /*
@@ -1141,10 +1172,8 @@ init(int signo)
 			/* free om_ctx om_func and stuff */
 			om_next = om->om_next;
 
-			if (om->ctx)
-				free(om->ctx);
-			if (om->status)
-				free(om->status);
+			if (om->ctx) free(om->ctx);
+			if (om->status) free(om->status);
 			free(om);
 		}
 
@@ -1168,7 +1197,7 @@ init(int signo)
 	    DLOPEN_FLAGS)) == NULL) ) {
 	        m_dprintf(MSYSLOG_CRITICAL, "init: Error opening main library, [%s] "
 	            "file [%s]\n", dlerror(), INSTALL_LIBDIR "/" MLIBNAME_STR);
-	        exit(-1);
+exit(-1);
 	}
 #endif
 
@@ -1192,20 +1221,20 @@ init(int signo)
 		if ( (*nextp = (struct filed *) calloc(1, sizeof(*f)))
 		    == NULL) {
 			m_dprintf(MSYSLOG_CRITICAL, "calloc struct filed");
-			exit(-1);
+exit(-1);
 		}
 		if (cfline("*.ERR\t/dev/console", *nextp, "*") == -1) {
 			m_dprintf(MSYSLOG_CRITICAL, "can't write to console");
-			exit(-1);
+exit(-1);
 		}
 		if ( ((*nextp)->f_next = (struct filed *) calloc(1, sizeof(*f)))
 		    == NULL) {
 			m_dprintf(MSYSLOG_CRITICAL, "calloc struct filed");
-			exit(-1);
+exit(-1);
 		}
 		if (cfline("*.PANIC\t*", (*nextp)->f_next, "*") == -1) {
 			m_dprintf(MSYSLOG_CRITICAL, "can't write to console");
-			exit(-1);
+exit(-1);
 		}
 		Initialized = 1;
 		return;
@@ -1269,7 +1298,7 @@ init(int signo)
 		*p = '\0';
 		if ( (f = (struct filed *)calloc(1, sizeof(*f))) == NULL) {
 			m_dprintf(MSYSLOG_CRITICAL, "calloc struct filed");
-			exit(-1);
+exit(-1);
 		}
 		if (cfline(cline, f, prog) == 1) {
 			*nextp = f;
@@ -1286,7 +1315,7 @@ init(int signo)
 	if (Files == NULL) {
 		m_dprintf(MSYSLOG_CRITICAL, "syslogd: WARNING NO OUTPUT MODULES"
 		    " ACTIVE, GIVING UP!\n");
-		exit(-1);
+exit(-1);
 	}
 
 	Initialized = 1;
@@ -1604,31 +1633,36 @@ add_fd_input(int fd, struct i_module *im)
 	    im->im_func->im_name : "unknown");
 
 	/* do we need bigger arrays? */
-	if (!fd_inputs || fd_in_count % 50 == 0) {
-
+	if (!fd_inputs || fd_inputs_cnt % 50 == 0) {
 		if ( (fd_inputs = (struct pollfd *) realloc(fd_inputs,
-		    (size_t) (fd_in_count + 50) * sizeof(struct pollfd)))
+		        (size_t) (fd_inputs_cnt + 50) * sizeof(struct pollfd)))
 		    == NULL) {
-			m_dprintf(MSYSLOG_CRITICAL, "realloc inputs");
-			exit(-1);
+			m_dprintf(MSYSLOG_CRITICAL, "realloc inputs: poll fd");
+exit(-1);
 		}
-
-		if ( (fd_inputs_mod = (struct i_module **)
-		    realloc(fd_inputs_mod, (size_t) (fd_in_count + 50)
-		    * sizeof(struct i_module *)))
-		    == NULL) {
-			m_dprintf(MSYSLOG_CRITICAL, "realloc inputs");
-			exit(-1);
-		}
-
 	}
 
-	fd_inputs[fd_in_count].fd = fd;
-	fd_inputs[fd_in_count].events = POLLIN;
-	fd_inputs_mod[fd_in_count] = im;
-	fd_in_count++;
+	if (!input_modules || input_modules_cnt % 50 == 0) {
+		if ( (input_modules = (struct i_module **) realloc(input_modules,
+            (size_t) (input_modules_cnt + 50) * sizeof(struct i_module *)))
+		    == NULL) {
+			m_dprintf(MSYSLOG_CRITICAL, "realloc inputs: input modules");
+exit(-1);
+		}
+	}
 
-	return(1);
+	fd_inputs[fd_inputs_cnt].fd = fd;
+	fd_inputs[fd_inputs_cnt].events = POLLIN;
+
+	im.im_flags |= IM_POLLABLE; /* turn the flag on */
+	im.im_pollfd = &(fd_inputs[fd_inputs_cnt]);
+
+	input_modules[input_modules_cnt] = im;
+
+	fd_inputs_cnt++;
+	input_modules_cnt++;
+
+return(1);
 }
 
 void
@@ -1639,18 +1673,18 @@ remove_fd_input(int fd)
 	m_dprintf(MSYSLOG_INFORMATIVE, "remove_fd_input: remove fd %d\n",
 	    fd);
 
-	for (i = 0; i < fd_in_count && fd_inputs[i].fd != fd; i++);
+	for (i = 0; i < fd_inputs_cnt && fd_inputs[i].fd != fd; i++);
 
-	if (i == fd_in_count || fd != fd_inputs[i].fd)
+	if (i == fd_inputs_cnt || fd != fd_inputs[i].fd)
 		return; /* not found */
 
-	for (;i < fd_in_count; i++) {
+	for (;i < fd_inputs_cnt; i++) {
 		fd_inputs[i].fd = fd_inputs[i + 1].fd;
 		fd_inputs[i].events = fd_inputs[i + 1].events;
-		fd_inputs_mod[i] = fd_inputs_mod[i + 1];
+		input_modules[i] = input_modules[i + 1];
 	}
 
-	fd_in_count--;
+	fd_inputs_cnt--;
 }
 
 

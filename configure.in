@@ -249,6 +249,7 @@ AC_ARG_WITH(linux,
 	])
 ])
 
+
 temp_res="no";
 AC_ARG_WITH(udp,
 [  --without-udp
@@ -280,7 +281,7 @@ temp_res="yes";
 
 AC_ARG_WITH(file,
 [  --without-file
-	Use file/pip input module. Activated by default.
+	Use file input module. Activated by default.
 ],[ temp_res="$with_file"; ])
 if test "X$temp_res" = "Xyes" ; then
 		MSRCS="$MSRCS im_file.c"
@@ -288,7 +289,34 @@ if test "X$temp_res" = "Xyes" ; then
 		MANPAGES="$MANPAGES im_file.8"
 fi
 
+AC_ARG_WITH(pipe,
+[  --without-pipe
+	Use pipe input module. Activated by default.
+],[ temp_res="$with_pipe"; ])
+if test "X$temp_res" = "Xyes" ; then
+		MSRCS="$MSRCS im_pipe.c"
+		AC_DEFINE(HAVE_FILE_IMODULE)
+		MANPAGES="$MANPAGES im_pipe.8"
+fi
+
 dnl Doors should only be used with streams
+
+# AC_ARG_WITH(doors,
+# [  --without-doors
+# 	Use doors kernel input module. Automatically detected.
+# ],[
+# 	if test "$with_doors" = "yes" ; then
+# 		MSRCS="$MSRCS im_doors.c"
+# 		MANPAGES="$MANPAGES im_doors.8"
+# 		AC_DEFINE(HAVE_LINUX_IMODULE)
+# 	fi
+# ],[
+# 	AC_CHECK_HEADER(sys/klog.h, [
+# 		MSRCS="$MSRCS im_doors.c"
+# 		MANPAGES="$MANPAGES im_doors.8"
+# 		AC_DEFINE(HAVE_LINUX_IMODULE)
+# 	])
+# ])
 
 temp_res=no
 AC_ARG_WITH(streams,

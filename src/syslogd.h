@@ -159,8 +159,7 @@ RETSIGTYPE (*place_signal(int signo, RETSIGTYPE (*)(int))) (int);
 struct omodule {
 	struct	omodule *om_next;
 	char	*om_name;
-	int	(*om_init) (int, char **, struct filed *, char *, void **,
-	    char **);
+	int	(*om_init) (int, char **, struct filed *, char *, void **, char **);
 	int	(*om_write) (struct filed *, int, struct m_msg *, void *);
 	int	(*om_flush) (struct filed *, void *);
 	int	(*om_close) (struct filed *, void *);
@@ -171,9 +170,14 @@ struct omodule {
 struct imodule {
 	struct	imodule *im_next;
 	char	*im_name;
+	unsigned int	im_flags;
+	struct pollfd *im_pollfd;
+#define IM_NULL		    0x00
+#define IM_POLLABLE		0x01
 	int	(*im_init) (struct i_module *, char **, int);
 	int	(*im_read) (struct i_module *, int, struct im_msg *);
 	int	(*im_close) (struct i_module *); /* close input, optional */
+	int	(*om_poll) (struct i_module *, void *);
 	void	*h;  /* handle to open dynamic library */
 };
 

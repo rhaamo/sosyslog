@@ -1,7 +1,7 @@
-/*	$CoreSDI: im_file.c,v 1.12 2002/03/01 07:31:02 alejo Exp $	*/
+/*	$Netarx: im_pipe.c,v 1.12 2002/03/01 07:31:02 phreed Exp $	*/
 
 /*
- * Copyright (c) 2001, Core SDI S.A., Argentina
+ * Copyright (c) 2001, Netarx Inc. USA
  * All rights reserved
  *
  * Redistribution and use in source and binary forms, with or without
@@ -13,7 +13,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. Neither name of the Core SDI S.A. nor the names of its contributors
+ * 3. Neither name of the Netarx Inc. nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
  *
@@ -30,10 +30,9 @@
  */
 
 /*
- * im_file -- read from a log file being written by other program
+ * im_pipe -- read from a log pipe being written by other program
  *
- * Author: Alejo Sanchez for Core-SDI SA
- * http://www.corest.com/
+ * Author: Fred Eisele for Netarx Inc.
  *
  */
 
@@ -57,45 +56,45 @@
 
 void printline(char *, char *, size_t, int);
 
-struct im_file_ctx {
+struct im_pipe_ctx {
 	int   start;       /* start position of timestamp in the message */
 	char  *timefmt;    /* the format to use in extracting the timestamp */
-	char  *path;       /* the pathname of the file to open */
-	char  *name;       /* the alias for the file (hostname) */
-	struct stat stat;  /* the file statistics (useful in determining if reg file, pipe, or whatever */
+	char  *path;       /* the pathname of the pipe to open */
+	char  *name;       /* the alias for the pipe (hostname) */
+	struct stat stat;  /* the pipe statistics (useful in determining if reg pipe, pipe, or whatever */
 	char  saveline[MAXLINE + 3];   /* if the message is not complete, preserve it */
 };
 
 /*
- * initialize file input
+ * initialize pipe input
  */
 
 int
-im_file_init(struct i_module *I, char **argv, int argc)
+im_pipe_init(struct i_module *im, char **argv, int argc)
 {
-	struct im_file_ctx	*c;
+	struct im_pipe_ctx	*c;
 	int    ch, argcnt;
 
-	m_dprintf(MSYSLOG_INFORMATIVE, "im_file_init: Entering\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_init: Entering\n");
 
 
-	if ((I->im_ctx = malloc(sizeof(struct im_file_ctx))) == NULL) {
-		m_dprintf(MSYSLOG_SERIOUS, "im_file_init: error allocating context!\n");
+	if ((im->im_ctx = malloc(sizeof(struct im_pipe_ctx))) == NULL) {
+		m_dprintf(MSYSLOG_SERIOUS, "im_pipe_init: error allocating context!\n");
 return (-1);
 	}
-	c = (struct im_file_ctx *) I->im_ctx;
+	c = (struct im_pipe_ctx *) im->im_ctx;
 	c->start = 0;
 	c->saveline[0] = '\0';
 
 	/* parse command line */
 	for ( argcnt = 1;	/* skip module name */
         (ch = getxopt(argc, argv,
-          "f!file: p!pipe: n!program: t!timeformat: s!startpos:", &argcnt)) != -1;
+          "f!pipe: n!program: t!timeformat: s!startpos:", &argcnt)) != -1;
         argcnt++ )
   {
 		switch (ch) {
 		case 'f':
-			/* file to read */
+			/* pipe to read */
 			c->path = argv[argcnt];
 			break;
 		case 'n':
@@ -111,102 +110,51 @@ return (-1);
 			break;
 		default:
 			m_dprintf(MSYSLOG_SERIOUS,
-          "im_file_init: command line error, at arg %c [%s]\n", ch,
+          "im_pipe_init: command line error, at arg %c [%s]\n", ch,
 			    argv[argcnt]? argv[argcnt]: "");
 return (-1);
 		}
 	}
 
 	if (c->start && c->timefmt == NULL) {
-		m_dprintf(MSYSLOG_SERIOUS, "im_file_init: start specified for time string but no format!\n");
+		m_dprintf(MSYSLOG_SERIOUS, "im_pipe_init: start specified for time string but no format!\n");
 return (-1);
 	}
 
 	if (c->path == NULL) {
-		m_dprintf(MSYSLOG_SERIOUS, "im_file_init: no file to read\n");
+		m_dprintf(MSYSLOG_SERIOUS, "im_pipe_init: no pipe to read\n");
 return (-1);
 	}
 
 	if (stat( c->path, &c->stat )) {
   	m_dprintf(MSYSLOG_SERIOUS,
-        "im_file_init: could not stat file [%s] due to [%s]\n", 
+        "im_pipe_init: could not stat pipe [%s] due to [%s]\n", 
         strerror( errno ), c->path);
 return (-1);
  	}
 
-	if (! S_ISREG(c->stat.st_rdev)) {
-		m_dprintf(MSYSLOG_SERIOUS, "im_file_init: ramdom access files only, try im_pipe: [%s]\n", c->path);
+	if (S_ISREG(c->stat.st_rdev)) {
+    /* regular pipe cannot be successfully polled */
+    /* a separate mechanism will need to be used */
+		m_dprintf(MSYSLOG_SERIOUS, "im_pipe_init: regular pipes not supported: [%s]\n", c->path);
 return (-1);
 	}
 
 	if (c->name == NULL) c->name = c->path;	/* no name specified */
 
-  if ((I->im_fd = open(c->path, O_RDONLY, 0)) < 0) {
-     m_dprintf(MSYSLOG_SERIOUS, "im_file_init: can't open %s (%d)\n", c->path, errno);
-return (-1);
-  }
+	add_fd_input(im->im_fd , im);
 
-  /* ramdom access files are not pollable and should not 
-   * be added to the pollfd array.
-   * i.e. do not call  "add_fd_input(I->im_fd , im); "
-   */
-
- 	m_dprintf(MSYSLOG_INFORMATIVE, "im_file_init: completed\n");
+ 	m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_init: completed\n");
 return (1);
 }
 
 /*
- * poll file descriptor
- *  the im_file_poll subroutine knows how to poll its own file descriptor.
- *
- * Return:
- *  0: do not attempt to read, do not call im_file_read
- *  1: read the file, call im_file_read
+ * poll pipe descriptor
+ *  the im_pipe_poll subroutine knows how to poll its own pipe descriptor.
  */
 int
-im_file_poll(struct i_module *I)
+im_pipe_read(struct i_module *im)
 {
-  struct stat new_stat;
-	struct im_file_ctx	*c = (struct im_file_ctx *) (I->im_ctx);
-
-	if (fstat( I->im_fd, &new_stat )) {
-		m_dprintf(MSYSLOG_SERIOUS, "im_file_poll: file stats not accessible: [%s]\n", c->path);
-return( 0 );
-  }
-
-  if (new_stat.st_mtime == c->stat.st_mtime) {
-return( 0 );
-  }
-
-  if (new_stat.st_size == c->stat.st_size) {
-return( 0 );
-  }
-
-  /* if the file got bigger it was probably appended */
-  if (new_stat.st_size > c->stat.st_size) {
-    c->stat = new_stat;
-return( 1 );
-  }
-
-  /* if the file got smaller it was probably rewritten */
-  if (new_stat.st_size < c->stat.st_size) {
-    c->stat = new_stat;
-    lseek( I->im_fd, 0, SEEK_SET ); /* rewind */
-return( 1 );
-  }
-
-  /* if the file still exists then keep working on it */
-  if (new_stat.st_nlink > 0) {
-return( 0 );
-  }
-
-  /* if the file was removed, there may be a new file with the same name */
-  if ((I->im_fd = open(c->path, O_RDONLY, 0)) < 0) {
-     m_dprintf(MSYSLOG_SERIOUS, "im_file_init: can't reopen %s (%d)\n", c->path, errno);
-return (1);
-  }
-
-  /* file no longer exists */
 return( 0 );
 }
 
@@ -215,7 +163,7 @@ return( 0 );
  */
 
 int
-im_file_read(struct i_module *I, int infd, struct im_msg  *ret)
+im_pipe_read(struct i_module *im, int infd, struct im_msg  *ret)
 {
 	char *thisline = NULL;
 	char *nextline = NULL;
@@ -224,25 +172,32 @@ im_file_read(struct i_module *I, int infd, struct im_msg  *ret)
 	char *qtr = NULL;
   int wchr;
 	int nx;
-	struct im_file_ctx	*c = (struct im_file_ctx *) (I->im_ctx);
+	struct im_pipe_ctx	*c = (struct im_pipe_ctx *) (im->im_ctx);
+	RETSIGTYPE (*sigsave)(int);
 
- 	m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: entering...\n");
+ 	m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: entering...\n");
+
+  /* ignore sigpipes */
+  /*
+  sigsave = place_signal(SIGPIPE, SIG_IGN);
+  */
 
   /* read a complete message converting non printable characters into 'X' */
-	nx = read(I->im_fd, I->im_buf, sizeof(I->im_buf) - 1);
+	nx = read(im->im_fd, im->im_buf, sizeof(im->im_buf) - 1);
 
   if (nx < 0 && errno != EINTR) {
- 	  m_dprintf(MSYSLOG_SERIOUS, "im_file_read: error: [%d]\n", errno);
-		logerror("im_file_read");
+ 	  m_dprintf(MSYSLOG_SERIOUS, "im_pipe_read: error: [%d]\n", errno);
+		logerror("im_pipe_read");
+	  place_signal(SIGPIPE, sigsave);
 return -1;
 	}
 
-	endmark = I->im_buf + nx;
+	endmark = im->im_buf + nx;
 	*endmark = '\0';
-  m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: bytes: [%d] [%s]\n", nx, I->im_buf);
+  m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: bytes: [%d] [%s]\n", nx, im->im_buf);
 
   /* step through the lines read */
-  for( thisline = I->im_buf; nextline < endmark; thisline = nextline ) {
+  for( thisline = im->im_buf; nextline < endmark; thisline = nextline ) {
 
     /* seek the end of the current line, a.k.a. the start of the nextline */
     for( nextline = thisline; nextline < endmark; nextline++ ) {
@@ -265,34 +220,34 @@ return -1;
     continue;
        }
     }
-	 	m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: bytes remaining B: [%d]\n", (endmark - nextline));
+	 	m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: bytes remaining B: [%d]\n", (endmark - nextline));
 
     if ( nextline < endmark ) {
-      m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: current line: [%s]\n", thisline);
+      m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: current line: [%s]\n", thisline);
       nextline++;
     }
     else {
       /* then end of the read buffer was reached */
       if ( strlen(thisline) == 0 ) {
-        m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: end of transmission\n");
+        m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: end of transmission\n");
       }
       else {
         /* Preseve any partial message */
         int position;
         int save_end = strlen(c->saveline);
 
-        m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: partial message: [%s] [%s]\n",
+        m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: partial message: [%s] [%s]\n",
                         thisline, c->saveline );
         for( position = 0; (thisline + position) < endmark; position++ )
         {
            c->saveline[save_end + position] = thisline[position];
            if (save_end + position >= sizeof(c->saveline)) {
-             m_dprintf(MSYSLOG_SERIOUS, "im_file_read: partial message too long: [%d] [%s]\n",
+             m_dprintf(MSYSLOG_SERIOUS, "im_pipe_read: partial message too long: [%d] [%s]\n",
                              sizeof(c->saveline), thisline);
            }
         }
         c->saveline[save_end + position] = '\0';
-        m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: partial message: [%s]\n", c->saveline);
+        m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: partial message: [%s]\n", c->saveline);
       }
 return (0);
     }
@@ -300,7 +255,7 @@ return (0);
     /* append the current line with any prior partial line */
     if (c->saveline != NULL && c->saveline[0] != '\0') {
       m_dprintf(MSYSLOG_INFORMATIVE,
-          "im_file_read: append current line with prior partial message: [%s] [%s]\n",
+          "im_pipe_read: append current line with prior partial message: [%s] [%s]\n",
           c->saveline, thisline);
       strncat(c->saveline, thisline, sizeof(c->saveline) - 1);
       c->saveline[sizeof(c->saveline) - 1] = '\0';
@@ -309,7 +264,7 @@ return (0);
 
     /* skip empty lines */
     if (*thisline == '\0') {
-      m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: empty line\n");
+      m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: empty line\n");
   continue;
     }
 
@@ -317,19 +272,19 @@ return (0);
 			struct tm tm;
 			char   *start, *end;
 
-      m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: current message: [%s]\n", thisline);
+      m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: current message: [%s]\n", thisline);
 
       /* presume it does not contain a timestamp nor a host */
 	  	ret->im_flags = ADDDATE | ADDHOST;
   		ret->im_pri = DEFSPRI;
 
-			c = (struct im_file_ctx *) I->im_ctx;
+			c = (struct im_pipe_ctx *) im->im_ctx;
 
       if (c->timefmt) {  /* reform/insert the timestamp */
         if ((end = strptime((thisline + c->start), c->timefmt, &tm)) == NULL)
         {
 			  	m_dprintf(MSYSLOG_WARNING,
-              "im_file_read: error locating timestamp from [%s] using format [%s]!\n",
+              "im_pipe_read: error locating timestamp from [%s] using format [%s]!\n",
               thisline, c->timefmt);
 		  	}
         else {
@@ -339,7 +294,7 @@ return (0);
 
 				  if (strftime(ret->im_msg, sizeof(ret->im_msg) - 1, "%b %e %H:%M:%S ", &tm) == 0)
           {
-				   	m_dprintf(MSYSLOG_WARNING, "im_file_read: error rewriting timestamp!\n");
+				   	m_dprintf(MSYSLOG_WARNING, "im_pipe_read: error rewriting timestamp!\n");
 		 		  }
           else {
 				  	ret->im_flags &= !ADDDATE;
@@ -358,7 +313,7 @@ return (0);
       /* put the hostname into the message */
 		  strncat(ret->im_msg, c->name, sizeof(ret->im_msg) - 1);
 	  	strncat(ret->im_msg, ":", sizeof(ret->im_msg) - 1);
-	  	m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: reformed header: [%s]\n", ret->im_msg);
+	  	m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: reformed header: [%s]\n", ret->im_msg);
 
 	  	if (ret->im_pri &~ (LOG_FACMASK|LOG_PRIMASK)) ret->im_pri = DEFSPRI;
 	  	qtr = ret->im_msg + strlen(ret->im_msg);
@@ -370,28 +325,32 @@ return (0);
 		  ret->im_host[0] = '\0';
 		  ret->im_len = strlen(ret->im_msg);
 
-      printline( ret->im_host, thisline, strlen(thisline), I->im_flags );
-	  	m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: bytes remaining: [%d]\n", (endmark - nextline));
+      printline( ret->im_host, thisline, strlen(thisline), im->im_flags );
+	  	m_dprintf(MSYSLOG_INFORMATIVE, "im_pipe_read: bytes remaining: [%d]\n", (endmark - nextline));
 		}
 	}
+	/* restore previous SIGPIPE handler */
+  /*
+	place_signal(SIGPIPE, sigsave);
+  */
 return (0);
 }
 
 /*
- * close the file descriptor and release all resources
+ * close the pipe descriptor and release all resources
  */
 
 int
-im_file_close( struct i_module *I)
+im_pipe_close( struct i_module *im)
 {
-	struct im_file_ctx	*c = (struct im_file_ctx *) (I->im_ctx);
+	struct im_pipe_ctx	*c = (struct im_pipe_ctx *) (im->im_ctx);
 
 	if (c->timefmt != NULL) free(c->timefmt);
 	if (c->name != NULL) free(c->name);
 	if (c->path != NULL) free(c->path);
 
-	if (I->im_ctx != NULL) free(I->im_ctx);
-	if (I->im_fd >= 0) close(I->im_fd);
+	if (im->im_ctx != NULL) free(im->im_ctx);
+	if (im->im_fd >= 0) close(im->im_fd);
 
 return (0);
 }

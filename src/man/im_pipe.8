@@ -1,7 +1,7 @@
-.\"	$CoreSDI: im_file.8,v 1.1 2001/11/06 22:59:18 alejo Exp $
+.\"	$Netarx: im_file.8,v 1.1 2001/11/06 22:59:18 phreed Exp $
 .\"
-.\" Copyright (c) 2000, 2001
-.\"	Core-SDI SA. All rights reserved.
+.\" Copyright (c) 2002
+.\"	Netarx Inc. All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
 .\" modification, are permitted provided that the following conditions
@@ -11,7 +11,7 @@
 .\" 2. Redistributions in binary form must reproduce the above copyright
 .\"    notice, this list of conditions and the following disclaimer in the
 .\"    documentation and/or other materials provided with the distribution.
-.\" 3. Neither the name of Core-SDI SA nor the names of its contributors
+.\" 3. Neither the name of Netarx Inc. nor the names of its contributors
 .\"    may be used to endorse or promote products derived from this software
 .\"    without specific prior written permission.
 .\"
@@ -28,43 +28,44 @@
 .\" SUCH DAMAGE.
 .\"
 .Dd Nov 06, 2001
-.Dt IM_FILE 8
-.Os Core-SDI
+.Dt IM_PIPE 8
+.Os Netarx
 .Sh NAME
-.Nm FILE input module
+.Nm PIPE input module
 .Nd
 .Xr syslogd 8
-input module for reading block special file and regular files.
+input module for character files such as character special files and pipes.
 .Sh SYNOPSIS
 .Nm file
 .Op Fl f Ar file path
-.Op Fl n Ar program or alias, hostname
-.Op Fl s Ar start position for the timestamp
-.Op Fl t Ar time format (see strftime)
+.Op Fl n Ar name
+.Op Fl s Ar start
+.Op Fl t Ar time format
 .Sh DESCRIPTION
-Reads the log messages from a regular file or other block device.
-It is presumed that the file will typically have have additional data appended to it.
-The file is reprocessed from the beginning if any of the following conditions are met:
-(1) The file size decreases
-(2) The creation time changes
-(3) The file name changes
-(4) The file becomes unlinked (in which case the file is first reopened).
-This module is intended primarily to read logs in formats other than typical syslog format.
-It should be possible to use this module for any block special file.
-If a character special file is providing the input the im_pipe module should be used.
-When the
+Reads the log messages from a pipe written by another program
+for processing by the
 .Xr syslogd 8
-daemon is restarted this module will process all the records in the source file unless
-a start record identifier is provided.
-In the case where a start record is provided the module will search for that record before
-beginning processing.
-If the start record specifier is negative it is interpreted as that many records back from the end.
+daemon.
+This module could just as well been named im_serial or im_getty or
+im_keyboard or by any number of other names.
+It can be used to read from any pollable character file as a syslog source.
+In particular it can be used to messages received over a RS232 serial connection.
+There are a number of legacy devices which post there logs to serial devices.
+This module permits replacement of these serial consoles with an msyslog
+enabled device.
 .SH OPTIONS
 .LP
  It's options are:
 .Bl -tag -width Ds
-.It Ar log_socket
-Socket to use, default is /dev/log.
+.It Ar file path
+The name of the character file/device from which the messages are to be read.
+.It Ar  name
+The program or alias which will be used in the hostname position in the reformed message.
+.It Ar  start
+The start position from which to extract the timestamp
+.It Ar  start
+.Op Fl t Ar time format
+The pattern that will be used to extract the timestamp (see strftime).
 .Sh EXAMPLES
 .Bl -bullet
 .It
@@ -84,7 +85,7 @@ Same as above, but sets the name to 'myapp':
 .It
 Same as above, but on /some/named/pipe pipe instead of the file:
 .Pp
-.Dl syslogd -i 'file -n myapp -p /some/named/pipe'
+.Dl syslogd -i 'file -n myapp -f /some/named/pipe'
 .El
 .Sh SEE ALSO
 .Xr syslog 3 ,

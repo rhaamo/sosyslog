@@ -113,7 +113,7 @@ prepare_module_libs(const char *modname, void **ret)
 	    "%sopened\n", buf, (*ret == NULL) ?  "not " : "");
 
 #endif
-	return (1);
+return (1);
 }
 
 
@@ -166,27 +166,28 @@ get_symbol(const char *modname, const char *funcname, void **h, void **ret)
 		    "external lib\n", buf, (*ret == NULL) ? "not " : "");
 	}
 
-	return ((*ret == NULL) ? -1 : 1);
+return ((*ret == NULL) ? -1 : 1);
 }
 
 
 /*
- * Create a new input module, and assign module functions to generic pointer
+ * Create a new input module, and assign module functions to a generic pointer
  *
- *  I is a pointer to a list of input modules, where new one will be appended
- *  line is the command line of the input module
+ *  'I' is a pointer to a list of input modules, to which the new one will be appended
+ *  'line' is the command line of the input module
  */
 int
 imodule_create(struct i_module *I, char *line)
 {
-	int argc, ret, i;
+	int argc, i;
 	char **argv = NULL;
 	struct i_module *im, *im_prev;
+	int ret = 1;
 
 	/* create initial node for Inputs list */
 	if (I == NULL) {
 	    m_dprintf(MSYSLOG_SERIOUS, "imodule_create: Error from caller\n");
-	    return (-1);
+return (-1);
 	}
 
 	/* go to last item on list */
@@ -194,48 +195,51 @@ imodule_create(struct i_module *I, char *line)
 
 	if (im_prev == I && im_prev->im_fd == -1) {
 		im = im_prev;
-	} else {
+	} 
+  else {
 		if ((im_prev->im_next = (struct i_module *)calloc(1,
 		    sizeof(struct i_module))) == NULL) {
 			m_dprintf(MSYSLOG_SERIOUS, "No memory available for "
 			    "calloc\n");
-			return (-1);
+return (-1);
 		}
 		im = im_prev->im_next;
 		im->im_fd = -1;
 	}
 
-	if ((argc = parseParams(&argv, line)) < 1) {
-		snprintf(err_buf, sizeof(err_buf), "Error initializing module "
-		    "%s [%s]\n", argv[0], line);
-		ret = -1;
-		goto imodule_create_bad;
-	}
-
-	/* is it already initialized ? searching... */
-	if ((im->im_func = getImodule(argv[0])) == NULL)
-		if ((im->im_func = addImodule(argv[0])) == NULL) {
-			snprintf(err_buf, sizeof(err_buf), "Error loading "
-			    "dynamic input module %s [%s]\n",
-			    argv[0], line);
-			ret = -1;
-			goto imodule_create_bad;
-		}
-
-	/* got it, now try to initialize it */
-	if ((*(im->im_func->im_init))(im, argv, argc) < 0) {
-		snprintf(err_buf, sizeof(err_buf), "Error initializing "
-		    "input module %s [%s]\n", argv[0], line);
-		ret = -1;
-		goto imodule_create_bad;
-	}
-
-	ret = 1;
-
-imodule_create_bad:
-
-	if (ret == -1) {
-
+  /* wouldn't it be nice to use try{..throw...}catch{} ;-) */
+  {
+  /* try */
+    if ((argc = parseParams(&argv, line)) < 1) {
+    	snprintf(err_buf, sizeof(err_buf),
+           "Error initializing module %s [%s]\n",
+           argv[0], line);
+  goto imodule_create_bad;
+   	}
+    
+   	/* is it already initialized ? searching... */
+    if ( ((im->im_func = getImodule(argv[0])) == NULL)
+     	&& ((im->im_func = addImodule(argv[0])) == NULL) )
+    {
+     	snprintf(err_buf, sizeof(err_buf),
+            "Error loading dynamic input module %s [%s]\n",
+   	  	    argv[0], line);
+  goto imodule_create_bad;
+    }
+    
+   	/* got it, now try to initialize it */
+   	if ((*(im->im_func->im_init))(im, argv, argc) < 0) {
+ 	  	snprintf(err_buf, sizeof(err_buf), 
+           "Error initializing input module %s [%s]\n",
+           argv[0], line);
+  goto imodule_create_bad;
+   	}
+ 	}
+  if (0) {
+  /* catch */
+  imodule_create_bad:
+   	ret = -1;
+  
 		/* log error first */
 		logerror(err_buf);
 
@@ -248,17 +252,15 @@ imodule_create_bad:
 		}
 	}
 
-	/* free argv params if there */
+	/* free argv params if there are any */
 	if (argv != NULL) {
 		char *f;
 
-		for (i = 0; (f = argv[i]) != NULL ; i++)
-			free(f);
-
+		for (i = 0; (f = argv[i]) != NULL ; i++) free(f);
 		free(argv);
 	}
 
-	return (ret);
+return (ret);
 }
 
 
@@ -289,7 +291,8 @@ omodule_create(char *c, struct filed *f, char *prog)
 			    calloc(1, sizeof(struct o_module));
 			om = f->f_omod;
 			om_prev = NULL;
-		} else {
+		}
+    else {
 			for (om_prev = f->f_omod; om_prev->om_next;
 			    om_prev = om_prev->om_next);
 			om_prev->om_next = (struct o_module *)
@@ -325,12 +328,9 @@ omodule_create(char *c, struct filed *f, char *prog)
 
 			/* build argv and argc, modifies input p */
 			while (isspace((int)*p)) p++;
-/* XXX
+
 			while (*p && *p != '%' && *p != '\n' && *p != '\r' &&
-			    argc < sizeof(argv) / sizeof(argv[0])) {
-*/
-			while (*p && *p != '%' && *p != '\n' && *p != '\r' &&
-			    argc < OMODULE_ARGV_MAX) {
+			    argc < OMODULE_ARGV_MAX) { /* argc < sizeof(argv) / sizeof(argv[0]) */
 			
 				if (*p == '"' || *p == '\'')
 				    quotes = *p++;
@@ -357,8 +357,8 @@ omodule_create(char *c, struct filed *f, char *prog)
 					p++;
 			}
 
-			m_dprintf(MSYSLOG_INFORMATIVE, "omodule_create:"
-			    " successfully made output module %s's argv[]\n",
+			m_dprintf(MSYSLOG_INFORMATIVE, "omodule_create: "
+			    "successfully made output module %s's argv[]\n",
 			    argv[0]);
 			break;
 
@@ -402,25 +402,25 @@ omodule_create(char *c, struct filed *f, char *prog)
 
 	free(line);
 
-	return (1);
+return (1);
 
 omodule_create_bad:
 
 	m_dprintf(MSYSLOG_SERIOUS, "%s", err_buf);
 
-	if (line)
-		free(line);
+	if (line) free(line);
 
 	/* free allocated module */
 	if (f->f_omod == om) {
 		f->f_omod = NULL;
-	} else if (om_prev)
+	}
+  else if (om_prev) {
 		om_prev->om_next = NULL;
+  }
 
-	if (om)
-		free(om);
+	if (om) free(om);
 
-	return (-1);
+return (-1);
 }
 
 
@@ -478,14 +478,14 @@ parseParams(char ***ret, char *c)
 			if ( (*ret = (char **)realloc(*ret, sizeof(char *) *
 			    (argc + 20))) == NULL) {
 				free(line);
-				return (-1);
+return (-1);
 			}
 		if (*ret != NULL)
 			(*ret)[argc] = NULL;
 	}
 	
 	free(line);
-	return (argc);
+return (argc);
 }
 
 
@@ -496,7 +496,7 @@ addImodule(char *name)
 	char buf[LIB_PATH_MAX];
 
 	if (name == NULL)
-		return (NULL);
+return (NULL);
 
 	if (imodules == NULL) {
 		imodules = (struct imodule *)calloc(1, sizeof(struct imodule));
@@ -527,7 +527,7 @@ addImodule(char *name)
 
 		m_dprintf(MSYSLOG_SERIOUS, "addImodule: couldn't config %s input"
 		    " module\n", buf);
-		return(NULL);
+return(NULL);
 	}
 
 	/* this is not mandatory */
@@ -535,10 +535,15 @@ addImodule(char *name)
 
 	im->im_name = strdup(name);
 
+  /* assume an input file descriptor is pollable,
+   * unless it is explicitly turned off
+   */
+	im->im_flags = IM_NULL;
+
 	m_dprintf(MSYSLOG_INFORMATIVE, "addImodule: successfully configured %s "
 	    "input module\n", buf);
 
-	return (im);
+return (im);
 }
 
 
@@ -549,7 +554,7 @@ addOmodule(char *name)
 	char buf[LIB_PATH_MAX];
 
 	if (name == NULL)
-		return (NULL);
+return (NULL);
 
 	if (omodules == NULL) {
 		omodules = (struct omodule *) calloc(1, sizeof(struct omodule));
@@ -563,7 +568,7 @@ addOmodule(char *name)
 
 	if (om == NULL) {
 		m_dprintf(MSYSLOG_CRITICAL, "addOmodule: %s\n", strerror(errno));
-		return (NULL);
+return (NULL);
 	}
 
 	snprintf(buf, sizeof(buf), "om_%s", name);
@@ -583,7 +588,7 @@ addOmodule(char *name)
 		}
 
 		free(om);
-		return (NULL);
+return (NULL);
 	}
 
 	/* this is not mandatory */
@@ -595,7 +600,7 @@ addOmodule(char *name)
 
 	om->om_name = strdup(name);
 
-	return (om);
+return (om);
 }
 
 
@@ -603,16 +608,16 @@ int
 omoduleDestroy(struct omodule *om)
 {
 	if (om == NULL || om->h == NULL || om->om_next)
-		return (-1);
+return (-1);
 
 	if (om->h && dlclose(om->h) < 0) {
 	   	m_dprintf(MSYSLOG_SERIOUS, "Error [%s]\n", dlerror());
-		return (-1);
+return (-1);
 	}
 
 	free(om->om_name);
 
-	return (1);
+return (1);
 }
 
 
@@ -623,13 +628,13 @@ getImodule(char *name)
 	unsigned int len;
 
 	if (imodules == NULL || name == NULL)
-		return (NULL);
+return (NULL);
 
 	for(im = imodules, len = strlen(name); im; im = im->im_next)
 		if (im->im_name && !strncmp(im->im_name, name, len))
 			break;
 
-	return (im);
+return (im);
 }
 
 
@@ -640,13 +645,13 @@ getOmodule(char *name)
 	unsigned int len;
 
 	if (omodules == NULL || name == NULL)
-		return (NULL);
+return (NULL);
 
 	for (om = omodules, len = strlen(name); om; om = om->om_next)
 		if (om->om_name && !strncmp(om->om_name, name, len))
 			break;
 
-	return (om);
+return (om);
 }
 
 
@@ -679,10 +684,10 @@ imodules_destroy(struct imodule *i)
 
 	if (last) {
 		last->im_next = NULL;
-		return (1); /* there are some static modules on */
+return (1); /* there are some static modules on */
 	}
 
-	return (0);
+return (0);
 }
 
 
@@ -714,10 +719,10 @@ omodules_destroy(struct omodule *o)
 
 	if (last != NULL) {
 		last->om_next = NULL;
-		return (1); /* there are some static modules on */
+return (1); /* there are some static modules on */
 	}
 
-	return (0);
+return (0);
 }
 
 
