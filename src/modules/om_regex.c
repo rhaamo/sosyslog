@@ -1,4 +1,4 @@
-/*  $Id: om_regex.c,v 1.48 2002/09/26 18:46:07 alejo Exp $	*/
+/*  $Id: om_regex.c,v 1.49 2002/10/01 19:37:39 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -183,137 +183,135 @@ int om_regex_init(
    *
    */
 
-  for(
-   argcnt = 1   /* skip module name */
-   ;
-   ( ch = getxopt(
-    argc,
-    argv, 
-    "v!reverse!inverse m!message: h!host: s!subst:",
-    &argcnt
-   ) ) != -1
-   ;
-   argcnt++
-  ) {
+  for(argcnt = 1; (ch = getxopt(argc, argv, "v!reverse!inverse m!message: "
+	    "h!host: s!subst: i!icase", &argcnt)) != -1; argcnt++) {
 
-    p = NULL;
+	p = NULL;
 
-    switch (ch) {
+	switch (ch) {
 
-      case 'v':
-        if (c->filters & OM_FILTER_SUBST) {
-          m_dprintf(MSYSLOG_WARNING, "om_regex: error compiling "
-            "inverse regular expression incompatible with substitution\n");
-    break;
-        }
-        c->filters |= OM_FILTER_INVERSE;
-        statbuf_len += snprintf(statbuf + statbuf_len, sizeof(statbuf) - statbuf_len, ", inverse");
-    break;
+	case 'v':
+		if (c->filters & OM_FILTER_SUBST) {
+			m_dprintf(MSYSLOG_WARNING, "om_regex: error compiling "
+			    "inverse regular expression incompatible with "
+			    "substitution\n");
+			break;
+		}
+		c->filters |= OM_FILTER_INVERSE;
+		statbuf_len += snprintf(statbuf + statbuf_len,
+		    sizeof(statbuf) - statbuf_len, ", inverse");
+		break;
 
-      case 'm':
-        if (m_processed) {
-          m_dprintf(MSYSLOG_WARNING, "om_regex: "
-           "m option specified more than once, only first accepted\n");
-    break;
-        }
-        c->filters |= OM_FILTER_MESSAGE;
+	case 'm':
+		if (m_processed) {
+			m_dprintf(MSYSLOG_WARNING, "om_regex: m option "
+			    "specified more than once, only first accepted\n");
+			break;
+		}
+		c->filters |= OM_FILTER_MESSAGE;
 
-        if (regcomp(&c->msg_exp, argv[argcnt], REG_EXTENDED) != 0) {
+		if (regcomp(&c->msg_exp, argv[argcnt], REG_EXTENDED) != 0) {
 
-          m_dprintf(MSYSLOG_SERIOUS, "om_regex: error compiling "
-           "regular expression [%s] for message\n", argv[argcnt]);
-          free(*ctx);
-return -1;
-        }
+			m_dprintf(MSYSLOG_SERIOUS, "om_regex: error compiling "
+			    "regular expression [%s] for message\n",
+			    argv[argcnt]);
+			free(*ctx);
+			return -1;
+		}
 
-        c->msg_no_subexp = count_subexp(&subexp_regex_comp, argv[argcnt]);
-        p = ", message";
-        opt_recent = 'm';
-        m_processed = 1;
-    break;
+		c->msg_no_subexp = count_subexp(&subexp_regex_comp,
+		    argv[argcnt]);
+		p = ", message";
+		opt_recent = 'm';
+		m_processed = 1;
+		break;
 
-      case 'h':
-        if (h_processed) {
-          m_dprintf(MSYSLOG_WARNING, "om_regex: "
-           "h option specified more than once, only first accepted\n");
-    break;
-        }
-        c->filters |= OM_FILTER_HOST;
+	case 'h':
+		if (h_processed) {
+			m_dprintf(MSYSLOG_WARNING, "om_regex: h option "
+			    "specified more than once, only first accepted\n");
+			break;
+		}
+		c->filters |= OM_FILTER_HOST;
 
-        if (regcomp(&c->host_exp, argv[argcnt], REG_EXTENDED) != 0) {
+		if (regcomp(&c->host_exp, argv[argcnt], REG_EXTENDED) != 0) {
 
-          m_dprintf(MSYSLOG_SERIOUS, "om_regex: error compiling "
-           "regular expression [%s] for message\n", argv[argcnt]);
-          free(*ctx);
+			m_dprintf(MSYSLOG_SERIOUS, "om_regex: error compiling "
+			    "regular expression [%s] for message\n",
+			    argv[argcnt]);
+			free(*ctx);
+			return -1;
+		}
 
-return -1;
-        }
+		c->host_no_subexp = count_subexp(&subexp_regex_comp,
+		    argv[argcnt]);
+		p = ", host";
+		opt_recent = 'h';
+		h_processed = 1;
+		break;
 
-        c->host_no_subexp = count_subexp(&subexp_regex_comp, argv[argcnt]);
-        p = ", host";
-        opt_recent = 'h';
-        h_processed = 1;
-    break;
+	case 's':
+		if (c->filters & OM_FILTER_INVERSE) {
+			m_dprintf(MSYSLOG_WARNING, "om_regex: error compiling "
+			    "substitution incompatible with inverse regular "
+			    "expression\n");
+		}
+		if (opt_recent == 0) {
+			m_dprintf(MSYSLOG_WARNING, "om_regex: s option "
+			    "specified with no matching m or h option\n");
+			break;
+		}
 
-      case 's':
-        if (c->filters & OM_FILTER_INVERSE) {
-          m_dprintf(MSYSLOG_WARNING, "om_regex: error compiling "
-           "substitution incompatible with inverse regular expression\n");
-        }
-        if (opt_recent == 0) {
-          m_dprintf(MSYSLOG_WARNING, "om_regex: "
-           "s option specified with no matching m or h option\n");
-    break;
-        }
+		{
+		int no_subexp;
+		int max_subexp_no;
+		int *no_subst;
+		char ***non_subst;
+		int **subexp_no;
 
-        {
-          int no_subexp;
-          int max_subexp_no;
-          int *no_subst;
-          char ***non_subst;
-          int **subexp_no;
+		if (opt_recent == 'm') {
+			no_subexp = c->msg_no_subexp;
+			no_subst = &c->msg_no_subst;
+			non_subst = &c->msg_non_subst;
+			subexp_no = &c->msg_subexp_no;
+		} else {    /* if (opt_recent == 'h')  */
+			no_subexp = c->host_no_subexp;
+			no_subst = &c->host_no_subst;
+			non_subst = &c->host_non_subst;
+			subexp_no = &c->host_subexp_no;
+		}
+		parse_subst(&subst_regex_comp, argv[argcnt], no_subst,
+		    non_subst, subexp_no);
 
-          if (opt_recent == 'm') {
-            no_subexp = c->msg_no_subexp;
-            no_subst = &c->msg_no_subst;
-            non_subst = &c->msg_non_subst;
-            subexp_no = &c->msg_subexp_no;
-          } else {    /* if (opt_recent == 'h') { */
-            no_subexp = c->host_no_subexp;
-            no_subst = &c->host_no_subst;
-            non_subst = &c->host_non_subst;
-            subexp_no = &c->host_subexp_no;
-          }
-          parse_subst(&subst_regex_comp, argv[argcnt], no_subst, non_subst, subexp_no);
+		max_subexp_no = max_subexp(*subexp_no, *no_subst);
 
-          max_subexp_no = max_subexp(*subexp_no, *no_subst);
+		if (max_subexp_no > no_subexp) {
+			m_dprintf(MSYSLOG_SERIOUS, "om_regex: substitution "
+			    "pattern references sub-expression [%d], max is "
+			    "[%d]\n", max_subexp_no, no_subexp);
+			return -1;
+		}
+		}
 
-          if (max_subexp_no > no_subexp) {
-            m_dprintf(MSYSLOG_SERIOUS, "om_regex: substitution pattern "
-             "references sub-expression [%d], max is [%d]\n", max_subexp_no, no_subexp);
-return -1;
-          }
-        }
-        opt_recent = 0;
+		opt_recent = 0;
 
-        c->filters |= OM_FILTER_SUBST;
-        p = ", subst";
-    break;
+		c->filters |= OM_FILTER_SUBST;
+		p = ", subst";
+		break;
 
-      default:
-        m_dprintf(MSYSLOG_SERIOUS, "om_regex: unknown parameter [%c]\n", ch);
-        free(*ctx);
-return -1;
+	default:
+		m_dprintf(MSYSLOG_SERIOUS, "om_regex: unknown parameter [%c]\n",
+		    ch);
+		free(*ctx);
+		return -1;
 
-    } /* END switch */
+	}
 
+	if (p)
+		statbuf_len += snprintf(statbuf + statbuf_len,
+		    sizeof(statbuf) - statbuf_len, " %s [%s]", p, argv[argcnt]);
 
-    if (p) {
-      statbuf_len += snprintf(statbuf + statbuf_len, sizeof(statbuf) - statbuf_len,
-       " %s [%s]", p, argv[argcnt]);
-    }
-
-  } /* END for */
+  } /* END for(getxopt) */
 
   *status = strdup(statbuf);
 
