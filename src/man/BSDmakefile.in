@@ -1,4 +1,4 @@
-# $CoreSDI: BSDmakefile,v 1.1 2000/07/06 01:18:36 claudio Exp $
+# $CoreSDI: BSDmakefile.in,v 1.1 2000/07/06 18:00:01 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -36,6 +36,7 @@ clean:	cleandir
 
 distclean: clean
 	-rm -f BSDmakefile
+	-rm -f GNUmakefile
 
 .include <bsd.own.mk>
 .include <bsd.man.mk>
