@@ -8,6 +8,7 @@ AC_PROG_CC
 AC_PROG_INSTALL
 
 AC_SUBST(CEFLAGS)
+AC_SUBST(LDEFLAGS)
 
 AC_CHECK_HEADERS(paths.h)
 
@@ -44,9 +45,9 @@ if test "$with_mysql" = "yes"
 then
 	for ac_dir in \
 	/usr/local/mysql \
-	/usr/local/lib
+	/usr/local/lib/mysql
 	do
-		if test -f "$ac_dir/"
+		if test -d "$ac_dir"
 		then
 			with_mysql=$ac_dir
 		fi
@@ -61,8 +62,9 @@ then
 	fi
 	echo "Enabling MySQL support in $with_mysql"
 	EXTRAOBJ="$EXTRAOBJ om_mysql.o"
+	CEFLAGS="$CEFLAGS -I$with_mysql/include"
+	LDEFLAGS="$LDEFLAGS -L$with_mysql/lib"
 	LIBS="$LIBS -lmysql"
-	CEFLAGS="$CEFLAGS -I"
 	AC_DEFINE(MYSQL_ENABLE)
 else
 	echo "Disabling MySQL support..."
