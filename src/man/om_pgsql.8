@@ -1,0 +1,89 @@
+.\"	$CoreSDI: om_pgsql.8,v 1.1.2.1 2000/10/07 00:24:19 alejo Exp $
+.\"
+.\" Copyright (c) 2000
+.\"	Core-SDI SA. All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. Neither the name of Core-SDI SA nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" derived from om_PostgreSQL.8 by Arthur Korn (arthur@korn.ch) on Thu,  5 Oct 2000
+.Dd Oct 5, 2000
+.Dt OM_PGSQL 8
+.Os Core-SDI
+.Sh NAME
+.Nm PostgreSQL output module
+.Nd
+.Xr syslogd 8
+output module used to log on PostgreSQL servers
+.Sh SYNOPSIS
+.Nm pgsql
+.Op Fl s Ar host
+.Op Fl u Ar username
+.Op Fl p Ar password
+.Op Fl d Ar database
+.Op Fl t Ar table
+.Op Fl c
+.Sh DESCRIPTION
+.Nm PostgreSQL output module 
+receives a message as an ascii string and logs it on a PostgreSQL server. For
+proper initialization, the following parameters should be set:
+.Bl -tag -width Ds
+.It Fl s Ar hostname
+Specify the PostgreSQL server hostname.
+.It Fl u Ar username
+Specifies the username to use on the PostgreSQL server. This user
+must have enough permissions to insert on the specified database and table.
+.It Fl p Ar password
+The plaintext password for this PostgreSQL user. Thus it is recommended NOT to
+leave
+.Xr syslog.conf 5
+world readable if this module is used.
+.It Fl d Ar database
+The database name to use on the specified PostgreSQL server.
+.It Fl t Ar table
+The table name to use on the specified PostgreSQL database.
+.It Fl c
+Create the table.
+.Sh EXAMPLES
+Example entry for
+.Xr syslog.conf 5
+:
+.Pp
+.Bd -literal
+  *.*     %pgsql -s logger.mydomain.edu \e
+          -u loguser -p loguserpassword \e
+	  -d syslogDB -t syslogTB
+.Ed
+.Sh SEE ALSO
+.Xr syslogd 8 ,
+.Xr syslog.conf 5 
+.Sh BUGS
+.Bl -bullet
+.It
+Since the PostgreSQL module is used to connect with username and password,
+care must be pointed on file permissions and that user permissions
+on the PostgreSQL server.
+.It
+If you have found bugs, please report them to syslog-bugs@core-sdi.com
+.El
