@@ -1,4 +1,4 @@
-/*	$Id: syslogd.h,v 1.26 2000/04/18 23:42:19 alejo Exp $
+/*	$Id: syslogd.h,v 1.27 2000/04/25 01:32:57 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -44,6 +44,8 @@
 #define TTYMSGTIME	1		/* timeout passed to ttymsg */
 #define MAX_N_OMODULES	64		/* maximum types of out modules */
 #define MAX_N_IMODULES	64		/* maximum types of in  modules */
+#define INPUT_BSD	0x01		/* BSD  like input */
+#define INPUT_SYSV	0x02		/* SYSV like input */
 
 #include <paths.h>
 #include <sys/time.h>
@@ -133,14 +135,16 @@ struct IModules {
 	char	*im_name;
 	short	im_type;
 	/* buf, bufsize */ 
-	int	(*im_getLog) (int, struct im_msg *);
+	int	(*im_getLog) (struct i_module *, struct im_msg *);
 	int	(*im_init) (struct i_module *, int, char **, struct im_header_ctx **);
 	int	(*im_close) (struct i_module *);
 } IModules[MAX_N_IMODULES];
 
 
-int modules_init(struct i_module **);
-int omodule_create(char *, struct filed *, char *);
+int modules_init(struct i_module **, int);
+int omodule_create(char *c, struct filed *, char *);
+int imodule_create(char *c, struct filed *, char *);
+
 
 
 #define	MAXREPEAT ((sizeof(repeatinterval) / sizeof(repeatinterval[0])) - 1)
@@ -159,9 +163,14 @@ int omodule_create(char *, struct filed *, char *);
 #define F_WALL		6		/* everyone logged on */
 
 /* values for om_type */
-#define	M_CLASSIC	0
-#define	M_MYSQL		1
-#define	M_PEO		2
+#define	OM_CLASSIC	0
+#define	OM_MYSQL	1
+#define	OM_PEO		2
+
+#define IM_BSD		0
+#define IM_SYSV		1
+#define IM_UDP		2
+#define IM_TCP		3
 
 /* values for integrity facilities */
 #define I_NONE		0

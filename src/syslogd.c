@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.43 2000/04/24 23:23:58 alejo Exp $
+/*	$Id: syslogd.c,v 1.44 2000/04/25 01:32:56 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -140,11 +140,11 @@ main(argc, argv)
 	FILE *fp;
 	char *p;
 	struct	i_module *Inputs;
-	int	inputBSD, inputSYSV;
+	int inputs;
 
-	inputBSD = 0; inputSYSV = 0;
+	inputs = 0;
 
-	while ((ch = getopt(argc, argv, "dubSf:m:p:a:")) != -1)
+	while ((ch = getopt(argc, argv, "dubSf:m:p:a:i:")) != -1)
 		switch (ch) {
 		case 'd':		/* debug */
 			Debug++;
@@ -163,9 +163,11 @@ main(argc, argv)
 			break;
 		case 'i':		/* BSD-like input (AF_LOCAL socket) */
 			if (!strncmp(optarg, "bsd", 3)) {
-				inputBSD++;
+				inputs |= INPUT_BSD;
+#if 0
 			} else if (!strncmp(optarg, "sysv", 4)) {
-				inputSYSV++;
+				inputs |= INPUT_SYSV;
+#endif
 			} else
 				usage();
 			break;
@@ -181,7 +183,7 @@ main(argc, argv)
 		default:
 			usage();
 		}
-	if ((argc -= optind) != 0)
+	if ((argc -= optind) != 0 || inputs == 0)
 		usage();
 
 	if (!Debug)
@@ -190,12 +192,12 @@ main(argc, argv)
 		setlinebuf(stdout);
 
 	/* assign functions and init input */
-	modules_init(&Inputs);
+	modules_init(&Inputs, inputs);
 
 	consfile.f_type = F_CONSOLE;
         /* this should get into Files and be way nicer */
         consfile.f_mod = (struct o_module *) calloc(1, sizeof(struct o_module));
-        consfile.f_mod->om_type = M_CLASSIC;
+        consfile.f_mod->om_type = OM_CLASSIC;
 
 	(void)strcpy(consfile.f_un.f_fname, ctty);
 	(void)gethostname(LocalHostName, sizeof(LocalHostName));
@@ -287,7 +289,8 @@ usage()
 {
 
 	(void)fprintf(stderr,
-	    "usage: syslogd [-u] [-f conffile] [-m markinterval] [-p logpath] [-a logpath]\n");
+	    "usage: syslogd [-u] [-f conffile] [-m markinterval] [-p logpath] "
+            "[-a logpath] [-i input]\n Flag -i is mandatory\n");
 	exit(1);
 }
 

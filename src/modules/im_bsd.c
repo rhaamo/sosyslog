@@ -113,3 +113,9 @@ im_bsd_getLog(im, ret)
 	return(im->fd == -1 ? -1: 1);
 }
 
+int
+im_bsd_close(im)
+	struct i_module *im;
+{
+	return(close(im->fd));
+}

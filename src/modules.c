@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.32 2000/04/19 21:01:51 alejo Exp $
+/*	$Id: modules.c,v 1.33 2000/04/25 01:32:56 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -56,10 +56,14 @@ int om_mysql_doLog(struct filed *, int , char *, struct om_header_ctx *);
 int om_mysql_init(int, char **, struct filed *, char *, struct om_header_ctx **);
 int om_mysql_close(struct filed*, struct om_header_ctx **);
 int om_mysql_flush(struct filed*, struct om_header_ctx *);
+int im_bsd_init(struct i_module *,int , char **, struct im_bsd_ctx *);
+int im_bsd_getLog(struct i_module *, struct im_msg *);
+int im_bsd_close(struct i_module *);
 
 /* assign module functions to generic pointer */
-int modules_init (I)
+int modules_init (I, inputs)
 	struct i_module **I;
+	int		inputs;
 {
 	/* initialize module function assignations */
 	memset(OModules, 0, sizeof(OModules));
@@ -68,23 +72,44 @@ int modules_init (I)
 
 	/* classic module */
 	/* classic module */
-	OModules[M_CLASSIC].om_name 		= "classic";
-	OModules[M_CLASSIC].om_type 		= M_CLASSIC;
-	OModules[M_CLASSIC].om_doLog 		= om_classic_doLog;
-	OModules[M_CLASSIC].om_init 		= om_classic_init;
-	OModules[M_CLASSIC].om_close 		= om_classic_close;
-	OModules[M_CLASSIC].om_flush 		= om_classic_flush;
+	OModules[OM_CLASSIC].om_name 		= "classic";
+	OModules[OM_CLASSIC].om_type 		= OM_CLASSIC;
+	OModules[OM_CLASSIC].om_doLog 		= om_classic_doLog;
+	OModules[OM_CLASSIC].om_init 		= om_classic_init;
+	OModules[OM_CLASSIC].om_close 		= om_classic_close;
+	OModules[OM_CLASSIC].om_flush 		= om_classic_flush;
 
 #ifndef HAVE_LINUX
 	/* mysql module */
-	OModules[M_MYSQL].om_name 		= "mysql";
-	OModules[M_MYSQL].om_type 		= M_MYSQL;
-	OModules[M_MYSQL].om_doLog	 	= om_mysql_doLog;
-	OModules[M_MYSQL].om_init 		= om_mysql_init;
-	OModules[M_MYSQL].om_close 		= om_mysql_close;
-	OModules[M_MYSQL].om_flush 		= om_mysql_flush;
+	OModules[OM_MYSQL].om_name 		= "mysql";
+	OModules[OM_MYSQL].om_type 		= OM_MYSQL;
+	OModules[OM_MYSQL].om_doLog	 	= om_mysql_doLog;
+	OModules[OM_MYSQL].om_init 		= om_mysql_init;
+	OModules[OM_MYSQL].om_close 		= om_mysql_close;
+	OModules[OM_MYSQL].om_flush 		= om_mysql_flush;
 #endif
   
+	IModules[IM_BSD].im_name		= "bsd";
+	IModules[IM_BSD].im_type		= IM_BSD;
+	IModules[IM_BSD].im_init		= im_bsd_init;
+	IModules[IM_BSD].im_getLog		= im_bsd_getLog;
+	IModules[IM_BSD].im_close		= im_bsd_close;
+ #if 0 
+	IModules[IM_SYSV].im_name		= "sysv";
+	IModules[IM_SYSV].im_type		= IM_SYSV;
+	IModules[IM_SYSV].im_init		= im_sysv_init;
+	IModules[IM_SYSV].im_getLog		= im_sysv_getLog;
+	IModules[IM_SYSV].im_close		= im_sysv_close;
+#endif
+
+	*I = (struct i_module *) calloc(1, sizeof(struct i_module));
+	if (inputs & INPUT_BSD)
+		im_bsd_init(*I);
+#if 0
+	if (inputs & INPUT_SYSV)
+		im_sysv_init(I);
+#endif
+
 	return(1);
 }
 
@@ -176,7 +201,7 @@ int omodule_create(c, f, prog)
 				argv[argc++]="auto_classic";
 				argv[argc++]=p;
 				p+=strlen(p);
-				m->om_type = M_CLASSIC;
+				m->om_type = OM_CLASSIC;
 				break;
 		}
 		(OModules[m->om_type].om_init)(argc, argv, f, prog, (void *) &(m->context));
