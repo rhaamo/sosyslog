@@ -1,4 +1,4 @@
-.\"	$Id: om_peo.8,v 1.4 2000/05/19 21:54:20 claudio Exp $
+.\"	$Id: om_peo.8,v 1.5 2000/05/22 20:41:47 claudio Exp $
 .\" Copyright (c) 2000
 .\"	Core-SDI SA. All rights reserved.
 .\"
@@ -58,8 +58,8 @@ This option enables the line corrupted detection mode;
 the module generates two keys, the first explained above and a second
 key using a \fBmac\fP method based on two consecutive \fBhash\fPes, this
 new key is added into the \fBmac\fP file whose pathname is the same as
-\fIkeyfile\fP with a ".mac" string added at the end, this file should
-had been created by peochk(8) command.
+\fIkeyfile\fP with a ".mac" string added at the end (if this file does
+not exists, is created automatically).
 .It Fl m Ar hash_method
 Specifies the hash method used to generate the key to put into the
 \fIkeyfile\fP, \fIhash_method\fP should be one of \fImd5\fP, \fIsha1\fP,
@@ -79,8 +79,7 @@ When you want to check the protected file integrity you should use the
 peochk(8) command.
 .Sh BUGS
 Since the peo module is used to determine if a logfile is corrupted, care
-must be taken on the configuration file (syslog.conf(5)), the following
-is not correct:
+must be taken on the configuration file, the following is not correct:
 .Pp
 .in +3m
 .ll -3m
@@ -116,10 +115,9 @@ or
 .in -3m
 .ll +3m
 .Sh SEE ALSO
-.Xr om_classic 8 ,
+.Li Vcr and Peo Revised documentation - http://www.core-sdi.com/papers/peo.ps
 .Xr peochk 8 ,
 .Xr syslogd 8 ,
 .Xr syslog.conf 5 ,
-.Xr peo-1 7
 .Sh BUGS
 if you found bugs, please report them to syslog-bugs@core-sdi.com
