@@ -1,7 +1,7 @@
 
 PROG=	peochk
-SRCS=	hash.c md5c.c rmd160.c rmd160hl.c sha1.c sha1hl.c om_peo.c peochk.c
-OBJS=	hash.o md5c.o rmd160.o rmd160hl.o sha1.o sha1hl.o om_peo.o
+SRCS=	hash.c md5c.c rmd160.c sha1.c om_peo.c peochk.c
+OBJS=	hash.o md5c.o rmd160.o sha1.o om_peo.o
 DEBUG=	-ggdb -Wall
 
 
