@@ -1,11 +1,11 @@
-/*	$CoreSDI: TODO,v 1.58 2000/12/05 00:08:13 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.59 2000/12/05 00:49:35 alejo Exp $	*/
 
 Things to do:
 
-- Work out the strerr(1) daemon of some SysV-like loggers
 - define STYLE for names (ie. underscore or caps, indentation)
 - module configuration file so eliminate most command line options
 - autodetect wich input module is needed automagically (ie im_unix + im_bsd)
+- work out a random device for Solaris and others
 - redo parsing functions
 - CHECK LIBC and GLIBC's way to work
 - More docs on source code
