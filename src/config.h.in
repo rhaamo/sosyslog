@@ -97,6 +97,7 @@
 #undef MLIBNAME_STR
 #undef INSTALL_LIBDIR
 #undef PID_DIR
+#undef PID_FILE
 
 #undef HAVE_OPTRESET
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.201 2001/05/03 22:54:41 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.202 2001/05/03 23:01:02 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.201 2001/05/03 22:54:41 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.202 2001/05/03 23:01:02 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -123,17 +123,6 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.201 2001/05/03 22:54:41 alejo Exp
 #include "modules.h"
 #include "syslogd.h"
 
-#ifdef PATH_MAX
-#define PID_PATH_MAX PATH_MAX
-#else
-#ifdef _POSIX_PATH_MAX
-#define PID_PATH_MAX _POSIX_PATH_MAX
-/* #warning Using _POSIX_PATH_MAX as maximum pidfile name length */
-#else
-#error No max path defined
-#endif /* +POSIX_PATH_MAX */
-#endif /* PATH_MAX */
-
 #ifndef _PATH_CONSOLE
 #define _PATH_CONSOLE	"/dev/console"
 /* #warning Using "/dev/console" for _PATH_CONSOLE */
@@ -174,7 +163,13 @@ int	 MarkInterval = 20 * 60; /* interval between marks in seconds */
 int	 MarkSeq = 0;		 /* mark sequence number */
 int	 WantDie = 0;
 char	*ConfFile = _PATH_LOGCONF; /* configuration file */
-char	 pidfile[PID_PATH_MAX];
+
+#ifdef _PATH_LOGPID
+char	 *pidfile = _PATH_LOGPID;
+#else
+char	 *pidfile = PID_DIR "/" PID_FILE;
+#endif
+
 FILE	*pidf;
 
 #define MAX_PIDFILE_LOCK_TRIES 5
@@ -437,8 +432,6 @@ main(int argc, char **argv)
 		exit(-1);
 	}
 	alarm(TIMERINTVL);
-
-	snprintf(pidfile, PID_PATH_MAX, "%s/syslog.pid", PID_DIR);
 
 	/* took my process id away */
 	if (!Debug) {
