@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.214 2001/10/24 03:02:17 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.215 2001/10/24 08:12:22 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.214 2001/10/24 03:02:17 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.215 2001/10/24 08:12:22 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -1301,7 +1301,7 @@ cfline(char *line, struct filed *f, char *prog) {
 		for (q = p; *q && *q != '\t' && *q++ != '.'; )
 			continue;
 
-		if (*p == '/' || *p == '%' || *p == '|')
+		if (*p == '/' || *p == '%' || *p == '|' || *p == '-')
 			break;
 
 		pri = -1;

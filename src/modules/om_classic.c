@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.84 2001/10/24 07:58:37 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.85 2001/10/25 22:41:23 alejo Exp $	*/
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
@@ -376,6 +376,8 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		    c->f_un.f_forw.f_hname);
 		break;
 
+	case '-':  /* ignore this, we do it by default */
+		p++;
 	case '|':  /* from sysklogd */
 	case '/':
 		strncpy(c->f_un.f_fname, p, sizeof c->f_un.f_fname);
