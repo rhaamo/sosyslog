@@ -1,0 +1,76 @@
+#!/bin/sh
+#
+# msyslog	Starts msyslogd.
+#
+#
+# chkconfig: 2345 12 88
+# description: msyslog is a daemon for the syslog system log interface. It
+# is based on OpenBSD's syslog daemon implementation, with many improvements
+# (ie. log hash protection).
+# It was created by Core-SDI http://www.corest.com
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+[ -f /sbin/msyslogd ] || exit 0
+
+# Source config
+if [ -f /etc/sysconfig/msyslog ]; then
+	. /etc/sysconfig/msyslog
+else
+	CONFIG=""
+	DEBUG=""
+	MARK=""
+	INPUTS="-i linux -i unix:/dev/log"
+fi
+
+RETVAL=0
+
+umask 077
+
+start() {
+	echo -n "Starting msyslogd: "
+	daemon msyslogd $CONFIG $DEBUG $MARK
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/msyslog
+	return $RETVAL
+}
+stop() {
+	echo -n "Shutting down msyslogd: "
+	killproc msyslogd
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/msyslog
+	return $RETVAL
+}
+rhstatus() {
+	status msyslogd
+}
+restart() {
+	stop
+	start
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	status)
+		rhstatus
+		;;
+	restart|reload)
+		restart
+		;;
+	condrestart)
+		[ -f /var/lock/subsys/msyslog ] && restart || :
+		;;
+	*)
+		echo "Usage: $0 {start|stop|status|restart|condrestart}"
+		exit 1
+esac
+
+exit $?
