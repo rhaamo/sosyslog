@@ -1,6 +1,7 @@
 #include <syslog.h>
 #include <varargs.h>
 #include <unistd.h>
+#include <string.h>
 
 int level[] = { LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR, LOG_WARNING,
 			LOG_NOTICE, LOG_INFO, LOG_DEBUG };
@@ -23,10 +24,12 @@ usage(char *pname) {
 int
 main(int argc, char *argv[]) {
   int l, o, f, ch, started;
+  char *pname;
   extern char *optarg;
   extern int optind;
 
   l = 0; o = 0; f = 0; started = 0;
+  pname = strdup(argv[0]);
 
   while ((ch = getopt(argc, argv, "l:o:f:")) != -1) {
           switch (ch) {
@@ -44,7 +47,7 @@ main(int argc, char *argv[]) {
                       break;
               case '?':
               default:
-                      usage(argv[0]);
+                      usage(pname);
           }
   }
   argc -= optind;
@@ -52,12 +55,13 @@ main(int argc, char *argv[]) {
 
   if ( started == 3) {
       openlog("SuperMegaTest", loption[o], lfacility[f]);
+      printf("%s: going to log l %i, o %i, f %i\n", pname, l, o, f);
       syslog(level[l], "Superbatimensaje level = [%i]"
 	      " option = [%i] facility = [%i]", l, o, f);
       closelog();
   } else if (started > 0) {
       printf("You nust specify ALL args or none\n");
-      usage(argv[0]);
+      usage(pname);
   } else {
       for(l = 0; l < 8; l++) {
           for(o = 0; o < 3; o++) {
@@ -65,6 +69,7 @@ main(int argc, char *argv[]) {
                   openlog("SuperMegaTest", loption[o], lfacility[f]);
                   syslog(level[l], "Superbatimensaje l = [%i] o = [%i] f = [%i]",
                           l, o, f);
+                  printf("%s: going to log l %i, o %i, f %i\n", pname, l, o, f);
                   closelog();
               }
           }
