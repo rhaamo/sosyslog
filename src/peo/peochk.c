@@ -1,4 +1,4 @@
-/*	$CoreSDI: peochk.c,v 1.47 2001/03/14 22:13:21 alejo Exp $	*/
+/*	$CoreSDI: peochk.c,v 1.48 2001/04/05 20:56:26 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -116,7 +116,7 @@ extern char *optarg;
  * release allocated memory
  */
 void
-release()
+release(void)
 {
 	if (keyfile != default_keyfile)
 		free(keyfile);
