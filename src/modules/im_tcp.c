@@ -224,7 +224,7 @@ return (-1);
 
 		/* add to queue */
 		c->next = c->first;
-		c->last = con;
+		c->first = con;
 
 		m_dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: new conection from"
 		    " %s with fd %d\n", con->name, con->fd);
