@@ -1,3 +1,5 @@
+/*  $Id: iolib.c,v 1.4 2000/04/27 20:14:10 alejo Exp $
+ */
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <string.h>
