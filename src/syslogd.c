@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.197 2001/04/28 01:32:53 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.198 2001/05/03 20:42:22 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.197 2001/04/28 01:32:53 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.198 2001/05/03 20:42:22 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -238,20 +238,20 @@ main(int argc, char **argv)
 	imodules = NULL;
 	omodules = NULL;
 
-        setlinebuf(stdout);
+	setlinebuf(stdout);
 
 #ifdef	NEEDS_DLOPEN_NULL
-        if ( dlopen(NULL, RTLD_LAZY | RTLD_GLOBAL) == NULL)
-                printf("syslogd: error exporting%s\n", dlerror());
+	if ( dlopen(NULL, RTLD_LAZY | RTLD_GLOBAL) == NULL)
+		printf("syslogd: error exporting%s\n", dlerror());
 #endif
 
-        if ( (main_lib = dlopen(INSTALL_LIBDIR "/" MLIBNAME_STR, DLOPEN_FLAGS))
+	if ( (main_lib = dlopen(INSTALL_LIBDIR "/" MLIBNAME_STR, DLOPEN_FLAGS))
 	    == NULL && (Debug && (main_lib = dlopen("./" MLIBNAME_STR,
 	    DLOPEN_FLAGS)) == NULL) ) {
-                dprintf(MSYSLOG_CRITICAL, "Error opening main library, [%s] "
-                    "file [%s]\n", dlerror(), INSTALL_LIBDIR "/" MLIBNAME_STR);
-                return(-1);
-        }
+		dprintf(MSYSLOG_CRITICAL, "Error opening main library, [%s] "
+		    "file [%s]\n", dlerror(), INSTALL_LIBDIR "/" MLIBNAME_STR);
+		return(-1);
+	}
 
 	/* console config line */
 	ctty = (char *) malloc(sizeof(_PATH_CONSOLE) + 19);
@@ -1098,13 +1098,13 @@ init(int signo)
 		dlclose(main_lib);
 
 	/* Load main modules library */
-        if ( (main_lib = dlopen(INSTALL_LIBDIR "/" MLIBNAME_STR, DLOPEN_FLAGS))
+	if ( (main_lib = dlopen(INSTALL_LIBDIR "/" MLIBNAME_STR, DLOPEN_FLAGS))
 	    == NULL && (Debug && (main_lib = dlopen("./" MLIBNAME_STR,
 	    DLOPEN_FLAGS)) == NULL) ) {
-                dprintf(MSYSLOG_CRITICAL, "init: Error opening main library, [%s] "
-                    "file [%s]\n", dlerror(), INSTALL_LIBDIR "/" MLIBNAME_STR);
-                exit(-1);
-        }
+	        dprintf(MSYSLOG_CRITICAL, "init: Error opening main library, [%s] "
+	            "file [%s]\n", dlerror(), INSTALL_LIBDIR "/" MLIBNAME_STR);
+	        exit(-1);
+	}
 
 	/* list of filed is now empty */
 	Files = NULL;
@@ -1298,7 +1298,7 @@ cfline(char *line, struct filed *f, char *prog) {
 		 * Heavily modified to fit sysklogd
 		 * This should be done with lex/yacc
 		 */
-                /* scan facilities */
+	        /* scan facilities */
 		while (*p && !strchr("\t .;", *p)) {
 			for (bp = buf; *p && !strchr("\t ,;.", *p); )
 			    *bp++ = *p++;
