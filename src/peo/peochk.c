@@ -1,4 +1,4 @@
-/*      $Id: peochk.c,v 1.15 2000/05/04 00:39:18 claudio Exp $
+/*      $Id: peochk.c,v 1.16 2000/05/04 17:17:25 claudio Exp $
  *
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
@@ -145,7 +145,7 @@ check()
 	int   i;
 	int   input;
 	int   mfd;
-	char *key;
+	char  key[41];
 	int   keylen;
 	char  lastkey[41];
 	int   lastkeylen;
@@ -267,6 +267,7 @@ main (argc, argv)
 {
 	int	 action;
 	int	 ch;
+	int	 mac;
 
 	/* integrity check mode */
 	action = 0;
@@ -276,6 +277,7 @@ main (argc, argv)
 	logfile = default_logfile;
 	keyfile = default_keyfile;
 	key0file = NULL;
+	mac = 0;
 	macfile = NULL;
 	method = SHA1;
 
@@ -315,7 +317,7 @@ main (argc, argv)
 				}
 				break;
 			case 'l':
-				macfile = (char*)1;
+				mac = 1;
 				break;
 			case 'm':
 				/* hash method */
@@ -365,7 +367,7 @@ main (argc, argv)
 	}
 
 	/* create macfile */
-	if (macfile)
+	if (mac)
 		if ( (macfile = strmac(keyfile)) == NULL) {
 			release();
 			err(1, "creating %s.mac", keyfile);
@@ -374,7 +376,8 @@ main (argc, argv)
 	/* execute action */
 	if (action)
 		generate();
-	else check();
+	else
+		check();
 
 	release();
 	return (0);
