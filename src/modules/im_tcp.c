@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_tcp.c,v 1.21 2001/09/19 07:04:53 alejo Exp $	*/
+/*	$CoreSDI: im_tcp.c,v 1.22 2001/09/19 09:45:04 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -94,9 +94,7 @@ struct im_tcp_ctx {
 #define	M_USEMSGHOST	0x01
 
 void printline(char *, char *, size_t, int);
-char * resolve_addr(struct sockaddr *addr, socklen_t addrlen);
-struct sockaddr * resolv_name(const char *host, const char *port);
-int listen_tcp(const char *host, const char *port, socklen_t *);
+int listen_tcp(char *host, char *port, socklen_t *);
 int accept_tcp(int, socklen_t, char *, int, char *, int);
 
 
@@ -113,28 +111,50 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 {
 	struct im_tcp_ctx	*c;
 	char			*host, *port;
+	int			ch;
 
         dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: entering\n");
-        if (argc == 2) {
-			host = NULL;
-			port = argv[1];
-        } else if (argc == 3) {
-			host = argv[1];
-			port = argv[2];
-        } else {
-        	dprintf(MSYSLOG_SERIOUS, "im_tcp: error on params! %d, should "
-		    "be 3\n", argc);
+
+	if ( (I->im_ctx = calloc(1, sizeof(struct im_tcp_ctx))) == NULL) {
+		dprintf(MSYSLOG_SERIOUS, "om_tcp_init: cant alloc memory");
         	return (-1);
 	}
 
-	if ( (I->im_ctx = calloc(1, sizeof(struct im_tcp_ctx))) == NULL)
-        	return (-1);
-
 	c = (struct im_tcp_ctx *) I->im_ctx;
 
+	host = "0.0.0.0";
+	port = "514";
+
+	/* parse command line */
+	optind = 1;
+#ifdef HAVE_OPTRESET
+	optreset = 1;
+#endif
+	while ((ch = getopt(argc, argv, "h:p:a")) != -1) {
+		switch (ch) {
+		case 'h':
+			/* get addr to bind */
+			host = optarg;
+			break;
+		case 'p':
+			/* get remote host port */
+			port = optarg;
+			break;
+		case 'a':
+			c->flags |= M_USEMSGHOST;
+			break;
+		default:
+			dprintf(MSYSLOG_SERIOUS, "om_tcp_init: parsing error"
+			    " [%c]\n", ch);
+			free(c);
+			return (-1);
+		}
+	}
+
 	if ( (I->im_fd = listen_tcp(host, port, &c->addrlen)) < 0) {
-        	dprintf(MSYSLOG_SERIOUS, "im_tcp: error with listen_tcp() %s\n",
+        	dprintf(MSYSLOG_SERIOUS, "im_tcp_init: error with listen_tcp() %s\n",
 		    strerror(errno));
+		free(c);
 		return (-1);
 	}
 
@@ -142,7 +162,7 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 
 	add_fd_input(I->im_fd , I);
 
-        dprintf(MSYSLOG_INFORMATIVE, "im_tcp: running\n");
+        dprintf(MSYSLOG_INFORMATIVE, "im_tcp_init: running\n");
 
         return (1);
 }
@@ -176,7 +196,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		/* create a new connection */
 		if ((con = (struct tcp_conn *) calloc(1, sizeof(*con)))
 		    == NULL) {
-       			dprintf(MSYSLOG_SERIOUS, "im_tcp: "
+       			dprintf(MSYSLOG_SERIOUS, "im_tcp_read: "
 			    "error allocating conn struct\n");
 			return (-1);
 		}
@@ -184,7 +204,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		/* accept it and add to queue */
 		if ((con->fd = accept_tcp(infd, c->addrlen, con->name,
 		    sizeof(con->name), con->port, sizeof(con->port))) < 0) {
-			dprintf(MSYSLOG_SERIOUS, "im_tcp: couldn't accept\n");
+			dprintf(MSYSLOG_SERIOUS, "im_tcp_read: couldn't accept\n");
 			free (con);
 			return (-1);
 		}
@@ -287,12 +307,22 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 #error  Change here buffer reads to match HOSTSIZE
 #endif
 				if (sscanf(p, "<%*d>%*15c %n%90s %n", &n1,
-				    ret->im_host, &n2) != 3)
-					continue;	/* invalid line */
+				    ret->im_host, &n2) != 1 &&
+				    sscanf(p, "%*15c %n%90s %n", &n1,
+				    ret->im_host, &n2) != 1 &&
+				    sscanf(p, "%n%90s %n", &n1,
+				    ret->im_host, &n2) != 1) {
+        				dprintf(MSYSLOG_INFORMATIVE,
+					    "im_tcp_read: ignoring message [%s]"
+					    "because it is invalid\n", p);
+					p = strchr(p, '\0');
+					continue;
+				}
 
 				/* remove host from message */
 				while (im->im_buf[n2] != '\0')
 					im->im_buf[n1++] = im->im_buf[n2++];
+				im->im_buf[n1] = '\0';
 
 			} else {
 

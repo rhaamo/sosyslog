@@ -1,4 +1,4 @@
-/*	$CoreSDI: ip_misc.c,v 1.17 2001/07/11 21:50:33 alejo Exp $	*/
+/*	$CoreSDI: ip_misc.c,v 1.18 2001/09/19 10:52:38 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -167,7 +167,7 @@ resolv_addr(struct sockaddr *addr, socklen_t addrlen, char *host, int hlen,
  */
 
 struct sockaddr *
-resolv_name(const char *host, const char *port, socklen_t *salen)
+resolv_name(char *host, char *port, char *proto, socklen_t *salen)
 {
 	struct sockaddr *sa;
 #ifdef HAVE_GETADDRINFO
@@ -177,7 +177,10 @@ resolv_name(const char *host, const char *port, socklen_t *salen)
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_flags = AI_PASSIVE;
 	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
+	if (proto != NULL && strcmp(proto, "udp") == 0)
+		hints.ai_socktype = SOCK_DGRAM;
+	else
+		hints.ai_socktype = SOCK_STREAM;
 
 	if ( (i = getaddrinfo(host, port, &hints, &res)) != 0) {
 
@@ -197,11 +200,13 @@ resolv_name(const char *host, const char *port, socklen_t *salen)
 	struct servent *se;
 	short portnum;
 
-	if (port)
+	if (port != NULL) {
 		portnum = strtol(port, NULL, 10);
-	else if ((se = getservbyname(port, "tcp")) != NULL)
+
+	} else if ((se = getservbyname(port, proto == NULL? "tcp" : proto))
+	    != NULL) {
 		portnum = se->s_port;
-	else
+	} else
 		portnum = 0;
 
 #ifndef	WORDS_BIGENDIAN
@@ -273,12 +278,12 @@ resolv_name(const char *host, const char *port, socklen_t *salen)
  */
 
 int
-connect_tcp(const char *host, const char *port) {
+connect_tcp(char *host, char *port) {
 	int fd, n;
 	struct sockaddr *sa;
 	socklen_t salen;
 
-	if ( (sa = resolv_name(host, port, &salen)) == NULL)
+	if ( (sa = resolv_name(host, port, "tcp", &salen)) == NULL)
 		return (-1);
 
 	n = TCP_KEEPALIVE;
@@ -311,11 +316,11 @@ connect_tcp(const char *host, const char *port) {
  */
 
 int
-listen_tcp(const char *host, const char *port, socklen_t *addrlenp) {
+listen_tcp(char *host, char *port, socklen_t *addrlenp) {
 	int fd, n, r;
 	struct sockaddr *sa;
 
-	if ( (sa = resolv_name(host, port, addrlenp)) == NULL)
+	if ( (sa = resolv_name(host, port, "tcp", addrlenp)) == NULL)
 		return (-1);
 
 	n = TCP_KEEPALIVE;
