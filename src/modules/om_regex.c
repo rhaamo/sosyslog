@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.8 2000/06/26 23:23:10 alejo Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.9 2000/06/27 01:22:09 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -87,7 +87,7 @@ om_regex_init(int argc, char ** argv, struct filed *f, char *prog,
 		return(-1);
 	}
 
-	if (! (c = (struct om_hdr_ctx *)
+	if (! (*c = (struct om_hdr_ctx *)
 			calloc(1, sizeof(struct om_regex_ctx))))
 		return (-1);
 
