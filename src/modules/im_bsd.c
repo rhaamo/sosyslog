@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_bsd.c,v 1.67 2000/11/01 18:18:03 alejo Exp $	*/
+/*	$CoreSDI: im_bsd.c,v 1.68 2000/11/06 23:11:28 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -86,7 +86,7 @@ im_bsd_getLog(struct i_module *im, struct im_msg *ret)
 	char *p, *q, *lp;
 	int i, c;
 
-	strncpy(ret->im_msg, _PATH_UNIX, ret->im_mlen - 3);
+	strncpy(ret->im_msg, _PATH_KLOG, ret->im_mlen - 3);
 	strncat(ret->im_msg, ": ", 2);
 	lp = ret->im_msg + strlen(ret->im_msg);
 
@@ -99,7 +99,7 @@ im_bsd_getLog(struct i_module *im, struct im_msg *ret)
 			ret->im_pri = DEFSPRI;
 			if (*p == '<') {
 				ret->im_pri = 0;
-				while (isdigit(*++p))
+				while (isdigit((int)*++p))
 					ret->im_pri = 10 * ret->im_pri +
 					    (*p - '0');
 				if (*p == '>')
