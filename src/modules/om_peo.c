@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.67 2001/03/14 21:50:55 alejo Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.68 2001/03/23 00:12:30 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -90,7 +90,8 @@ om_peo_write(struct filed *f, int flags, char *msg, void *ctx)
 	struct om_peo_ctx *c;
 	int	 fd, mfd, len, keylen, newkeylen;
 	u_char	 key[41], mkey[41];
-	char	 m[MAXBUF], newkey[41], time_buf[16];
+	unsigned char	 m[MAXBUF], newkey[41];
+	char	time_buf[16];
 
 	dprintf(MSYSLOG_INFORMATIVE, "om_peo_write: Entering\n");
 	
@@ -101,7 +102,7 @@ om_peo_write(struct filed *f, int flags, char *msg, void *ctx)
 
 	strftime(time_buf, sizeof(time_buf), "%b %d %H:%M:%S", &f->f_tm);
 	time_buf[15] = '\0';
-	len = snprintf(m, MAXBUF, "%s %s %s\n", time_buf, f->f_prevhost,
+	len = snprintf((char *) m, MAXBUF, "%s %s %s\n", time_buf, f->f_prevhost,
 	    msg ? msg : f->f_prevline) - 1;
 
 	dprintf(MSYSLOG_INFORMATIVE, "om_peo_write: len = %i, msg = %s\n ",

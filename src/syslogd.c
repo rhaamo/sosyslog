@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.187 2001/04/03 19:23:41 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.188 2001/04/04 16:55:15 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.187 2001/04/03 19:23:41 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.188 2001/04/04 16:55:15 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -73,6 +73,7 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.187 2001/04/03 19:23:41 alejo Exp
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 #if HAVE_SYS_WAIT_H
 # include <sys/wait.h>
 #endif
@@ -97,9 +98,8 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.187 2001/04/03 19:23:41 alejo Exp
 
 #include <sys/resource.h>
 #ifdef HAVE_SYSCTL_H
-#include <sys/sysctl.h>
+# include <sys/sysctl.h>
 #endif
-#include <sys/socket.h>
 #include <limits.h>
 #if defined(SIGALTSTACK_WITH_STACK_T) && defined(HAVE_SYS_CONTEXT_H)
 # include <sys/context.h>
@@ -155,7 +155,7 @@ static char rcsid[] = "$CoreSDI: syslogd.c,v 1.187 2001/04/03 19:23:41 alejo Exp
 #endif /* NAME_MAX */
 
 #ifndef socklen_t
-# define socklen_t int
+# define socklen_t unsigned int
 #endif
 
 /*

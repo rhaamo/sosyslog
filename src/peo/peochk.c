@@ -1,4 +1,4 @@
-/*	$CoreSDI: peochk.c,v 1.46 2001/03/14 21:50:56 alejo Exp $	*/
+/*	$CoreSDI: peochk.c,v 1.47 2001/03/14 22:13:21 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -203,14 +203,14 @@ check()
 	int   i;
 	int   input;
 	int   mfd;
-	char  key[41];
+	unsigned char  key[41];
 	int   keylen;
-	char  lastkey[21];
+	unsigned char  lastkey[21];
 	int   lastkeylen;
 	int   line;
-	char  mkey1[21];
+	unsigned char  mkey1[21];
 	int   mkey1len;
-	char  mkey2[21];
+	unsigned char  mkey2[21];
 	int   mkey2len;
 	char  msg[MAXLINE];
 	int   msglen;
@@ -281,8 +281,9 @@ check()
 	line = 1;
 	while( (msglen = readline(input, msg, MAXLINE)) > 0) {
 		if (macfile) {
-			if ( ((mkey1len = mac2(key, keylen, msg, msglen,
-			    mkey1)) < 0) || ((mkey2len = read(mfd, mkey2,
+			if ( ((mkey1len = mac2(key, keylen,
+			    (unsigned char *) msg, msglen, mkey1)) < 0) ||
+			    ((mkey2len = read(mfd, mkey2,
 			    mkey1len)) < 0) ) {
 				perror(macfile);
 				exit(-1);
@@ -297,8 +298,8 @@ check()
 			}
 			line++;
 		}
-		if ( (keylen = mac(method, key, keylen, msg, msglen, key))
-		    == -1) {
+		if ( (keylen = mac(method, key, keylen,
+		    (unsigned char *) msg, msglen, key)) == -1) {
 			perror("fatal");
 			exit(-1);
 		}
@@ -337,10 +338,10 @@ generate()
 {
 	int	 kfd;
 	int	 k0fd;
-	char	 key[20];
-	char	 keyasc[41];
+	unsigned char	 key[20];
+	unsigned char	 keyasc[41];
 	int	 keylen;
-	char	 randvalue[20];
+	unsigned char	 randvalue[20];
 
 	if (getrandom(randvalue, 20) < 0) {
 		release();

@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.68 2001/03/23 00:12:30 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.69 2001/04/03 21:37:12 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -84,7 +84,7 @@ struct om_mysql_ctx {
 	void *	(*mysql_init)(void *);
 	void *	(*mysql_real_connect)(void *, char *, char *, char *,
 	    char *, int, void *, int);
-	void *	(*mysql_query)(void *, char *);
+	int	(*mysql_query)(void *, char *);
 };
 
 int om_mysql_close(struct filed *, void *);
@@ -226,12 +226,14 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 		return (-1);
 	}
 
-	if ( !(ctx->mysql_ping = dlsym(ctx->lib, SYMBOL_PREFIX "mysql_ping"))
-	    || !(ctx->mysql_init = dlsym(ctx->lib, SYMBOL_PREFIX "mysql_init"))
-	    || !(ctx->mysql_real_connect = dlsym(ctx->lib, SYMBOL_PREFIX
+	if ( !(ctx->mysql_ping = (int(*)(void *)) dlsym(ctx->lib,
+	    SYMBOL_PREFIX "mysql_ping")) || !(ctx->mysql_init =
+	    (void * (*)(void*)) dlsym(ctx->lib, SYMBOL_PREFIX "mysql_init"))
+	    || !(ctx->mysql_real_connect = (void *(*)(void *, char *, char *,
+	    char *, char *, int, void *, int)) dlsym(ctx->lib, SYMBOL_PREFIX
 	    "mysql_real_connect"))
-	    || !(ctx->mysql_query = dlsym(ctx->lib, SYMBOL_PREFIX
-	    "mysql_query"))) {
+	    || !(ctx->mysql_query = (int (*)(void *, char *)) dlsym(ctx->lib,
+	    SYMBOL_PREFIX "mysql_query"))) {
 		dprintf(MSYSLOG_SERIOUS, "om_mysql_init: Error resolving"
 		    " api symbols, %s\n", dlerror());
 		free(ctx);  

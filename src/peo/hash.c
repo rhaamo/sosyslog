@@ -1,4 +1,4 @@
-/*	$CoreSDI: hash.c,v 1.41 2001/03/14 22:58:30 alejo Exp $	*/
+/*	$CoreSDI: hash.c,v 1.42 2001/03/14 23:35:22 alejo Exp $	*/
  
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -343,7 +343,7 @@ bin2asc(unsigned char *dst, const unsigned char *src, int srclen)
  *	Returns 0 on success and -1 on error
  */
 int
-getrandom(char *buffer, int bytes)
+getrandom(unsigned char *buffer, int bytes)
 {
 	int fd;
 

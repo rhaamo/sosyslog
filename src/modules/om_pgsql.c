@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_pgsql.c,v 1.39 2001/03/07 21:35:15 alejo Exp $	*/
+/*	$CoreSDI: om_pgsql.c,v 1.40 2001/03/23 00:12:30 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -89,7 +89,7 @@ typedef enum
 typedef enum
 {
 	PGRES_EMPTY_QUERY = 0,
-	PGRES_COMMAND_OK,
+	PGRES_COMMAND_OK
 /* all other enums are not needed */
 } ExecStatusType;
 
@@ -263,17 +263,24 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 		return (-1);
 	}
 
-	if ( !(ctx->PQstatus = dlsym(ctx->lib, SYMBOL_PREFIX "PQstatus"))   
-	    || !(ctx->PQresultStatus = dlsym(ctx->lib, SYMBOL_PREFIX
-	    "PQresultStatus"))   
-	    || !(ctx->PQreset = dlsym(ctx->lib, SYMBOL_PREFIX "PQreset"))   
-	    || !(ctx->PQexec = dlsym(ctx->lib, SYMBOL_PREFIX "PQexec"))   
-	    || !(ctx->PQresultErrorMessage = dlsym(ctx->lib, SYMBOL_PREFIX
+	if ( !(ctx->PQstatus = (int (*)(void *)) dlsym(ctx->lib,
+	    SYMBOL_PREFIX "PQstatus"))   
+	    || !(ctx->PQresultStatus = (int (*)(void *)) dlsym(ctx->lib,
+	    SYMBOL_PREFIX "PQresultStatus"))   
+	    || !(ctx->PQreset = (void (*)(void *)) dlsym(ctx->lib,
+	    SYMBOL_PREFIX "PQreset"))   
+	    || !(ctx->PQexec = (void * (*)(void *, char *)) dlsym(ctx->lib,
+	    SYMBOL_PREFIX "PQexec"))   
+	    || !(ctx->PQresultErrorMessage = (char * (*)(void *)) dlsym(ctx->lib,
+	    SYMBOL_PREFIX
 	    "PQresultErrorMessage"))   
-	    || !(ctx->PQclear = dlsym(ctx->lib, SYMBOL_PREFIX "PQclear"))   
-	    || !(ctx->PQsetdbLogin = dlsym(ctx->lib, SYMBOL_PREFIX
+	    || !(ctx->PQclear = (void (*)(void *)) dlsym(ctx->lib,
+	    SYMBOL_PREFIX "PQclear"))   
+	    || !(ctx->PQsetdbLogin = (void * (*)(char *, char *, void *,
+	    void *, char *, char *, char *)) dlsym(ctx->lib, SYMBOL_PREFIX
 	    "PQsetdbLogin"))   
-	    || !(ctx->PQfinish = dlsym(ctx->lib, SYMBOL_PREFIX "PQfinish"))) {
+	    || !(ctx->PQfinish = (void (*)(void *)) dlsym(ctx->lib,
+	    SYMBOL_PREFIX "PQfinish"))) {
 		dprintf(MSYSLOG_SERIOUS, "om_mysql_init: Error resolving"
 		    " api symbols, %s\n", dlerror());
 		free(ctx);
