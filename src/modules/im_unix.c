@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_unix.c,v 1.21 2000/05/29 20:41:39 fgsch Exp $	*/
+/*	$CoreSDI: im_unix.c,v 1.22 2000/05/29 20:43:58 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -72,7 +72,7 @@ im_unix_getLog(im, ret)
 
 	slen = sizeof(fromunix);
 	ret->im_len = recvfrom(im->im_fd, ret->im_msg, MAXLINE, 0,
-	    (struct sockaddr *)&fromunix, &slen);
+	    (struct sockaddr *)&fromunix, (socklen_t *)&slen);
 	if (ret->im_len > 0) {
 		ret->im_msg[ret->im_len] = '\0';
 		strncpy(ret->im_host, LocalHostName, sizeof(ret->im_host));
