@@ -1,4 +1,4 @@
-/*	$Id: syslogd.h,v 1.28 2000/04/25 23:00:00 alejo Exp $
+/*	$Id: syslogd.h,v 1.29 2000/04/26 01:59:56 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -44,8 +44,6 @@
 #define TTYMSGTIME	1		/* timeout passed to ttymsg */
 #define MAX_N_OMODULES	64		/* maximum types of out modules */
 #define MAX_N_IMODULES	64		/* maximum types of in  modules */
-#define INPUT_BSD	0x01		/* BSD  like input */
-#define INPUT_SYSV	0x02		/* SYSV like input */
 
 #include <paths.h>
 #include <sys/time.h>
@@ -169,8 +167,10 @@ int imodule_create(char *c, struct filed *, char *);
 
 #define IM_BSD		0
 #define IM_SYSV		1
-#define IM_UDP		2
-#define IM_TCP		3
+#define IM_UNIX		2
+#define IM_PIPE		3
+#define IM_UDP		4
+#define IM_TCP		5
 
 /* values for integrity facilities */
 #define I_NONE		0

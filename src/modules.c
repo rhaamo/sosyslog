@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.35 2000/04/26 01:37:07 alejo Exp $
+/*	$Id: modules.c,v 1.36 2000/04/26 01:59:55 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -59,6 +59,9 @@ int om_mysql_flush(struct filed*, struct om_header_ctx *);
 int im_bsd_init(struct i_module *);
 int im_bsd_getLog(struct i_module *, struct im_msg *);
 int im_bsd_close(struct i_module *);
+int im_unix_init(struct i_module *);
+int im_unix_getLog(struct i_module *, struct im_msg *);
+int im_unix_close(struct i_module *);
 
 /* assign module functions to generic pointer */
 int modules_init (I, inputs)
@@ -101,12 +104,17 @@ int modules_init (I, inputs)
 	IModules[IM_SYSV].im_getLog		= im_sysv_getLog;
 	IModules[IM_SYSV].im_close		= im_sysv_close;
 #endif
+	IModules[IM_UNIX].im_name		= "unix";
+	IModules[IM_UNIX].im_type		= IM_UNIX;
+	IModules[IM_UNIX].im_init		= im_unix_init;
+	IModules[IM_UNIX].im_getLog		= im_unix_getLog;
+	IModules[IM_UNIX].im_close		= im_unix_close;
 
 	*I = (struct i_module *) calloc(1, sizeof(struct i_module));
-	if (inputs & INPUT_BSD)
+	if (inputs & IM_BSD)
 		im_bsd_init(*I);
 #if 0
-	if (inputs & INPUT_SYSV)
+	if (inputs & IM_SYSV)
 		im_sysv_init(I);
 #endif
 

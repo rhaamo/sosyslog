@@ -73,11 +73,8 @@ extern char *funixn[];
 extern int *funix[];
 
 int
-im_udp_init(I, argc, argv, c)
+im_udp_init(I)
 	struct i_module *I;
-	int   argc;
-	char   *argv[];
-	struct im_header_ctx  **c;
 {
 	struct im_udp_ctx *ctx;
 	int i;
