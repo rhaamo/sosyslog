@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_regex.c,v 1.6 2000/06/07 21:27:38 claudio Exp $	*/
+/*	$CoreSDI: om_regex.c,v 1.7 2000/06/07 23:00:45 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -73,13 +73,8 @@ struct om_regex_ctx {
  *
  */
 int
-om_regex_init(argc, argv, f, prog, c)
-	int argc;		/* argumemt count */
-	char **argv;		/* argumemt array, like main() */
-	struct filed *f;	/* our filed structure */
-	char *prog;		/* program name doing this log */
-	struct om_hdr_ctx **c; /* our context */
-{
+om_regex_init(int argc, char ** argv, struct filed *f, char *prog,
+		struct om_hdr_ctx *c) {
 	struct om_regex_ctx *ctx;
 	int ch;
 
@@ -150,15 +145,11 @@ om_regex_init(argc, argv, f, prog, c)
 }
 
 int
-om_regex_doLog(f, flags, msg, context)
-	struct filed	*f;
-	int		 flags;
-	char		*msg;
-	struct om_hdr_ctx *context; /* our context */
-{
+om_regex_doLog(struct filed *f, int flags, char *msg,
+		struct om_hdr_ctx *context) {
 	struct om_regex_ctx *ctx;
-	int ret1, ret2, ret3;
 	char *host, *date, *time;
+	int ret;
 
 	ctx = (struct om_regex_ctx *) context;
 
@@ -167,42 +158,37 @@ om_regex_doLog(f, flags, msg, context)
 		return(-1);
 	}
 
-	if (ctx->filters & OM_FILTER_MESSAGE)	
-		if ((ret1 = regexec(ctx->exp, msg, 0, NULL, 0)) == 0)
-			goto match;
-
-	if (ctx->filters & OM_FILTER_HOST)	
-		if (regexec(ctx->exp, host, 0, NULL, 0) == 0)
-			goto match;
-
-	if (ctx->filters & OM_FILTER_DATE)	
-		if (regexec(ctx->exp, date, 0, NULL, 0) == 0)
-			goto match;
-
-	if (ctx->filters & OM_FILTER_TIME)	
-		if (regexec(ctx->exp, time, 0, NULL, 0) == 0)
-			goto match;
+	if (ctx->filters & OM_FILTER_INVERSE)
+		ret = !(((ctx->filters & OM_FILTER_MESSAGE) &&
+						!regexec(ctx->exp, msg, 0, NULL, 0))
+				|| ((ctx->filters & OM_FILTER_HOST) &&
+						!regexec(ctx->exp, host, 0, NULL, 0))
+				|| ((ctx->filters & OM_FILTER_DATE) &&
+						!regexec(ctx->exp, date, 0, NULL, 0))
+				|| ((ctx->filters & OM_FILTER_TIME) &&
+						!regexec(ctx->exp, time, 0, NULL, 0)));
+	} else {
+		ret = (((ctx->filters & OM_FILTER_MESSAGE) &&
+						!regexec(ctx->exp, msg, 0, NULL, 0))
+				|| ((ctx->filters & OM_FILTER_HOST) &&
+						!regexec(ctx->exp, host, 0, NULL, 0))
+				|| ((ctx->filters & OM_FILTER_DATE) &&
+						!regexec(ctx->exp, date, 0, NULL, 0))
+				|| ((ctx->filters & OM_FILTER_TIME) &&
+						!regexec(ctx->exp, time, 0, NULL, 0)));
+	}
 
 	/* return:
 			 1  match  -> successfull
 			 0  nomatch -> stop logging it
 	 */
-match:
-	if (ctx->filters & OM_FILTER_INVERSE)
 
-catched:
-	if (ctx->filters & OM_FILTER_INVERSE)
-		return(!ret1);
-	else
-		return(ret1);
+		return(ret);
 }
 
 
 int
-om_regex_close(f, ctx)
-	struct filed *f;
-	struct om_hdr_ctx *ctx;
-{
+om_regex_close(struct filed *f, struct om_hdr_ctx *ctx) {
 	struct om_regex_ctx *c;
 
 	c = (struct om_regex_ctx *) ctx;
@@ -214,10 +200,8 @@ om_regex_close(f, ctx)
 }
 
 int
-om_regex_flush(f, context)
-	struct filed *f;
-	struct om_hdr_ctx *context;
-{
+om_regex_flush(struct filed *f, struct om_hdr_ctx *context) {
 	return(1);
 
 }
+
