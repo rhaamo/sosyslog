@@ -75,11 +75,10 @@
  * Keyword for unsing modules instead of classic code
  */
 
-#define S_MODULE_KEYWORD "s_mod"
 #define MAX_MODULE_NAME_LEN 255
 
-/* standard module header variables in context */
-struct m_header {
+/* standard output module header variables in context */
+struct om_header {
 	short	flags;
 #define M_FLAG_INITIALIZED 0x1
 #define M_FLAG_ERROR 0x2
@@ -93,9 +92,9 @@ struct m_header {
  */
 
 struct o_module {
-	struct	o_module *m_next;
-	short	m_type;
-	struct m_header	*context;
+	struct	o_module *om_next;
+	short	om_type;
+	struct  om_header	*context;
 };
 
 /*
@@ -129,16 +128,16 @@ struct filed {
 };
 
 struct	Modules {
-	char	*m_name;
-	short	m_type;
-	int	(*m_doLog) (struct filed *, int, char *, struct m_header *);
-	int	(*m_init) (int, char **, struct filed *, char *, struct m_header **);
-	int	(*m_close) (struct filed *, struct m_header **);
-	int	(*m_flush) (struct filed *, struct m_header *);
+	char	*om_name;
+	short	om_type;
+	int	(*om_doLog) (struct filed *, int, char *, struct om_header *);
+	int	(*om_init) (int, char **, struct filed *, char *, struct om_header **);
+	int	(*om_close) (struct filed *, struct om_header **);
+	int	(*om_flush) (struct filed *, struct om_header *);
 } Modules[MAX_N_MODULES];
 
 int modules_init();
-int modules_create(char *, struct filed *, char *);
+int omodule_create(char *, struct filed *, char *);
 
 #define	MAXREPEAT ((sizeof(repeatinterval) / sizeof(repeatinterval[0])) - 1)
 #define	REPEATTIME(f)	((f)->f_time + repeatinterval[(f)->f_repeatcount])
@@ -155,7 +154,7 @@ int modules_create(char *, struct filed *, char *);
 #define F_USERS		5		/* list of users */
 #define F_WALL		6		/* everyone logged on */
 
-/* values for m_type */
+/* values for om_type */
 #define	M_CLASSIC	0
 #define	M_MYSQL		1
 #define	M_PEO		2

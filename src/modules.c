@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.18 2000/04/04 23:35:23 alejo Exp $
+/*	$Id: modules.c,v 1.19 2000/04/07 19:53:48 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -59,20 +59,20 @@ int modules_init ()
 
 	/* classic module */
 	/* classic module */
-	Modules[M_CLASSIC].m_name 		= "classic";
-	Modules[M_CLASSIC].m_type 		= M_CLASSIC;
-	Modules[M_CLASSIC].m_doLog 	= m_classic_doLog;
-	Modules[M_CLASSIC].m_init 		= m_classic_init;
-	Modules[M_CLASSIC].m_close 		= m_classic_close;
-	Modules[M_CLASSIC].m_flush 		= m_classic_flush;
+	Modules[M_CLASSIC].om_name 		= "classic";
+	Modules[M_CLASSIC].om_type 		= M_CLASSIC;
+	Modules[M_CLASSIC].om_doLog 		= om_classic_doLog;
+	Modules[M_CLASSIC].om_init 		= om_classic_init;
+	Modules[M_CLASSIC].om_close 		= om_classic_close;
+	Modules[M_CLASSIC].om_flush 		= om_classic_flush;
 
 	/* mysql module */
-	Modules[M_MYSQL].m_name 		= "mysql";
-	Modules[M_MYSQL].m_type 		= M_MYSQL;
-	Modules[M_MYSQL].m_doLog	 	= m_mysql_doLog;
-	Modules[M_MYSQL].m_init 		= m_mysql_init;
-	Modules[M_MYSQL].m_close 		= m_mysql_close;
-	Modules[M_MYSQL].m_flush 		= m_mysql_flush;
+	Modules[M_MYSQL].om_name 		= "mysql";
+	Modules[M_MYSQL].om_type 		= M_MYSQL;
+	Modules[M_MYSQL].om_doLog	 	= om_mysql_doLog;
+	Modules[M_MYSQL].om_init 		= om_mysql_init;
+	Modules[M_MYSQL].om_close 		= om_mysql_close;
+	Modules[M_MYSQL].om_flush 		= om_mysql_flush;
 
 }
 
@@ -85,7 +85,7 @@ int modules_close(f)
 }
 
 /* create all necesary modules for a specific filed */
-int modules_create(c, f, prog)
+int omodule_create(c, f, prog)
 	char *c;
 	struct filed *f;
 	char *prog;
@@ -106,9 +106,9 @@ int modules_create(c, f, prog)
 			f->f_mod = (struct o_module *) calloc(1, sizeof *f->f_mod);
 			m = f->f_mod;
 		} else {
-			for (m = f->f_mod; m->m_next; m = m->m_next);
-			m->m_next = (struct o_module *) calloc(1, sizeof *f->f_mod);
-			m = m->m_next;
+			for (m = f->f_mod; m->om_next; m = m->om_next);
+			m->om_next = (struct o_module *) calloc(1, sizeof *f->f_mod);
+			m = m->om_next;
 		}
 
 		switch (*p) {
@@ -123,9 +123,9 @@ int modules_create(c, f, prog)
 
 				/* find for matching module */
 				for (i = 0; i < MAX_N_MODULES; i++) {
-					if (Modules[i].m_name == NULL)
+					if (Modules[i].om_name == NULL)
 						continue;
-					if (strncmp(argv[0], Modules[i].m_name,
+					if (strncmp(argv[0], Modules[i].om_name,
 							MAX_MODULE_NAME_LEN) == 0)
 						break;
 				}
@@ -133,7 +133,7 @@ int modules_create(c, f, prog)
 				if (i == MAX_N_MODULES)
 					return(-1);
 
-				m->m_type = Modules[i].m_type;
+				m->om_type = Modules[i].om_type;
 
 				/* build argv and argc, modifies input p */
 				while (isspace(*p)) p++;
@@ -163,10 +163,10 @@ int modules_create(c, f, prog)
 				argv[argc++]="auto_classic";
 				argv[argc++]=p;
 				p+=strlen(p);
-				m->m_type = M_CLASSIC;
+				m->om_type = M_CLASSIC;
 				break;
 		}
-		(Modules[m->m_type].m_init)(argc, argv, f, prog, (void *) &(m->context));
+		(Modules[m->om_type].om_init)(argc, argv, f, prog, (void *) &(m->context));
 	}
 	free(line);
 }
@@ -176,10 +176,10 @@ char *getmodulename(type)
 {
 	int i;
 
-	for(i = 0; i < MAX_N_MODULES && Modules[i].m_type != type; i++);
+	for(i = 0; i < MAX_N_MODULES && Modules[i].om_type != type; i++);
 	if (i == MAX_N_MODULES)
 		return (NULL);
-	return Modules[i].m_name;
+	return Modules[i].om_name;
 }
 
 int getmoduleid(mname)
@@ -187,10 +187,10 @@ int getmoduleid(mname)
 {
 	int i;
 
-	for(i = 0; i < MAX_N_MODULES && Modules[i].m_name != NULL
-			&& !strcmp(Modules[i].m_name, mname); i++);
+	for(i = 0; i < MAX_N_MODULES && Modules[i].om_name != NULL
+			&& !strcmp(Modules[i].om_name, mname); i++);
 	if (i == MAX_N_MODULES)
 		return (-1);
-	return Modules[i].m_type;
+	return Modules[i].om_type;
 }
 

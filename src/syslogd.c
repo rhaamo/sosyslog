@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.11 2000/04/04 23:35:24 alejo Exp $
+/*	$Id: syslogd.c,v 1.12 2000/04/07 19:53:49 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -190,7 +190,7 @@ main(argc, argv)
 	consfile.f_type = F_CONSOLE;
         /* this should get into Files and be way nicer */
         consfile.f_mod = (struct o_module *) calloc(1, sizeof(struct o_module));
-        consfile.f_mod->m_type = M_CLASSIC;
+        consfile.f_mod->om_type = M_CLASSIC;
 
 	(void)strcpy(consfile.f_un.f_fname, ctty);
 	(void)gethostname(LocalHostName, sizeof(LocalHostName));
@@ -576,18 +576,18 @@ doLog(f, flags, msg)
 {
 	struct	o_module *m;
 
-        for (m = f->f_mod; m; m = m->m_next) {
-		if(Modules[m->m_type].m_doLog == NULL) {
+        for (m = f->f_mod; m; m = m->om_next) {
+		if(Modules[m->om_type].om_doLog == NULL) {
 			dprintf("Unsupported module type [%i] "
-			        "for message [%s]\n", m->m_type, msg);
+			        "for message [%s]\n", m->om_type, msg);
 			continue;
 		};
 
 		/* call this module doLog */
-		if((*(Modules[m->m_type].m_doLog))(f,flags,msg,m->context) != 0) {
+		if((*(Modules[m->om_type].om_doLog))(f,flags,msg,m->context) != 0) {
 			dprintf("doLog error with module type [%i] "
 			        "for message [%s]\n",
-				m->m_type, msg);
+				m->om_type, msg);
 		}
 	}
 }
@@ -736,15 +736,15 @@ init(signo)
 		if (f->f_prevcount)
 			doLog(f, 0, (char *)NULL);
 
-		for (m = f->f_mod; m; m = m->m_next) {
+		for (m = f->f_mod; m; m = m->om_next) {
 			/* flush any pending output */
 			if (f->f_prevcount &&
-			    Modules[m->m_type].m_flush != NULL) {
-				(*Modules[m->m_type].m_flush) (f,m->context);
+			    Modules[m->om_type].om_flush != NULL) {
+				(*Modules[m->om_type].om_flush) (f,m->context);
 			}
 
-			if (Modules[m->m_type].m_close != NULL) {
-				(*Modules[m->m_type].m_close) (f,&(m->context));
+			if (Modules[m->om_type].om_close != NULL) {
+				(*Modules[m->om_type].om_close) (f,&(m->context));
 			}
 		}
 		next = f->f_next;
@@ -950,7 +950,7 @@ cfline(line, f, prog)
 	while (*p == '\t')
 		p++;
 
-	if (modules_create(p, f, NULL) == -1) {
+	if (omodule_create(p, f, NULL) == -1) {
 		dprintf("Error initializing modules!\n");
 	}
 }

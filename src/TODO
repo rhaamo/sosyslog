@@ -17,7 +17,7 @@
 20-Mar-2000
 
 1- finish modularization and classic module
-2- change initialization, write modules m_init()
+2- change initialization, write modules om_init()
 3- create 'program' module
 4- redo parsing of config using isspace
 5- change static linking to some configurable dynamic module handling
@@ -33,7 +33,7 @@
 
 FOR FUTURE WORKING
 
-For handling errors logging in a particular module, create a m_onerror
+For handling errors logging in a particular module, create a om_onerror
 function to do proper reinit or whatever (and after that the module should
 get in the exactly same state as before the error).
 

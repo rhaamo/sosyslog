@@ -30,15 +30,15 @@ extern int	repeatinterval[];
  * All module functions
  */
 
-int m_classic_doLog(struct filed *, int , char *, struct m_header *);
-int m_classic_init(int, char **, struct filed *, char *, struct m_header **);
-int m_classic_close(struct filed*, struct m_header **);
-int m_classic_flush(struct filed*, struct m_header *);
+int om_classic_doLog(struct filed *, int , char *, struct om_header *);
+int om_classic_init(int, char **, struct filed *, char *, struct om_header **);
+int om_classic_close(struct filed*, struct om_header **);
+int om_classic_flush(struct filed*, struct om_header *);
 
-int m_mysql_doLog(struct filed *, int , char *, struct m_header *);
-int m_mysql_init(int, char **, struct filed *, char *, struct m_header **);
-int m_mysql_close(struct filed*, struct m_header **);
-int m_mysql_flush(struct filed*, struct m_header *);
+int om_mysql_doLog(struct filed *, int , char *, struct om_header *);
+int om_mysql_init(int, char **, struct filed *, char *, struct om_header **);
+int om_mysql_close(struct filed*, struct om_header **);
+int om_mysql_flush(struct filed*, struct om_header *);
 
 
 #endif
