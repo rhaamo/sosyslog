@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.41 2000/08/30 00:57:06 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.42 2000/08/30 19:15:26 alejo Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -163,18 +163,7 @@ install:
 	@if [ "$(DMYSQL)" -a -f "$(DMYSQL)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DMYSQL) $(INSTALL_LIBDIR)/$(DMYSQL:.$(MSYSLOG_VERSION)=); fi
 	@if [ "$(DPGSQL)" -a -f "$(DPGSQL)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DPGSQL) $(INSTALL LIBDIR)/$(DPGSQL:.$(MSYSLOG_VERSION)=); fi
 	@if [ "$(DREGEX)" -a -f "$(DREGEX)" ]; then ln -fs $(INSTALL_LIBDIR)/$(DREGEX) $(INSTALL_LIBDIR)/$(DREGEX:.$(MSYSLOG_VERSION)=); fi
-	if [ ! -d $(MSYSLOG_BASEDIR) ] ; \
-	then \
-		mkdir $(MSYSLOG_BASEDIR)
-		chmod 755 $(MSYSLOG_BASEDIR)
-	fi 
-	if [ ! -d $(INSTALL_LIBDIR) ] ; \
-	then \
-		mkdir $(INSTALL_LIBDIR)
-		chmod 755 $(INSTALL_LIBDIR)
-	fi 
-	if [ -f libmsyslog_*.so.* ] ; \
-	then \
-		$(INSTALL) libmsyslog_*.so.* $(INSTALL_LIBDIR) ; \
-	fi 
+	if [ ! -d "$(MSYSLOG_BASEDIR)" ]; then mkdir "$(MSYSLOG_BASEDIR)" && chmod 755 "$(MSYSLOG_BASEDIR)" ; fi 
+	if [ ! -d "$(INSTALL_LIBDIR)" ]; then mkdir "$(INSTALL_LIBDIR)" && chmod 755 "$(INSTALL_LIBDIR)" ; fi 
+	if [ -f libmsyslog_*.so.* ]; then $(INSTALL) libmsyslog_*.so.* "$(INSTALL_LIBDIR)" ; fi 
 
