@@ -143,3 +143,4 @@
 #undef NEEDS_DLOPEN_NULL
 
 #undef _SGIAPI
+#undef INET6
