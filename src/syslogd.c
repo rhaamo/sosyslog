@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.204 2001/08/01 05:52:24 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.205 2001/09/19 00:49:19 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.204 2001/08/01 05:52:24 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.205 2001/09/19 00:49:19 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -178,7 +178,6 @@ char    *ctty;
 char     LocalHostName[SIZEOF_MAXHOSTNAMELEN];  /* our hostname */
 char    *LocalDomain = NULL;			/* our domain */
 int      finet = -1;				/* Internet datagram socket */
-int      LogPort = -1;				/* UDP port */
 int      Debug = 0;				/* debug flag */
 int	 DaemonFlags = 0;
 

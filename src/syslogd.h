@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.99 2001/03/30 21:12:36 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.100 2001/04/04 16:55:16 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -122,7 +122,6 @@ struct filed {
 
 extern char	LocalHostName[SIZEOF_MAXHOSTNAMELEN];  /* our hostname */
 extern int	finet;			/* Internet datagram socket */
-extern int	LogPort;		/* port number for INET connections */
 extern int	Debug;			/* debug flag */
 extern int	DaemonFlags;		/* running daemon flags */
 #define SYSLOGD_LOCKED_PIDFILE  0x01    /* pidfile is locked */
