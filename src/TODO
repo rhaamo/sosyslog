@@ -51,3 +51,13 @@ Check for buffer overflows, as we now may get things from the outside world.
 1- We need to change the decode function on syslogd.c and use the strcasecmp()
 function
 
+23-May-2000
+
+1- Modules initialization should be dinamic
+2- Kill filed structure
+3- Allow not only one module type on each configuration line
+4- Optimize each input/output module
+5- Create a good Makefile
+6- Complete and fix man pages
+
+
