@@ -7,6 +7,12 @@ test -z "$LDFLAGS" && LDFLAGS= AC_SUBST(LDFLAGS)
 AC_PROG_CC
 AC_PROG_INSTALL
 
+if test `uname` = "OpenBSD"
+then
+	AC_DEFINE(HAVE_OPENBSD)
+	AC_MSG_RESULT(OpenBSD system detected)
+fi
+
 AC_CHECK_HEADERS(paths.h)
 
 AC_MSG_CHECKING(wheter optreset is needed)
@@ -15,15 +21,6 @@ AC_TRY_LINK([#include <unistd.h>],
 	[AC_DEFINE(HAVE_OPTRESET) AC_MSG_RESULT(yes)],
 	AC_MSG_RESULT(no))
 
-AC_CHECK_FUNC(MD5Init, AC_DEFINE(HAVE_MD5),
-	OMPEO_SRC="$OMPEO_SRC peo/md5c.c")
-
-AC_CHECK_FUNC(SHA1Init, AC_DEFINE(HAVE_SHA1),
-	OMPEO_SRC="$OMPEO_SRC peo/sha1.c")
-
-AC_CHECK_FUNC(RMD160Init, AC_DEFINE(HAVE_RMD160),
-	OMPEO_SRC="$OMPEO_SRC peo/rmd160.c")
-
 for dir in "/var/run" "/etc"
 do
 	if test -d $dir
@@ -31,53 +28,214 @@ do
 		break
 	fi
 done
-
 AC_MSG_RESULT(root-mode pid file will go in $dir)
 AC_DEFINE_UNQUOTED(PID_DIR, "$dir")
 
-AC_DEFINE(STATIC_MODULES, "IMUNIX IMTCP IMUDP")
-
-AC_ARG_WITH(mysql,
-	[  --with-mysql=DIR        enable MySQL support using libraries in DIR],
-	[with_mysql=$withval],
-	[with_mysql=no])
-test "$with_mysql" = "yes" && AC_DEFINE(ENABLE_MYSQL)
-
-if test "$with_mysql" = "yes"
-then
-	for ac_dir in \
-	/usr/local/mysql \
-	/usr/local/lib/mysql
-	do
-		if test -d "$ac_dir"
-		then
-			with_mysql=$ac_dir
-		fi
-	done
-fi
-
-if test -n "$with_mysql" -a "$with_mysql" != "no"
-then
-	if test "$with_mysql" = "yes"
+for INSTALL_LIBDIR in "/lib" "/usr/lib" "/usr/local/lib"
+do
+	if test -d $INSTALL_LIBDIR
 	then
-		with_mysql="/usr/local/mysql"	
+		break
 	fi
-	echo "Enabling MySQL support in $with_mysql"
-	OMMYSQL_SRC="$OMMYSQL_SRC \$(MYSQL_SRCS)"
-	CFLAGS="$CFLAGS -I$with_mysql/include/mysql"
-	LDFLAGS="$LDFLAGS -L$with_mysql/lib/mysql"
-	OMMYSQL_LIBS="$OMMYSQL_LIBS -lmysqlclient"
-	AC_DEFINE(ENABLE_MYSQL)
-else
-	echo "Disabling MySQL support..."
-fi
+done
+AC_MSG_RESULT(dynamic modules will be installed on $INSTALL_LIBDIR)
+AC_SUBST(INSTALL_LIBDIR)
 
-if test `uname` = "Linux"
+for INSTALL_DIR in "/sbin" "/usr/sbin" "/usr/local/sbin" "bin" "/usr/bin" "/usr/local/bin"
+do
+	if test -d $INSTALL_DIR
+	then
+		break
+	fi
+done
+AC_MSG_RESULT(syslogd and tools will be installed on $INSTALL_DIR)
+AC_SUBST(INSTALL_DIR)
+
+#AC_ARG_WITH(mysql,
+#	[  --with-mysql=DIR        enable MySQL support using libraries in DIR],
+#	[with_mysql=$withval],
+#	[with_mysql=no])
+#test "$with_mysql" = "yes" && AC_DEFINE(ENABLE_MYSQL)
+#
+#if test "$with_mysql" = "yes"
+#then
+#	for ac_dir in \
+#	/usr/local/mysql \
+#	/usr/local/lib/mysql
+#	do
+#		if test -d "$ac_dir"
+#		then
+#			with_mysql=$ac_dir
+#		fi
+#	done
+#fi
+#
+#if test -n "$with_mysql" -a "$with_mysql" != "no"
+#then
+#	if test "$with_mysql" = "yes"
+#	then
+#		with_mysql="/usr/local/mysql"	
+#	fi
+#	echo "Enabling MySQL support in $with_mysql"
+#	OMMYSQL_SRC="$OMMYSQL_SRC \$(MYSQL_SRCS)"
+#	CFLAGS="$CFLAGS -I$with_mysql/include/mysql"
+#	LDFLAGS="$LDFLAGS -L$with_mysql/lib/mysql"
+#	OMMYSQL_LIBS="$OMMYSQL_LIBS -lmysqlclient"
+#	AC_DEFINE(ENABLE_MYSQL)
+#else
+#	echo "Disabling MySQL support..."
+#fi
+
+VERSION=`grep VESION src/syslogd.h | sed '/#define VERSION/s///'`
+
+AC_CHECK_FUNC(MD5Init, AC_DEFINE(HAVE_MD5),
+	HASH_EXTRA="$HASH_EXTRA md5c.c")
+AC_CHECK_FUNC(SHA1Init, AC_DEFINE(HAVE_SHA1),
+	HASH_EXTRA="$HASH_EXTRA sha1.c")
+AC_CHECK_FUNC(RMD160Init, AC_DEFINE(HAVE_RMD160),
+	HASH_EXTRA="$HASH_EXTRA rmd160.c")
+AC_SUBST(HASH_EXTRA)
+
+unix=""
+udp=""
+bsd=""
+linux=""
+classic=""
+peo=""
+regex=""
+mysql=""
+pgsql=""
+SSRCS=""
+DSRCS=""
+eval `./modules_conf.sh < modules.conf`
+if test "$unix"
 then
-	echo "Enabling Linux input module..."
-	STATIC_MODULES="$STATIC_MODULES linux"
+	SRC="im_unix.c"
+	if test "$unix" = "static"
+	then
+		SSRCS="$SSRCS $SRC"
+	else
+		DUNIX_SRC="$DSRCS $SRC"
+		DUNIX="libim_unix.so"
+	fi
 fi
 
-AC_SUBST(STATIC_MODULES)
+if test "$udp"
+then
+	SRC="im_udp.c"
+	if test "$udp" = "static"
+	then
+		SSRCS="$SSRCS $SRC"
+	else
+		DUDP_SRC="$DSRCS $SRC"
+		DUDP="libim_udp.so"
+	fi
+fi
 
-AC_OUTPUT([Makefile src/Makefile])
+if test "$bsd"
+then
+	SRC="im_bsd.c"
+	if test "$bsd" = "static"
+	then
+		SSRCS="$SSRCS $SRC"
+	else
+		DBSD_SRC="$DSRCS $SRC"
+		DBSD="libim_bsd.so"
+	fi
+fi
+
+if test "$linux"
+then
+	SRC="im_linux.c"
+	if test "$linux" = "static"
+	then
+		SSRCS="$SSRCS $SRC"
+	else
+		DLINUX_SRC="$DSRCS $SRC"
+		DLINUX="libim_linux.so"
+	fi
+fi
+
+if test "$classic"
+then
+	SRC="om_classic.c"
+	if test "$classic" = "static"
+	then
+		SSRCS="$SSRCS $SRC"
+	else
+		DCLASSIC_SRC="$DSRCS $SRC"
+		DCLASSIC="libom_classic.so$VERSION"
+	fi
+fi
+
+if test "$peo"
+then
+	SRC="om_peo.c"
+	if test "$peo" = "static"
+	then
+		SSRCS="$SSRCS $SRC"
+	else
+		DPEO_SRC="$DSRCS $SRC"
+		DPEO="libom_peo.so"
+	fi
+fi
+
+if test "$mysql"
+then
+	SRC="om_mysql.c sql_misc.c"
+	if test "$mysql" = "static"
+	then
+		SSRCS="$SSRCS $SRC"
+	else
+		DMYSQL_SRC="$DSRCS $SRC"
+		DMYSQL="libom_mysql.so"
+	fi
+fi
+
+if test "$pgsql"
+then
+	SRC="om_pgsql.c sql_misc.c"
+	if test "$pgsql" = "static"
+	then
+		SSRCS="$SSRCS $SRC"
+	else
+		DPGSQL_SRC="$DSRCS $SRC"
+		DPGSQL="libom_pgsql.so"
+	fi
+fi
+
+if test "$regex"
+then
+	SRC="om_regex.c"
+	if test "$regex" = "static"
+	then
+		SSRCS="$SSRCS $SRC"
+	else
+		DREGEX_SRC="$SRC"
+		DREGEX="libom_regex.so$VERSION"
+	fi
+fi
+
+LIBS="$LIBS -ldl"
+AC_SUBST(LIBS)
+AC_SUBST(SSRCS)
+AC_SUBST(DUNIX)
+AC_SUBST(DUDP)
+AC_SUBST(DBSD)
+AC_SUBST(DLINUX)
+AC_SUBST(DCLASSIC)
+AC_SUBST(DPEO)
+AC_SUBST(DMYSQL)
+AC_SUBST(DPGSQL)
+AC_SUBST(DREGEX)
+AC_SUBST(DUNIX_SRC)
+AC_SUBST(DUDP_SRC)
+AC_SUBST(DBSD_SRC)
+AC_SUBST(DLINUX_SRC)
+AC_SUBST(DCLASSIC_SRC)
+AC_SUBST(DPEO_SRC)
+AC_SUBST(DMYSQL_SRC)
+AC_SUBST(DPGSQL_SRC)
+AC_SUBST(DREGEX_SRC)
+
+AC_OUTPUT([Makefile src/Makefile src/modules/Makefile src/peo/Makefile])

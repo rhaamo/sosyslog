@@ -1,4 +1,4 @@
-# $CoreSDI: Makefile.in,v 1.16 2000/06/23 23:48:45 alejo Exp $
+# $CoreSDI: Makefile.in,v 1.17 2000/06/26 18:38:32 claudio Exp $
 #
 # Copyright (c) 2000, Core SDI S.A., Argentina
 # All rights reserved
@@ -39,7 +39,7 @@ PROG=		syslogd
 SRCS=		modules.c syslogd.c ttymsg.c static_modules.c
 OBJS=		$(SRCS:.c=.o)
 SSRCS=		@SSRCS@
-SOBJS=		$(modules/SSRCS:.c=.o)
+SOBJS=		$(SSRCS:.c=.o)
 
 all: $(PROG)
 
@@ -49,7 +49,7 @@ all: $(PROG)
 modules.o: config.h
 
 $(PROG): $(OBJS) $(SOBJS) DYNAMIC_LIBS
-	$(CC) -o $@ $(OBJS) $(SOBJS) $(LDFLAGS) $(LIBS)
+	$(CC) -o $@ $(OBJS) $(addprefix modules/, $(SOBJS)) $(LDFLAGS) $(LIBS)
 
 $(SOBJS) DYNAMIC_LIBS:
 	@cd modules && make && cd ..
