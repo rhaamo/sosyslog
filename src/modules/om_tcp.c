@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_tcp.c,v 1.20 2001/09/19 09:45:04 alejo Exp $	*/
+/*	$CoreSDI: om_tcp.c,v 1.21 2001/09/19 11:46:13 alejo Exp $	*/
 /*
      Copyright (c) 2001, Core SDI S.A., Argentina
      All rights reserved
@@ -107,7 +107,7 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	dprintf(MSYSLOG_INFORMATIVE, "om_tcp init: Entering\n");
 
 	if ((*ctx = (void *) calloc(1, sizeof(struct om_tcp_ctx))) == NULL) {
-		dprintf(MSYSLOG_INFORMATIVE, "om_tcp_init: couldn't allocate"
+		dprintf(MSYSLOG_CRITICAL, "om_tcp_init: couldn't allocate"
 		    " context\n");
 		return (-1);
 	}
