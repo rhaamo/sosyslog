@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.122 2000/09/04 23:52:33 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.123 2000/09/13 19:37:45 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.122 2000/09/04 23:52:33 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.123 2000/09/13 19:37:45 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -476,8 +476,7 @@ main(int argc, char **argv) {
 		       				" %s, for fd %d\n", im->im_name, im->im_fd);
 				}
 
-				/* log it if normal (1), (2) already logged */
-				if (i == 1) {
+				if (i > -1) {
 					printline(log.im_host, log.im_msg, im->im_flags);
 				}
 			}
