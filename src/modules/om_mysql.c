@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_mysql.c,v 1.48 2000/11/01 18:18:03 alejo Exp $	*/
+/*	$CoreSDI: om_mysql.c,v 1.49 2000/11/01 18:54:06 alejo Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -202,19 +202,19 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c)
 				*p = '\0';
 				ctx->port = atoi(++p);
 			}
-			ctx->host = optarg;
+			ctx->host = strdup(optarg);
 			break;
 		case 'u':
-			ctx->user = optarg;
+			ctx->user = strdup(optarg);
 			break;
 		case 'p':
-			ctx->passwd = optarg;
+			ctx->passwd = strdup(optarg);
 			break;
 		case 'd':
-			ctx->db = optarg;
+			ctx->db = strdup(optarg);
 			break;
 		case 't':
-			ctx->table = optarg;
+			ctx->table = strdup(optarg);
 			break;
 		default:
 			goto om_mysql_init_bad;
