@@ -161,6 +161,7 @@ m_mysql_init(argc, argv, f, prog, c)
 			prog == NULL || c == NULL)
 		return (-1);
 
+	user = NULL; passwd = NULL; db = NULL; port = 0;
 	client_flag = 0; createTable = 0;
 
 	/* parse line */
