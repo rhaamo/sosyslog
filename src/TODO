@@ -1,7 +1,11 @@
-/*	$CoreSDI: TODO,v 1.80 2001/04/24 11:59:55 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.81 2001/04/24 12:06:57 alejo Exp $	*/
 
 Things to do:
 
+- finish log structure stuff, including some queue handling
+	- after that, improve om_regex, and join reduntant code.
+	- have in mind new standards
+- Move buffer of lost messages out of modules, so all om can use it.
 - Use one function per module, with action as a parameter.
 - Check "" errors on solaris / support spaces intead the tabs on configfile
 - Change strcpy and strncpy to strlcpy (same w/ strlcat)
@@ -24,7 +28,6 @@ get in the exactly same state as before the error).
 
 Check for buffer overflows, as we now may get things from the outside world.
 
-- finish log structure stuff, including some queue handling
 - divide classic in om_file, om_udp, om_console, om_wall, om_user.
 - We need to change the decode function on syslogd.c and use the strcasecmp()
   function
