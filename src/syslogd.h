@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.73 2000/09/14 19:27:22 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.74 2000/09/15 21:05:22 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -166,7 +166,6 @@ void logerror(char *);
 void logmsg(int, char *, char *, int);
 void die(int);
 char *ttymsg(struct iovec *, int , char *, int);
-void wallmsg (struct filed *, struct iovec *);
 
 /* standard output module header variables in context */
 struct om_hdr_ctx {

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.134 2000/09/26 00:19:18 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.135 2000/09/27 00:38:25 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Core-SDI) 7/7/00";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.134 2000/09/26 00:19:18 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.135 2000/09/27 00:38:25 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -1104,65 +1104,3 @@ decode(const char *name, CODE *codetab) {
 
 	return (-1);
 }
-
-/*
- *  WALLMSG -- Write a message to the world at large
- *
- *	Write the specified message to either the entire
- *	world, or a list of approved users.
- */
-void
-wallmsg( struct filed *f, struct iovec *iov) {
-	static int reenter;			/* avoid calling ourselves */
-	FILE *uf;
-	struct utmp ut;
-	int i;
-	char *p;
-	char line[sizeof(ut.ut_line) + 1];
-
-	if (reenter++)
-		return;
-	if ( (uf = fopen(_PATH_UTMP, "r")) == NULL) {
-		logerror(_PATH_UTMP);
-		reenter = 0;
-		return;
-	}
-	/* NOSTRICT */
-	while (fread(&ut, sizeof(ut), 1, uf) == 1) {
-
-#ifndef HAVE_LINUX
-		if (ut.ut_name[0] == '\0')
-#else
-		if ((ut.ut_type != USER_PROCESS && ut.ut_type != LOGIN_PROCESS) ||
-		    ut.ut_line[0] == ':' /* linux logs users that are not logged in (?!) */)
-#endif
-			continue;
-
-		strncpy(line, ut.ut_line, sizeof(ut.ut_line));
-		line[sizeof(ut.ut_line)] = '\0';
-		if (f->f_type == F_WALL) {
-			if ((p = ttymsg(iov, 6, line, TTYMSGTIME)) != NULL) {
-				errno = 0;	/* already in msg */
-				logerror(p);
-			}
-			continue;
-		}
-		/* should we send the message to this user? */
-		for (i = 0; i < MAXUNAMES; i++) {
-			if (!f->f_un.f_uname[i][0])
-				break;
-			if (!strncmp(f->f_un.f_uname[i], ut.ut_name,
-			    UT_NAMESIZE)) {
-				if ((p = ttymsg(iov, 6, line, TTYMSGTIME))
-								!= NULL) {
-					errno = 0;	/* already in msg */
-					logerror(p);
-				}
-				break;
-			}
-		}
-	}
-	(void)fclose(uf);
-	reenter = 0;
-}
-

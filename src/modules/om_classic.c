@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.46 2000/09/15 21:06:01 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.47 2000/09/20 19:56:23 fgsch Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -59,6 +59,7 @@
 #include "../syslogd.h"
 #include "../modules.h"
 
+void wallmsg( struct filed *, struct iovec *);
 
 int
 om_classic_doLog(struct filed *f, int flags, char *msg,
@@ -182,7 +183,6 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 			wallmsg(f, iov);
 			break;
 	}
-	f->f_prevcount = 0;
 	return(1);
 }
 
@@ -316,5 +316,67 @@ om_classic_flush(struct filed *f, struct om_hdr_ctx *context) {
 
 	return(1);
 
+}
+
+
+/*
+ *  WALLMSG -- Write a message to the world at large
+ *
+ *	Write the specified message to either the entire
+ *	world, or a list of approved users.
+ */
+void
+wallmsg( struct filed *f, struct iovec *iov) {
+	static int reenter;			/* avoid calling ourselves */
+	FILE *uf;
+	struct utmp ut;
+	int i;
+	char *p;
+	char line[sizeof(ut.ut_line) + 1];
+
+	if (reenter++)
+		return;
+	if ( (uf = fopen(_PATH_UTMP, "r")) == NULL) {
+		logerror(_PATH_UTMP);
+		reenter = 0;
+		return;
+	}
+	/* NOSTRICT */
+	while (fread(&ut, sizeof(ut), 1, uf) == 1) {
+
+#ifndef HAVE_LINUX
+		if (ut.ut_name[0] == '\0')
+#else
+		if ((ut.ut_type != USER_PROCESS && ut.ut_type != LOGIN_PROCESS) ||
+		    ut.ut_line[0] == ':' /* linux logs users that are not logged in (?!) */)
+#endif
+			continue;
+
+		strncpy(line, ut.ut_line, sizeof(ut.ut_line));
+		line[sizeof(ut.ut_line)] = '\0';
+		if (f->f_type == F_WALL) {
+			if ((p = ttymsg(iov, 6, line, TTYMSGTIME)) != NULL) {
+				errno = 0;	/* already in msg */
+				logerror(p);
+			}
+			continue;
+		}
+		/* should we send the message to this user? */
+		for (i = 0; i < MAXUNAMES; i++) {
+			if (!f->f_un.f_uname[i][0])
+				break;
+			if (!strncmp(f->f_un.f_uname[i], ut.ut_name,
+			    UT_NAMESIZE)) {
+				if ((p = ttymsg(iov, 6, line, TTYMSGTIME))
+								!= NULL) {
+					errno = 0;	/* already in msg */
+					logerror(p);
+				}
+				break;
+			}
+		}
+	}
+	(void)fclose(uf);
+	reenter = 0;
 }
 
