@@ -1,5 +1,5 @@
 #!/bin/sh
-#	$CoreSDI: Id$
+#	$CoreSDI: modules_conf.sh,v 1.1 2000/06/26 23:32:10 claudio Exp $
 
 
 ########################
@@ -71,7 +71,7 @@ TYPE="output"
 # INTERNAL FUNCTIONS
 ########################
 FIRST_ADD_OUTPUT=yes
-function add_output() 
+function add_output
 {
 printf "\
 extern int om_%s_init (int, char**, struct filed*, char*,\
@@ -103,7 +103,7 @@ $NAME $NAME $NAME $NAME $NAME >> $STATIC_MODULES.c
 }
 
 FIRST_ADD_INPUT=yes
-function add_input()
+function add_input
 {
 printf "\
 extern int im_%s_init (struct i_module*, char**, int);\n\
