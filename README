@@ -1,4 +1,4 @@
-/*	$CoreSDI: README,v 1.4 2000/06/02 23:28:10 fgsch Exp $	*/
+/*	$CoreSDI: README,v 1.5 2000/06/06 00:44:12 alejo Exp $	*/
 
 Main differences with previous BSD syslog
 -----------------------------------------
@@ -13,8 +13,6 @@ notation was made for configuration of modules.
 
 This new approach allows adding new functionality without complicating the code.
 
-Current availble outout modules are classic, mysql, peo, pgsql and filter.
-Available input modules are bsd, unix, and udp. curren modules under development
-or in the makings range from a linux kernel input module, to a special module
-for setting up triggers on actions and priority redirection.
+Current availble outout modules are classic, mysql, peo, pgsql and regex.
+Available input modules are bsd, unix, udp, linux, and tcp.
 

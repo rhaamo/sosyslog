@@ -1,4 +1,4 @@
-/*	$CoreSDI: NEWS,v 1.4 2000/06/09 19:45:14 fgsch Exp $	*/
+/*	$CoreSDI: NEWS,v 1.5 2000/06/29 20:57:21 alejo Exp $	*/
 
 Release Notes:
 
@@ -9,5 +9,6 @@ Release Notes:
 * New im_tcp module to use plain tcp syslogd to syslogd connections
 * New om_tcp module to use plain tcp syslogd to syslogd connections
 * New im_linux for handling linux kernel logging (like klogd)
-* PostgreSQL output module, colaboration from Oliver Teuber. 
+* PostgreSQL output module, colaboration from Oliver Teuber
+  (ot@penguin-power.de)
 
