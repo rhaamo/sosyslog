@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.50 2000/09/27 21:57:43 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.51 2000/09/27 22:19:37 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -62,7 +62,7 @@
 struct om_classic_ctx {
         short	flags;
         int	size;
-        int	filed;
+        int	fd;
 	union {
 		char	f_uname[MAXUNAMES][UT_NAMESIZE+1];
 		struct {
@@ -154,12 +154,12 @@ om_classic_init( int argc, char **argv, struct filed *f,
 	case '/':
 		(void)strncpy(ctx->f_un.f_fname, p, sizeof(ctx->f_un.f_fname));
 		ctx->f_un.f_fname[sizeof(ctx->f_un.f_fname) - 1] = 0;
-		if ((ctx->filed = open(p, O_WRONLY|O_APPEND, 0)) < 0) {
+		if ((ctx->fd = open(p, O_WRONLY|O_APPEND, 0)) < 0) {
 			f->f_type = F_UNUSED;
 			logerror(p);
 			break;
 		}
-		if (isatty(ctx->filed))
+		if (isatty(ctx->fd))
 			f->f_type = F_TTY;
 		else
 			f->f_type = F_FILE;
@@ -285,28 +285,28 @@ om_classic_doLog(struct filed *f, int flags, char *msg,
 				v->iov_len = 1;
 			}
 			again:
-			if (writev(ctx->filed, iov, 6) < 0) {
+			if (writev(ctx->fd, iov, 6) < 0) {
 				int e = errno;
-				(void)close(ctx->filed);
+				(void)close(ctx->fd);
 				/*
 				 * Check for errors on TTY's due to loss of tty
 				 */
 				if ((e == EIO || e == EBADF) && f->f_type != F_FILE) {
-					ctx->filed = open(ctx->f_un.f_fname,
+					ctx->fd = open(ctx->f_un.f_fname,
 					    O_WRONLY|O_APPEND, 0);
-					if (ctx->filed < 0) {
+					if (ctx->fd < 0) {
 						f->f_type = F_UNUSED;
 						logerror(ctx->f_un.f_fname);
 					} else
 						goto again;
 				} else {
 					f->f_type = F_UNUSED;
-					ctx->filed = -1;
+					ctx->fd = -1;
 					errno = e;
 					logerror(ctx->f_un.f_fname);
 				}
 			} else if (flags & SYNC_FILE)
-				(void)fsync(ctx->filed);
+				(void)fsync(ctx->fd);
 			break;
 
 		case F_USERS:
@@ -332,7 +332,7 @@ om_classic_close( struct filed *f, struct om_hdr_ctx *context) {
 		case F_FILE:
 		case F_TTY:
 		case F_CONSOLE:
-			ret = close(ctx->filed);
+			ret = close(ctx->fd);
 		case F_FORW:
 			if ((finet > -1) && (DaemonFlags & SYSLOGD_INET_IN_USE)
 					&& !(DaemonFlags & SYSLOGD_FINET_READ)) {
