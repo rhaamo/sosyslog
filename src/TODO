@@ -1,4 +1,4 @@
-/*	$CoreSDI: TODO,v 1.44 2000/10/31 19:42:12 alejo Exp $	*/
+/*	$CoreSDI: TODO,v 1.45 2000/11/01 17:41:37 alejo Exp $	*/
 
 Things to do:
 
@@ -6,7 +6,6 @@ Things to do:
 - define STYLE for names (ie. underscore or caps, indentation)
 - solaris port
 - module configuration file (ie. no more passwds in syslog.conf)
-- fix time and date usage on syslogd.c and modules. it is UGLY.
 - no more static modules
 - decide on default command line options
 - redo parsing functions
