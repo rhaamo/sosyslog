@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.75 2000/05/29 20:35:42 fgsch Exp $	*/
+/*	$CoreSDI: modules.c,v 1.76 2000/05/29 21:10:55 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -32,7 +32,8 @@
 /*
  *  syslogd generic module functions --
  *
- * Author: Alejo Sanchez for Core-SDI S.A.
+ * Authors: Alejo Sanchez for Core-SDI S.A.
+ *          Federico Schwindt for Core-SDI S.A.
  */
 
 #include <ctype.h>
@@ -80,6 +81,12 @@ int	im_linux_init __P((struct i_module *, char **, int));
 int	im_linux_getLog __P((struct i_module *, struct im_msg *));
 int	im_linux_close __P((struct i_module *));
 #endif
+#ifdef WANT_PGSQL
+      int om_pgsql_doLog(struct filed *, int , char *, struct om_hdr_ctx *);
+      int om_pgsql_init(int, char **, struct filed *, char *, struct om_hdr_ctx **);
+      int om_pgsql_close(struct filed*, struct om_hdr_ctx *);
+      int om_pgsql_flush(struct filed*, struct om_hdr_ctx *);
+#endif
 
 int	parseParams __P((char ***, char *));
 
@@ -110,6 +117,17 @@ modules_load()
 	OModules[OM_MYSQL].om_close 		= om_mysql_close;
 	OModules[OM_MYSQL].om_flush 		= om_mysql_flush;
 #endif /* ENABLE_MYSQL */
+
+#ifdef WANT_PGSQL
+	/* pgsql module */
+	OModules[OM_PGSQL].om_name              = "pgsql";
+	OModules[OM_PGSQL].om_type              = OM_PGSQL;
+	OModules[OM_PGSQL].om_doLog             = om_pgsql_doLog;
+	OModules[OM_PGSQL].om_init              = om_pgsql_init;
+	OModules[OM_PGSQL].om_close             = om_pgsql_close;
+	OModules[OM_PGSQL].om_flush             = om_pgsql_flush;
+#endif
+
   
 	/* peo module */
 	OModules[OM_PEO].om_name		= "peo";

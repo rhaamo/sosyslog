@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.h,v 1.19 2000/05/26 18:58:18 claudio Exp $	*/
+/*	$CoreSDI: modules.h,v 1.20 2000/05/29 20:35:43 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -38,6 +38,7 @@
 #define OM_CLASSIC      0
 #define OM_MYSQL        1
 #define OM_PEO          2
+#define OM_PGSQL        3
 
 #define IM_BSD          0
 #define IM_SYSV         1
