@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_udp.c,v 1.59 2001/03/23 00:12:29 alejo Exp $	*/
+/*	$CoreSDI: im_udp.c,v 1.60 2001/03/27 23:21:07 alejo Exp $	*/
 
 /*
  * Copyright (c) 2001, Core SDI S.A., Argentina
@@ -99,7 +99,7 @@ im_udp_read(struct imodule *im, int infd, struct im_msg *ret)
 			strncpy(ret->im_host, inet_ntoa(frominet.sin_addr),
 			    sizeof(ret->im_host));
 		}
-		ret->im_host[sizeof(ret->im_host - 1)] = '\0';
+		ret->im_host[sizeof(ret->im_host) - 1] = '\0';
 
 	} else if (ret->im_len < 0 && errno != EINTR)
 		logerror("recvfrom inet");
