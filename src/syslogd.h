@@ -1,4 +1,4 @@
-/*	$Id: syslogd.h,v 1.31 2000/04/28 00:13:54 alejo Exp $
+/*	$Id: syslogd.h,v 1.32 2000/04/28 00:54:50 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -179,6 +179,19 @@ int imodule_create(char *c, struct filed *, char *);
 #define	I_OTS		3
 #define	I_SHA		4
 #define DEFAULT_INTEG_FACILITY	I_NONE
+
+
+void    cfline __P((char *, struct filed *, char *));
+int     decode __P((const char *, CODE *));
+void    die __P((int));
+void    domark __P((int));
+void    doLog __P((struct filed *, int, char *));
+void    init __P((int));
+void    logerror __P((char *));
+void    logmsg __P((int, char *, char *, int));
+void    printline __P((char *, char *));
+void    reapchild __P((int));
+void    usage __P((void));
 
 
 #endif
