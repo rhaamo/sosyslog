@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_classic.c,v 1.70 2001/03/06 21:56:02 alejo Exp $	*/
+/*	$CoreSDI: om_classic.c,v 1.71 2001/03/06 23:11:18 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -68,6 +68,7 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <utmp.h>
+#include <netdb.h>
 /* if _PATH_UTMP isn't defined, define it here... */
 #ifndef _PATH_UTMP
 # ifdef UTMP_FILE
@@ -97,7 +98,6 @@
 char    *TypeNames[] = { "UNUSED", "FILE", "TTY", "CONSOLE",
 	    "FORW", "USERS", "WALL", "MODULE", NULL};
 extern char     *ctty;
-
 
 struct om_classic_ctx {
 	int	fd;
@@ -348,8 +348,6 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		c->f_un.f_forw.f_hname[sizeof(c->f_un.f_forw.f_hname) - 1] = '\0';
 		hp = gethostbyname(c->f_un.f_forw.f_hname);
 		if (hp == NULL) {
-			extern int h_errno;
-
 			logerror((char *)hstrerror(h_errno));
 			break;
 		}
