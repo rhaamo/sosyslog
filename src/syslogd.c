@@ -1,4 +1,4 @@
-/*	$Id: syslogd.c,v 1.52 2000/04/28 20:39:37 alejo Exp $
+/*	$Id: syslogd.c,v 1.53 2000/04/28 23:17:35 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -197,7 +197,14 @@ main(argc, argv)
 		setlinebuf(stdout);
 
 	/* assign functions and init input */
-	modules_init(&Inputs, inputs);
+	if (modules_load() < 0) {
+		dprintf("Error loading modules\n");
+		exit(-1);
+	}
+	if (modules_init(&Inputs, inputs) < 0) {
+		dprintf("Error initializing modules\n");
+		exit(-1);
+	}
 
 	consfile.f_type = F_CONSOLE;
         /* this should get into Files and be way nicer */

@@ -1,4 +1,4 @@
-/*	$Id: modules.c,v 1.42 2000/04/28 20:39:37 alejo Exp $
+/*	$Id: modules.c,v 1.43 2000/04/28 23:17:35 alejo Exp $
  * Copyright (c) 1983, 1988, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -68,17 +68,13 @@ int im_unix_close(struct i_module *);
 
 void    die __P((int));
 
-/* assign module functions to generic pointer */
-int modules_init (I, inputs)
-	struct i_module **I;
-	int		inputs;
+int
+modules_load()
 {
 	/* initialize module function assignations */
 	memset(OModules, 0, sizeof(OModules));
-	*I = (struct i_module *) calloc(sizeof(struct i_module), 1);
-	(*I)->fd = -1;
+	memset(IModules, 0, sizeof(IModules));
 
-	/* classic module */
 	/* classic module */
 	OModules[OM_CLASSIC].om_name 		= "classic";
 	OModules[OM_CLASSIC].om_type 		= OM_CLASSIC;
@@ -114,6 +110,19 @@ int modules_init (I, inputs)
 	IModules[IM_UNIX].im_init		= im_unix_init;
 	IModules[IM_UNIX].im_getLog		= im_unix_getLog;
   	IModules[IM_UNIX].im_close		= im_unix_close;
+
+	return(1);
+}
+
+/* assign module functions to generic pointer */
+int
+modules_init (I, inputs)
+	struct i_module **I;
+	int		inputs;
+{
+	/* create initial node for Inputs list */
+	*I = (struct i_module *) calloc(sizeof(struct i_module), 1);
+	(*I)->fd = -1;
 
 	*I = (struct i_module *) calloc(1, sizeof(struct i_module));
 	if (inputs & IM_BSD)
