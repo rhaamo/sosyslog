@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.24 2000/06/14 18:37:23 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.25 2000/06/20 18:17:07 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -121,9 +121,7 @@ im_linux_usage()
  * returns a pointer to the line or NULL if the buffer is empty
  */
 char*
-getLine (buf, i)
-	char *buf;
-	int  *i;
+getLine (char *buf, int *i)
 {
 	if (*buf == '\0')
 		return(NULL);
@@ -141,8 +139,7 @@ getLine (buf, i)
  * Sets console loglevel
  */
 int
-im_linux_setConsoleLogLevel (strlv)
-	char *strlv;
+im_linux_setConsoleLogLevel (char *strlv)
 {
 	char		*err;
 	unsigned long	 loglevel;
@@ -164,10 +161,7 @@ im_linux_setConsoleLogLevel (strlv)
  * Initialize linux input module
  */
 int
-im_linux_init(I, argv, argc)
-	struct i_module *I;
-	char	**argv;
-	int	argc;
+im_linux_init(struct i_module *I, char **argv, int argc)
 {
 	int ch;
 	int current_optind;
@@ -264,9 +258,7 @@ im_linux_init(I, argv, argc)
  * and log it.
  */
 int
-im_linux_getLog(im, ret)
-	struct i_module *im;
-	struct im_msg  *ret;
+im_linux_getLog(struct i_module *im, struct im_msg *ret)
 {
 	int   i;
 	char *ptr;
@@ -332,8 +324,7 @@ im_linux_getLog(im, ret)
  * Close linux input module
  */
 int
-im_linux_close (im)
-	struct i_module *im;
+im_linux_close (struct i_module *im)
 {
 	ksym_close();
 	if (im->im_path != NULL) 
@@ -411,10 +402,7 @@ ksym_close()
  * ksym_snprintf
  */
 int
-ksym_snprintf (buf, bufsize, raw)
-	char *buf;
-	int   bufsize;
-	char *raw;
+ksym_snprintf (char *buf, int bufsize, char *raw)
 {
 	int     i;
 	int	printed;
@@ -471,9 +459,7 @@ ksym_snprintf (buf, bufsize, raw)
  * If the symbol does not exists it returns NULL
  */
 Symbol*
-ksym_lookup (sym, addr)
-	Symbol *sym;
-	char *addr;
+ksym_lookup (Symbol *sym, char *addr)
 {
 	/* reset symbol table/file pointer */
 	if (ksym_fd == NULL)
@@ -495,8 +481,7 @@ ksym_lookup (sym, addr)
  * returns 0 on success and -1 on end of file/table
  */
 int
-ksym_getSymbol (sym)
-	Symbol *sym;
+ksym_getSymbol (Symbol *sym)
 {
 	char msg[MAXLINE];
 
@@ -519,9 +504,7 @@ ksym_getSymbol (sym)
 #define QUIT_BLANK(a)	while (*a == ' ' || *a == '\t') a++;
 
 int
-ksym_parseLine (p, sym)
-	char *p;
-	Symbol *sym;
+ksym_parseLine (char *p, Symbol *sym)
 {
 	if (sym == NULL || p == NULL || p[0] == '\0')
 		return(-1);
@@ -554,10 +537,7 @@ ksym_parseLine (p, sym)
  * len bytes or '\0' or '\n'
  */
 char*
-ksym_copyWord (dst, src, max)
-	char *dst;
-	char *src;
-	int   max;
+ksym_copyWord (char *dst, char *src, int max)
 {
 	int i = 0;
 

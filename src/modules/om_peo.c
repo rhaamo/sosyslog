@@ -1,4 +1,4 @@
-/*	$CoreSDI: om_peo.c,v 1.43 2000/06/22 21:03:12 claudio Exp $	*/
+/*	$CoreSDI: om_peo.c,v 1.44 2000/07/03 21:39:54 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -32,7 +32,7 @@
 /*
  * om_peo -- peo autentication
  *
- * Author: Claudio Castiglia for Core-SDI SA
+ * Author: Claudio Castiglia, Core-SDI SA
  *
  */
 
@@ -74,11 +74,7 @@ struct om_peo_ctx {
 };
 
 int
-om_peo_doLog(f, flags, msg, ctx)
-	struct filed *f;
-	int flags;
-	char *msg;
-	struct om_hdr_ctx *ctx;
+om_peo_doLog (struct filed *f, int flags, char *msg, struct om_hdr_ctx *ctx)
 {
 	struct om_peo_ctx *c;
 	int	 fd;
@@ -176,12 +172,8 @@ release()
 }
 
 int
-om_peo_init(argc, argv, f, prog, ctx)
-	int			  argc;
-	char			**argv;
-	struct filed		 *f;
-	char			 *prog;
-	struct om_hdr_ctx	**ctx;
+om_peo_init (int argc, char **argv,
+            struct filed *f, char *prog, struct om_hdr_ctx **ctx)
 {
 	int	 ch;
 	struct	 om_peo_ctx *c;
@@ -268,9 +260,7 @@ om_peo_init(argc, argv, f, prog, ctx)
 
 
 int
-om_peo_close(f, ctx)
-	struct filed *f;
-	struct om_hdr_ctx *ctx;
+om_peo_close (struct filed *f, struct om_hdr_ctx *ctx)
 {
 	struct om_peo_ctx *c;
 

@@ -1,4 +1,4 @@
-/*	$CoreSDI: hash.c,v 1.24 2000/06/22 00:51:40 claudio Exp $	*/
+/*	$CoreSDI: hash.c,v 1.25 2000/06/26 18:38:35 claudio Exp $	*/
  
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -92,13 +92,8 @@ typedef union {
  *	On error returns -1
  */
 int
-mac (method, data1, data1len, data2, data2len, dest)
-	int		 method;
-	const char	*data1;
-	int		 data1len;
-	const char	*data2;
-	int		 data2len;
-	char		*dest;
+mac (int method, const char *data1, int data1len,
+     const char *data2, int data2len, char *dest)
 {
 	HASH_CTX	 ctx;
 	int		 destlen;
@@ -172,12 +167,8 @@ mac (method, data1, data1len, data2, data2len, dest)
  *	On error returns -1
  */
 int
-mac2 (data1, data1len, data2, data2len, dest)
-	const char	*data1;
-	int		 data1len;
-	const char	*data2;
-	int		 data2len;
-	char		*dest;
+mac2 (const char *data1, int data1len,
+      const char *data2, int data2len, char *dest)
 {
 	int destlen;
 
@@ -196,8 +187,7 @@ mac2 (data1, data1len, data2, data2len, dest)
  *	Case is ignored.
  */
 int
-gethash (str)
-	const char *str;
+gethash (const char *str)
 {
 	int i;
 
@@ -215,8 +205,7 @@ gethash (str)
  *	and chages it to something like this: .a.b.c.d.e
  */
 char*
-strdot (s)
-	char *s;
+strdot (char *s)
 {
 	char *b;
 
@@ -233,9 +222,7 @@ strdot (s)
  *	The new buffer should be freed using free(3)
  */
 char*
-strallocat (s1, s2)
-	const char *s1;
-	const char *s2;
+strallocat (const char *s1, const char *s2)
 {
 	char *dest;
 	int   size;
@@ -251,8 +238,7 @@ strallocat (s1, s2)
  * strmac
  */
 char*
-strmac (s)
-	const char *s;
+strmac (const char *s)
 {
 	return strallocat(s, ".mac");
 }
@@ -262,8 +248,7 @@ strmac (s)
  * strkey0
  */
 char*
-strkey0 (s)
-	const char *s;
+strkey0 (const char *s)
 {
 	return strallocat(s, "0");
 }
@@ -273,8 +258,7 @@ strkey0 (s)
  * stresolvepath
  */
 char*
-strrealpath (path)
-	const char *path;
+strrealpath (const char *path)
 {
 	char *resolved;
 
@@ -294,9 +278,7 @@ strrealpath (path)
 #define ASC2BIN(x)	((x <= '9') ? x-'0' : x-'a'+10)
 
 unsigned char*
-asc2bin (dst, src)
-	unsigned char       *dst;
-	const unsigned char *src;
+asc2bin (unsigned char *dst, const unsigned char *src)
 {
 	int   		 i;
 	int   		 j;
@@ -331,10 +313,7 @@ asc2bin (dst, src)
 char hex[] = { "0123456789abcdef" };
 
 unsigned char*
-bin2asc (dst, src, srclen)
-	unsigned char		*dst;
-	const unsigned char	*src;
-	int         		 srclen;
+bin2asc (unsigned char *dst, const unsigned char *src, int srclen)
 {
 	int i;
 
@@ -357,9 +336,7 @@ bin2asc (dst, src, srclen)
  *	Returns 0 on success and -1 on error
  */
 int
-getrandom (buffer, bytes)
-	char *buffer;
-	int   bytes;
+getrandom (char *buffer, int bytes)
 {
 	int fd;
 

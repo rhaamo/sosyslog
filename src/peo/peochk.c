@@ -1,4 +1,4 @@
-/*	$CoreSDI: peochk.c,v 1.36 2000/06/22 00:51:40 claudio Exp $	*/
+/*	$CoreSDI: peochk.c,v 1.37 2000/06/22 00:53:41 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -32,10 +32,11 @@
 /*
  * peochk - syslog -- Initial key generator and integrity log file checker
  *
- * Author: Claudio Castiglia for Core-SDI SA
+ * Author: Claudio Castiglia, Core-SDI SA
  *
  *
- * peochk [-f logfile] [-g] [-i key0file] [-k keyfile] [-l] [-m hash_method] [-q] [logfile]
+ * peochk [-f logfile] [-g] [-i key0file] [-k keyfile] [-l]
+ *        [-m hash_method] [-q] [logfile]
  *
  * supported hash_method values:
  *			md5
@@ -135,10 +136,7 @@ usage()
  * readline
  */
 int
-readline (fd, buf, len)
-	int     fd;
-	char   *buf;
-	size_t  len;
+readline (int fd, char *buf, size_t len)
 {
 	int readed;
 	int r;
@@ -331,9 +329,7 @@ generate()
  * main
  */
 int
-main (argc, argv)
-	int argc;
-	char **argv;
+main (int argc, char **argv)
 {
 	int	 ch;
 	int	 mac;
@@ -455,5 +451,4 @@ main (argc, argv)
 	release();
 	return (0);
 }
-
 
