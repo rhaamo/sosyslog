@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.80 2000/05/30 00:08:59 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.81 2000/05/30 23:37:06 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -600,8 +600,8 @@ die(signo)
 	}
 
 	for (im = &Inputs; im; im = im->im_next)
-		if (im->im_type == IM_UNIX)
-			im_close(im);	
+		if (IModules[im->im_type].im_close(im))
+			(*IModules[im->im_type].im_close)(im);
 
 	exit(0);
 }

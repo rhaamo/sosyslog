@@ -1,4 +1,4 @@
-/*	$CoreSDI: modules.c,v 1.83 2000/06/05 22:39:06 fgsch Exp $	*/
+/*	$CoreSDI: modules.c,v 1.84 2000/06/05 22:40:55 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -246,33 +246,6 @@ modules_init (I, line)
 	return(1);
 }
 
-
-/* close THIS input module */
-int
-im_close(im)
-	struct i_module *im;
-{
-	return(IModules[im->im_type].im_close(im));
-}
-
-/* close ALL output modules of a specific filed */
-int
-om_close(f, ctx)
-	struct filed *f;
-	struct om_hdr_ctx *ctx;
-{
-	struct o_module *om;
-	int ret;
-
-	ret = 0;
-	for(om = f->f_omod; om ; om = om->om_next) {
-		if (OModules[om->om_type].om_close(f, om->ctx) < 0)
-			ret--;
-	}
-
-	return(ret == 0? 1: ret);
-}
-
 /* create all necesary modules for a specific filed */
 int omodule_create(c, f, prog)
 	char *c;
@@ -289,7 +262,8 @@ int omodule_create(c, f, prog)
 	/* create context and initialize module for logging */
 	while (*p) {
 		if (f->f_omod == NULL) {
-			f->f_omod = (struct o_module *) calloc(1, sizeof *f->f_omod);
+			f->f_omod = (struct o_module *) calloc(1,
+			    sizeof(*f->f_omod));
 			m = f->f_omod;
 			prev = NULL;
 		} else {

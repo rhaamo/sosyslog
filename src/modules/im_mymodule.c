@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_mymodule.c,v 1.6 2000/06/01 22:55:58 alejo Exp $	*/
+/*	$CoreSDI: im_mymodule.c,v 1.7 2000/06/05 22:16:58 fgsch Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -82,6 +82,5 @@ int
 im_mymodule_close(im) 
         struct i_module *im;
 {
-
         return(1);
 }
