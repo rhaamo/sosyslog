@@ -1,4 +1,4 @@
-/*	$CoreSDI: im_linux.c,v 1.21 2000/06/12 22:20:41 claudio Exp $	*/
+/*	$CoreSDI: im_linux.c,v 1.22 2000/06/13 21:24:16 claudio Exp $	*/
 
 /*
  * Copyright (c) 2000, Core SDI S.A., Argentina
@@ -138,6 +138,29 @@ getLine (buf, i)
 
 
 /*
+ * Sets console loglevel
+ */
+int
+im_linux_setConsoleLogLevel (strlv)
+	char *strlv;
+{
+	char		*err;
+	unsigned long	 loglevel;
+
+	if ( (loglevel = strtoul(strlv, &err, 10)) < 0 || loglevel > 7 || *err != '\0') {
+		warnx("%s: invalid loglevel <%s>", linux_input_module, optarg);
+		return(-1);
+	}
+	warnx("%s: setting console loglevel to <%i>", linux_input_module, loglevel);
+	if (klogctl(8, NULL, loglevel) < 0) {
+		warnx("%s", linux_input_module);
+		return(-1);
+	}
+	return(0);
+}
+
+
+/*
  * Initialize linux input module
  */
 int
@@ -148,9 +171,6 @@ im_linux_init(I, argv, argc)
 {
 	int ch;
 	int current_optind;
-	unsigned long loglevel;
-	char *err;
-
 
 	dprintf ("\nim_linux_init...\n");
 
@@ -161,17 +181,17 @@ im_linux_init(I, argv, argc)
 	flags = KSYM_TRANSLATE;
 	if (argc > 1) {
 		optind = 1;
-		while ( (ch = getopt(argc, argv, "c:k:rsxh?")) != -1)
+		while ( (ch = getopt(argc, argv, "c:C:k:rsxh?")) != -1)
 			switch(ch) {
-			case 'c': /* specify console loglebel */
-				if ( (loglevel = strtoul(optarg, &err, 10)) < 0 || loglevel > 7 || *err != '\0') {
-					warnx("%s: invalid loglevel <%s>", linux_input_module, optarg);
+			case 'c': /* specify console loglevel */
+				if (im_linux_setConsoleLogLevel(optarg) < 0)
 					return(-1);
-				}
-				warnx("%s: setting console loglevel to <%i>", loglevel);
-				klogctl(8, NULL, loglevel);
 				break;
-				
+
+			case 'C': /* specify console loglevel and force exit */
+				im_linux_setConsoleLogLevel(optarg);
+				return(-1);
+
 			case 'k': /* specify symbol file */
 				if (strcmp(ksym_path, optarg))
 					if ( (ksym_path = strdup(optarg)) == NULL) {
