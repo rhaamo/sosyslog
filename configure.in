@@ -1,4 +1,4 @@
-dnl $CoreSDI: configure.in,v 1.133 2001/05/01 02:25:49 alejo Exp $
+dnl $CoreSDI: configure.in,v 1.134 2001/05/23 23:13:54 alejo Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/syslogd.c)dnl
 AC_CONFIG_HEADER(src/config.h)dnl
@@ -53,7 +53,7 @@ then
 	CFLAGS="$CFLAGS -Wall -pedantic"
 fi
 
-MSYSLOG_VERSION="1.04"
+MSYSLOG_VERSION="1.05"
 AC_DEFINE_UNQUOTED(MSYSLOG_VERSION_STR, "$MSYSLOG_VERSION")dnl
 echo msyslog version... $MSYSLOG_VERSION
 
