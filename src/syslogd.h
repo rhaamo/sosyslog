@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.h,v 1.98 2001/03/27 20:55:04 alejo Exp $	*/
+/*	$CoreSDI: syslogd.h,v 1.99 2001/03/30 21:12:36 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -129,6 +129,7 @@ extern int	DaemonFlags;		/* running daemon flags */
 #define SYSLOGD_INET_IN_USE	0x02    /* INET sockets are open */
 #define SYSLOGD_INET_READ	0x04    /* we read */
 #define SYSLOGD_MARK		0x08    /* call domark() */
+#define SYSLOGD_DIE		0x10    /* call die() */
 
 void logerror(char *);
 void logmsg(int, char *, char *, int);

@@ -1,4 +1,4 @@
-/*	$CoreSDI: syslogd.c,v 1.186 2001/03/30 21:12:36 alejo Exp $	*/
+/*	$CoreSDI: syslogd.c,v 1.187 2001/04/03 19:23:41 alejo Exp $	*/
 
 /*
  * Copyright (c) 1983, 1988, 1993, 1994
@@ -41,7 +41,7 @@ static char copyright[] =
 
 #ifndef lint
 /*static char sccsid[] = "@(#)syslogd.c	8.3 (Berkeley) 4/4/94";*/
-static char rcsid[] = "$CoreSDI: syslogd.c,v 1.186 2001/03/30 21:12:36 alejo Exp $";
+static char rcsid[] = "$CoreSDI: syslogd.c,v 1.187 2001/04/03 19:23:41 alejo Exp $";
 #endif /* not lint */
 
 /*
@@ -172,6 +172,7 @@ struct filed  consfile;
 int	 Initialized = 0;	 /* set when we have initialized ourselves */
 int	 MarkInterval = 20 * 60; /* interval between marks in seconds */
 int	 MarkSeq = 0;		 /* mark sequence number */
+int	 WantDie = 0;
 char	*ConfFile = _PATH_LOGCONF; /* configuration file */
 char	 pidfile[PID_PATH_MAX];
 FILE	*pidf;
@@ -191,8 +192,9 @@ char	*libdir = NULL;
 RETSIGTYPE domark(int);
 RETSIGTYPE reapchild(int);
 RETSIGTYPE init(int);
-RETSIGTYPE die(int);
 RETSIGTYPE signal_handler (int);
+RETSIGTYPE dodie(int);
+void	die(int);
 void	cfline(char *, struct filed *, char *);
 int	decode(const char *, CODE *);
 void	markit(void);
@@ -257,7 +259,7 @@ main(int argc, char **argv)
 	/* use ':' at start to allow -d to be used without argument */
 	opterr = 0;
 
-	while ( (ch = getopt(argc, argv, ":d:f:mui:p:a:h")) != -1) {
+	while ( (ch = getopt(argc, argv, ":d:f:m:ui:p:a:h")) != -1) {
 		char buf[512];
 
 		switch (ch) {
@@ -399,9 +401,9 @@ main(int argc, char **argv)
 	/* Set signal handlers */
 	/* XXX: use one signal handler for all signals other than HUP */
 	/*      use sigaction and sigaltstack */
-	place_signal(SIGTERM, die);
-	place_signal(SIGINT, Debug ? die : SIG_IGN);
-	place_signal(SIGQUIT, Debug ? die : SIG_IGN);
+	place_signal(SIGTERM, dodie);
+	place_signal(SIGINT, Debug ? dodie : SIG_IGN);
+	place_signal(SIGQUIT, Debug ? dodie : SIG_IGN);
 	place_signal(SIGCHLD, reapchild);
 	place_signal(SIGALRM, domark);
 	place_signal(SIGPIPE, SIG_IGN);
@@ -542,6 +544,11 @@ main(int argc, char **argv)
 	for (;;) {
 		int count, i, done;
 
+		if (DaemonFlags & SYSLOGD_MARK)
+			markit();
+		if (WantDie)
+			die(WantDie);
+
 		if (fd_inputs == NULL) {
 			dprintf(MSYSLOG_CRITICAL, "no input struct");
 			exit(-1);
@@ -552,7 +559,7 @@ main(int argc, char **argv)
 			add_fd_input(finet, NULL);
 
 		/* count will always be less than fd_in_count */
-		switch ( (count = poll(fd_inputs, fd_in_count, -1))) {
+		switch (count = poll(fd_inputs, fd_in_count, -1)) {
 		case 0:
 			dprintf(MSYSLOG_INFORMATIVE, "main: poll returned 0\n");
 			continue;
@@ -563,9 +570,6 @@ main(int argc, char **argv)
 				logerror("select");
 			continue;
 		}
-
-		if (DaemonFlags & SYSLOGD_MARK)
-			markit();
 
 		for (i = 0, done = 0; done < count; i++) {
 			if (fd_inputs[i].revents & POLLIN) {
@@ -890,7 +894,7 @@ doLog(struct filed *f, int flags, char *message)
 			    "function in output module [%s], message [%s]\n",
 			    om->om_func->om_name, msg);
 			continue;
-		};
+		}
 
 		/* call this module write */
 		ret = (*(om->om_func->om_write))(f,flags,msg,om->ctx);
@@ -922,6 +926,12 @@ domark(int signo)
 	DaemonFlags |= SYSLOGD_MARK;
 }
 
+RETSIGTYPE
+dodie(int signo)
+{
+	WantDie = 1;
+}
+
 void
 markit(void)
 {
@@ -932,7 +942,7 @@ markit(void)
 
 	MarkSeq += TIMERINTVL;
 
-	if (MarkSeq >= MarkInterval) {
+	if (MarkSeq >= MarkInterval || DaemonFlags & SYSLOGD_MARK) {
 		logmsg(LOG_INFO, "-- MARK --", LocalHostName, ADDDATE|MARK);
 		MarkSeq = 0;
 	}
@@ -972,7 +982,7 @@ logerror(char *type) {
 	logmsg(LOG_SYSLOG|LOG_ERR, buf, LocalHostName, ADDDATE);
 }
 
-RETSIGTYPE
+void
 die(int signo) {
 	struct filed *f;
 	int was_initialized = Initialized;
@@ -980,6 +990,8 @@ die(int signo) {
 	struct i_module	*im;
 
 	Initialized = 0;		/* Don't log SIGCHLDs */
+
+	alarm(0);
 
 	for (f = Files; f != NULL; f = f->f_next) {
 		/* flush any pending output */
