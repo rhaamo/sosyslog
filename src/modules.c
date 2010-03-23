@@ -152,8 +152,11 @@ get_symbol(const char *modname, const char *funcname, void **h, void **ret)
 				dprintf(MSYSLOG_INFORMATIVE, "get_symbol: "
 				    "Trying to open %s... ", extlib);
 				*h = dlopen(extlib, DLOPEN_FLAGS);
-				dprintf(MSYSLOG_INFORMATIVE, "%s\n",
-				    (*h == NULL) ? "failed" : "ok");
+				if (*h == NULL)
+				    dprintf(MSYSLOG_INFORMATIVE,
+					    "failed [%s]\n", dlerror());
+				else
+				    dprintf(MSYSLOG_INFORMATIVE, "ok");
 			}
 
 		}
