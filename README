@@ -1,11 +1,6 @@
-/*	$CoreSDI: README,v 1.20 2002/03/04 21:47:14 claudio Exp $	*/
-
-
-  
-  
 SPECIAL NOTE
 ------------
-  
+
 Most of the documentation and examples are on the manual pages provided.
 They are meant to be the ultimate reference. See im_bsd.8, im_linux.8
 im_udp.8, om_mysql.8, om_regex.8, peochk.8 im_doors.8, im_streams.8
@@ -20,8 +15,10 @@ Installation
 
 Please read the file INSTALL.
 
-About Modular Syslog
+About sosyslog
 --------------------
+
+sosyslog is a fork of MSyslog, there is the MSyslog original description:
 
 This is a daemon for the syslog system log interface. It is based on OpenBSD's
 syslog daemon implementation, with many improvements (ie. log hash protection).
@@ -37,35 +34,14 @@ modified from BSD. Specifically the '!', '=' use on configuration.
 Reporting Bugs
 --------------
 
-Submit bugs at this project's Sourceforge Bug reporting system at:
-http://sourceforge.net/tracker/?func=add&group_id=25741&atid=385117
-
-You may also report them directly to the authors; send an email to
-core.devel.alat@corest.com, describing the problem the most you can,
-containing also machine description, hardware description, the
-configuration file (/etc/syslog.conf), the OS description, and the
-invoking command line.
-
-The more you describe the bug, the faster we can fix it.
+Contact directly the authors at rhaamo@gruik.at.
+Describe much as possible bugs and provide patchs if possible ;)
 
 Known Bugs
 ----------
 
 - If a module blocks on I/O the hole daemon blocks, and messages can get lost
   on extremely busy hosts.
-
-
-Thanks
-------
-
-We'd like to thank for helping and supporting
-
-Florin Andrei <florin@sgi.com>
-Arthur Korn <arthur@korn.ch>
-Ari Edelkind <edelkind@phri.nyu.edu>
-
-"You guys rock!"
- - Alejo
 
 
 Main differences with previous BSD syslog
@@ -174,22 +150,22 @@ line -i doors or -i doors:/etc/.syslog_door (or equivalent).
 OpenBSD binary packages
 -----------------------
 
-It is possible to generate two OpenBSD packages: msyslog and msyslog-devel
-the first contains the msyslog binaries and the other some files for
+It is possible to generate two OpenBSD packages: sosyslog and sosyslog-devel
+the first contains the sosyslog binaries and the other some files for
 external module makers (external module means: a module not included
-into the "libmsyslog.so.X.X" library, this module should be named
-"libmsyslog_<modulenaem>.so" and located into the msyslog library directory).
+into the "libsosyslog.so.X.X" library, this module should be named
+"libsosyslog_<modulenaem>.so" and located into the sosyslog library directory).
 To generate the packages some steps should be done:
 	$ ./configure
 	$ make ports
-This generates three tar balls: msyslog-vX.XX-src.tar.gz, msyslog_port-X.XX.tgz,
-and msyslog_port-devel-X.XX.tgz.
+This generates three tar balls: sosyslog-vX.XX-src.tar.gz, sosyslog_port-X.XX.tgz,
+and sosyslog_port-devel-X.XX.tgz.
 A common way to generate the packages is:
-	$ sudo cp msyslog-vX.XX-src.tar.gz /usr/ports/distfiles/
-	$ tar zxf msyslog_port-X.XX.tgz
-	$ tar zxf msyslog_port-devel-X.XX.tgz
-	$ cd msyslog_port-X.XX && make && sudo make package
-	$ cd ../msyslog_port-devel-X.XX && make && sudo make package
+	$ sudo cp sosyslog-vX.XX-src.tar.gz /usr/ports/distfiles/
+	$ tar zxf sosyslog_port-X.XX.tgz
+	$ tar zxf sosyslog_port-devel-X.XX.tgz
+	$ cd sosyslog_port-X.XX && make && sudo make package
+	$ cd ../sosyslog_port-devel-X.XX && make && sudo make package
 Both packages will be created at /usr/ports/packages/<plat>/All.
 You can avoid the sudo command by using DISTDIR and PACKAGES variables
 (see bsd.port.mk(5)).
