@@ -74,22 +74,28 @@ Insert the priority level name on the table on a field named "priority"
 The table should have a format like this:
 .Pp
 .Bd -literal
-  CREATE TABLE syslogTB (
-    facility char(10),    # OPTIONAL field for facility
-    priority char(10),    # OPTIONAL field for priority
-    date date,           # date of this log message
-    time time,           # time of this message
-    host varchar(128),   # host logging
-    message  text,        # message
-    seq  int unsigned auto_increment primary key # optional sequence number
-  ); 
+CREATE TABLE `syslogTB` (
+  `facility` varchar(10) default NULL, #OPTIONAL field for facility
+  `priority` varchar(10) default NULL, #OPTIONAL field for facility
+  `date` date default NULL, #date of this log message
+  `time` time default NULL, #time of this message
+  `host` varchar(128) default NULL, #host logging
+  `message` mediumtext,   # message
+  `seq` int(10) unsigned NOT NULL auto_increment, #optional sequence number
+  PRIMARY KEY  (`seq`),
+  KEY `host` (`host`),
+  KEY `time` (`time`),
+  KEY `date` (`date`),
+  KEY `message` (`message`(1))
+);
+
 .Ed
 .Pp
 The field names should be respected. The type of fields
 .Va host
 and
 .Va msg
-can be any text format smaller than 128 and 1024 chars respectively.
+can be any text format smaller than 128 and 4096 chars respectively.
 .Pp
 The field seq may be needed for some
 .Xr audit 1
