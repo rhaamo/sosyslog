@@ -167,7 +167,7 @@ om_mysql_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 
 		/*
 		 * Report lost messages, but 2 of them are lost of
-		 * connection and this one (wich we are going
+		 * connection and this one (which we are going
 		 * to log anyway)
 		 */
 		snprintf(err_buf, sizeof(err_buf), "om_mysql_write: %i "

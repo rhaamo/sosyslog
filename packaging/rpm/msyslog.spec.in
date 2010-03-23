@@ -15,7 +15,7 @@ Provides: msyslog sysklogd
 
 %description
 This project is intended as a whole revision of previous Secure Syslogd
-project (wich is unsupported by now). It has all functionalities and some
+project (which is unsupported by now). It has all functionalities and some
 more. The remaining things are Solaris support and Audit compatibility (on the
 works).
 The whole internal structure was redesigned to work with input and output

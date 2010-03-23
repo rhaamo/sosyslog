@@ -2,6 +2,6 @@ Notes on using MySQL output module
 ==================================
 
 When using mysql module, you may have to modify your library path directory
-to match the directory in wich the file libmysqlclient.X.X was installed.
+to match the directory in which the file libmysqlclient.X.X was installed.
 This is not dependant on msyslog installation, but on the specific
 package you used to install MySQL on your system.

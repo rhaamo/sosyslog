@@ -136,7 +136,7 @@ im_bsd_read(struct i_module *im, int infd, struct im_msg *ret)
 		im->im_fd = -1;
 	}
 
-	/* if ok return (2) wich means already logged */
+	/* if ok return (2) which means already logged */
 	return (im->im_fd == -1 ? -1: 2);
 }
 
