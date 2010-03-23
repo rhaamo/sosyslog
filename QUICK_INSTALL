@@ -68,15 +68,15 @@ Linux
 
 YOU DON'T NEED klogd.
 
-# /sbin/syslogd -i linux -i unix
+# /usr/local/sbin/msyslogd -i linux -i unix
 
 Solaris
 
-# /usr/sbin/syslogd -i streams
+# /usr/local/sbin/msyslogd -i streams
 
 BSDs
 
-# /usr/sbin/syslogd -i bsd -i unix
+# /usr/local/sbin/msyslogd -i bsd -i unix
 
 
 If you want to receive on address 'myname' through TCP on port 4321,

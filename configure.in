@@ -77,12 +77,6 @@ then
 fi
 AC_DEFINE_UNQUOTED(INSTALL_LIBDIR, "$prefix/lib/alat")
 
-AC_MSG_CHECKING(wheter optreset is needed)
-AC_TRY_LINK([#include <unistd.h>],
-        [extern int optreset; optreset = 1;],
-        [AC_DEFINE(HAVE_OPTRESET) AC_MSG_RESULT(yes)],
-        AC_MSG_RESULT(no))
-
 AC_MSG_CHECKING(pidfile directory)
 
 for dir in "/var/run" "/etc"
@@ -124,7 +118,7 @@ AC_EGREP_HEADER(stack_t, [signal.h],[
 
 AC_MSG_CHECKING(for daemon name)
 
-MSYSLOG_DAEMON_NAME="syslogd";
+MSYSLOG_DAEMON_NAME="msyslogd";
 
 AC_ARG_WITH(daemon-name,
 [  --with-daemon-name Set a different daemon name, instead of syslogd
@@ -464,7 +458,7 @@ AC_ARG_WITH([snmp],
 	[ac_cv_use_snmp=$withval], [ac_cv_use_snmp=yes])
 AC_CACHE_CHECK([whether to use SNMP], [ac_cv_use_snmp], [ac_cv_use_snmp=yes])
 
-if test "$ac_cv_use_snmp" == yes; then
+if test "$ac_cv_use_snmp" = "yes"; then
    # Let's assume libcrypto is available, for now.
    libs_save="$LIBS"
    AC_CHECK_LIB(snmp, snmp_sess_init, [], [], [-lcrypto])
@@ -472,9 +466,9 @@ if test "$ac_cv_use_snmp" == yes; then
    AC_CHECK_HEADERS([net-snmp/net-snmp-config.h ucd-snmp/ucd-snmp-config.h])
 fi
 
-if test "$ac_cv_lib_snmp_snmp_sess_init" == yes \
-       -a \( "$ac_cv_header_net_snmp_net_snmp_config_h" == yes \
-          -o "$ac_cv_header_ucd_snmp_ucd_snmp_config_h" == yes \); then
+if test "$ac_cv_lib_snmp_snmp_sess_init" = "yes" \
+       -a \( "$ac_cv_header_net_snmp_net_snmp_config_h" = "yes" \
+          -o "$ac_cv_header_ucd_snmp_ucd_snmp_config_h" = "yes" \); then
    EXTRA_MODULES="$extra_modules om_snmptrap"
 fi
 
