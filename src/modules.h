@@ -41,7 +41,9 @@
 
 
 /* this MUST be the same value as syslogd.h */
-#define MAXLINE 4096
+#ifndef MAXLINE
+# define MAXLINE 4096
+#endif
 
 #define MAX_MODULE_NAME_LEN 255
 
