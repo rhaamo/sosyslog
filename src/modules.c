@@ -266,7 +266,7 @@ imodule_create_bad:
 
 
 /*
- * Create a new input module, and assign module functions to generic pointer
+ * Create a new output module, and assign module functions to generic pointer
  * while addinf it to a filed
  *
  *  c (line) is the command line of the input module
@@ -652,7 +652,7 @@ getOmodule(char *name)
 
 
 /*
- * This function removes an output module and
+ * This function removes an input module and
  * its dynamic libraries
  *
  */
