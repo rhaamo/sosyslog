@@ -40,7 +40,7 @@
  * The main idea is that first a im_tcp module will be called
  * and it will bind to a port and wait for connections to it.
  * 
- * Whenever a conection is established it will add it to an
+ * Whenever a connection is established it will add it to an
  * array of file descriptors of connections.
  * 
  */
@@ -225,7 +225,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		c->first = con;
 
 
-		dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: new conection from"
+		dprintf(MSYSLOG_INFORMATIVE, "im_tcp_read: new connection from"
 		    " %s with fd %d\n", con->name, con->fd);
 
 		/* add to inputs list */
