@@ -3736,6 +3736,15 @@ EOF
 
 	SHARED_PARAMS="-Bshareable"
 	DCCFLAGS="-fPIC"
+elif test "$UNAME" = "FreeBSD" ; then
+	cat >>confdefs.h <<\EOF
+#define DLOPEN_FLAGS RTLD_LAZY
+#define SYMBOL_PREFIX ""
+EOF
+
+	SHARED_PARAMS="-Bshareable"
+	DCCFLAGS="-fPIC"
+	SYSLOGD_LIBS="$SYSLOGD_LIBS -Wl,-E"
 elif test "$UNAME" = "Linux" ; then
 	cat >>confdefs.h <<\EOF
 #define DLOPEN_FLAGS RTLD_LAZY | RTLD_GLOBAL
