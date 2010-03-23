@@ -133,7 +133,7 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	p = NULL;
 	argcnt = 1;	/* skip module name */
 
-	while ((ch = getxopt(argc, argv, "v!reverse!inverse m!message: h!host:"
+	while ((ch = getxopt(argc, argv, "v!inverse: m!message: h!host:"
 	    " d!date: t!time:", &argcnt)) != -1) {
 
 		switch (ch) {
