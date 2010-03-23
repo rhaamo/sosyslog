@@ -1,0 +1,116 @@
+.\"	$Id: om_oracle8i.8,v 1.1 2003/04/17 19:25:45 alejo Exp $
+.\"
+.\" Copyright (c) 2001
+.\"	Core-SDI SA. All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. Neither the name of Core-SDI SA nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.Dd Jan 27, 2002
+.Dt OM_ORACLE8i 8
+.Os Core-SDI
+.Sh NAME
+.Nm Oracle8i output module
+.Nd
+.Xr syslogd 8
+output module used to log on Oracle8i servers
+.Sh SYNOPSIS
+.Nm oracle8i
+.Op Fl u Ar username
+.Op Fl p Ar password
+.Op Fl d Ar database
+.Op Fl t Ar table
+.Op Fl F
+.Op Fl P
+.Sh DESCRIPTION
+.Nm Oracle8i output module 
+receives a message as an ascii string and logs it on a Oracle8i server. For
+proper initialization, the following parameters should be set:
+.Bl -tag -width Ds
+.It Fl u Ar username
+Specifies the username to use on the Oracle8i server. This user
+must have enough permissions to insert on the specified database and table.
+.It Fl p Ar password
+The plaintext password for this Oracle8i user. Thus it is recommended NOT to
+leave
+.Xr syslog.conf 5
+world readable if this module is used.
+.It Fl d Ar database
+The database name to use on the specified Oracle8i server.
+.It Fl t Ar table
+The table name to use on the specified Oracle8i database.
+.It Fl F
+Insert the facility level name on the table on a field named "facility"
+.It Fl P
+Insert the priority level name on the table on a field named "priority"
+.Sh EXAMPLES
+The table should have a format like this:
+.Pp
+.Bd -literal
+  CREATE TABLE "SYSLOGTB" (
+    "FACILITY" varchar2(10),       # optional, syslog facility
+    "PRIORITY" varchar2(10),       # optional, syslog priority
+    "TIMESTAMP" date NOT NULL,     # date of this log message
+    "HOST" varchar2(128) NOT NULL, # host logging
+    "MESSAGE" varchar2(4000) NOT NULL,       # message
+    PRIMARY KEY ("TIMESTAMP", "HOST", "MESSAGE")
+  );
+.Ed
+.Pp
+The field names should be respected. The type of fields
+.Va host
+and
+.Va msg
+can be any text format smaller than 128 and 1024 chars respectively.
+.Pp
+The field seq may be needed for some
+.Xr audit 1
+features.
+.Sh SEE ALSO
+.Xr syslog 3 ,
+.Xr syslog.conf 5 ,
+.Xr om_classic 8 ,
+.Xr om_peo 8 ,
+.Xr om_pgsql 8 ,
+.Xr om_regex 8 ,
+.Xr om_tcp 8 ,
+.Xr om_udp 8 ,
+.Xr peochk 8 ,
+.Xr syslogd 8
+.Sh BUGS
+.Bl -bullet
+.It
+Since the Oracle8i module is used to connect with username and password,
+care must be pointed on file permissions and that user permissions
+on the Oracle8i server.
+.It
+Submit bugs at this project's Sourceforge Bug reporting system at:
+http://sourceforge.net/tracker/?func=add&group_id=25741&atid=385117
+You may also report them directly to the authors; send an email to
+core.devel.alat@corest.com, describing the problem the most you can,
+containing also machine description, hardware description, the
+configuration file (/etc/syslog.conf), the OS description, and the
+invoking command line.
+The more you describe the bug, the faster we can fix it.
+.El
