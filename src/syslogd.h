@@ -76,11 +76,7 @@
  *
  */
 
-#ifdef dprintf
-#undef dprintf
-#endif
-
-int dprintf(int, char const *, ...); /* level, format, ... */
+int m_dprintf(int, char const *, ...); /* level, format, ... */
 int getxopt(int, char *[], char *, int *);  /* argc, argv, opts, startarg */
 
 

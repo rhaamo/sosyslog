@@ -71,7 +71,7 @@ im_file_init(struct i_module *I, char **argv, int argc)
 	struct im_file_ctx	*c;
 	int			ch, argcnt, start;
 
-	dprintf(MSYSLOG_INFORMATIVE, "im_file_init: Entering\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "im_file_init: Entering\n");
 
 	I->im_path = NULL;
 	start = 0;
@@ -101,7 +101,7 @@ im_file_init(struct i_module *I, char **argv, int argc)
 		case 't':
 			if ((I->im_ctx = malloc(sizeof(struct im_file_ctx)))
 			    == NULL) {
-				dprintf(MSYSLOG_SERIOUS, "om_file_init: error"
+				m_dprintf(MSYSLOG_SERIOUS, "om_file_init: error"
 				    " allocating context!\n");
 				return (-1);
 			}
@@ -109,7 +109,7 @@ im_file_init(struct i_module *I, char **argv, int argc)
 			c->timefmt = strdup(argv[argcnt]);
 			break;
 		default:
-			dprintf(MSYSLOG_SERIOUS, "om_file_init: command line"
+			m_dprintf(MSYSLOG_SERIOUS, "om_file_init: command line"
 			    " error, at arg %c [%s]\n", ch,
 			    argv[argcnt]? argv[argcnt]: "");
 			return (-1);
@@ -118,7 +118,7 @@ im_file_init(struct i_module *I, char **argv, int argc)
 	}
 
 	if (I->im_ctx != NULL && c->timefmt == NULL) {
-		dprintf(MSYSLOG_SERIOUS, "om_file_init: start of time string but"
+		m_dprintf(MSYSLOG_SERIOUS, "om_file_init: start of time string but"
 		    " no string!\n");
 		return (-1);
 	}
@@ -127,12 +127,12 @@ im_file_init(struct i_module *I, char **argv, int argc)
 		c->start = start;
 
 	if (path == NULL) {
-		dprintf(MSYSLOG_SERIOUS, "om_file_init: no file/pipe to read\n");
+		m_dprintf(MSYSLOG_SERIOUS, "om_file_init: no file/pipe to read\n");
 		return (-1);
 	}
 
 	if ((I->im_fd = open(path, O_RDONLY, 0)) < 0) {
-		dprintf(MSYSLOG_SERIOUS, "im_file_init: can't open %s (%d)\n",
+		m_dprintf(MSYSLOG_SERIOUS, "im_file_init: can't open %s (%d)\n",
 		    argv[1], errno);
 		return (-1);
 	}
@@ -179,7 +179,7 @@ im_file_read(struct i_module *im, int infd, struct im_msg  *ret)
 				if ((end = strptime((p + c->start), c->timefmt, &tm))
 				    == NULL) {
 
-					dprintf(MSYSLOG_WARNING, "om_file_read"
+					m_dprintf(MSYSLOG_WARNING, "om_file_read"
 					    ": error parsing time!\n");
 
 				} else {
@@ -191,7 +191,7 @@ im_file_read(struct i_module *im, int infd, struct im_msg  *ret)
 					if (strftime(ret->im_msg,
 					    sizeof(ret->im_msg) - 1,
 					    "%b %e %H:%M:%S ", &tm) == 0) {
-						dprintf(MSYSLOG_WARNING,
+						m_dprintf(MSYSLOG_WARNING,
 						    "om_file_read: error "
 						    "printing time!\n");
 					} else {
@@ -212,7 +212,7 @@ im_file_read(struct i_module *im, int infd, struct im_msg  *ret)
 			strncat(ret->im_msg, ":", sizeof (ret->im_msg) - 1
 			    - strlen(ret->im_msg));
 
-			dprintf(MSYSLOG_INFORMATIVE, "im_file_read: Entering "
+			m_dprintf(MSYSLOG_INFORMATIVE, "im_file_read: Entering "
 			    "with header %s\n", ret->im_msg);
 
 			if (ret->im_pri &~ (LOG_FACMASK|LOG_PRIMASK))

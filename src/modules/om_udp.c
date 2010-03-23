@@ -98,10 +98,10 @@ om_udp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	int			ch;
 	int			argcnt;
 
-	dprintf(MSYSLOG_INFORMATIVE, "om_udp init: Entering\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_udp init: Entering\n");
 
 	if ((*ctx = (void *) calloc(1, sizeof(struct om_udp_ctx))) == NULL) {
-		dprintf(MSYSLOG_INFORMATIVE, "om_udp_init: couldn't allocate"
+		m_dprintf(MSYSLOG_INFORMATIVE, "om_udp_init: couldn't allocate"
 		    " context\n");
 		return (-1);
 	}
@@ -128,7 +128,7 @@ om_udp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 			break;
 
 		default:
-			dprintf(MSYSLOG_SERIOUS, "om_udp_init: parsing error"
+			m_dprintf(MSYSLOG_SERIOUS, "om_udp_init: parsing error"
 			    " [%c]\n", ch);
 			if (c->host)
 				free(c->host);
@@ -142,14 +142,14 @@ om_udp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 	}
 
 	if ( c->host == NULL) {
-		dprintf(MSYSLOG_SERIOUS, "om_udp_init: host unspecified\n");
+		m_dprintf(MSYSLOG_SERIOUS, "om_udp_init: host unspecified\n");
 		return (-1);
 	}
 
 	errno = 0;
 	if ((c->fd = sock_udp(c->host, c->port == NULL? "syslog" : c->port,
 	    &c->addr, &c->addrlen)) == -1) {
-		dprintf(MSYSLOG_SERIOUS, "om_udp_init: error creating generic"
+		m_dprintf(MSYSLOG_SERIOUS, "om_udp_init: error creating generic"
 		    " outgoing UDP socket [%s]", strerror(errno));
 		return (-1);
 	}
@@ -189,12 +189,12 @@ om_udp_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 		    f->f_prevpri, time_buf, m->msg);
 	}
 
-	dprintf(MSYSLOG_INFORMATIVE, "om_udp_write: sending to %s:%s, %s",
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_udp_write: sending to %s:%s, %s",
 	    c->host, c->port, line);
 
 	if (udp_send(c->fd, line, l, c->addr, c->addrlen) == -1) {
 
-		dprintf(MSYSLOG_SERIOUS, "om_udp_write: error sending "
+		m_dprintf(MSYSLOG_SERIOUS, "om_udp_write: error sending "
 		    "to remote host [%s]", strerror(errno));
 	}
 			

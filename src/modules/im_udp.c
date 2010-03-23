@@ -89,7 +89,7 @@ im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 	int			 slen;
 
 	if (ret == NULL) {
-		dprintf(MSYSLOG_SERIOUS, "im_udp: arg is null\n");
+		m_dprintf(MSYSLOG_SERIOUS, "im_udp: arg is null\n");
 		return (-1);
 	}
 
@@ -129,7 +129,7 @@ im_udp_read(struct i_module *im, int infd, struct im_msg *ret)
 		    sscanf(ret->im_msg, "%n%89s %n%*s", &n1, host,
 		    &n2) != 1) ||
 		    ret->im_msg[n2] == '\0') {
-			dprintf(MSYSLOG_INFORMATIVE, "im_udp_read: skipped"
+			m_dprintf(MSYSLOG_INFORMATIVE, "im_udp_read: skipped"
 			    " invalid message [%s]\n", ret->im_msg);
 			return (0);
 		}
@@ -214,7 +214,7 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 			c->flags |= M_NOTFQDN;
 			break;
 		default:
-			dprintf(MSYSLOG_SERIOUS, "im_udp_init: parsing error"
+			m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: parsing error"
 			    " [%c]\n", ch);
 			free(c);
 			return (-1);
@@ -225,14 +225,14 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 	I->im_fd = socket(AF_INET, SOCK_DGRAM, 0);
 
 	if ((sa = resolv_name(host, port, "udp", &salen)) == NULL) {
-		dprintf(MSYSLOG_SERIOUS, "im_udp_init: error resolving host"
+		m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: error resolving host"
 		    "[%s] and port [%s]", host, port);
 		free(c);
 		return (-1);
 	}
 
 	if (bind(I->im_fd, sa, salen) < 0) {
-		dprintf(MSYSLOG_SERIOUS, "im_udp_init: error binding to host"
+		m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: error binding to host"
 		    "[%s] and port [%s]", host, port);
 		free(c);
 		return (-1);
@@ -242,7 +242,7 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 
 	add_fd_input(I->im_fd , I);
 
-	dprintf(MSYSLOG_INFORMATIVE, "im_udp: running\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "im_udp: running\n");
 	return (1);
 }
 

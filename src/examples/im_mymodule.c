@@ -54,11 +54,11 @@ int
 im_mymodule_read(struct i_module *im, int index, struct im_msg *ret)
 {
 
-	dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_read: Entering\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_read: Entering\n");
 
 	/* read from input */
 
-	dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_read: Leaving\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_read: Leaving\n");
 
 	return (1);
 }
@@ -71,11 +71,11 @@ im_mymodule_read(struct i_module *im, int index, struct im_msg *ret)
 int
 im_mymodule_init (struct i_module *I, char **argv, int argc)
 {
-	dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_init: Entering\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_init: Entering\n");
 
 	/* initialize */
 
-	dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_init: Leaving\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_init: Leaving\n");
 
 	add_fd_input(I->im_fd , I, 0);
 
@@ -89,11 +89,11 @@ im_mymodule_init (struct i_module *I, char **argv, int argc)
 int
 im_mymodule_close (struct i_module *im) 
 {
-	dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_close: Entering\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_close: Entering\n");
 
 	/* close */
 
-	dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_close: Leaving\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_mymodule_close: Leaving\n");
 
         return (1);
 }

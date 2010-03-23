@@ -148,7 +148,7 @@ resolv_addr(struct sockaddr *addr, socklen_t addrlen, char *host, int hlen,
 	}
 #endif /* HAVE_INET_NTOP */
 
-	dprintf(MSYSLOG_SERIOUS, "resolv_addr: error resolving "
+	m_dprintf(MSYSLOG_SERIOUS, "resolv_addr: error resolving "
 	     "remote host name!\n");
 	if (host)
 		host[0] = '\0';
@@ -187,7 +187,7 @@ resolv_name(char *host, char *port, char *proto, socklen_t *salen)
 
 	if ( (i = getaddrinfo(host, port, &hints, &res)) != 0) {
 
-		dprintf(MSYSLOG_SERIOUS, "resolv_name: error on address "
+		m_dprintf(MSYSLOG_SERIOUS, "resolv_name: error on address "
 		    "to listen %s, %s: %s\n", host, port, gai_strerror(i));
 
 		return (NULL);
@@ -247,7 +247,7 @@ inet_aton(host, &sin->sin_addr) == 1
 
 	} else if ((hp = gethostbyname(host)) == NULL) {
 
-		dprintf(MSYSLOG_SERIOUS, "resolv_name: error "
+		m_dprintf(MSYSLOG_SERIOUS, "resolv_name: error "
 		    "resolving host address %s, %s\n", host, port);
 		return (NULL);
 	}

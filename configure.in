@@ -187,7 +187,7 @@ elif test "$UNAME" = "AIX" ; then
 	SHARED_PARAMS="-lc -bI:libmsyslog.imp -bexpall -bnoentry -brtl"
 	cat > src/modules/libmsyslog.imp <<-EOF
 		#! .
-		dprintf
+		m_dprintf
 		logerror
 		add_fd_input
 		place_signal

@@ -373,12 +373,12 @@ main(int argc, char **argv)
 	}
 
 	if ( Inputs.im_fd < 0 && Inputs.im_next == NULL ) {
-		dprintf(MSYSLOG_SERIOUS, "syslogd: no inputs active\n");
+		m_dprintf(MSYSLOG_SERIOUS, "syslogd: no inputs active\n");
 		usage();
 	}
 
 	if (argc != argcnt)
-		dprintf(MSYSLOG_SERIOUS, "syslogd: remaining command"
+		m_dprintf(MSYSLOG_SERIOUS, "syslogd: remaining command"
 		    " line not parsed!\n");
 
 	if (!Debug) {
@@ -440,7 +440,7 @@ main(int argc, char **argv)
 	place_signal(SIGPIPE, SIG_IGN);
 
 	if ( (alt_stack.ss_sp = malloc(SIGSTKSZ)) == NULL) {
-		dprintf(MSYSLOG_CRITICAL, "malloc altstack struct");
+		m_dprintf(MSYSLOG_CRITICAL, "malloc altstack struct");
 		exit(-1);
 	}
 #if 0 /* should we do this on some OSs (ie. Aix)? */
@@ -556,7 +556,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	dprintf(MSYSLOG_INFORMATIVE, "off & running....\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "off & running....\n");
 
 	init(0);
 	place_signal(SIGHUP, init);
@@ -570,17 +570,17 @@ main(int argc, char **argv)
 			die(WantDie);
 
 		if (fd_inputs == NULL) {
-			dprintf(MSYSLOG_CRITICAL, "no input struct");
+			m_dprintf(MSYSLOG_CRITICAL, "no input struct");
 			exit(-1);
 		}
 
 		/* count will always be less than fd_in_count */
 		switch (count = poll(fd_inputs, fd_in_count, -1)) {
 		case 0:
-			dprintf(MSYSLOG_INFORMATIVE, "main: poll returned 0\n");
+			m_dprintf(MSYSLOG_INFORMATIVE, "main: poll returned 0\n");
 			continue;
 		case -1:
-			dprintf(MSYSLOG_INFORMATIVE, "main: poll returned "
+			m_dprintf(MSYSLOG_INFORMATIVE, "main: poll returned "
 			    "-1\n");
 			if (errno != EINTR)
 				logerror("poll");
@@ -606,7 +606,7 @@ main(int argc, char **argv)
 				    (val = (*fd_inputs_mod[i]->im_func->im_read)
 				    (fd_inputs_mod[i], fd_inputs[i].fd,
 				    &log)) < 0) {
-					dprintf(MSYSLOG_SERIOUS, "syslogd: "
+					m_dprintf(MSYSLOG_SERIOUS, "syslogd: "
 					    "Error calling input module %s, "
 					    "for fd %i\n", mname, fd);
 
@@ -712,7 +712,7 @@ logmsg(int pri, char *msg, char *from, int flags)
 	if (from == NULL || *from == '\0')
 		from = LocalHostName;
 
-	dprintf(MSYSLOG_INFORMATIVE2, "logmsg: pri 0%o, flags 0x%x, from %s,"
+	m_dprintf(MSYSLOG_INFORMATIVE2, "logmsg: pri 0%o, flags 0x%x, from %s,"
 	    " msg %s\n", pri, flags, from, msg);
 
 	sigemptyset(&mask);
@@ -832,7 +832,7 @@ logmsg(int pri, char *msg, char *from, int flags)
 
 			memcpy(&f->f_tm, &timestamp, sizeof(f->f_tm));
 			f->f_prevcount++;
-			dprintf(MSYSLOG_INFORMATIVE, "msg repeated %d times,"
+			m_dprintf(MSYSLOG_INFORMATIVE, "msg repeated %d times,"
 			    " %ld sec of %d\n", f->f_prevcount,
 			    (long)(now - f->f_time),
 			    repeatinterval[f->f_repeatcount]);
@@ -902,7 +902,7 @@ doLog(struct filed *f, int flags, char *message, int prilev, int fac)
 	time(&f->f_time);
 	for (om = f->f_omod; om; om = om->om_next) {
 		if (!om->om_func || !om->om_func->om_write) {
-			dprintf(MSYSLOG_SERIOUS, "doLog: error, no write "
+			m_dprintf(MSYSLOG_SERIOUS, "doLog: error, no write "
 			    "function in output module [%s], message [%s]\n",
 			    om->om_func->om_name, m.msg);
 			continue;
@@ -911,7 +911,7 @@ doLog(struct filed *f, int flags, char *message, int prilev, int fac)
 		/* call this module write */
 		ret = (*(om->om_func->om_write))(f, flags, &m, om->ctx);
 		if (ret < 0) {
-			dprintf(MSYSLOG_SERIOUS, "doLog: error with output "
+			m_dprintf(MSYSLOG_SERIOUS, "doLog: error with output "
 			    "module [%s] for message [%s]\n",
 			    om->om_func->om_name, m.msg);
 		} else if (ret == 0)
@@ -962,7 +962,7 @@ markit(void)
 	for (f = Files; f; f = f->f_next) {
 		if (f->f_prevcount && now >= REPEATTIME(f)) {
 			/* we should report this based on module */
-			dprintf(MSYSLOG_INFORMATIVE, "flush: repeated %d "
+			m_dprintf(MSYSLOG_INFORMATIVE, "flush: repeated %d "
 			    "times, %d sec.\n", f->f_prevcount,
 			    repeatinterval[f->f_repeatcount]);
 			doLog(f, 0, NULL, 0, 0);
@@ -990,7 +990,7 @@ logerror(char *type) {
 	else
 		(void)snprintf(buf, sizeof(buf), "syslogd: %s", type);
 	errno = 0;
-	dprintf(MSYSLOG_INFORMATIVE, "%s\n", buf);
+	m_dprintf(MSYSLOG_INFORMATIVE, "%s\n", buf);
 	logmsg(LOG_SYSLOG|LOG_ERR, buf, LocalHostName, ADDDATE);
 }
 
@@ -1014,7 +1014,7 @@ die(int signo) {
 	Initialized = was_initialized;
 
 	if (signo) {
-		dprintf(MSYSLOG_SERIOUS, "syslogd: exiting on signal %d\n",
+		m_dprintf(MSYSLOG_SERIOUS, "syslogd: exiting on signal %d\n",
 		    signo);
 		(void)sprintf(buf, "exiting on signal %d", signo);
 		errno = 0;
@@ -1061,7 +1061,7 @@ init(int signo)
  	char prog[NAME_MAX+1];
 	struct o_module *om, *om_next;
 
-	dprintf(MSYSLOG_INFORMATIVE, "init\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "init\n");
 
 	/*
 	 *  Close all open log files.
@@ -1116,7 +1116,7 @@ init(int signo)
 	if ( (main_lib = dlopen(INSTALL_LIBDIR "/" MLIBNAME_STR, DLOPEN_FLAGS))
 	    == NULL && (Debug && (main_lib = dlopen("./" MLIBNAME_STR,
 	    DLOPEN_FLAGS)) == NULL) ) {
-	        dprintf(MSYSLOG_CRITICAL, "init: Error opening main library, [%s] "
+	        m_dprintf(MSYSLOG_CRITICAL, "init: Error opening main library, [%s] "
 	            "file [%s]\n", dlerror(), INSTALL_LIBDIR "/" MLIBNAME_STR);
 	        exit(-1);
 	}
@@ -1138,23 +1138,23 @@ init(int signo)
 
 	/* open the configuration file */
 	if ((cf = fopen(ConfFile, "r")) == NULL) {
-		dprintf(MSYSLOG_SERIOUS, "cannot open %s\n", ConfFile);
+		m_dprintf(MSYSLOG_SERIOUS, "cannot open %s\n", ConfFile);
 		if ( (*nextp = (struct filed *) calloc(1, sizeof(*f)))
 		    == NULL) {
-			dprintf(MSYSLOG_CRITICAL, "calloc struct filed");
+			m_dprintf(MSYSLOG_CRITICAL, "calloc struct filed");
 			exit(-1);
 		}
 		if (cfline("*.ERR\t/dev/console", *nextp, "*") == -1) {
-			dprintf(MSYSLOG_CRITICAL, "can't write to console");
+			m_dprintf(MSYSLOG_CRITICAL, "can't write to console");
 			exit(-1);
 		}
 		if ( ((*nextp)->f_next = (struct filed *) calloc(1, sizeof(*f)))
 		    == NULL) {
-			dprintf(MSYSLOG_CRITICAL, "calloc struct filed");
+			m_dprintf(MSYSLOG_CRITICAL, "calloc struct filed");
 			exit(-1);
 		}
 		if (cfline("*.PANIC\t*", (*nextp)->f_next, "*") == -1) {
-			dprintf(MSYSLOG_CRITICAL, "can't write to console");
+			m_dprintf(MSYSLOG_CRITICAL, "can't write to console");
 			exit(-1);
 		}
 		Initialized = 1;
@@ -1186,7 +1186,7 @@ init(int signo)
 			if (fgets(&cline[clen - 2], sizeof(cline) - clen, cf)
 			    == NULL) {
 				cline[clen - 2] = '\0';
-				dprintf(MSYSLOG_INFORMATIVE, "syslogd: error "
+				m_dprintf(MSYSLOG_INFORMATIVE, "syslogd: error "
 				    "merging line [%s]\n", cline);
 				break;
 			}
@@ -1221,7 +1221,7 @@ init(int signo)
 			}
 		*p = '\0';
 		if ( (f = (struct filed *)calloc(1, sizeof(*f))) == NULL) {
-			dprintf(MSYSLOG_CRITICAL, "calloc struct filed");
+			m_dprintf(MSYSLOG_CRITICAL, "calloc struct filed");
 			exit(-1);
 		}
 		if (cfline(cline, f, prog) == 1) {
@@ -1237,7 +1237,7 @@ init(int signo)
 	fclose(cf);
 
 	if (Files == NULL) {
-		dprintf(MSYSLOG_CRITICAL, "syslogd: WARNING NO OUTPUT MODULES"
+		m_dprintf(MSYSLOG_CRITICAL, "syslogd: WARNING NO OUTPUT MODULES"
 		    " ACTIVE, GIVING UP!\n");
 		exit(-1);
 	}
@@ -1267,7 +1267,7 @@ init(int signo)
 	}
 
 	logmsg(LOG_SYSLOG|LOG_INFO, "syslogd: restart", LocalHostName, ADDDATE);
-	dprintf(MSYSLOG_INFORMATIVE, "syslogd: restarted\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "syslogd: restarted\n");
 }
 
 /*
@@ -1281,7 +1281,7 @@ cfline(char *line, struct filed *f, char *prog) {
 	char *bp;
 	char buf[MAXLINE], ebuf[240];
 
-	dprintf(MSYSLOG_INFORMATIVE, "cfline(\"%s\", f, \"%s\")\n", line,
+	m_dprintf(MSYSLOG_INFORMATIVE, "cfline(\"%s\", f, \"%s\")\n", line,
 	    prog);
 
 	errno = 0;	/* keep strerror() stuff out of logerror messages */
@@ -1448,11 +1448,11 @@ cfline(char *line, struct filed *f, char *prog) {
 		p++;
 
 	if (omodule_create(p, f, NULL) == -1) {
-		dprintf(MSYSLOG_SERIOUS, "cfline: error initializing modules!\n");
+		m_dprintf(MSYSLOG_SERIOUS, "cfline: error initializing modules!\n");
 		return (-1);
 	}
 
-	dprintf(MSYSLOG_INFORMATIVE, "cfline: all ok\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "cfline: all ok\n");
 
 	return (1);
 }
@@ -1472,7 +1472,7 @@ getmsgbufsize()
 	mib[1] = KERN_MSGBUFSIZE;
 	size = sizeof msgbufsize;
 	if (sysctl(mib, 2, &msgbufsize, &size, NULL, 0) == -1) {
-		dprintf(MSYSLOG_INFORMATIVE, "couldn't get kern.msgbufsize\n");
+		m_dprintf(MSYSLOG_INFORMATIVE, "couldn't get kern.msgbufsize\n");
 		return (0);
 	}
 
@@ -1547,12 +1547,12 @@ add_fd_input(int fd, struct i_module *im)
 {
 
 	if (fd < 0 || im == NULL) {
-		dprintf(MSYSLOG_INFORMATIVE, "add_fd_input: error on params"
+		m_dprintf(MSYSLOG_INFORMATIVE, "add_fd_input: error on params"
 		    " %d%s\n", fd, im ? "" : " null im");
 		return (-1);
 	}
 
-	dprintf(MSYSLOG_INFORMATIVE, "add_fd_input: adding fd %d "
+	m_dprintf(MSYSLOG_INFORMATIVE, "add_fd_input: adding fd %d "
 	    "for module %s\n", fd, im->im_func->im_name ?
 	    im->im_func->im_name : "unknown");
 
@@ -1562,7 +1562,7 @@ add_fd_input(int fd, struct i_module *im)
 		if ( (fd_inputs = (struct pollfd *) realloc(fd_inputs,
 		    (size_t) (fd_in_count + 50) * sizeof(struct pollfd)))
 		    == NULL) {
-			dprintf(MSYSLOG_CRITICAL, "realloc inputs");
+			m_dprintf(MSYSLOG_CRITICAL, "realloc inputs");
 			exit(-1);
 		}
 
@@ -1570,7 +1570,7 @@ add_fd_input(int fd, struct i_module *im)
 		    realloc(fd_inputs_mod, (size_t) (fd_in_count + 50)
 		    * sizeof(struct i_module *)))
 		    == NULL) {
-			dprintf(MSYSLOG_CRITICAL, "realloc inputs");
+			m_dprintf(MSYSLOG_CRITICAL, "realloc inputs");
 			exit(-1);
 		}
 
@@ -1589,7 +1589,7 @@ remove_fd_input(int fd)
 {
 	int i;
 
-	dprintf(MSYSLOG_INFORMATIVE, "remove_fd_input: remove fd %d\n",
+	m_dprintf(MSYSLOG_INFORMATIVE, "remove_fd_input: remove fd %d\n",
 	    fd);
 
 	for (i = 0; i < fd_in_count && fd_inputs[i].fd != fd; i++);
@@ -1647,7 +1647,7 @@ place_signal(int signo, RETSIGTYPE (*func)(int))) (int)
  */
 
 int
-dprintf(const int level, char const *fmt, ...)
+m_dprintf(const int level, char const *fmt, ...)
 {
 	int ret;
 	va_list var;

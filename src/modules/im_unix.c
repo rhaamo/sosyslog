@@ -111,7 +111,7 @@ im_unix_init(struct i_module *I, char **argv, int argc)
 	struct sockaddr_un sunx;
 	char *logger;
 
-	dprintf(MSYSLOG_INFORMATIVE, "im_unix_init: Entering\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "im_unix_init: Entering\n");
 
 	if (I == NULL || argv == NULL || (argc != 2 && argc != 1)) 
 		return (-1);
@@ -139,7 +139,7 @@ im_unix_init(struct i_module *I, char **argv, int argc)
 		(void) snprintf(I->im_buf, sizeof(I->im_buf),
 		    "cannot create %s", logger);
 		logerror(I->im_buf);
-		dprintf(MSYSLOG_SERIOUS, "cannot create %s (%d)\n",
+		m_dprintf(MSYSLOG_SERIOUS, "cannot create %s (%d)\n",
 		    logger, errno);
 		return (-1);
 	}
