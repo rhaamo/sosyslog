@@ -64,7 +64,7 @@
 /* #warning using 	_PATH_KLOG	"/dev/klog" */
 #endif
 
-#define	_PATH_LOGCONF	"/etc/msyslog.conf"
+#define	_PATH_MSYSLOG_CONF	"/etc/msyslog.conf"
 
 /*
  * Debug reporting levels
