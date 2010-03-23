@@ -699,8 +699,8 @@ HASH_SRCS_MODULES
 HASH_OBJS_MODULES
 HAVE_SOCKLEN_T
 MAIN_CPPFLAGS
-MSYSLOG_DAEMON_NAME
-MSYSLOG_VERSION
+SOSYSLOG_DAEMON_NAME
+SOSYSLOG_VERSION
 EXTRA_MODULES
 LTLIBOBJS'
 ac_subst_files=''
@@ -5833,15 +5833,15 @@ then
 	CFLAGS="$CFLAGS -Wall"
 fi
 
-MSYSLOG_VERSION="1.08g"
+SOSYSLOG_VERSION="1.08g"
 
 cat >>confdefs.h <<_ACEOF
-#define MSYSLOG_VERSION_STR "$MSYSLOG_VERSION"
+#define SOSYSLOG_VERSION_STR "$SOSYSLOG_VERSION"
 _ACEOF
 
-echo msyslog version... $MSYSLOG_VERSION
+echo msyslog version... $SOSYSLOG_VERSION
 
-MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
+MLIBNAME="libmsyslog.so.$SOSYSLOG_VERSION" ;
 cat >>confdefs.h <<_ACEOF
 #define MLIBNAME_STR "$MLIBNAME"
 _ACEOF
@@ -5934,7 +5934,7 @@ rm -f conftest*
 { $as_echo "$as_me:$LINENO: checking for daemon name" >&5
 $as_echo_n "checking for daemon name... " >&6; }
 
-MSYSLOG_DAEMON_NAME="msyslogd";
+SOSYSLOG_DAEMON_NAME="sosyslogd";
 
 
 # Check whether --with-daemon-name was given.
@@ -5946,14 +5946,14 @@ if test "${with_daemon_name+set}" = set; then
 $as_echo "$as_me: error: \"$error_tmp\"" >&2;}
    { (exit 1); exit 1; }; }
 	else
-		MSYSLOG_DAEMON_NAME="$withval";
+		SOSYSLOG_DAEMON_NAME="$withval";
 	fi
 
 fi
 
 
-{ $as_echo "$as_me:$LINENO: result: \"$MSYSLOG_DAEMON_NAME\"" >&5
-$as_echo "\"$MSYSLOG_DAEMON_NAME\"" >&6; }
+{ $as_echo "$as_me:$LINENO: result: \"$SOSYSLOG_DAEMON_NAME\"" >&5
+$as_echo "\"$SOSYSLOG_DAEMON_NAME\"" >&6; }
 
 
 # Check whether --with-maximum-optimization was given.

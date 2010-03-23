@@ -61,12 +61,12 @@ then
 	CFLAGS="$CFLAGS -Wall"
 fi
 
-MSYSLOG_VERSION="1.08g"
+SOSYSLOG_VERSION="1.08g"
 
-AC_DEFINE_UNQUOTED(MSYSLOG_VERSION_STR, "$MSYSLOG_VERSION")
-echo msyslog version... $MSYSLOG_VERSION
+AC_DEFINE_UNQUOTED(SOSYSLOG_VERSION_STR, "$SOSYSLOG_VERSION")
+echo msyslog version... $SOSYSLOG_VERSION
 
-MLIBNAME="libmsyslog.so.$MSYSLOG_VERSION" ;
+MLIBNAME="libmsyslog.so.$SOSYSLOG_VERSION" ;
 AC_DEFINE_UNQUOTED(MLIBNAME_STR, "$MLIBNAME")
 
 MANPAGES="syslog.conf.5 syslogd.8"
@@ -118,7 +118,7 @@ AC_EGREP_HEADER(stack_t, [signal.h],[
 
 AC_MSG_CHECKING(for daemon name)
 
-MSYSLOG_DAEMON_NAME="msyslogd";
+SOSYSLOG_DAEMON_NAME="sosyslogd";
 
 AC_ARG_WITH(daemon-name,
 [  --with-daemon-name Set a different daemon name, instead of syslogd
@@ -127,11 +127,11 @@ AC_ARG_WITH(daemon-name,
 		error_tmp="You have to specify a value, --with-daemon-name";
 		AC_MSG_ERROR("$error_tmp")
 	else
-		MSYSLOG_DAEMON_NAME="$withval";
+		SOSYSLOG_DAEMON_NAME="$withval";
 	fi
 ])
 
-AC_MSG_RESULT("$MSYSLOG_DAEMON_NAME")
+AC_MSG_RESULT("$SOSYSLOG_DAEMON_NAME")
 
 AC_ARG_WITH(maximum-optimization,
 [  --without-maximum-optimization
@@ -502,8 +502,8 @@ AC_SUBST(HASH_SRCS_MODULES)
 AC_SUBST(HASH_OBJS_MODULES)
 AC_SUBST(HAVE_SOCKLEN_T)
 AC_SUBST(MAIN_CPPFLAGS)
-AC_SUBST(MSYSLOG_DAEMON_NAME)
-AC_SUBST(MSYSLOG_VERSION)
+AC_SUBST(SOSYSLOG_DAEMON_NAME)
+AC_SUBST(SOSYSLOG_VERSION)
 AC_SUBST(EXTRA_MODULES)
 
 dnl AC_SUBST(SYMBOL_PREFIX)

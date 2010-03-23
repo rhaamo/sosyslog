@@ -631,7 +631,7 @@ void
 usage(void)
 {
 	fprintf(stderr,
-	    "Modular Syslog vesion " MSYSLOG_VERSION_STR "\n\n"
+	    "Modular Syslog vesion " SOSYSLOG_VERSION_STR "\n\n"
 	    "usage: syslogd [-d <debug_level>] [-u] [-f conffile] "
 	    "[-P pidfile] [-n] [-m markinterval] \\\n [-p logpath] "
 	    "[-a logpath] [-C] -i input1 [-i input2] [-i inputn]\n %s\n"
