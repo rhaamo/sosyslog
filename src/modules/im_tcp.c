@@ -152,7 +152,7 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 		default:
 			m_dprintf(MSYSLOG_SERIOUS, "om_tcp_init: parsing error"
 			    " [%c]\n", ch);
-			free(c);
+			FREE_PTR(c);
 			return (-1);
 		}
 		argcnt++;
@@ -161,7 +161,7 @@ im_tcp_init(struct i_module *I, char **argv, int argc)
 	if ( (I->im_fd = listen_tcp(host, port, &c->addrlen)) < 0) {
 		m_dprintf(MSYSLOG_SERIOUS, "im_tcp_init: error with listen_tcp() %s\n",
 		    strerror(errno));
-		free(c);
+		FREE_PTR(c);
 		return (-1);
 	}
 
@@ -216,7 +216,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		if ((con->fd = accept_tcp(infd, c->addrlen, con->name,
 		    sizeof(con->name), con->port, sizeof(con->port))) < 0) {
 			m_dprintf(MSYSLOG_SERIOUS, "im_tcp_read: couldn't accept\n");
-			free (con);
+			FREE_PTR(con);
 			return (-1);
 		}
 
@@ -260,7 +260,7 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 		remove_fd_input(con->fd);
 
 		/* connection closed, remove its tcp_con struct */
-		close (con->fd);
+		CLOSE_FD(con->fd);
 
 		/* remove node */
 		for (prev = &c->first; *prev != NULL ; prev = &(*prev)->next) {
@@ -276,8 +276,8 @@ im_tcp_read(struct i_module *im, int infd, struct im_msg *ret)
 			printline(ret->im_host, con->saveline,
 			    strlen(con->saveline),  0);
 
-		free(con);
-	
+		FREE_PTR(con);
+
 		return (0);
 
 	} else if (n < 0 && errno != EINTR) {
@@ -411,14 +411,15 @@ im_tcp_close(struct i_module *im)
 
 	/* close all connections */
 	for (con = c->first; con; con = cnext) {
-		if (con->fd > -1)
-			close(con->fd);
+		CLOSE_FD(con->fd);
 		cnext = con->next;
-		free(con);
+		FREE_PTR(con);
 	}
 
 	im->im_ctx = NULL;
 
 	/* close listening socket */
-	return (close(im->im_fd));
+	CLOSE_FD(im->im_fd);
+
+	return (0);
 }

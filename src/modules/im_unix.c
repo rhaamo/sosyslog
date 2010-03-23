@@ -154,7 +154,7 @@ im_unix_init(struct i_module *I, char **argv, int argc)
 int
 im_unix_close( struct i_module *im)
 {
-	close(im->im_fd);
+	CLOSE_FD(im->im_fd);
 
 	if (im->im_path)
 		unlink(im->im_path);

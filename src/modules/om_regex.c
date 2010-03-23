@@ -170,7 +170,7 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		default:
 			m_dprintf(MSYSLOG_SERIOUS, "om_regex: unknown parameter"
 			    " [%c]\n", ch);
-			free(*ctx);
+			FREE_PTR(*ctx);
 			return (-1);
 		}
 
@@ -179,7 +179,7 @@ om_regex_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 			m_dprintf(MSYSLOG_SERIOUS, "om_regex: error compiling "
 			    "regular expression [%s] for message\n",
 			    argv[argcnt]);
-			free(*ctx);
+			FREE_PTR(*ctx);
 
 			return (-1);
 		}

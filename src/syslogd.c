@@ -418,7 +418,7 @@ main(int argc, char **argv)
 			dup2(fd, STDOUT_FILENO);
 			dup2(fd, STDERR_FILENO);
 			if (fd > 2)
-				close(fd);
+				CLOSE_FD(fd);
 		}
 	}
 
@@ -461,7 +461,7 @@ main(int argc, char **argv)
 	sa.sa_flags = SA_NOCLDSTOP | SA_RESTART | SA_ONSTACK;
 	if (sigaltstack(&alt_stack, NULL) < 0 ||
 	    sigaction(SIGTSTP, &sa, NULL) < 0 ) {
-		free(alt_stack.ss_sp);
+		FREE_PTR(alt_stack.ss_sp);
 		perror(strerror(errno));
 		exit(-1);
 	}
@@ -790,11 +790,9 @@ logmsg(int pri, char *msg, char *from, int flags)
 				(*consfile.f_omod->om_func->om_close)
 				    (&consfile, consfile.f_omod->ctx);
 			if (consfile.f_omod) {
-				if (consfile.f_omod->ctx)
-					free(consfile.f_omod->ctx);
-				if (consfile.f_omod->status)
-					free(consfile.f_omod->status);
-				free(consfile.f_omod);
+				FREE_PTR(consfile.f_omod->ctx);
+				FREE_PTR(consfile.f_omod->status);
+				FREE_PTR(consfile.f_omod);
 				consfile.f_omod = NULL;
 			}
 		}
@@ -1024,8 +1022,8 @@ die(int signo) {
 	for (im = &Inputs; im; im = im->im_next)
 		if (im->im_func && im->im_func->im_close)
 			(*im->im_func->im_close)(im);
-		else if (im->im_fd)
-			close(im->im_fd);
+		else
+			CLOSE_FD(im->im_fd);
 
 	if (!Debug && (DaemonFlags == SYSLOGD_LOCKED_PIDFILE)) {
 		struct flock fl;
@@ -1091,19 +1089,16 @@ init(int signo)
 			/* free om_ctx om_func and stuff */
 			om_next = om->om_next;
 
-			if (om->ctx)
-				free(om->ctx);
-			if (om->status)
-				free(om->status);
-			free(om);
+			FREE_PTR(om->ctx);
+			FREE_PTR(om->status);
+			FREE_PTR(om);
 		}
 
 		next = f->f_next;
 
-		if (f->f_program)
-			free(f->f_program);
+		FREE_PTR(f->f_program);
 
-		free(f);
+		FREE_PTR(f);
 	}
 
 #ifdef REOPEN_MAIN_LIBRARY_ON_HUP
@@ -1228,8 +1223,7 @@ init(int signo)
 			*nextp = f;
 			nextp = &f->f_next;
 		} else {
-			free(f);
-			f = NULL;
+			FREE_PTR(f);
 		}
 	}
 

@@ -130,11 +130,9 @@ om_udp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		default:
 			m_dprintf(MSYSLOG_SERIOUS, "om_udp_init: parsing error"
 			    " [%c]\n", ch);
-			if (c->host)
-				free(c->host);
-			if (c->port)
-				free(c->port);
-			free(*ctx);
+			FREE_PTR(c->host);
+			FREE_PTR(c->port);
+			FREE_PTR(*ctx);
 
 			return (-1);
 		}
@@ -197,7 +195,7 @@ om_udp_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 		m_dprintf(MSYSLOG_SERIOUS, "om_udp_write: error sending "
 		    "to remote host [%s]", strerror(errno));
 	}
-			
+
 	return (1);
 }
 
@@ -214,14 +212,11 @@ om_udp_close(struct filed *f, void *ctx)
 
 	c = (struct om_udp_ctx *) ctx;
 
-	if (c->host)
-		free(c->host);
-	if (c->port)
-		free(c->port);
-	if (c->addr)
-		free(c->addr);
+	FREE_PTR(c->host);
+	FREE_PTR(c->port);
+	FREE_PTR(c->addr);
 
-	close(c->fd);
+	CLOSE_FD(c->fd);
 
 	return (1);
 }

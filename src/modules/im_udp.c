@@ -216,7 +216,7 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 		default:
 			m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: parsing error"
 			    " [%c]\n", ch);
-			free(c);
+			FREE_PTR(c);
 			return (-1);
 		}
 		argcnt++;
@@ -227,14 +227,14 @@ im_udp_init(struct i_module *I, char **argv, int argc)
 	if ((sa = resolv_name(host, port, "udp", &salen)) == NULL) {
 		m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: error resolving host"
 		    "[%s] and port [%s]", host, port);
-		free(c);
+		FREE_PTR(c);
 		return (-1);
 	}
 
 	if (bind(I->im_fd, sa, salen) < 0) {
 		m_dprintf(MSYSLOG_SERIOUS, "im_udp_init: error binding to host"
 		    "[%s] and port [%s]", host, port);
-		free(c);
+		FREE_PTR(c);
 		return (-1);
 	}
 
@@ -250,7 +250,7 @@ int
 im_udp_close(struct i_module *im)
 {
 
-	close(im->im_fd);
+	CLOSE_FD(im->im_fd);
 
 	return (0);
 }

@@ -36,6 +36,12 @@
  *    
  */
 
+/*
+ * XXX TODO FIXME
+ * Need replacing of free() and close() by FREE_PTR() and CLOSE_FD() respectively
+ * and check of returns
+ */
+
 #include "config.h"
 
 #include <sys/types.h>

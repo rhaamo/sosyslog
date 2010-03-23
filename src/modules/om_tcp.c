@@ -143,11 +143,9 @@ om_tcp_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		default:
 			m_dprintf(MSYSLOG_SERIOUS, "om_tcp_init: parsing error"
 			    " [%c]\n", ch);
-			if (c->host)
-				free(c->host);
-			if (c->port)
-				free(c->port);
-			free(*ctx);
+			FREE_PTR(c->host);
+			FREE_PTR(c->port);
+			FREE_PTR(*ctx);
 			return (-1);
 		}
 		argcnt++;
@@ -257,8 +255,7 @@ om_tcp_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 		    c->port, c->inc - 1);
 
 		/* just in case */
-		if (c->fd > -1);
-			close(c->fd);
+		CLOSE_FD(c->fd);
 		if ( ((c->fd = connect_tcp(c->host, c->port)) < 0) ||
 	 	    (c->savelen && (write(c->fd, c->saved, c->savelen)
 		    != c->savelen)) || (write(c->fd, line, l) != l) ) {
@@ -268,8 +265,7 @@ om_tcp_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 
 			c->inc++;
 			c->savet = t;
-			if (c->fd)
-				close(c->fd);
+			CLOSE_FD(c->fd);
 			c->fd = -1;
 
 			place_signal(SIGPIPE, sigsave);
@@ -316,15 +312,10 @@ om_tcp_close(struct filed *f, void *ctx)
 	struct om_tcp_ctx *c;
 
 	c = (struct om_tcp_ctx *) ctx;
-	if (c->host)
-		free(c->host);
-	if (c->port)
-		free(c->port);
-
-	if (c->fd);
-		close (c->fd);
-	if (c->saved);
-		free(c->saved);
+	FREE_PTR(c->host);
+	FREE_PTR(c->port);
+	CLOSE_FD(c->fd);
+	FREE_PTR(c->saved);
 
 	return (1);
 }

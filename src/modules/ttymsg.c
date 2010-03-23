@@ -147,18 +147,18 @@ ttymsg(struct iovec *iov, int iovcnt, char *line, int tmout)
 			int cpid, off = 0;
 
 			if (forked) {
-				(void) close(fd);
+				close(fd);
 				_exit(1);
 			}
 			cpid = fork();
 			if (cpid < 0) {
 				(void) snprintf(errbuf, sizeof(errbuf),
 				    "fork: %s", strerror(errno));
-				(void) close(fd);
+				close(fd);
 				return (errbuf);
 			}
 			if (cpid) {	/* parent */
-				(void) close(fd);
+				close(fd);
 				return (NULL);
 			}
 			forked++;
@@ -176,7 +176,7 @@ ttymsg(struct iovec *iov, int iovcnt, char *line, int tmout)
 		 */
 		if (errno == ENODEV || errno == EIO)
 			break;
-		(void) close(fd);
+		close(fd);
 		if (forked)
 			_exit(1);
 		(void) snprintf(errbuf, sizeof(errbuf),
@@ -184,7 +184,7 @@ ttymsg(struct iovec *iov, int iovcnt, char *line, int tmout)
 		return (errbuf);
 	}
 
-	(void) close(fd);
+	close(fd);
 	if (forked)
 		_exit(0);
 	return (NULL);

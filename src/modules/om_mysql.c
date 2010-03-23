@@ -261,7 +261,7 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	if ((ctx->lib = dlopen("libmysqlclient.so", DLOPEN_FLAGS)) == NULL) {
 		m_dprintf(MSYSLOG_SERIOUS, "om_mysql_init: Error loading"
 		    " api library, %s\n", dlerror());
-		free(ctx);  
+		FREE_PTR(ctx);
 		return (-1);
 	}
 
@@ -277,7 +277,7 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	    SYMBOL_PREFIX "mysql_close")) ) {
 		m_dprintf(MSYSLOG_SERIOUS, "om_mysql_init: Error resolving"
 		    " api symbols, %s\n", dlerror());
-		free(ctx);  
+		FREE_PTR(ctx);
 		return (-1);
 	}
 
@@ -369,8 +369,7 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 om_mysql_init_bad:
 	if (ctx) {
 		om_mysql_close(f, ctx);
-		free(ctx);
-		*c = NULL;
+		FREE_PTR(ctx);
 	}
 
 	*status = NULL;
@@ -388,17 +387,11 @@ om_mysql_close(struct filed *f, void *ctx)
 
 	(c->mysql_close)(c->h);
 
-	if (c->table)
-		free(c->table);
-	if (c->host)
-		free(c->host);
-	if (c->user)
-		free(c->user);
-	if (c->passwd)
-		free(c->passwd);
-	if (c->db)
-		free(c->db);
-	if (c->lib)
+		FREE_PTR(c->table);
+		FREE_PTR(c->host);
+		FREE_PTR(c->user);
+		FREE_PTR(c->passwd);
+		FREE_PTR(c->db);
 		dlclose(c->lib);
 
 	return (0);

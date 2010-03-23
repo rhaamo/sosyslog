@@ -143,8 +143,7 @@ im_bsd_read(struct i_module *im, int infd, struct im_msg *ret)
 int
 im_bsd_close (struct i_module *im)
 {
-	if (im->im_fd >= 0)
-		close(im->im_fd);
+	CLOSE_FD(im->im_fd);
 
 	return (0);
 }

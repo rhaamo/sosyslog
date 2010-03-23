@@ -290,7 +290,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	if ((ctx->lib = dlopen("libpq.so", DLOPEN_FLAGS)) == NULL) {
 		m_dprintf(MSYSLOG_SERIOUS, "om_pgsql_init: Error loading"
 		    " api library, %s\n", dlerror());
-		free(ctx);
+		FREE_PTR(ctx);
 		return (-1);
 	}
 
@@ -316,7 +316,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	    SYMBOL_PREFIX "PQfinish"))) {
 		m_dprintf(MSYSLOG_SERIOUS, "om_pgsql_init: Error resolving"
 		    " api symbols, %s\n", dlerror());
-		free(ctx);
+		FREE_PTR(ctx);
 		return (-1);
 	}
 
@@ -371,7 +371,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 		m_dprintf(MSYSLOG_SERIOUS, "om_pgsql_init: Error missing "
 		    "params!\n");
 		dlclose(ctx->lib);
-		free(ctx);
+		FREE_PTR(ctx);
 		return (-1);
 	}
 
@@ -387,7 +387,7 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 		    ctx->PQerrorMessage(h));
 		(ctx->PQfinish)(h); 
 		dlclose(ctx->lib);
-		free(ctx);
+		FREE_PTR(ctx);
 		return (-1);
 	}
 
@@ -412,8 +412,7 @@ om_pgsql_close(struct filed *f, void *ctx) {
 		(c->PQfinish)(((struct om_pgsql_ctx *)ctx)->h);
 	}
 
-	if (c->table)
-		free(c->table);
+	FREE_PTR(c->table);
 
 	return (0);
 }

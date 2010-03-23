@@ -371,8 +371,7 @@ int
 im_linux_close (struct i_module *im)
 {
 	ksym_close();
-	if (im->im_path != NULL) 
-		return (close(im->im_fd));
+	CLOSE_FD(im->im_fd);
 
 	return (0);
 }

@@ -246,7 +246,7 @@ imodule_create_bad:
 		if (im_prev == I && im_prev->im_next == NULL) {
 			im_prev->im_fd = -1;
 		} else if (im_prev->im_next == im) {
-			free (im);
+			FREE_PTR(im);
 			im_prev->im_next = NULL;
 		}
 	}
@@ -256,9 +256,9 @@ imodule_create_bad:
 		char *f;
 
 		for (i = 0; (f = argv[i]) != NULL ; i++)
-			free(f);
+			FREE_PTR(f);
 
-		free(argv);
+		FREE_PTR(argv);
 	}
 
 	return (ret);
@@ -403,7 +403,7 @@ omodule_create(char *c, struct filed *f, char *prog)
 	m_dprintf(MSYSLOG_INFORMATIVE, "omodule_create: all done for output "
 	    "module %s\n", argv[0]);
 
-	free(line);
+	FREE_PTR(line);
 
 	return (1);
 
@@ -411,8 +411,7 @@ omodule_create_bad:
 
 	m_dprintf(MSYSLOG_SERIOUS, "%s", err_buf);
 
-	if (line)
-		free(line);
+	FREE_PTR(line);
 
 	/* free allocated module */
 	if (f->f_omod == om) {
@@ -420,8 +419,7 @@ omodule_create_bad:
 	} else if (om_prev)
 		om_prev->om_next = NULL;
 
-	if (om)
-		free(om);
+	FREE_PTR(om);
 
 	return (-1);
 }
@@ -480,14 +478,14 @@ parseParams(char ***ret, char *c)
 		if ((argc % OMODULE_ARGV_MAX) == 18)
 			if ( (*ret = (char **)realloc(*ret, sizeof(char *) *
 			    (argc + 20))) == NULL) {
-				free(line);
+				FREE_PTR(line);
 				return (-1);
 			}
 		if (*ret != NULL)
 			(*ret)[argc] = NULL;
 	}
-	
-	free(line);
+
+	FREE_PTR(line);
 	return (argc);
 }
 
@@ -526,7 +524,7 @@ addImodule(char *name)
 				i->im_next = NULL;
 		}
 
-		free(im);
+		FREE_PTR(im);
 
 		m_dprintf(MSYSLOG_SERIOUS, "addImodule: couldn't config %s input"
 		    " module\n", buf);
@@ -585,7 +583,7 @@ addOmodule(char *name)
 				o->om_next = NULL;
 		}
 
-		free(om);
+		FREE_PTR(om);
 		return (NULL);
 	}
 
@@ -613,7 +611,7 @@ omoduleDestroy(struct omodule *om)
 		return (-1);
 	}
 
-	free(om->om_name);
+	FREE_PTR(om->om_name);
 
 	return (1);
 }
@@ -677,7 +675,7 @@ imodules_destroy(struct imodule *i)
 
 		dlclose(im->h);
 
-		free(im);
+		FREE_PTR(im);
 	}
 
 	if (last) {
@@ -712,7 +710,7 @@ omodules_destroy(struct omodule *o)
 			last->om_next = om->om_next;
 
 		dlclose(om->h);
-		free(om);
+		FREE_PTR(om);
 	}
 
 	if (last != NULL) {

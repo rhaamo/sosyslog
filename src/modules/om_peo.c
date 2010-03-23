@@ -113,7 +113,7 @@ om_peo_write(struct filed *f, int flags, struct m_msg *msg, void *ctx)
 	}
 	bzero(key, sizeof(key));
 	if ( (keylen = read(fd, key, 40)) < 0) {
-		close(fd);
+		CLOSE_FD(fd);
 		m_dprintf(MSYSLOG_SERIOUS, "om_peo_write: reading form: %s:"
 		    " %s\n", c->keyfile, strerror(errno));
 		return (-1);
@@ -122,7 +122,7 @@ om_peo_write(struct filed *f, int flags, struct m_msg *msg, void *ctx)
 	/* Open macfile and write mac'ed msg */
 	if (c->macfile) {
 		if ( (mfd = open(c->macfile, O_WRONLY, 0)) < 0) {
-			close(fd);
+			CLOSE_FD(fd);
 			m_dprintf(MSYSLOG_SERIOUS, "om_peo_write: opening "
 			    "macfile: %s: %s\n", c->macfile,
 			    strerror(errno));
@@ -132,7 +132,7 @@ om_peo_write(struct filed *f, int flags, struct m_msg *msg, void *ctx)
 		write(mfd, mkey, mac2(key, keylen, m, len, mkey));
 		m_dprintf(MSYSLOG_INFORMATIVE, "om_peo_write: write to macfile"
 		    " ok\n");
-		close(mfd);
+		CLOSE_FD(mfd);
 	}
 
 	/* Generate new key and save it on keyfile */
@@ -140,14 +140,14 @@ om_peo_write(struct filed *f, int flags, struct m_msg *msg, void *ctx)
 	ftruncate(fd, (off_t)0);
 	newkeylen = mac(c->hash_method, key, keylen, m, len, newkey);
 	if (newkeylen == -1) {
-		close(fd);
+		CLOSE_FD(fd);
 		m_dprintf(MSYSLOG_INFORMATIVE, "om_peo_write: generating "
 		    "key[i+1]: keylen = %i: %s\n", newkeylen,
 		    strerror(errno));
 		return (-1);
 	}
 	write(fd, newkey, newkeylen);
-	close(fd);
+	CLOSE_FD(fd);
 	return (1);
 }
 
@@ -169,9 +169,8 @@ void
 release(void)
 {
 	if (keyfile != default_keyfile)
-		free(keyfile);
-	if (macfile != NULL)
-		free(macfile);
+		FREE_PTR(keyfile);
+	FREE_PTR(macfile);
 }
 
 int
@@ -243,7 +242,7 @@ om_peo_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 				return (-1);
 			}
 		} else
-			close(mfd);
+			CLOSE_FD(mfd);
 	}
 
 	/* save data on context */
@@ -277,9 +276,8 @@ om_peo_close(struct filed *f, void *ctx)
 	m_dprintf(MSYSLOG_INFORMATIVE, "om_peo_close\n");
 
 	if (c->keyfile != default_keyfile)
-		free(c->keyfile);
-	if (c->macfile != NULL)
-		free(c->macfile);
+		FREE_PTR(c->keyfile);
+	FREE_PTR(c->macfile);
 	return (0);
 }
 

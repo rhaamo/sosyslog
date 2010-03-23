@@ -315,7 +315,7 @@ connect_tcp(char *host, char *port) {
 	    && sa->sa_family != AF_INET6
 #endif
 	    ) {
-		free(sa);
+		FREE_PTR(sa);
 		return (-1);
 	}
 
@@ -323,11 +323,10 @@ connect_tcp(char *host, char *port) {
 
 		if ( (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &n,
 		    sizeof(n)) != 0) || (connect(fd, sa, salen) != 0) ) {
-			close(fd); /* couldn't set option or connect */
-			fd = -1;
+			CLOSE_FD(fd); /* couldn't set option or connect */
 		}
 
-	free(sa);
+	FREE_PTR(sa);
 	return (fd);
 }
 
@@ -355,11 +354,10 @@ listen_tcp(char *host, char *port, socklen_t *addrlenp) {
 		    SO_REUSEADDR, &r, sizeof(r)) != 0) ||
 		    (bind(fd, sa, *addrlenp) != 0) ||
 		    (listen(fd, LISTENQ) != 0) ) {
-			close(fd); /* couldn't set option or connect */
-			fd = -1;
+			CLOSE_FD(fd); /* couldn't set option or connect */
 		}
 
-	free(sa);
+	FREE_PTR(sa);
 
 	return (fd);
 }
@@ -385,7 +383,7 @@ accept_tcp(int fd, socklen_t addrlen, char *host, int hlen, char *port,
 	if ((connfd = accept(fd, connsa, (socklen_t *) &addrlen)) != -1)
 		(void) resolv_addr(connsa, addrlen, host, hlen, port, plen);
 
-	free(connsa);
+	FREE_PTR(connsa);
 
 	return (connfd);
 }

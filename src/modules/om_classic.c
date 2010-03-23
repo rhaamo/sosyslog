@@ -226,7 +226,7 @@ om_classic_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 			if (c->f_type == F_PIPE && e == EAGAIN)
 				break;
 
-			close(c->fd);
+			CLOSE_FD(c->fd);
 
 			/*
 			 * Check for errors on TTY's due to loss of tty
@@ -306,8 +306,7 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		if (strncmp(argv[1], "-t", 2)) {
 			m_dprintf(MSYSLOG_SERIOUS, "om_classic_init: incorrect" 
 			    " parameter %s, should be '-t'\n", argv[1]);
-			free(*ctx);
-			*ctx = NULL;
+			FREE_PTR(*ctx);
 			return (-1);
 		}
 
@@ -317,8 +316,7 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		if (TypeNames[i] == NULL) {
 			m_dprintf(MSYSLOG_SERIOUS, "om_classic_init: couldn't" 
 			    " determine type %s\n", argv[2]);
-			free(*ctx);
-			*ctx = NULL;
+			FREE_PTR(*ctx);
 			return (-1);
 		}
 
@@ -346,7 +344,9 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		}
 
 		memmove(&c->f_un.f_forw.f_addr, sa, salen);
-		free(sa);
+
+		FREE_PTR(sa);
+
 		c->f_type = F_FORW;
 		snprintf(statbuf, sizeof(statbuf), "om_classic: "
 		    "forwarding messages through UDP to host %s",
@@ -371,8 +371,7 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		if (c->fd < 0) {
 			m_dprintf(MSYSLOG_CRITICAL, "om_classic_init: error "
 			    "opening log file: %s\n", p);
-			free(*ctx);
-			*ctx = NULL;
+			FREE_PTR(*ctx);
 			return (-1);
 		}
 
@@ -429,8 +428,7 @@ om_classic_close(struct filed *f, void *ctx)
 
 	c = (struct om_classic_ctx *) ctx;
 
-	if (c->fd > -1)
-		close(c->fd);
+	CLOSE_FD(c->fd);
 
 	return (0);
 }

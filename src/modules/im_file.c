@@ -248,16 +248,13 @@ im_file_close( struct i_module *im)
 
 		c = (struct im_file_ctx *) im->im_ctx;
 
-		if (c->timefmt)
-			free(c->timefmt);
-		free(c);
+		FREE_PTR(c->timefmt);
+		FREE_PTR(c);
 	}
 
-	if (im->im_path != NULL)
-		free(im->im_path);
+	FREE_PTR(im->im_path);
 
-	if (im->im_fd >= 0)
-		close(im->im_fd);
+	CLOSE_FD(im->im_fd);
 
 	return (0);
 }

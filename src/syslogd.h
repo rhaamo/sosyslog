@@ -278,10 +278,11 @@ CODE facilitynames[] =
     { "local7", LOG_LOCAL7 },
     { NULL, -1 }
   };
-    
+
 # endif /* SYSLOG_NAMES */
 #endif /* typedef of /usr/include/syslog.h */
-    
-    
+
+#define CLOSE_FD(cfd)  { if (cfd != -1) { close(cfd); cfd = -1; } }
+#define FREE_PTR(p)    { if (p != NULL) { free(p); p = NULL; } }
 
 #endif
