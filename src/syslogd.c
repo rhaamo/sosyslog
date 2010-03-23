@@ -739,35 +739,30 @@ logmsg(int pri, char *msg, char *from, int flags)
 	localtime_r(&now, &timestamp);
 
 	if (!(flags & ADDDATE)) {
-		int mon, year, mday;
+		char	*p;
+		/* First, attempt to parse the date as if it contained
+		 * the year, which isn't part of the standard syslog
+		 * date format. */
 
-		/* save our current year, month and day */
-		year = timestamp.tm_year;
-		mon = timestamp.tm_mon;
-		mday = timestamp.tm_mday;
+		p = strptime(msg, "%b %d %H:%M:%S %Y", &timestamp);
+		if (!p) {
+			time_t	tstamp;
+			/* The year of the message is unknown at this point.
+			 * If the resulting date is in the future, assume
+			 * it actually is from last year. */
 
-		/* now get message time (wich has no year!) */
-		strptime(msg, "%b %d %H:%M:%S", &timestamp);
+			p = strptime(msg, "%b %d %H:%M:%S", &timestamp);
+			tstamp = mktime(&timestamp);
 
-		/*
-		 * Is message date december 31 and are we on jan 1
-		 * beware: tm_mon [0-11]
-		 *         tm_mday [1-31]
-		 *         tm_year is years since 1900
-		 *         all this is really braindead/ugly IMNSHO
-		 */
-		if (timestamp.tm_mon == 11 && mon == 0 &&
-		    timestamp.tm_mday == 31 && mday == 1)
-			--year; /* our year is wrong */
+		}
 
-		/* XXX we are still not contemplating if the message
-		   has completely different dates than ours, and just
-		   giving them our current year */
+		if (p) { /* If this fails we're probably in trouble. */
+		    	p++; /* Point to the beginning of the message. */
 
-		timestamp.tm_year = year;
+			msglen -= (unsigned int) (p - msg);
+			msg = p;
+		}
 
-		msg += 16;
-		msglen -= 16;
 	}
 
 	/* extract facility and priority level */
