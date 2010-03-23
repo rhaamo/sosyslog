@@ -1,4 +1,14 @@
-/*	$CoreSDI: TODO,v 1.85 2001/04/27 20:25:11 alejo Exp $	*/
+New TODO of sosyslog.
+
+- Vars substitution in config file
+- %subst module like s/blah/moo/
+
+
+
+
+/////////////////////////////////
+// OLD TODO FROM MSYSLOG BELOW //
+/////////////////////////////////
 
 FOR THIS RELEASE
 
