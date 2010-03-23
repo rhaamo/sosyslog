@@ -184,6 +184,7 @@ int	 DaemonFlags = 0;		/* running daemon flags */
 #define SYSLOGD_MARK		0x02    /* call domark() */
 #define SYSLOGD_DIE		0x04    /* call die() */
 #define USE_LOCALDOMAIN		0x08    /* use hostname with local domain */
+#define DONT_COLLAPSE		0x10
 
 char	*libdir = NULL;
 
@@ -266,6 +267,7 @@ main(int argc, char **argv)
 	 * -c -noconsole
 	 * -A -uselocaldomain
 	 * -n -nodefault
+	 * -C -nocollapse
 	 *
 	 * legacy options
 	 * -u -unix
@@ -276,7 +278,7 @@ main(int argc, char **argv)
 
 	while ((ch = getxopt(argc, argv, "d!debug: i!input: f!conf:"
 	    " m!markinterval: P!pidfile: c!console A!localdomain"
-	    " n!nodefault h!help", &argcnt)) != -1) {
+	    " n!nodefault C!nocollapse h!help", &argcnt)) != -1) {
 		char buf[512];
 
 		switch (ch) {
@@ -327,6 +329,9 @@ main(int argc, char **argv)
 			break;
 		case 'A':	/* use local domain name too */
 			DaemonFlags |= USE_LOCALDOMAIN;
+			break;
+		case 'C':
+			DaemonFlags |= DONT_COLLAPSE;
 			break;
 		case 'h':
 		default:
@@ -629,7 +634,7 @@ usage(void)
 	    "Modular Syslog vesion " MSYSLOG_VERSION_STR "\n\n"
 	    "usage: syslogd [-d <debug_level>] [-u] [-f conffile] "
 	    "[-P pidfile] [-n] [-m markinterval] \\\n [-p logpath] "
-	    "[-a logpath] -i input1 [-i input2] [-i inputn]\n %s\n"
+	    "[-a logpath] [-C] -i input1 [-i input2] [-i inputn]\n %s\n"
 	    "%s\n\n", copyright, rcsid);
 	exit(1);
 }
@@ -825,9 +830,11 @@ logmsg(int pri, char *msg, char *from, int flags)
 		/*
 		 * suppress duplicate lines to this file
 		 */
-		if ((flags & MARK) == 0 && msglen == f->f_prevlen &&
+		if (!(DaemonFlags & DONT_COLLAPSE) &&
+		    !(flags & MARK) && msglen == f->f_prevlen &&
 		    !strcmp(msg, f->f_prevline) &&
 		    !strcmp(from, f->f_prevhost)) {
+
 			memcpy(&f->f_tm, &timestamp, sizeof(f->f_tm));
 			f->f_prevcount++;
 			dprintf(MSYSLOG_INFORMATIVE, "msg repeated %d times,"
