@@ -104,7 +104,7 @@ struct om_pgsql_ctx {
 	char *	(*PQerrorMessage)(void *);
 	int	(*PQresultStatus)(void *);
 	void	(*PQreset)(void *);
-	void *	(*PQexec)(void *, char *);
+	void *  (*PQexecParams)(void *, char *, int, void *, char *, int *, int *, int);
 	char *	(*PQresultErrorMessage)(void *);
 	void	(*PQclear)(void *);
 	void *	(*PQsetdbLogin)(char *, char *, void *, void *,
@@ -171,21 +171,19 @@ om_pgsql_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 			snprintf(priority, sizeof(priority), "'%d',", m->pri);
 	}
 
-	/* table, YYYY-Mmm-dd, hh:mm:ss, host, msg  */ 
-	i = snprintf(query, sizeof(query), "INSERT INTO %s (%s%sdate, time, "
-	    "host, message) VALUES(%s%s'%.4d-%.2d-%.2d', '%.2d:%.2d:%.2d', '%s', '",
-	    c->table,
-	    (c->flags & OM_PGSQL_FACILITY)? "facility, " : "",
-	    (c->flags & OM_PGSQL_PRIORITY)? "priority, " : "",
-	    (c->flags & OM_PGSQL_FACILITY)? facility : "",
-	    (c->flags & OM_PGSQL_PRIORITY)? priority : "",
-	    f->f_tm.tm_year + 1900, f->f_tm.tm_mon + 1,
-	    f->f_tm.tm_mday, f->f_tm.tm_hour, f->f_tm.tm_min, f->f_tm.tm_sec,
-	    f->f_prevhost);
+       /* table, YYYY-Mmm-dd, hh:mm:ss, host, $1 (msg)  */ 
+        i = snprintf(query, sizeof(query), "INSERT INTO %s (%s%sdate, time, "
+            "host, message) VALUES(%s%s'%.4d-%.2d-%.2d', '%.2d:%.2d:%.2d', '%s', $1);",
+            c->table,
+            (c->flags & OM_PGSQL_FACILITY)? "facility, " : "",
+            (c->flags & OM_PGSQL_PRIORITY)? "priority, " : "",
+            (c->flags & OM_PGSQL_FACILITY)? facility : "",
+            (c->flags & OM_PGSQL_PRIORITY)? priority : "",
+            f->f_tm.tm_year + 1900, f->f_tm.tm_mon + 1,
+            f->f_tm.tm_mday, f->f_tm.tm_hour, f->f_tm.tm_min, f->f_tm.tm_sec,
+            f->f_prevhost);
 
-	if (c->lost) {
-		int pos = i;
-
+		if (c->lost) {
 		/*
 		 * Report lost messages, but 2 of them are lost of
 		 * connection and this one (which we are going
@@ -198,21 +196,20 @@ om_pgsql_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 		/* count reset */
 		c->lost = 0;
 
-		/* put message escaping special SQL characters */
-		pos += to_sql(query + pos, err_buf, sizeof(query) - pos);
+		m_dprintf(MSYSLOG_INFORMATIVE2, "om_pgsql_write: query [%s] with msg $1 [%s]\n",
+		    query, err_buf);
 
-		/* finish it with "')" */
-		query[pos++] =  '\'';
-		query[pos++] =  ')';
-		if (pos < sizeof(query))
-			query[pos]   =  '\0';
-		else
-			query[sizeof(query) - 1] = '\0';
+                const char *paramValues[1];
+                paramValues[0] = err_buf;
+                r = (c->PQexecParams(c->h,
+                                     query,
+                                     1,
+                                     NULL,
+                                     paramValues,
+                                     NULL,
+                                     NULL,
+                                     0));
 
-		m_dprintf(MSYSLOG_INFORMATIVE2, "om_pgsql_write: query [%s]\n",
-		    query);
-
-		r = (c->PQexec(c->h, query));
 		if ((c->PQresultStatus(r)) != PGRES_COMMAND_OK) {
 			m_dprintf(MSYSLOG_SERIOUS, "om_pgsql_write: %s\n",
 			    (c->PQresultErrorMessage(r)));
@@ -221,21 +218,20 @@ om_pgsql_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 		(c->PQclear(r));
 	}
 
-	/* put message escaping special SQL characters */
-	i += to_sql(query + i, m->msg, sizeof(query) - i);
+	m_dprintf(MSYSLOG_INFORMATIVE2, "om_pgsql_write: query [%s] with msg $1 [%s]\n", query, m->msg);
 
-	/* finish it with "')" */
-	query[i++] =  '\'';
-	query[i++] =  ')';
-	if (i < sizeof(query))
-		query[i]   =  '\0';
-	else
-		query[sizeof(query) - 1] = '\0';
-
-	m_dprintf(MSYSLOG_INFORMATIVE2, "om_pgsql_write: query [%s]\n", query);
+        const char *paramValues[1];
+        paramValues[0] = (m->msg);
+        r = (c->PQexecParams(c->h,
+                             query,
+                             1,
+                             NULL,
+                             paramValues,
+                             NULL,
+                             NULL,
+                             0));
 
 	err = 1;
-	r = (c->PQexec(c->h, query));
 	if ((c->PQresultStatus(r)) != PGRES_COMMAND_OK) {
 		m_dprintf(MSYSLOG_INFORMATIVE, "%s\n",
 		    (c->PQresultErrorMessage(r)));
@@ -302,8 +298,8 @@ om_pgsql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	    SYMBOL_PREFIX "PQresultStatus"))   
 	    || !(ctx->PQreset = (void (*)(void *)) dlsym(ctx->lib,
 	    SYMBOL_PREFIX "PQreset"))   
-	    || !(ctx->PQexec = (void * (*)(void *, char *)) dlsym(ctx->lib,
-	    SYMBOL_PREFIX "PQexec"))   
+	    || !(ctx->PQexecParams = (void * (*)(void *, char *, int, void *, char *, int *, int *, int)) dlsym(ctx->lib,
+	    SYMBOL_PREFIX "PQexecParams"))
 	    || !(ctx->PQresultErrorMessage = (char * (*)(void *)) dlsym(ctx->lib,
 	    SYMBOL_PREFIX
 	    "PQresultErrorMessage"))   
