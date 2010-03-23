@@ -67,9 +67,13 @@
 #define MAX_QUERY	8192
 /* how many seconds to wait to give again the error message */
 #define MSYSLOG_MYSQL_ERROR_DELAY	30
+/* wait 10 secs before reconnect */
+#define RECONNECT_WAIT			10
 
 struct om_mysql_ctx {
 	void	*h;
+	time_t	next_reconnect;
+	int	reconnect_wait;
 	int	lost;
 	char	*table;
 	char	*host;
@@ -99,6 +103,40 @@ int om_mysql_close(struct filed *, void *);
 
 #define MYSQL_PORT 3306
 
+int
+do_connect (struct om_mysql_ctx *c)
+{
+	char	err_buf[64];
+
+	/* connect to the database */
+	if (! (c->h = (c->mysql_init)(NULL)) ) {
+
+		snprintf(err_buf, sizeof(err_buf), "om_mysql_init: Error "
+		    "initializing handle");
+		logerror(err_buf);
+		return (-1);
+	}
+
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_mysql_init: mysql_init returned %p\n",
+	    c->h);
+
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_mysql_init: params %p %s %s %s %i"
+	    " \n", c->h, c->host, c->user, c->db, c->port);
+
+	if (!((c->mysql_real_connect)(c->h, c->host, c->user,
+	    c->passwd, c->db, c->port, NULL, 0)) ) {
+
+		snprintf(err_buf, sizeof(err_buf), "om_mysql_init: Error "
+		    "connecting to db server [%s], [%s:%i] user [%s] db [%s]",
+		    c->mysql_error? c->mysql_error(c->h) : "<unknown>",
+		    c->host, c->port, c->user, c->db);
+		logerror(err_buf);
+
+		return (-1);
+	}
+
+	return (1);
+}
 
 int
 om_mysql_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
@@ -117,22 +155,28 @@ om_mysql_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 	/* ignore sigpipes   for mysql_ping */
 	sigsave = place_signal(SIGPIPE, SIG_IGN);
 
-#warning ON SOME MYSQL BUG THIS LOCKS OR LOOPS, FIX ASAP
-	if ( ((c->mysql_ping)(c->h)) != 0 && (((c->mysql_init)(c->h) == NULL)
-	    || ((c->mysql_real_connect)(c->h, c->host, c->user, c->passwd, c->db,
-	    c->port, NULL, 0)) == NULL) ) {
+	if (((c->mysql_ping)(c->h)) != 0) {
+		time_t   now;
 
 		/* restore previous SIGPIPE handler */
 		place_signal(SIGPIPE, sigsave);
 		c->lost++;
+
+		time(&now);
+		if (c->next_reconnect < now)
+			return(0);	/* wait reconnect time */
+
+		c->next_reconnect = now + c->reconnect_wait;
+
+		if (do_connect(c) == -1)
+			return (0);
+
 		if (c->lost == 1) {
 			snprintf(err_buf, sizeof(err_buf), "om_mysql_write: "
 			    "Lost connection! [%s]", c->mysql_error?
 			    c->mysql_error(c->h) : "<unknown>");
-			m_dprintf(MSYSLOG_SERIOUS, "%s", err_buf);
 			logerror(err_buf);
 		}
-		return (1);
 	}
 
 	/* restore previous SIGPIPE handler */
@@ -241,8 +285,6 @@ int
 om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
     char **status)
 {
-	char			err_buf[256];
-	char			statbuf[1024];
 	struct om_mysql_ctx	*ctx;
 	char			*p;
 	int			ch;
@@ -288,8 +330,8 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	argcnt = 1; /* skip module name */
 
 	while ((ch = getxopt(argc, argv, "s!server: u!user: p!password:"
-	    " d!database: t!table: D!delayed P!priority F!facility", &argcnt))
-	    != -1) {
+	    " d!database: t!table: D!delayed P!priority F!facility w!wait:",
+	    &argcnt)) != -1) {
 
 		switch (ch) {
 		case 's':
@@ -323,58 +365,32 @@ om_mysql_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 		case 'F':
 			ctx->flags |= OM_MYSQL_FACILITY;
 			break;
+		case 'w':
+			ctx->reconnect_wait = strtol(argv[argcnt], NULL, 10);
+			break;
 		default:
-			goto om_mysql_init_bad;
+			return (-1);
 		}
 		argcnt++;
 	}
 
-	if (ctx->user == NULL || ctx->db == NULL || ctx->port == 0 ||
-	    ctx->host == NULL || ctx->table == NULL)
-		goto om_mysql_init_bad;
+	if (ctx->reconnect_wait < 1 || ctx->reconnect_wait > 10000)
+		ctx->reconnect_wait = RECONNECT_WAIT;
 
-	/* connect to the database */
-	if (! (ctx->h = (ctx->mysql_init)(NULL)) ) {
+	if (((ctx->user != NULL && ctx->db != NULL && ctx->port != 0 &&
+		ctx->host != NULL && ctx->table != NULL)) &&
+		(do_connect(ctx) != -1))
 
-		snprintf(err_buf, sizeof(err_buf), "om_mysql_init: Error "
-		    "initializing handle");
-		logerror(err_buf);
-		goto om_mysql_init_bad;
-	}
-
-	m_dprintf(MSYSLOG_INFORMATIVE, "om_mysql_init: mysql_init returned %p\n",
-	    ctx->h);
-
-	m_dprintf(MSYSLOG_INFORMATIVE, "om_mysql_init: params %p %s %s %s %i"
-	    " \n", ctx->h, ctx->host, ctx->user, ctx->db, ctx->port);
-
-	snprintf(statbuf, sizeof(statbuf), "om_mysql: sending "
-	    "messages to %s, database %s, table %s.", ctx->host,
-	    ctx->db, ctx->table);
-	*status = strdup(statbuf);
-
-	if (!((ctx->mysql_real_connect)(ctx->h, ctx->host, ctx->user,
-	    ctx->passwd, ctx->db, ctx->port, NULL, 0)) ) {
-
-		snprintf(err_buf, sizeof(err_buf), "om_mysql_init: Error "
-		    "connecting to db server [%s], [%s:%i] user [%s] db [%s]",
-		    ctx->mysql_error? ctx->mysql_error(ctx->h) : "<unknown>",
-		    ctx->host, ctx->port, ctx->user, ctx->db);
-		logerror(err_buf);
 		return (1);
-	}
 
-	return (1);
-
-om_mysql_init_bad:
+	/* error */
 	if (ctx) {
 		om_mysql_close(f, ctx);
 		FREE_PTR(ctx);
 	}
 
-	*status = NULL;
 
-	return(-1);
+	return (-1);
 }
 
 
