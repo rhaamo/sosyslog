@@ -63,21 +63,21 @@
 
 
 int
-im_bsd_init(struct i_module *I, char **argv, int argc)
+im_bsd_init(struct i_module *im, char **argv, int argc)
 {
 
 	dprintf(MSYSLOG_INFORMATIVE, "im_bsd_init: Entering\n");
 
-	if ((I->im_fd = open(_PATH_KLOG, O_RDONLY, 0)) < 0) {
+	if ((im->im_fd = open(_PATH_KLOG, O_RDONLY, 0)) < 0) {
 		dprintf(MSYSLOG_SERIOUS, "can't open %s (%d)\n", _PATH_KLOG,
 		    errno);
 		return (-1);
 	}
-	
-	I->im_path = _PATH_KLOG;
-	I->im_flags |= IMODULE_FLAG_KERN;
-	add_fd_input(I->im_fd , I);
-	return (I->im_fd);
+
+	im->im_path = _PATH_KLOG;
+	im->im_flags |= IMODULE_FLAG_KERN;
+	add_fd_input(im->im_fd , im);
+	return (im->im_fd);
 }
 
 
