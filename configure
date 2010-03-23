@@ -701,6 +701,7 @@ HAVE_SOCKLEN_T
 MAIN_CPPFLAGS
 MSYSLOG_DAEMON_NAME
 MSYSLOG_VERSION
+EXTRA_MODULES
 LTLIBOBJS'
 ac_subst_files=''
 ac_user_opts='
@@ -715,10 +716,12 @@ with_file
 with_streams
 with_classic
 with_tcp
+with_oracle
 with_mysql
 with_pgsql
 with_peo
 with_regex
+with_snmp
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1376,6 +1379,9 @@ Optional Packages:
   --without-tcp
 	Use tcp input and output modules. Activated by default.
 
+  --without-oracle8i
+	Use Oracle8i output module. Activated by default.
+
   --without-mysql
 	Use mysql MySQL output module. Activated by default.
 
@@ -1388,6 +1394,7 @@ Optional Packages:
   --without-regex
 	Use regex pattern matching output module. Activated by default.
 
+  --with-snmp             use SNMP (default is YES, if available)
 
 Some influential environment variables:
   CC          C compiler command
@@ -5917,7 +5924,8 @@ do
 done
 { $as_echo "$as_me:$LINENO: result: root-mode pid file will go in $dir" >&5
 $as_echo "root-mode pid file will go in $dir" >&6; }
-cat >>confdefs.h <<_ACEOF
+
+cat >>confdefs.h <<\_ACEOF
 #define PID_DIR "$dir"
 _ACEOF
 
@@ -5934,7 +5942,8 @@ done
 { $as_echo "$as_me:$LINENO: checking wether netdb.h requires _USE_IRS" >&5
 $as_echo_n "checking wether netdb.h requires _USE_IRS... " >&6; }
 if grep _USE_IRS /usr/include/netdb.h >/dev/null ;then
-	cat >>confdefs.h <<\_ACEOF
+
+cat >>confdefs.h <<\_ACEOF
 #define _USE_IRS 1
 _ACEOF
 
@@ -5959,7 +5968,8 @@ _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
   $EGREP "stack_t" >/dev/null 2>&1; then
 
-	cat >>confdefs.h <<\_ACEOF
+
+cat >>confdefs.h <<\_ACEOF
 #define SIGALTSTACK_WITH_STACK_T 1
 _ACEOF
 
@@ -6016,7 +6026,7 @@ if test "$UNAME" = "OpenBSD" ; then
 #define DLOPEN_FLAGS RTLD_LAZY
 _ACEOF
 
-	cat >>confdefs.h <<_ACEOF
+	cat >>confdefs.h <<\_ACEOF
 #define SYMBOL_PREFIX "_"
 _ACEOF
 
@@ -6027,7 +6037,7 @@ elif test "$UNAME" = "FreeBSD" ; then
 #define DLOPEN_FLAGS RTLD_LAZY
 _ACEOF
 
-	cat >>confdefs.h <<_ACEOF
+	cat >>confdefs.h <<\_ACEOF
 #define SYMBOL_PREFIX ""
 _ACEOF
 
@@ -6059,7 +6069,7 @@ _ACEOF
 #define _REENTRANT 1
 _ACEOF
 
-	cat >>confdefs.h <<_ACEOF
+	cat >>confdefs.h <<\_ACEOF
 #define SYMBOL_PREFIX ""
 _ACEOF
 
@@ -6070,7 +6080,7 @@ elif test "$UNAME" = "IRIX" -o "$UNAME" = "IRIX64" ; then
 #define DLOPEN_FLAGS RTLD_LAZY
 _ACEOF
 
-	cat >>confdefs.h <<_ACEOF
+	cat >>confdefs.h <<\_ACEOF
 #define SYMBOL_PREFIX ""
 _ACEOF
 
@@ -6098,7 +6108,7 @@ _ACEOF
 #define NEEDS_DLOPEN_NULL 1
 _ACEOF
 
-	cat >>confdefs.h <<_ACEOF
+	cat >>confdefs.h <<\_ACEOF
 #define SYMBOL_PREFIX ""
 _ACEOF
 
@@ -6118,7 +6128,7 @@ _ACEOF
 else
 	{ $as_echo "$as_me:$LINENO: WARNING: cannot determine system type falling to defaults" >&5
 $as_echo "$as_me: WARNING: cannot determine system type falling to defaults" >&2;}
-	cat >>confdefs.h <<_ACEOF
+	cat >>confdefs.h <<\_ACEOF
 #define SYMBOL_PREFIX ""
 _ACEOF
 
@@ -7003,6 +7013,24 @@ rm -f conftest*
 fi
 
 
+# Check whether --with-oracle was given.
+if test "${with_oracle+set}" = set; then
+  withval=$with_oracle;
+	if test $with_oracle8i = "yes" ; then
+		MSRCS="$MSRCS om_oracle8i.c"
+		MANPAGES="$MANPAGES om_oracle8i.8"
+	fi
+
+else
+
+	MSRCS="$MSRCS om_oracle8i.c"
+	MANPAGES="$MANPAGES om_oracle8i.8"
+	USESQL="yes"
+
+fi
+
+
+
 # Check whether --with-mysql was given.
 if test "${with_mysql+set}" = set; then
   withval=$with_mysql;
@@ -7516,6 +7544,257 @@ fi
 
 fi
 
+
+
+# Check whether --with-snmp was given.
+if test "${with_snmp+set}" = set; then
+  withval=$with_snmp; ac_cv_use_snmp=$withval
+else
+  ac_cv_use_snmp=yes
+fi
+
+{ $as_echo "$as_me:$LINENO: checking whether to use SNMP" >&5
+$as_echo_n "checking whether to use SNMP... " >&6; }
+if test "${ac_cv_use_snmp+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  ac_cv_use_snmp=yes
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_use_snmp" >&5
+$as_echo "$ac_cv_use_snmp" >&6; }
+
+if test "$ac_cv_use_snmp" == yes; then
+   # Let's assume libcrypto is available, for now.
+   libs_save="$LIBS"
+
+{ $as_echo "$as_me:$LINENO: checking for snmp_sess_init in -lsnmp" >&5
+$as_echo_n "checking for snmp_sess_init in -lsnmp... " >&6; }
+if test "${ac_cv_lib_snmp_snmp_sess_init+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lsnmp -lcrypto $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char snmp_sess_init ();
+int
+main ()
+{
+return snmp_sess_init ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 $as_test_x conftest$ac_exeext
+       }; then
+  ac_cv_lib_snmp_snmp_sess_init=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_snmp_snmp_sess_init=no
+fi
+
+rm -rf conftest.dSYM
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_lib_snmp_snmp_sess_init" >&5
+$as_echo "$ac_cv_lib_snmp_snmp_sess_init" >&6; }
+if test $ac_cv_lib_snmp_snmp_sess_init = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBSNMP 1
+_ACEOF
+
+  LIBS="-lsnmp $LIBS"
+
+fi
+
+   LIBS="$libs_save"
+
+
+for ac_header in net-snmp/net-snmp-config.h ucd-snmp/ucd-snmp-config.h
+do
+as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
+  { $as_echo "$as_me:$LINENO: checking for $ac_header" >&5
+$as_echo_n "checking for $ac_header... " >&6; }
+if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
+  $as_echo_n "(cached) " >&6
+fi
+ac_res=`eval 'as_val=${'$as_ac_Header'}
+		 $as_echo "$as_val"'`
+	       { $as_echo "$as_me:$LINENO: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+else
+  # Is the header compilable?
+{ $as_echo "$as_me:$LINENO: checking $ac_header usability" >&5
+$as_echo_n "checking $ac_header usability... " >&6; }
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+#include <$ac_header>
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_header_compiler=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_header_compiler=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+{ $as_echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
+$as_echo "$ac_header_compiler" >&6; }
+
+# Is the header present?
+{ $as_echo "$as_me:$LINENO: checking $ac_header presence" >&5
+$as_echo_n "checking $ac_header presence... " >&6; }
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <$ac_header>
+_ACEOF
+if { (ac_try="$ac_cpp conftest.$ac_ext"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_cpp conftest.$ac_ext") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } >/dev/null && {
+	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       }; then
+  ac_header_preproc=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+  ac_header_preproc=no
+fi
+
+rm -f conftest.err conftest.$ac_ext
+{ $as_echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
+$as_echo "$ac_header_preproc" >&6; }
+
+# So?  What about this header?
+case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+  yes:no: )
+    { $as_echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
+$as_echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
+    { $as_echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the compiler's result" >&5
+$as_echo "$as_me: WARNING: $ac_header: proceeding with the compiler's result" >&2;}
+    ac_header_preproc=yes
+    ;;
+  no:yes:* )
+    { $as_echo "$as_me:$LINENO: WARNING: $ac_header: present but cannot be compiled" >&5
+$as_echo "$as_me: WARNING: $ac_header: present but cannot be compiled" >&2;}
+    { $as_echo "$as_me:$LINENO: WARNING: $ac_header:     check for missing prerequisite headers?" >&5
+$as_echo "$as_me: WARNING: $ac_header:     check for missing prerequisite headers?" >&2;}
+    { $as_echo "$as_me:$LINENO: WARNING: $ac_header: see the Autoconf documentation" >&5
+$as_echo "$as_me: WARNING: $ac_header: see the Autoconf documentation" >&2;}
+    { $as_echo "$as_me:$LINENO: WARNING: $ac_header:     section \"Present But Cannot Be Compiled\"" >&5
+$as_echo "$as_me: WARNING: $ac_header:     section \"Present But Cannot Be Compiled\"" >&2;}
+    { $as_echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the preprocessor's result" >&5
+$as_echo "$as_me: WARNING: $ac_header: proceeding with the preprocessor's result" >&2;}
+    { $as_echo "$as_me:$LINENO: WARNING: $ac_header: in the future, the compiler will take precedence" >&5
+$as_echo "$as_me: WARNING: $ac_header: in the future, the compiler will take precedence" >&2;}
+
+    ;;
+esac
+{ $as_echo "$as_me:$LINENO: checking for $ac_header" >&5
+$as_echo_n "checking for $ac_header... " >&6; }
+if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
+  $as_echo_n "(cached) " >&6
+else
+  eval "$as_ac_Header=\$ac_header_preproc"
+fi
+ac_res=`eval 'as_val=${'$as_ac_Header'}
+		 $as_echo "$as_val"'`
+	       { $as_echo "$as_me:$LINENO: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+
+fi
+if test `eval 'as_val=${'$as_ac_Header'}
+		 $as_echo "$as_val"'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+
+done
+
+fi
+
+if test "$ac_cv_lib_snmp_snmp_sess_init" == yes \
+       -a \( "$ac_cv_header_net_snmp_net_snmp_config_h" == yes \
+          -o "$ac_cv_header_ucd_snmp_ucd_snmp_config_h" == yes \); then
+   EXTRA_MODULES="$extra_modules om_snmptrap"
+fi
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -8429,6 +8708,7 @@ _ACEOF
 
 
 fi
+
 
 
 

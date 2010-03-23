@@ -92,7 +92,7 @@ do
 	fi
 done
 AC_MSG_RESULT(root-mode pid file will go in $dir)
-AC_DEFINE_UNQUOTED(PID_DIR, "$dir")
+AC_DEFINE(PID_DIR, "$dir", [This is not an original description])
 
 dnl search mandir for non bsd systems
 for MANDIR in "/usr/share/man" "/usr/man"
@@ -107,7 +107,7 @@ dnl Check underscore requirement for dlsym()
 
 AC_MSG_CHECKING(wether netdb.h requires _USE_IRS)
 if grep _USE_IRS /usr/include/netdb.h >/dev/null ;then
-	AC_DEFINE(_USE_IRS)
+	AC_DEFINE(_USE_IRS, 1, [This is not an original description])
 	AC_MSG_RESULT(yes)
 else
 	AC_MSG_RESULT(no)
@@ -115,7 +115,7 @@ fi
 
 AC_MSG_CHECKING(if sigaltstack uses stack_t structure)
 AC_EGREP_HEADER(stack_t, [signal.h],[
-	AC_DEFINE(SIGALTSTACK_WITH_STACK_T)
+	AC_DEFINE(SIGALTSTACK_WITH_STACK_T, 1, [This is not an original description])
 	AC_MSG_RESULT(yes)
 ], [
 	AC_MSG_RESULT(no)
@@ -148,12 +148,12 @@ MAIN_CPPFLAGS="";
 UNAME=`uname`
 if test "$UNAME" = "OpenBSD" ; then
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)
-	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "_")
+	AC_DEFINE(SYMBOL_PREFIX, "_")
 	SHARED_PARAMS="-Bshareable"
 	DCCFLAGS="-fPIC"
 elif test "$UNAME" = "FreeBSD" ; then
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)
-	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")
+	AC_DEFINE(SYMBOL_PREFIX, "")
 	SHARED_PARAMS="-Bshareable"
 	DCCFLAGS="-fPIC"
 	SYSLOGD_LIBS="$SYSLOGD_LIBS -Wl,-E"
@@ -166,14 +166,14 @@ elif test "$UNAME" = "Linux" ; then
 	AC_DEFINE(_GNU_SOURCE, 1)
 elif test "$UNAME" = "SunOS" ; then
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)
-	AC_DEFINE(_REENTRANT)
-	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")
+	AC_DEFINE(_REENTRANT, 1)
+	AC_DEFINE(SYMBOL_PREFIX, "")
 	SHARED_PARAMS="-G"
 	DCCFLAGS="-fPIC"
 elif test "$UNAME" = "IRIX" -o "$UNAME" = "IRIX64" ; then
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)
-	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")
-	AC_DEFINE(INET6)
+	AC_DEFINE(SYMBOL_PREFIX, "")
+	AC_DEFINE(INET6, 1)
 	CFLAGS="-D_BSD_SIGNALS"
 	if test "x$GCC" == "xyes"
 	then
@@ -187,8 +187,8 @@ elif test "$UNAME" = "IRIX" -o "$UNAME" = "IRIX64" ; then
 	SHARED_PARAMS="-shared -soname $MLIBNAME -all"
 elif test "$UNAME" = "AIX" ; then
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY | RTLD_GLOBAL)
-	AC_DEFINE(NEEDS_DLOPEN_NULL)
-	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")
+	AC_DEFINE(NEEDS_DLOPEN_NULL, 1)
+	AC_DEFINE(SYMBOL_PREFIX, "")
 	DCCFLAGS="-shared"
 	SHARED_PARAMS="-lc -bI:libmsyslog.imp -bexpall -bnoentry -brtl"
 	cat > src/modules/libmsyslog.imp <<-EOF
@@ -204,7 +204,7 @@ elif test "$UNAME" = "AIX" ; then
 	SYSLOGD_LIBS="$SYSLOGD_LIBS -Wl,-bexpall"
 else
 	AC_MSG_WARN(cannot determine system type falling to defaults)
-	AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")
+	AC_DEFINE(SYMBOL_PREFIX, "")
 	AC_DEFINE(DLOPEN_FLAGS, RTLD_LAZY)
 	SHARED_PARAMS="-Bshareable"
 fi
@@ -235,7 +235,7 @@ AC_ARG_WITH(bsd,
 if test "X$temp_res" = "Xyes" ; then
 		MSRCS="$MSRCS im_bsd.c";
 		MANPAGES="$MANPAGES im_bsd.8";
-		AC_DEFINE(HAVE_BSD_IMODULE)
+		AC_DEFINE(HAVE_BSD_IMODULE, 1)
 fi
 
 AC_ARG_WITH(linux,
@@ -245,13 +245,13 @@ AC_ARG_WITH(linux,
 	if test "$with_linux" = "yes" ; then
 		MSRCS="$MSRCS im_linux.c"
 		MANPAGES="$MANPAGES im_linux.8"
-		AC_DEFINE(HAVE_LINUX_IMODULE)
+		AC_DEFINE(HAVE_LINUX_IMODULE, 1)
 	fi
 ],[
 	AC_CHECK_HEADER(sys/klog.h, [
 		MSRCS="$MSRCS im_linux.c"
 		MANPAGES="$MANPAGES im_linux.8"
-		AC_DEFINE(HAVE_LINUX_IMODULE)
+		AC_DEFINE(HAVE_LINUX_IMODULE, 1)
 	])
 ])
 
@@ -279,7 +279,7 @@ AC_ARG_WITH(unix,
 ])
 if test "X$temp_res" = "Xyes" ; then
 		MSRCS="$MSRCS im_unix.c"
-		AC_DEFINE(HAVE_UNIX_IMODULE)
+		AC_DEFINE(HAVE_UNIX_IMODULE, 1)
 		MANPAGES="$MANPAGES im_unix.8"
 fi
 temp_res="yes";
@@ -290,7 +290,7 @@ AC_ARG_WITH(file,
 ],[ temp_res="$with_file"; ])
 if test "X$temp_res" = "Xyes" ; then
 		MSRCS="$MSRCS im_file.c"
-		AC_DEFINE(HAVE_FILE_IMODULE)
+		AC_DEFINE(HAVE_FILE_IMODULE, 1)
 		MANPAGES="$MANPAGES im_file.8"
 fi
 
@@ -318,7 +318,7 @@ if test "$temp_res" = "yes" ; then
 	MLIBS="$MLIBS -lpthread"
 	MANPAGES="$MANPAGES im_streams.8"
 	SYSLOGD_LIBS="$SYSLOGD_LIBS -lthread -ldoor"
-	AC_DEFINE(HAVE_STREAMS_IMODULE)
+	AC_DEFINE(HAVE_STREAMS_IMODULE, 1)
 fi
 AC_MSG_CHECKING(for streams module)
 AC_MSG_RESULT($temp_res)
@@ -353,8 +353,22 @@ AC_ARG_WITH(tcp,
 
 if test "$temp_res" = "yes" ; then
 	AC_EGREP_HEADER(sa_len, [#include <sys/socket.h> ],
-	    AC_DEFINE(HAVE_SOCKADDR_SA_LEN))
+	    AC_DEFINE(HAVE_SOCKADDR_SA_LEN, 1))
 fi
+
+AC_ARG_WITH(oracle,
+[  --without-oracle8i
+	Use Oracle8i output module. Activated by default.
+],[
+	if test $with_oracle8i = "yes" ; then
+		MSRCS="$MSRCS om_oracle8i.c"
+		MANPAGES="$MANPAGES om_oracle8i.8"
+	fi
+],[
+	MSRCS="$MSRCS om_oracle8i.c"
+	MANPAGES="$MANPAGES om_oracle8i.8"
+	USESQL="yes"
+])
 
 AC_ARG_WITH(mysql,
 [  --without-mysql
@@ -410,23 +424,23 @@ if test $PEO = "yes" ; then
 	HASH_SRCS="hash.c";
 	HASH_SRCS_MODULES="../peo/hash.c";
 	HASH_OBJS_MODULES="hash.o";
-	AC_CHECK_FUNC(MD5Init, AC_DEFINE(HAVE_MD5),
+	AC_CHECK_FUNC(MD5Init, AC_DEFINE(HAVE_MD5, 1),
 	        HASH_SRCS="$HASH_SRCS md5c.c";
 	        HASH_SRCS_MODULES="$HASH_SRCS_MODULES ../peo/md5c.c";
 		HASH_OBJS_MODULES="$HASH_OBJS_MODULES md5c.o";
 	)
-	AC_CHECK_FUNC(SHA1Init, AC_DEFINE(HAVE_SHA1),
+	AC_CHECK_FUNC(SHA1Init, AC_DEFINE(HAVE_SHA1, 1),
 	        HASH_SRCS="$HASH_SRCS sha1.c";
 	        HASH_SRCS_MODULES="$HASH_SRCS_MODULES ../peo/sha1.c";
 		HASH_OBJS_MODULES="$HASH_OBJS_MODULES sha1.o";
 	)
-	AC_CHECK_FUNC(RMD160Init, AC_DEFINE(HAVE_RMD160),
+	AC_CHECK_FUNC(RMD160Init, AC_DEFINE(HAVE_RMD160, 1),
 	        HASH_SRCS="$HASH_SRCS rmd160.c";
 	        HASH_SRCS_MODULES="$HASH_SRCS_MODULES ../peo/rmd160.c";
 		HASH_OBJS_MODULES="$HASH_OBJS_MODULES rmd160.o";
 	)
 	if test -r /dev/srandom ; then
-		AC_DEFINE(HAVE_SRANDOM)
+		AC_DEFINE(HAVE_SRANDOM, 1)
 	fi
 fi
 
@@ -444,6 +458,25 @@ AC_ARG_WITH(regex,
 		MANPAGES="$MANPAGES om_regex.8"
 	])
 ])
+
+AC_ARG_WITH([snmp],
+	AC_HELP_STRING([--with-snmp], [use SNMP (default is YES, if available)]),
+	[ac_cv_use_snmp=$withval], [ac_cv_use_snmp=yes])
+AC_CACHE_CHECK([whether to use SNMP], [ac_cv_use_snmp], [ac_cv_use_snmp=yes])
+
+if test "$ac_cv_use_snmp" == yes; then
+   # Let's assume libcrypto is available, for now.
+   libs_save="$LIBS"
+   AC_CHECK_LIB(snmp, snmp_sess_init, [], [], [-lcrypto])
+   LIBS="$libs_save"
+   AC_CHECK_HEADERS([net-snmp/net-snmp-config.h ucd-snmp/ucd-snmp-config.h])
+fi
+
+if test "$ac_cv_lib_snmp_snmp_sess_init" == yes \
+       -a \( "$ac_cv_header_net_snmp_net_snmp_config_h" == yes \
+          -o "$ac_cv_header_ucd_snmp_ucd_snmp_config_h" == yes \); then
+   EXTRA_MODULES="$extra_modules om_snmptrap"
+fi
 
 AC_CACHE_SAVE
 
@@ -477,6 +510,7 @@ AC_SUBST(HAVE_SOCKLEN_T)
 AC_SUBST(MAIN_CPPFLAGS)
 AC_SUBST(MSYSLOG_DAEMON_NAME)
 AC_SUBST(MSYSLOG_VERSION)
+AC_SUBST(EXTRA_MODULES)
 
 dnl AC_SUBST(SYMBOL_PREFIX)
 
