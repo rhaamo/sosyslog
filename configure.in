@@ -86,7 +86,7 @@ do
 	fi
 done
 AC_MSG_RESULT(root-mode pid file will go in $dir)
-AC_DEFINE(PID_DIR, "$dir", [This is not an original description])
+AC_DEFINE_UNQUOTED(PID_DIR, "$dir")
 
 UNAME=`uname`
 if test "$UNAME" != "FreeBSD" ; then

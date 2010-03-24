@@ -5869,8 +5869,7 @@ do
 done
 { $as_echo "$as_me:$LINENO: result: root-mode pid file will go in $dir" >&5
 $as_echo "root-mode pid file will go in $dir" >&6; }
-
-cat >>confdefs.h <<\_ACEOF
+cat >>confdefs.h <<_ACEOF
 #define PID_DIR "$dir"
 _ACEOF
 
