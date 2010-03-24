@@ -350,7 +350,7 @@ if test "$temp_res" = "yes" ; then
 	    AC_DEFINE(HAVE_SOCKADDR_SA_LEN, 1))
 fi
 
-AC_ARG_WITH(oracle,
+AC_ARG_WITH(oracle8i,
 [  --without-oracle8i
 	Use Oracle8i output module. Activated by default.
 ],[

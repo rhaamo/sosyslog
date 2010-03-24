@@ -716,7 +716,7 @@ with_file
 with_streams
 with_classic
 with_tcp
-with_oracle
+with_oracle8i
 with_mysql
 with_pgsql
 with_peo
@@ -6958,9 +6958,9 @@ rm -f conftest*
 fi
 
 
-# Check whether --with-oracle was given.
-if test "${with_oracle+set}" = set; then
-  withval=$with_oracle;
+# Check whether --with-oracle8i was given.
+if test "${with_oracle8i+set}" = set; then
+  withval=$with_oracle8i;
 	if test $with_oracle8i = "yes" ; then
 		MSRCS="$MSRCS om_oracle8i.c"
 		MANPAGES="$MANPAGES om_oracle8i.8"

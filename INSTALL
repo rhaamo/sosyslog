@@ -8,7 +8,7 @@ $Id: INSTALL,v 1.16.2.1 2003/04/11 16:36:19 alejo Exp $
 
   This file describes how to compile and install modular syslog.
 
-  Msyslog has been tested on the following platforms:
+  sosyslog has been tested on the following platforms:
 
 	- OpenBSD 2.6, 2.7, 2.8, 2.9, 3.0
 	- RedHat 6.2, 7.0, 7.1, 7.2
@@ -17,7 +17,9 @@ $Id: INSTALL,v 1.16.2.1 2003/04/11 16:36:19 alejo Exp $
 	- Irix64 6.5
 	- Aix 4.3
 
-
+  sosyslog build with :
+  	- GCC
+	- LLVM/CLANG
 
 
 

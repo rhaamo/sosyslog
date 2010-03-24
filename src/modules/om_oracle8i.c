@@ -41,6 +41,8 @@
  *         before OCIStmtExecute.
  */
 
+#warning This module need testings
+
 #include "config.h"
 
 #include <sys/types.h>

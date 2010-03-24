@@ -45,6 +45,9 @@
  *   Cleanup code
  * 10/12/2000 - Alejo Sanchex
  *   Move alloc query and dates to context structure
+ * 22/03/2010 - Marc Lagrange
+ *   Use PQexecParams instead of PQexec and avoid usage of to_sql() which is very
+ *   bad.
  *
  */
 
