@@ -27,7 +27,11 @@ documentation and/or software.
 #ifndef _MD5_H_
 #define _MD5_H_
 
-#include "typedefs.h"
+#if defined(__FreeBSD__)
+# include <sys/types.h>
+#else
+# include "typedefs.h"
+#endif
 
 /* MD5 context. */
 typedef struct MD5Context {

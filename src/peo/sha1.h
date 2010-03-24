@@ -9,7 +9,11 @@
 #ifndef _SHA1_H
 #define _SHA1_H
 
-#include "typedefs.h"
+#if defined(__FreeBSD__)
+# include <sys/types.h>
+#else
+# include "typedefs.h"
+#endif
 
 typedef struct {
     u_int32_t state[5];

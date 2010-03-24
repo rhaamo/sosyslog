@@ -20,7 +20,11 @@
 #ifndef  _RMD160_H	/* make sure this file is read only once */
 #define  _RMD160_H
 
-#include "typedefs.h"
+#if defined(__FreeBSD__)
+# include <sys/types.h>
+#else
+# include "typedefs.h"
+#endif
 
 /********************************************************************/
 
