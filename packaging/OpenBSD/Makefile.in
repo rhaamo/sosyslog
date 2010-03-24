@@ -60,8 +60,8 @@ do-install:
 	${INSTALL_MAN} ${WRKSRC}/src/man/peochk.cat8 ${PREFIX}/man/cat8/
 	${INSTALL_MAN} ${WRKSRC}/src/man/im*cat8 ${WRKSRC}/src/man/om*cat8 \
 		${PREFIX}/man/cat8/
-	${INSTALL_DATA_DIR} ${PREFIX}/lib/alat
+	${INSTALL_DATA_DIR} ${PREFIX}/lib/
 	${INSTALL_DATA} ${WRKSRC}/src/modules/libsosyslog.so.${VERSION} \
-		${PREFIX}/lib/alat
+		${PREFIX}/lib/
 
 .include <bsd.port.mk>

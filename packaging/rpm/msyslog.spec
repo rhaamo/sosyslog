@@ -36,7 +36,7 @@ gzip src/man/*.8
 %install
 if [ -d $RPM_BUILD_ROOT ]; then rm -r $RPM_BUILD_ROOT; fi
 mkdir -p $RPM_BUILD_ROOT/sbin
-mkdir -p $RPM_BUILD_ROOT/lib/alat
+mkdir -p $RPM_BUILD_ROOT/lib
 mkdir -p $RPM_BUILD_ROOT/%{_mandir}/man5
 mkdir -p $RPM_BUILD_ROOT/%{_mandir}/man8
 mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
@@ -46,8 +46,8 @@ install -m 755 $RPM_BUILD_DIR/%{name}-%{version}/src/syslogd $RPM_BUILD_ROOT/sbi
 #
 # FIX THIS!!!
 #
-#install -m 755 $RPM_BUILD_DIR/%{name}-%{version}/src/modules/libmsyslog.so.%{version} $RPM_BUILD_ROOT/lib/alat
-install -m 755 $RPM_BUILD_DIR/%{name}-%{version}/src/modules/libmsyslog.so.1.3 $RPM_BUILD_ROOT/lib/alat
+#install -m 755 $RPM_BUILD_DIR/%{name}-%{version}/src/modules/libmsyslog.so.%{version} $RPM_BUILD_ROOT/lib/
+install -m 755 $RPM_BUILD_DIR/%{name}-%{version}/src/modules/libmsyslog.so.1.3 $RPM_BUILD_ROOT/lib/
 #
 #
 #
@@ -87,7 +87,6 @@ if [ -d $RPM_BUILD_DIR/%{name}-%{version} ]; then rm -rf $RPM_BUILD_DIR/%{name}-
 %doc $RPM_BUILD_DIR/%{name}-%{version}/NEWS
 %doc $RPM_BUILD_DIR/%{name}-%{version}/README
 /sbin
-/lib/alat
 /etc/rc.d/init.d
 /etc/sysconfig
 %{_mandir}/man5
