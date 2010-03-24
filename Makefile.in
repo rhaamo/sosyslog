@@ -32,8 +32,8 @@ MODULES_SUBDIR = src/modules
 SUBDIRS = src/peo $(MODULES_SUBDIR) src src/man
 INSTALL_SUBDIRS = src/modules src/peo src/man src
 SOSYSLOG_VERSION = @SOSYSLOG_VERSION@
-RELEASE=        sosyslog-v${SOSYSLOG_VERSION}
-TARBALL=        ${RELEASE}-src.tar.gz
+RELEASE=        sosyslog-${SOSYSLOG_VERSION}
+TARBALL=        ${RELEASE}.tar.gz
 
 
 all: all-recursive
