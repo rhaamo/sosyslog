@@ -188,7 +188,7 @@ om_oracle8i_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 	               *p;
 	int             err;
 
-	dprintf(MSYSLOG_INFORMATIVE, "om_oracle8i_write: entering [%s] [%s]\n",
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_oracle8i_write: entering [%s] [%s]\n",
 		m->msg, f->f_prevline);
 
 	c = (struct om_oracle8i_ctx *)ctx;
@@ -228,7 +228,7 @@ om_oracle8i_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 				       NULL, NULL, NULL, 0, NULL, OCI_DEFAULT))) {
 		c->OCIErrorGet(c->err, 1, NULL, &err,
 			       err_buf, sizeof err_buf, OCI_HTYPE_ERROR);
-		dprintf(MSYSLOG_SERIOUS, "om_oracle8i_write: Error "
+		m_dprintf(MSYSLOG_SERIOUS, "om_oracle8i_write: Error "
 			 "binding the placeholders for [%s]\n", err_buf);
 		return -1;
 	}
@@ -268,7 +268,7 @@ om_oracle8i_write(struct filed *f, int flags, struct m_msg *m, void *ctx)
 	if (OCI_SUCCESS != err) {
 		c->OCIErrorGet(c->err, 1, NULL, &err,
 			       err_buf, sizeof err_buf, OCI_HTYPE_ERROR);
-		dprintf(MSYSLOG_SERIOUS, "om_oracle8i_write: Error "
+		m_dprintf(MSYSLOG_SERIOUS, "om_oracle8i_write: Error "
 			 "executing statement [%s]\n", err_buf);
 
 		return -1;
@@ -305,7 +305,7 @@ om_oracle8i_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 	    c == NULL || *c != NULL)
 		return (-1);
 
-	dprintf(MSYSLOG_INFORMATIVE, "om_oracle8i_init: alloc context\n");
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_oracle8i_init: alloc context\n");
 
 	if ((*c = (void *)calloc(1, sizeof (struct om_oracle8i_ctx))) == NULL)
 		return (-1);
@@ -333,7 +333,7 @@ om_oracle8i_init(int argc, char **argv, struct filed *f, char *prog, void **c,
 
 	ctx->OCIHandleAlloc(ctx->env, &ctx->err, OCI_HTYPE_ERROR, 0, NULL);
 
-	dprintf(MSYSLOG_INFORMATIVE, "om_oracle8i_init: params %p %s %s \n",
+	m_dprintf(MSYSLOG_INFORMATIVE, "om_oracle8i_init: params %p %s %s \n",
 		ctx->env, ctx->user, ctx->db);
 
 	if (1 != prepare_query(ctx)) {
@@ -410,7 +410,7 @@ int
 load_symbols(struct om_oracle8i_ctx *ctx)
 {
 	if ((ctx->lib = dlopen("libclntsh.so", DLOPEN_FLAGS)) == NULL) {
-		dprintf(MSYSLOG_SERIOUS, "om_oracle8i_init: Error loading"
+		m_dprintf(MSYSLOG_SERIOUS, "om_oracle8i_init: Error loading"
 			" api library, %s\n", dlerror());
 		return -1;
 	}
@@ -440,7 +440,7 @@ load_symbols(struct om_oracle8i_ctx *ctx)
 	    || !ctx->OCILogoff || !ctx->OCIStmtPrepare
 	    || !ctx->OCIStmtExecute || !ctx->OCIErrorGet
 	    || !ctx->OCIBindByName) {
-		dprintf(MSYSLOG_SERIOUS,
+		m_dprintf(MSYSLOG_SERIOUS,
 			"om_oracle8i_init: Some required symbols are missing");
 		return -1;
 	}
@@ -510,7 +510,7 @@ prepare_query(struct om_oracle8i_ctx *ctx)
 		     (ctx->flags & OM_ORACLE8I_FACILITY)? ":facility, " : "",
 		     (ctx->flags & OM_ORACLE8I_PRIORITY)? ":priority, " : "");
 
-	dprintf(MSYSLOG_INFORMATIVE2, "om_oracle8i_write: query [%s]\n", query);
+	m_dprintf(MSYSLOG_INFORMATIVE2, "om_oracle8i_write: query [%s]\n", query);
 
 	ctx->OCIHandleAlloc(ctx->env, &ctx->stmt, OCI_HTYPE_STMT, 0, NULL);
 
@@ -519,7 +519,7 @@ prepare_query(struct om_oracle8i_ctx *ctx)
 	if (OCI_SUCCESS != err) {
 		ctx->OCIErrorGet(ctx->err, 1, NULL, &err,
 			       err_buf, sizeof err_buf, OCI_HTYPE_ERROR);
-		dprintf(MSYSLOG_SERIOUS, "om_oracle8i_write: Error "
+		m_dprintf(MSYSLOG_SERIOUS, "om_oracle8i_write: Error "
 			 "preparing statement [%s]\n", err_buf);
 
 		return -1;
