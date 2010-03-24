@@ -72,8 +72,10 @@
 #include "../syslogd.h"
 
 /* recvfrom() and others like socklen_t, Irix doesn't provide it */   
-#ifndef HAVE_SOCKLEN_T
+#if !defined(__FreeBSD__)
+# ifndef HAVE_SOCKLEN_T
   typedef int socklen_t;
+# endif
 #endif
 
 
