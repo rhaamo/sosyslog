@@ -29,14 +29,14 @@
 #
 
 COMMENT=	"modular syslog daemon"
-VERSION=	@MSYSLOG_VERSION@
-DISTNAME=	msyslog-v${VERSION}
+VERSION=	@SOSYSLOG_VERSION@
+DISTNAME=	sosyslog-v${VERSION}
 DISTFILES=	${DISTNAME}-src.tar.gz
-PKGNAME=	msyslog-${VERSION}
+PKGNAME=	sosyslog-${VERSION}
 CATEGORIES=	security sysutils
 NEED_VERSION=	1.264
 
-MASTER_SITES=	ftp://openbsd.org.ar/pub/msyslog/
+MASTER_SITES=	ftp://openbsd.org.ar/pub/sosyslog/
 
 HOMEPAGE=	http://www.corest.com/solutions/products.html
 
@@ -51,17 +51,17 @@ PERMIT_DISTFILES_FTP=	Yes
 CONFIGURE_STYLE=	gnu
 
 do-install:
-	${INSTALL_PROGRAM} ${WRKSRC}/src/syslogd ${PREFIX}/sbin/msyslogd
+	${INSTALL_PROGRAM} ${WRKSRC}/src/syslogd ${PREFIX}/sbin/sosyslogd
 	${INSTALL_MAN_DIR} ${PREFIX}/man/cat5 ${PREFIX}/man/cat8
 	${INSTALL_PROGRAM} ${WRKSRC}/src/peo/peochk ${PREFIX}/sbin
 	${INSTALL_MAN} ${WRKSRC}/src/man/*cat5 ${PREFIX}/man/cat5
 	${INSTALL_MAN} ${WRKSRC}/src/man/syslogd.cat8 \
-		${PREFIX}/man/cat8/msyslogd.cat8
+		${PREFIX}/man/cat8/sosyslogd.cat8
 	${INSTALL_MAN} ${WRKSRC}/src/man/peochk.cat8 ${PREFIX}/man/cat8/
 	${INSTALL_MAN} ${WRKSRC}/src/man/im*cat8 ${WRKSRC}/src/man/om*cat8 \
 		${PREFIX}/man/cat8/
 	${INSTALL_DATA_DIR} ${PREFIX}/lib/alat
-	${INSTALL_DATA} ${WRKSRC}/src/modules/libmsyslog.so.${VERSION} \
+	${INSTALL_DATA} ${WRKSRC}/src/modules/libsosyslog.so.${VERSION} \
 		${PREFIX}/lib/alat
 
 .include <bsd.port.mk>

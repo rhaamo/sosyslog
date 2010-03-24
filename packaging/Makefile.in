@@ -29,7 +29,7 @@
 #
 
 SUBDIRS=		OpenBSD OpenBSD-devel
-MSYSLOG_VERSION=	@MSYSLOG_VERSION@
+SOSYSLOG_VERSION=	@SOSYSLOG_VERSION@
 PORT_PREFIX=		msyslog_port
 
 all: ports
@@ -38,10 +38,10 @@ port ports: checkports
 .for i in ${SUBDIRS}
 	@cd ${i} && make clean && ${MAKE} DISTDIR=../.. makesum && \
 		cd - && tar -z -c -s \
-		'/${i}/${PORT_PREFIX}${i:S/OpenBSD//}-${MSYSLOG_VERSION}/' \
-		-f ../${PORT_PREFIX}${i:S/OpenBSD//}-${MSYSLOG_VERSION}.tgz \
+		'/${i}/${PORT_PREFIX}${i:S/OpenBSD//}-${SOSYSLOG_VERSION}/' \
+		-f ../${PORT_PREFIX}${i:S/OpenBSD//}-${SOSYSLOG_VERSION}.tgz \
 		`find ${i}/ -type f | egrep -v "Makefile.in|CVS|PLIST.in"` && \
-		echo ${i} port tarball created at ${PORT_PREFIX}${i:S/OpenBSD//}-${MSYSLOG_VERSION}.tgz
+		echo ${i} port tarball created at ${PORT_PREFIX}${i:S/OpenBSD//}-${SOSYSLOG_VERSION}.tgz
 .endfor
 
 checkports:
@@ -51,7 +51,7 @@ checkports:
 port-clean clean:
 .for i in ${SUBDIRS}
 	@-cd ${i} && make clean
-	-rm -rf ../${PORT_PREFIX}${i:S/OpenBSD//}-${MSYSLOG_VERSION}.tgz
+	-rm -rf ../${PORT_PREFIX}${i:S/OpenBSD//}-${SOSYSLOG_VERSION}.tgz
 .endfor
 
 port-distclean distclean: clean

@@ -61,12 +61,12 @@ then
 	CFLAGS="$CFLAGS -Wall"
 fi
 
-SOSYSLOG_VERSION="1.08g"
+SOSYSLOG_VERSION="1.3"
 
 AC_DEFINE_UNQUOTED(SOSYSLOG_VERSION_STR, "$SOSYSLOG_VERSION")
-echo msyslog version... $SOSYSLOG_VERSION
+echo sosyslog version... $SOSYSLOG_VERSION
 
-MLIBNAME="libmsyslog.so.$SOSYSLOG_VERSION" ;
+MLIBNAME="libsosyslog.so.$SOSYSLOG_VERSION" ;
 AC_DEFINE_UNQUOTED(MLIBNAME_STR, "$MLIBNAME")
 
 MANPAGES="syslog.conf.5 syslogd.8"
@@ -184,8 +184,8 @@ elif test "$UNAME" = "AIX" ; then
 	AC_DEFINE(NEEDS_DLOPEN_NULL, 1)
 	AC_DEFINE(SYMBOL_PREFIX, "")
 	DCCFLAGS="-shared"
-	SHARED_PARAMS="-lc -bI:libmsyslog.imp -bexpall -bnoentry -brtl"
-	cat > src/modules/libmsyslog.imp <<-EOF
+	SHARED_PARAMS="-lc -bI:libsosyslog.imp -bexpall -bnoentry -brtl"
+	cat > src/modules/libsosyslog.imp <<-EOF
 		#! .
 		m_dprintf
 		logerror

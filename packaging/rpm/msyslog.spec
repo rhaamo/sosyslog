@@ -1,6 +1,6 @@
 Summary: A daemon for the syslog system log interface
 Name: msyslog
-Version: pre_1.08c
+Version: 1.3
 Release: 1
 Serial: 1
 Group: System Environment/Daemons
@@ -47,7 +47,7 @@ install -m 755 $RPM_BUILD_DIR/%{name}-%{version}/src/syslogd $RPM_BUILD_ROOT/sbi
 # FIX THIS!!!
 #
 #install -m 755 $RPM_BUILD_DIR/%{name}-%{version}/src/modules/libmsyslog.so.%{version} $RPM_BUILD_ROOT/lib/alat
-install -m 755 $RPM_BUILD_DIR/%{name}-%{version}/src/modules/libmsyslog.so.1.08 $RPM_BUILD_ROOT/lib/alat
+install -m 755 $RPM_BUILD_DIR/%{name}-%{version}/src/modules/libmsyslog.so.1.3 $RPM_BUILD_ROOT/lib/alat
 #
 #
 #

@@ -163,7 +163,7 @@ int	 Initialized = 0;	 /* set when we have initialized ourselves */
 int	 MarkInterval = 20 * 60; /* interval between marks in seconds */
 int	 MarkSeq = 0;		 /* mark sequence number */
 int	 WantDie = 0;
-char	*ConfFile = _PATH_MSYSLOG_CONF; /* configuration file */
+char	*ConfFile = _PATH_SOSYSLOG_CONF; /* configuration file */
 
 #ifdef _PATH_LOGPID
 char	 *pidfile = _PATH_LOGPID;

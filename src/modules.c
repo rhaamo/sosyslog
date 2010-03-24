@@ -118,9 +118,9 @@ prepare_module_libs(const char *modname, void **ret)
 
 
 /*
- * This function gets function name from the main libmsyslog.so.X.X
+ * This function gets function name from the main libsosyslog.so.X.X
  * library or if not there try to open the external module library
- * called libmsyslog_<modulename>.so
+ * called libsosyslog_<modulename>.so
  */
 int
 get_symbol(const char *modname, const char *funcname, void **h, void **ret)
@@ -141,12 +141,12 @@ get_symbol(const char *modname, const char *funcname, void **h, void **ret)
 			m_dprintf(MSYSLOG_INFORMATIVE, "get_symbol: func %s "
 			    "not found on main library\n", buf);
 
-			/* Try to open libmsyslog_<modulename>.so */
+			/* Try to open libsosyslog_<modulename>.so */
 			if (*h == NULL) {
 				char extlib[LIB_PATH_MAX];
 
 				snprintf(extlib, sizeof(extlib),
-				    "%s/libmsyslog_%s.so", (libdir == NULL) ?
+				    "%s/libsosyslog_%s.so", (libdir == NULL) ?
 				    INSTALL_LIBDIR : libdir, modname);
 
 				m_dprintf(MSYSLOG_INFORMATIVE, "get_symbol: "

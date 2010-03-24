@@ -29,7 +29,7 @@
 #
 
 COMMENT=	"modular syslog modules developer files"
-VERSION=	@MSYSLOG_VERSION@
+VERSION=	@SOSYSLOG_VERSION@
 DISTNAME=	msyslog-v${VERSION}
 DISTFILES=	${DISTNAME}-src.tar.gz
 PKGNAME=	msyslog-devel-${VERSION}
