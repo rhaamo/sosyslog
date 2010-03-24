@@ -5854,7 +5854,7 @@ then
 	prefix=$ac_default_prefix
 fi
 cat >>confdefs.h <<_ACEOF
-#define INSTALL_LIBDIR "$prefix/lib/alat"
+#define INSTALL_LIBDIR "$prefix/lib/"
 _ACEOF
 
 
@@ -5875,13 +5875,16 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
 
-for MANDIR in "/usr/share/man" "/usr/man"
-do
-	if test -d $MANDIR ; then
-		mandir=$MANDIR;
-		break;
-	fi
-done
+UNAME=`uname`
+if test "$UNAME" != "FreeBSD" ; then
+        for MANDIR in "/usr/share/man" "/usr/man"
+    do
+	    if test -d $MANDIR ; then
+		    mandir=$MANDIR;
+		    break;
+	    fi
+    done
+fi
 
 
 { $as_echo "$as_me:$LINENO: checking wether netdb.h requires _USE_IRS" >&5

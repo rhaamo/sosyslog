@@ -75,7 +75,7 @@ if test "x$prefix" = "xNONE"
 then
 	prefix=$ac_default_prefix
 fi
-AC_DEFINE_UNQUOTED(INSTALL_LIBDIR, "$prefix/lib/alat")
+AC_DEFINE_UNQUOTED(INSTALL_LIBDIR, "$prefix/lib/")
 
 AC_MSG_CHECKING(pidfile directory)
 
@@ -88,14 +88,17 @@ done
 AC_MSG_RESULT(root-mode pid file will go in $dir)
 AC_DEFINE(PID_DIR, "$dir", [This is not an original description])
 
-dnl search mandir for non bsd systems
-for MANDIR in "/usr/share/man" "/usr/man"
-do
-	if test -d $MANDIR ; then
-		mandir=$MANDIR;
-		break;
-	fi
-done
+UNAME=`uname`
+if test "$UNAME" != "FreeBSD" ; then
+    dnl search mandir for non bsd systems
+    for MANDIR in "/usr/share/man" "/usr/man"
+    do
+	    if test -d $MANDIR ; then
+		    mandir=$MANDIR;
+		    break;
+	    fi
+    done
+fi
 
 dnl Check underscore requirement for dlsym()
 

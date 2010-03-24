@@ -66,7 +66,13 @@
 #include <string.h>
 #include <syslog.h>
 #include <unistd.h>
-#include <utmp.h>
+
+#if defined(__FreeBSD__) && (__FreeBSD__ >= 9)
+# include <utmpx.h>
+#else
+# include <utmp.h>
+#endif
+
 #include <netdb.h>
 /* if _PATH_UTMP isn't defined, define it here... */
 #ifndef _PATH_UTMP
@@ -100,7 +106,11 @@ char    *TypeNames[] = { "UNUSED", "FILE", "TTY", "CONSOLE",
 struct om_classic_ctx {
 	int	fd;
 	union {
+#if defined(__FreeBSD__) && (__FreeBSD__ >= 9)
+	    	char    f_uname[MAXUNAMES][MAXLOGNAME+2];
+#else
 		char    f_uname[MAXUNAMES][UT_NAMESIZE+1];
+#endif
 		struct {
 			char    f_hname[MAXHOSTNAMELEN];
 			struct sockaddr		f_addr;
@@ -395,9 +405,15 @@ om_classic_init(int argc, char **argv, struct filed *f, char *prog, void **ctx,
 		for (i = 0; i < MAXUNAMES && *p; i++) {
 			for (q = p; *q && *q != ','; )
 				q++;
+#if defined(__FreeBSD__) && (__FreeBSD__ >= 9)
+			(void)strncpy(c->f_un.f_uname[i], p, MAXLOGNAME+1);
+			if ((q - p) > MAXLOGNAME+1)
+			    	c->f_un.f_uname[i][MAXLOGNAME+1] = '\0';
+#else
 			(void)strncpy(c->f_un.f_uname[i], p, UT_NAMESIZE);
 			if ((q - p) > UT_NAMESIZE)
 				c->f_un.f_uname[i][UT_NAMESIZE] = '\0';
+#endif
 			else
 				c->f_un.f_uname[i][q - p] = '\0';
 			while (*q == ',' || *q == ' ')
@@ -454,24 +470,34 @@ wallmsg( struct filed *f, struct iovec *iov, struct om_classic_ctx *c)
 {
 	static int reenter;			/* avoid calling ourselves */
 	FILE *uf;
+#if defined(__FreeBSD__) && (__FreeBSD__ >= 9)
+	struct utmpx ut;
+#else
 	struct utmp ut;
+#endif
 	int i;
 	char *p;
 	char line[sizeof(ut.ut_line) + 1];
 
 	if (reenter++)
 		return;
+#if defined(__FreeBSD__) && (__FreeBSD__ < 9)
 	if ( (uf = fopen(_PATH_UTMP, "r")) == NULL) {
 		m_dprintf(MSYSLOG_SERIOUS, "om_classic: error opening "
 		    "%s\n", _PATH_UTMP);
 		reenter = 0;
 		return;
 	}
+#endif
 	/* NOSTRICT */
 	while (fread(&ut, sizeof(ut), 1, uf) == 1) {
 
 #ifndef __linux__
+# if defined(__FreeBSD__) && (__FreeBSD__ >= 9)
+	    	if (ut.ut_user[0] == '\0')
+# else
 		if (ut.ut_name[0] == '\0')
+# endif
 #else
 		if ((ut.ut_type != USER_PROCESS && ut.ut_type != LOGIN_PROCESS) ||
 		    ut.ut_line[0] == ':' /* linux logs users that are not logged in (?!) */)
@@ -492,7 +518,11 @@ wallmsg( struct filed *f, struct iovec *iov, struct om_classic_ctx *c)
 		for (i = 0; i < MAXUNAMES; i++) {
 			if (!c->f_un.f_uname[i][0])
 				break;
+#if defined(__FreeBSD__) && (__FreeBSD__ >= 9)
+			if (!strncmp(c->f_un.f_uname[i], ut.ut_user,
+#else
 			if (!strncmp(c->f_un.f_uname[i], ut.ut_name,
+#endif
 			    UT_NAMESIZE)) {
 				if ((p = ttymsg(iov, 6, line, TTYMSGTIME))
 								!= NULL) {
