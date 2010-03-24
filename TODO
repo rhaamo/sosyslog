@@ -2,7 +2,7 @@ New TODO of sosyslog.
 
 - Vars substitution in config file
 - %subst module like s/blah/moo/
-
+- Adapt all /dev/log to /var/run/log and conf with #{PREFIX}
 
 
 
