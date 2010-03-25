@@ -255,6 +255,7 @@ AC_ARG_WITH(linux,
 		MSRCS="$MSRCS im_linux.c"
 		MANPAGES="$MANPAGES im_linux.8"
 		AC_DEFINE(HAVE_LINUX_IMODULE, 1)
+		temp_res="yes"
 	])
 ])
 

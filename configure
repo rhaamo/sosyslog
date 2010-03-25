@@ -6279,6 +6279,7 @@ if test $ac_cv_header_sys_klog_h = yes; then
 #define HAVE_LINUX_IMODULE 1
 _ACEOF
 
+		temp_res="yes"
 
 fi
 

@@ -1,6 +1,5 @@
 New TODO of sosyslog.
 
-- im_linux not detected by default on linux ??
 - sigsetmask deprecated on linux (signal.h:199)
 
 - Vars substitution in config file
