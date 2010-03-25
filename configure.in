@@ -233,6 +233,9 @@ if test "X$temp_res" = "Xyes" ; then
 		MSRCS="$MSRCS im_bsd.c";
 		MANPAGES="$MANPAGES im_bsd.8";
 		AC_DEFINE(HAVE_BSD_IMODULE, 1)
+		want_bsd=yes
+else
+    		want_bsd=no
 fi
 
 AC_ARG_WITH(linux,
@@ -243,6 +246,9 @@ AC_ARG_WITH(linux,
 		MSRCS="$MSRCS im_linux.c"
 		MANPAGES="$MANPAGES im_linux.8"
 		AC_DEFINE(HAVE_LINUX_IMODULE, 1)
+		temp_res="yes"
+	else
+	    	temp_res="no"
 	fi
 ],[
 	AC_CHECK_HEADER(sys/klog.h, [
@@ -251,6 +257,12 @@ AC_ARG_WITH(linux,
 		AC_DEFINE(HAVE_LINUX_IMODULE, 1)
 	])
 ])
+
+if test "$temp_res" = "yes" ; then
+    	want_linux=yes
+else
+    	want_linux=no
+fi
 
 temp_res="no";
 AC_ARG_WITH(udp,
@@ -264,6 +276,9 @@ AC_ARG_WITH(udp,
 if test "X$temp_res" = "Xyes" ; then
 	MSRCS="$MSRCS im_udp.c om_udp.c"
 	MANPAGES="$MANPAGES im_udp.8 om_udp.8";
+	want_udp=yes
+else
+    	want_udp=no
 fi
 
 temp_res="yes";
@@ -278,6 +293,9 @@ if test "X$temp_res" = "Xyes" ; then
 		MSRCS="$MSRCS im_unix.c"
 		AC_DEFINE(HAVE_UNIX_IMODULE, 1)
 		MANPAGES="$MANPAGES im_unix.8"
+		want_unix=yes
+else
+    		want_unix=no
 fi
 temp_res="yes";
 
@@ -289,6 +307,9 @@ if test "X$temp_res" = "Xyes" ; then
 		MSRCS="$MSRCS im_file.c"
 		AC_DEFINE(HAVE_FILE_IMODULE, 1)
 		MANPAGES="$MANPAGES im_file.8"
+		want_file=yes
+else
+    		want_file=no
 fi
 
 dnl Doors should only be used with streams
@@ -316,6 +337,9 @@ if test "$temp_res" = "yes" ; then
 	MANPAGES="$MANPAGES im_streams.8"
 	SYSLOGD_LIBS="$SYSLOGD_LIBS -lthread -ldoor"
 	AC_DEFINE(HAVE_STREAMS_IMODULE, 1)
+	want_streams=yes
+else
+    	want_streams=no
 fi
 AC_MSG_CHECKING(for streams module)
 AC_MSG_RESULT($temp_res)
@@ -329,6 +353,9 @@ AC_ARG_WITH(classic,
 if test "X$temp_res" = "Xyes" ; then
 	MSRCS="$MSRCS om_classic.c ttymsg.c"
 	MANPAGES="$MANPAGES om_classic.8"
+	want_classic=yes
+else
+    	want_classic=no
 fi
 
 AC_ARG_WITH(tcp,
@@ -351,6 +378,9 @@ AC_ARG_WITH(tcp,
 if test "$temp_res" = "yes" ; then
 	AC_EGREP_HEADER(sa_len, [#include <sys/socket.h> ],
 	    AC_DEFINE(HAVE_SOCKADDR_SA_LEN, 1))
+	want_tcp=yes
+else
+    	want_tcp=no
 fi
 
 AC_ARG_WITH(oracle8i,
@@ -360,12 +390,21 @@ AC_ARG_WITH(oracle8i,
 	if test $with_oracle8i = "yes" ; then
 		MSRCS="$MSRCS om_oracle8i.c"
 		MANPAGES="$MANPAGES om_oracle8i.8"
+		temp_res="yes"
+	else
+	    	temp_res="no"
 	fi
 ],[
 	MSRCS="$MSRCS om_oracle8i.c"
 	MANPAGES="$MANPAGES om_oracle8i.8"
 	USESQL="yes"
 ])
+
+if test "$temp_res" = "yes" ; then
+	want_oracle8i=yes
+else
+    	want_oracle8i=no
+fi
 
 AC_ARG_WITH(mysql,
 [  --without-mysql
@@ -374,12 +413,21 @@ AC_ARG_WITH(mysql,
 	if test $with_mysql = "yes" ; then
 		MSRCS="$MSRCS om_mysql.c"
 		MANPAGES="$MANPAGES om_mysql.8"
+		temp_res="yes"
+	else
+	    	temp_res="no"
 	fi
 ],[
 	MSRCS="$MSRCS om_mysql.c"
 	MANPAGES="$MANPAGES om_mysql.8"
 	USESQL="yes"
 ])
+
+if test "$temp_res" = "yes" ; then
+	want_mysql=yes
+else
+	want_mysql=no
+fi
 
 AC_ARG_WITH(pgsql,
 [  --without-pgsql
@@ -388,12 +436,21 @@ AC_ARG_WITH(pgsql,
 	if test $with_pgsql = "yes" ; then
 		MSRCS="$MSRCS om_pgsql.c"
 		MANPAGES="$MANPAGES om_pgsql.8"
+		temp_res="no"
+	else
+	    	temp_res="no"
 	fi
 ],[
 	MSRCS="$MSRCS om_pgsql.c"
 	MANPAGES="$MANPAGES om_pgsql.8"
 	USESQL="yes"
 ])
+
+if test "$temp_res" = "yes" ; then
+	want_pgsql=yes
+else
+    	want_pgsql=no
+fi
 
 if test "$USESQL" = "yes" ; then
 	MSRCS="$MSRCS sql_misc.c"
@@ -439,6 +496,9 @@ if test $PEO = "yes" ; then
 	if test -r /dev/srandom ; then
 		AC_DEFINE(HAVE_SRANDOM, 1)
 	fi
+	want_peo=yes
+else
+    	want_peo=no
 fi
 
 AC_ARG_WITH(regex,
@@ -448,6 +508,9 @@ AC_ARG_WITH(regex,
 	if test $with_regex = "yes" ; then
 		MSRCS="$MSRCS om_regex.c"
 		MANPAGES="$MANPAGES om_regex.8"
+		temp_res="yes"
+	else
+	    	temp_res="no"
 	fi
 ],[
 	AC_CHECK_HEADER(regex.h, [
@@ -456,24 +519,30 @@ AC_ARG_WITH(regex,
 	])
 ])
 
-AC_ARG_WITH([snmp],
-	AC_HELP_STRING([--with-snmp], [use SNMP (default is YES, if available)]),
-	[ac_cv_use_snmp=$withval], [ac_cv_use_snmp=yes])
-AC_CACHE_CHECK([whether to use SNMP], [ac_cv_use_snmp], [ac_cv_use_snmp=yes])
-
-if test "$ac_cv_use_snmp" = "yes"; then
-   # Let's assume libcrypto is available, for now.
-   libs_save="$LIBS"
-   AC_CHECK_LIB(snmp, snmp_sess_init, [], [], [-lcrypto])
-   LIBS="$libs_save"
-   AC_CHECK_HEADERS([net-snmp/net-snmp-config.h ucd-snmp/ucd-snmp-config.h])
+if test "$temp_res" = "yes" ; then
+    	want_regex=yes
+else
+    	want_regex=no
 fi
 
-if test "$ac_cv_lib_snmp_snmp_sess_init" = "yes" \
-       -a \( "$ac_cv_header_net_snmp_net_snmp_config_h" = "yes" \
-          -o "$ac_cv_header_ucd_snmp_ucd_snmp_config_h" = "yes" \); then
-   EXTRA_MODULES="$extra_modules om_snmptrap"
-fi
+#AC_ARG_WITH([snmp],
+#	AC_HELP_STRING([--with-snmp], [use SNMP (default is YES, if available)]),
+#	[ac_cv_use_snmp=$withval], [ac_cv_use_snmp=yes])
+#AC_CACHE_CHECK([whether to use SNMP], [ac_cv_use_snmp], [ac_cv_use_snmp=yes])
+#
+#if test "$ac_cv_use_snmp" = "yes"; then
+#   # Let's assume libcrypto is available, for now.
+#   libs_save="$LIBS"
+#   AC_CHECK_LIB(snmp, snmp_sess_init, [], [], [-lcrypto])
+#   LIBS="$libs_save"
+#   AC_CHECK_HEADERS([net-snmp/net-snmp-config.h ucd-snmp/ucd-snmp-config.h])
+#fi
+#
+#if test "$ac_cv_lib_snmp_snmp_sess_init" = "yes" \
+#       -a \( "$ac_cv_header_net_snmp_net_snmp_config_h" = "yes" \
+#          -o "$ac_cv_header_ucd_snmp_ucd_snmp_config_h" = "yes" \); then
+#   EXTRA_MODULES="$extra_modules om_snmptrap"
+#fi
 
 AC_CACHE_SAVE
 
@@ -522,3 +591,29 @@ AC_OUTPUT([Makefile
 	    packaging/OpenBSD/Makefile
 	    packaging/OpenBSD/pkg/PLIST
 	    packaging/OpenBSD-devel/Makefile])
+
+
+
+echo
+
+ARCH=`uname`
+echo "Building on arch ............ $ARCH"
+echo
+echo "Building with bsd ........... $want_bsd"
+echo "Building with linux ......... $want_linux"
+echo "Building with unix .......... $want_unix"
+echo
+echo "Building with udp ........... $want_udp"
+echo "Building with tcp ........... $want_tcp"
+echo
+echo "Building with classic ....... $want_classic"
+echo "Building with regex ......... $want_regex"
+echo "Building with PEO ........... $want_peo"
+echo
+echo "Building with file/pipe ..... $want_file"
+echo "Building with streams (sysv). $want_streams"
+echo
+echo "Building with oracle8i ...... $want_oracle8i"
+echo "Building with mysql ......... $want_mysql"
+echo "Building with pgsql ......... $want_pgsql"
+echo
