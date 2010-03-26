@@ -40,6 +40,7 @@ modular
 .Sh SYNOPSIS
 .Nm syslogd
 .Op Fl c
+.Op Fl C
 .Op Fl u
 .Op Fl n
 .Op Fl A
@@ -109,6 +110,8 @@ Disables opening default inputs when there aren't given on command line.
 Disables opening console device, useful for non root testing.
 .It Fl A
 Use local host name with it's domain.
+.It Fl C
+Dont collapse messages with 'last message repeated x times'
 .El
 .Pp
 .Nm Syslogd
