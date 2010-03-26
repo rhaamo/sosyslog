@@ -5989,6 +5989,18 @@ _ACEOF
 	SHARED_PARAMS="-Bshareable"
 	DCCFLAGS="-fPIC"
 	SYSLOGD_LIBS="$SYSLOGD_LIBS -Wl,-E"
+elif test "$UNAME" = "NetBSD" ; then
+	cat >>confdefs.h <<\_ACEOF
+#define DLOPEN_FLAGS RTLD_LAZY
+_ACEOF
+
+	cat >>confdefs.h <<\_ACEOF
+#define SYMBOL_PREFIX ""
+_ACEOF
+
+	SHARED_PARAMS="-Bshareable"
+	DCCFLAGS="-fPIC"
+	SYSLOGD_LIBS="$SYSLOGD_LIBS -Wl,-E"
 elif test "$UNAME" = "Linux" ; then
 	cat >>confdefs.h <<\_ACEOF
 #define DLOPEN_FLAGS RTLD_LAZY | RTLD_GLOBAL
