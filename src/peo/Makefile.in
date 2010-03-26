@@ -55,8 +55,8 @@ distclean: clean
 	-rm -f Makefile
 
 install:
-	@if [ ! -d $(INSTALL_DIR) ]; then \
-		mkdir -p $(INSTALL_DIR); \
+	@if [ ! -d $(DESTDIR)$(INSTALL_DIR) ]; then \
+		mkdir -p $(DESTDIR)$(INSTALL_DIR); \
 	fi
-	-$(INSTALL) ${PROG} $(INSTALL_DIR)
+	-$(INSTALL) ${PROG} $(DESTDIR)$(INSTALL_DIR)
 

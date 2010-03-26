@@ -65,13 +65,13 @@ distclean: clean
 	-rm -f Makefile config.h
 
 install-prog:
-	@if [ ! -d $(INSTALL_DIR) ]; then \
-		mkdir -p $(INSTALL_DIR); \
+	@if [ ! -d $(DESTDIR)$(INSTALL_DIR) ]; then \
+		mkdir -p $(DESTDIR)$(INSTALL_DIR); \
 	fi
 	@if [ -f "$(INSTALL_DIR)/$(PROG)" ]; then \
 		mv -f "$(INSTALL_DIR)/$(PROG)" "$(INSTALL_DIR)/$(PROG).old"; \
 	fi
-	$(INSTALL) -s $(PROG) $(INSTALL_DIR)/ ;
+	$(INSTALL) -s $(PROG) $(DESTDIR)$(INSTALL_DIR)/ ;
 
 install: install-prog
 	@echo -e \

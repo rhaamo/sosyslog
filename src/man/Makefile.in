@@ -40,10 +40,10 @@ all:
 install maninstall: $(OMAN)
 
 $(OMAN):
-	@if [ ! -d $(MANDIR)/man$(subst .,,$(suffix $(@:%.gz=%))) ]; then \
-		mkdir -p $(MANDIR)/man$(subst .,,$(suffix $(@:%.gz=%))); \
+	@if [ ! -d $(DESTDIR)$(MANDIR)/man$(subst .,,$(suffix $(@:%.gz=%))) ]; then \
+		mkdir -p $(DESTDIR)$(MANDIR)/man$(subst .,,$(suffix $(@:%.gz=%))); \
 	fi
-	-gzip -cf $(@:%.gz=%) > $(MANDIR)/man$(subst .,,$(suffix $(@:%.gz=%)))/$@
+	-gzip -cf $(@:%.gz=%) > $(DESTDIR)$(MANDIR)/man$(subst .,,$(suffix $(@:%.gz=%)))/$@
 
 
 .PHONY: clean distclean

@@ -63,8 +63,8 @@ distclean: clean
 
 install:
 	@echo "installing shared library..."
-	@if [ ! -d $(INSTALL_LIBDIR) ]; then \
-		mkdir -p $(INSTALL_LIBDIR); \
+	@if [ ! -d $(DESTDIR)$(INSTALL_LIBDIR) ]; then \
+		mkdir -p $(DESTDIR)$(INSTALL_LIBDIR); \
 	fi
-	@$(INSTALL) $(MLIBNAME) $(INSTALL_LIBDIR)/ && echo "$(INSTALL_LIBDIR)/$(MLIBNAME)"
+	@$(INSTALL) $(MLIBNAME) $(DESTDIR)$(INSTALL_LIBDIR)/ && echo "$(DESTDIR)$(INSTALL_LIBDIR)/$(MLIBNAME)"
 
