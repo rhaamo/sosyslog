@@ -88,18 +88,6 @@ done
 AC_MSG_RESULT(root-mode pid file will go in $dir)
 AC_DEFINE_UNQUOTED(PID_DIR, "$dir")
 
-UNAME=`uname`
-if test "$UNAME" != "FreeBSD" ; then
-    dnl search mandir for non bsd systems
-    for MANDIR in "/usr/share/man" "/usr/man"
-    do
-	    if test -d $MANDIR ; then
-		    mandir=$MANDIR;
-		    break;
-	    fi
-    done
-fi
-
 dnl Check underscore requirement for dlsym()
 
 AC_MSG_CHECKING(wether netdb.h requires _USE_IRS)
