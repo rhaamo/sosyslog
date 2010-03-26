@@ -70,7 +70,7 @@ char	*linux_input_module = "linux input module";
 /*
  * kernel symbols
  */
-#define PATH_KSYM	"/proc/ksyms"
+#define PATH_KSYM	"/proc/kallsyms"
 #define MAX_ADDR_LEN	16
 #define MAX_NAME_LEN	80
 #define MAX_MNAME_LEN	20
