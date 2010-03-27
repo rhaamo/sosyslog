@@ -1,11 +1,15 @@
 New TODO of sosyslog.
 
+FOR 1.x
 - sigsetmask deprecated on linux (signal.h:199)
 
-- Vars substitution in config file
+FOR 2.x
 - %subst module like s/blah/moo/
-- Adapt all /dev/log to /var/run/log and conf with #{PREFIX}
+- %dbus module
 
+UNKNOWN
+- Adapt all /dev/log to /var/run/log and conf with #{PREFIX}
+- Vars substitution in config file
 
 
 /////////////////////////////////
