@@ -10,6 +10,7 @@ FOR 2.x
 UNKNOWN
 - Adapt all /dev/log to /var/run/log and conf with #{PREFIX}
 - Vars substitution in config file
+- On OpenBSD : /root/sosyslog/src/syslogd.c:1017: warning: sprintf() is often misused, please use snprintf()
 
 
 /////////////////////////////////
