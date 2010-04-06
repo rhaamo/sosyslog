@@ -594,6 +594,8 @@ echo
 ARCH=`uname`
 echo "Building on arch ............ $ARCH"
 echo
+echo "Prefix: $prefix"
+echo
 echo "Building with bsd ........... $want_bsd"
 echo "Building with linux ......... $want_linux"
 echo "Building with unix .......... $want_unix"
