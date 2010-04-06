@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+
+# PROVIDE: sosyslogd
+# REQUIRE: mountcritremote sysdb wscons
+# BEFORE:  SERVERS
+
+$_rc_subr_loaded . /etc/rc.subr
+
+name="sosyslogd"
+rcvar=$name
+command="/usr/pkg/sbin/${name}"
+pidfile="/var/run/syslog.pid"
+required_files="/usr/pkg/etc/sosyslog.conf"
+start_precmd="sosyslogd_precmd"
+
+syslogd_precmd()
+{
+	# Check for flags
+	# BSDs need at least 'bsd' and 'unix' inputs modules
+	if [ ! -s $rc_flags ]; then
+		echo "Setting ${name} flags to default: '-i bsd -i unix'"
+		rc_flags="-i bsd -i unix $rc_flags"
+	fi
+
+	return 0
+}
+
+load_rc_config $name
+run_rc_command "$1"
