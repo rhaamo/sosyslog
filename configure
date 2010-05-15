@@ -2252,6 +2252,15 @@ fi
 SYSLOGD_LIBS="${L_SYSLOGD_LIBS}"
 echo "SYSLOGD_LIBS=$SYSLOGD_LIBS" >>Makefile.config
 echo "mdefs[\"SYSLOGD_LIBS\"] = \"$SYSLOGD_LIBS\"" >>configure.lua
+HASH_SRCS="${HASH_SRCS}"
+echo "HASH_SRCS=$HASH_SRCS" >>Makefile.config
+echo "mdefs[\"HASH_SRCS\"] = \"$HASH_SRCS\"" >>configure.lua
+HASH_SRCS_MODULES="${HASH_SRCS_MODULES}"
+echo "HASH_SRCS_MODULES=$HASH_SRCS_MODULES" >>Makefile.config
+echo "mdefs[\"HASH_SRCS_MODULES\"] = \"$HASH_SRCS_MODULES\"" >>configure.lua
+MODULES_SRCS="${MSRCS}"
+echo "MODULES_SRCS=$MODULES_SRCS" >>Makefile.config
+echo "mdefs[\"MODULES_SRCS\"] = \"$MODULES_SRCS\"" >>configure.lua
 ARCH=`uname -s`
 echo
 echo "Building ${PROGNAME}-${VERSION} on ${ARCH}"
