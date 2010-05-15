@@ -2,9 +2,9 @@ TOP=	../..
 PROG=	peochk
 SRCS=	peochk.c	\
 	../options.c	\
-	hash.c
+	${HASH_SRCS}
 
-CPPFLAGS=	-I.. ${CPPFLAGS}
+CPPFLAGS=	-I..
 CFLAGS+=	-O2 -Wall ${DEBUG_FLAGS} ${CPPFLAGS}
 LDFLAGS+=
 
