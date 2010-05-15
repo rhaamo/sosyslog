@@ -8,19 +8,17 @@ REGISTER("--with-daemon-name",		"Set a different daemon name, instead of sosyslo
 REGISTER("--enable-debug",	"General debugging [no]")
 
 REGISTER_SECTION("Modules")
-REGISTER("--enable-bsd",	"Use bsd input module. Automatically detected.")
-REGISTER("--enable-linux",	"Use linux kernel input module. Automatically detected.")
-REGISTER("--enable-udp",	"Use udp socket input module. Activated by default.")
-REGISTER("--enable-unix",	"Use unix socket domain input module. Activated by default.")
-REGISTER("--enable-file",	"Use file/pip input module. Activated by default.")
-REGISTER("--enable-streams",	"Use streams input module. Activated by default.")
-REGISTER("--enable-classic",	"Use classic output module. Activated by default.")
-REGISTER("--enable-tcp",	"Use tcp input and output modules. Activated by default.")
-REGISTER("--enable-oracle8i",	"Use Oracle8i output module. Activated by default.")
-REGISTER("--enable-mysql",	"Use mysql MySQL output module. Activated by default.")
-REGISTER("--enable-pgsql",	"Use pgsql PostgreSQL output module. Activated by default.")
-REGISTER("--enable-peo",	"Use peo log integrity verification module. Activated by default.")
-REGISTER("--enable-regex",	"Use regex pattern matching output module. Activated by default.")
+REGISTER("--disable-udp",	"Use udp socket input module. Activated by default.")
+REGISTER("--disable-unix",	"Use unix socket domain input module. Activated by default.")
+REGISTER("--disable-file",	"Use file/pip input module. Activated by default.")
+REGISTER("--disable-streams",	"Use streams input module. Activated by default.")
+REGISTER("--disable-classic",	"Use classic output module. Activated by default.")
+REGISTER("--disable-tcp",	"Use tcp input and output modules. Activated by default.")
+REGISTER("--disable-oracle8i",	"Use Oracle8i output module. Activated by default.")
+REGISTER("--disable-mysql",	"Use mysql MySQL output module. Activated by default.")
+REGISTER("--disable-pgsql",	"Use pgsql PostgreSQL output module. Activated by default.")
+REGISTER("--disable-peo",	"Use peo log integrity verification module. Activated by default.")
+REGISTER("--disable-regex",	"Use regex pattern matching output module. Activated by default.")
 
 # Name and version
 HDEFINE(PROGNAME, "sosyslog")
@@ -32,6 +30,8 @@ CHECK(cc)
 # VARS
 MANPAGES="syslog.conf.5 syslogd.3"
 MDEFINE(MLIBNAME,	"lib${PROGNAME}.so.${VERSION}")
+MAIL_CONTACT="rhaamo@gruik.at"
+check_header_state=no
 
 CHECK(dlopen)
 if [ "${HAVE_DLOPEN}" != "yes" ]; then
@@ -50,13 +50,38 @@ fi
 # TODO: use --with-daemon-name=blah
 MDEFINE(SOSYSLOG_DAEMON_NAME,	${PROGNAME}d)
 
+check_your_prefix ()
+{
+    echo "Please check your $$PREFIX or use something like:"
+    echo "  ./configure --prefix=/your/prefix --some-options"
+    echo "If you _realy_ have this header please contact the author:"
+    echo "${MAIL_CONTACT}"
+}
+
 check_header_exist ()
 {
-    if [ -f "${PREFIX}/$1" ]; then
-	return "yes"
+    check_header_state="no"
+    echo -n "checking for $1... "
+
+    rm -r configure_testdir 2>/dev/null
+    mkdir configure_testdir 2>/dev/null
+    cd configure_testdir 2>/dev/null
+    rm testhead.h 2>/dev/null
+    echo "#include <$1>" >> testhead.h
+    gcc testhead.h 2>testhead.err
+    if [ "$?" = "0" ]; then
+        che_state="yes"
+	echo "yes"
     else
-	return "no"
+        che_state="no"
+	echo "no"
+	check_your_prefix
     fi
+    rm testhead.* 2>/dev/null
+    cd .. 2>/dev/null
+    rm -r configure_testdir 2>/dev/null
+
+    check_header_state=$che_state
 }
 
 echo -n "checking Operating System to set libraries flags... "
@@ -159,7 +184,7 @@ if test "$UNAME" = "OpenBSD" -o "$UNAME" = "NetBSD"	\
 	temp_res="yes";
 fi
 
-if [ "${tem_res}" = "yes" ]; then
+if [ "${temp_res}" = "yes" ]; then
     MSRCS="${MSRCS} im_bsd.c"
     MANPAGES="${MANPAGES} im_bsd.8"
     HDEFINE(HAVE_BSD_MODULE,	1)
@@ -174,14 +199,13 @@ if [ "$UNAME" = "Linux" ]; then
 fi
 
 if [ "${temp_res}" = "yes" ]; then
-    foo = check_header_exist "sys/klog.h"
-    if [ "${foo}" = "yes" ]; then
+    check_header_exist "sys/klog.h"
+    if [ "${check_header_state}" = "yes" ]; then
 	MSRCS="${MSRCS} im_linux.c"
 	MANPAGES="${MANPAGES} im_linux.8"
 	HDEFINE(HAVE_LINUX_MODULE,  1)
 	want_linux=yes
     else
-	echo "Could not find header \"sys/klog.h\" please check your $$PREFIX or ./configure --some-options --prefix="
 	exit 1
 	want_linux=no
     fi
@@ -189,10 +213,19 @@ else
     want_linux=no
 fi
 
-if [ "${enable_}" = "yes" ]; then
-    MSRCS="${MSRCS} "
-    HDEFINE(HAVE__MODULE,	1)
+temp_res=no
+if [ "${enable_udp}" = "no" ]; then
+    want_udp=no
 else
+    check_header_exist "sys/socket.h"
+    if [ "${check_header_state}" = "yes" ]; then
+    	MSRCS="${MSRCS} im_udp.c om_udp.c"
+	MANPAGES="${MANPAGES} im_udp.8 om_udp.8"
+    	HDEFINE(HAVE_UDP_MODULE,	1)
+	want_udp=yes
+    else
+	want_udp=no
+    fi
 fi
 
 if [ "${enable_}" = "yes" ]; then
@@ -255,6 +288,7 @@ echo "      Debug: ${END_WITH_DEBUG}"
 echo "      Modules:"
 echo "          BSD: ${want_bsd}"
 echo "        Linux: ${want_linux}"
+echo "          UDP: ${want_udp}"
 echo
 echo "* Configuration successful."
 echo "* Use \"make\" and \"make install\" to build and install ${PROGNAME}"

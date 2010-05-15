@@ -1473,6 +1473,8 @@ MANPAGES="syslog.conf.5 syslogd.3"
 MLIBNAME="lib${PROGNAME}.so.${VERSION}"
 echo "MLIBNAME=$MLIBNAME" >>Makefile.config
 echo "mdefs[\"MLIBNAME\"] = \"$MLIBNAME\"" >>configure.lua
+MAIL_CONTACT="rhaamo@gruik.at"
+check_header_state=no
 $ECHO_N "checking for dlopen() interface..."
 $ECHO_N "checking for dlopen() interface..." >> config.log
 DSO_CFLAGS=""
@@ -1654,14 +1656,36 @@ fi
 SOSYSLOG_DAEMON_NAME="${PROGNAME}d"
 echo "SOSYSLOG_DAEMON_NAME=$SOSYSLOG_DAEMON_NAME" >>Makefile.config
 echo "mdefs[\"SOSYSLOG_DAEMON_NAME\"] = \"$SOSYSLOG_DAEMON_NAME\"" >>configure.lua
+check_your_prefix ()
+{
+    echo "Please check your $$PREFIX or use something like:"
+    echo "  ./configure --prefix=/your/prefix --some-options"
+    echo "If you _realy_ have this header please contact the author:"
+    echo "${MAIL_CONTACT}"
+}
 check_header_exist ()
 {
-    if [ -f "${PREFIX}/$1" ]
+    check_header_state="no"
+    echo -n "checking for $1... "
+    rm -r configure_testdir 2>/dev/null
+    mkdir configure_testdir 2>/dev/null
+    cd configure_testdir 2>/dev/null
+    rm testhead.h 2>/dev/null
+    echo "#include <$1>" >> testhead.h
+    gcc testhead.h 2>testhead.err
+    if [ "$?" = "0" ]
  then
-	return "yes"
+        che_state="yes"
+	echo "yes"
     else
-	return "no"
+        che_state="no"
+	echo "no"
+	check_your_prefix
     fi
+    rm testhead.* 2>/dev/null
+    cd .. 2>/dev/null
+    rm -r configure_testdir 2>/dev/null
+    check_header_state=$che_state
 }
 echo -n "checking Operating System to set libraries flags... "
 UNAME=`uname`
@@ -1852,7 +1876,7 @@ if test "$UNAME" = "OpenBSD" -o "$UNAME" = "NetBSD"	\
  then
 	temp_res="yes"
 fi
-if [ "${tem_res}" = "yes" ]
+if [ "${temp_res}" = "yes" ]
  then
     MSRCS="${MSRCS} im_bsd.c"
     MANPAGES="${MANPAGES} im_bsd.8"
@@ -1872,8 +1896,8 @@ if [ "$UNAME" = "Linux" ]
 fi
 if [ "${temp_res}" = "yes" ]
  then
-    foo = check_header_exist "sys/klog.h"
-    if [ "${foo}" = "yes" ]
+    check_header_exist "sys/klog.h"
+    if [ "${check_header_state}" = "yes" ]
  then
 	MSRCS="${MSRCS} im_linux.c"
 	MANPAGES="${MANPAGES} im_linux.8"
@@ -1884,22 +1908,31 @@ echo "#endif" >> config/have_linux_module.h
 echo "hdefs[\"HAVE_LINUX_MODULE\"] = \"$HAVE_LINUX_MODULE\"" >>configure.lua
 	want_linux=yes
     else
-	echo "Could not find header \"sys/klog.h\" please check your $$PREFIX or ./configure --some-options --prefix="
 	exit 1
 	want_linux=no
     fi
 else
     want_linux=no
 fi
-if [ "${enable_}" = "yes" ]
+temp_res=no
+if [ "${enable_udp}" = "no" ]
  then
-    MSRCS="${MSRCS} "
-HAVE__MODULE="1"
-echo "#ifndef HAVE__MODULE" > config/have__module.h
-echo "#define HAVE__MODULE \"$HAVE__MODULE\"" >> config/have__module.h
-echo "#endif" >> config/have__module.h
-echo "hdefs[\"HAVE__MODULE\"] = \"$HAVE__MODULE\"" >>configure.lua
+    want_udp=no
 else
+    check_header_exist "sys/socket.h"
+    if [ "${check_header_state}" = "yes" ]
+ then
+    	MSRCS="${MSRCS} im_udp.c om_udp.c"
+	MANPAGES="${MANPAGES} im_udp.8 om_udp.8"
+HAVE_UDP_MODULE="1"
+echo "#ifndef HAVE_UDP_MODULE" > config/have_udp_module.h
+echo "#define HAVE_UDP_MODULE \"$HAVE_UDP_MODULE\"" >> config/have_udp_module.h
+echo "#endif" >> config/have_udp_module.h
+echo "hdefs[\"HAVE_UDP_MODULE\"] = \"$HAVE_UDP_MODULE\"" >>configure.lua
+	want_udp=yes
+    else
+	want_udp=no
+    fi
 fi
 if [ "${enable_}" = "yes" ]
  then
@@ -1992,6 +2025,7 @@ echo "      Debug: ${END_WITH_DEBUG}"
 echo "      Modules:"
 echo "          BSD: ${want_bsd}"
 echo "        Linux: ${want_linux}"
+echo "          UDP: ${want_udp}"
 echo
 echo "* Configuration successful."
 echo "* Use \"make\" and \"make install\" to build and install ${PROGNAME}"
