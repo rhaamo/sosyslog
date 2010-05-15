@@ -2,12 +2,12 @@
 # generated from this file via mkconfigure(1). For more information, see:
 # http://bsdbuild.hypertriton.com/.
 
-REGISTER("", "")
+REGISTER_SECTION("General")
 REGISTER("--with-maximum-optimization",	"Activate maximum possible compile and link optimization")
 REGISTER("--with-daemon-name",		"Set a different daemon name, instead of sosyslogd")
 REGISTER("--enable-debug",	"General debugging [no]")
 
-REGISTER("", "")
+REGISTER_SECTION("Modules")
 REGISTER("--enable-bsd",	"Use bsd input module. Automatically detected.")
 REGISTER("--enable-linux",	"Use linux kernel input module. Automatically detected.")
 REGISTER("--enable-udp",	"Use udp socket input module. Activated by default.")
@@ -49,6 +49,15 @@ fi
 
 # TODO: use --with-daemon-name=blah
 MDEFINE(SOSYSLOG_DAEMON_NAME,	${PROGNAME}d)
+
+check_header_exist ()
+{
+    if [ -f "${PREFIX}/$1" ]; then
+	return "yes"
+    else
+	return "no"
+    fi
+}
 
 echo -n "checking Operating System to set libraries flags... "
 UNAME=`uname`
@@ -141,6 +150,98 @@ else
     END_WITH_DEBUG="no"
 fi
 
+# Modules
+temp_res="no"
+if test "$UNAME" = "OpenBSD" -o "$UNAME" = "NetBSD"	\
+    	-o "$UNAME" = "FreeBSD" -o "$UNAME" = "BSDi"	\
+	-o "$UNAME" = "386BSD"  -o "$UNAME" = "ArchBSD"	\
+	-o "$UNAME" = "TrustedBSD" ; then
+	temp_res="yes";
+fi
+
+if [ "${tem_res}" = "yes" ]; then
+    MSRCS="${MSRCS} im_bsd.c"
+    MANPAGES="${MANPAGES} im_bsd.8"
+    HDEFINE(HAVE_BSD_MODULE,	1)
+    want_bsd=yes
+else
+    want_bsd=no
+fi
+
+temp_res=no
+if [ "$UNAME" = "Linux" ]; then
+    temp_res=yes
+fi
+
+if [ "${temp_res}" = "yes" ]; then
+    foo = check_header_exist "sys/klog.h"
+    if [ "${foo}" = "yes" ]; then
+	MSRCS="${MSRCS} im_linux.c"
+	MANPAGES="${MANPAGES} im_linux.8"
+	HDEFINE(HAVE_LINUX_MODULE,  1)
+	want_linux=yes
+    else
+	echo "Could not find header \"sys/klog.h\" please check your $$PREFIX or ./configure --some-options --prefix="
+	exit 1
+	want_linux=no
+    fi
+else
+    want_linux=no
+fi
+
+if [ "${enable_}" = "yes" ]; then
+    MSRCS="${MSRCS} "
+    HDEFINE(HAVE__MODULE,	1)
+else
+fi
+
+if [ "${enable_}" = "yes" ]; then
+    MSRCS="${MSRCS} "
+    HDEFINE(HAVE__MODULE,	1)
+else
+fi
+
+if [ "${enable_}" = "yes" ]; then
+    MSRCS="${MSRCS} "
+    HDEFINE(HAVE__MODULE,	1)
+else
+fi
+
+if [ "${enable_}" = "yes" ]; then
+    MSRCS="${MSRCS} "
+    HDEFINE(HAVE__MODULE,	1)
+else
+fi
+
+if [ "${enable_}" = "yes" ]; then
+    MSRCS="${MSRCS} "
+    HDEFINE(HAVE__MODULE,	1)
+else
+fi
+
+if [ "${enable_}" = "yes" ]; then
+    MSRCS="${MSRCS} "
+    HDEFINE(HAVE__MODULE,	1)
+else
+fi
+
+if [ "${enable_}" = "yes" ]; then
+    MSRCS="${MSRCS} "
+    HDEFINE(HAVE__MODULE,	1)
+else
+fi
+
+if [ "${enable_}" = "yes" ]; then
+    MSRCS="${MSRCS} "
+    HDEFINE(HAVE__MODULE,	1)
+else
+fi
+
+if [ "${enable_}" = "yes" ]; then
+    MSRCS="${MSRCS} "
+    HDEFINE(HAVE__MODULE,	1)
+else
+fi
 
 
 ARCH=`uname -s`
@@ -151,6 +252,9 @@ echo "          CC: ${CC}"
 echo
 echo "Build with:"
 echo "      Debug: ${END_WITH_DEBUG}"
+echo "      Modules:"
+echo "          BSD: ${want_bsd}"
+echo "        Linux: ${want_linux}"
 echo
 echo "* Configuration successful."
 echo "* Use \"make\" and \"make install\" to build and install ${PROGNAME}"

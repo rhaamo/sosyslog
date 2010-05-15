@@ -330,24 +330,6 @@ echo "    --with-libtool            Specify path to libtool [pkgsrc-provided]"
 echo "    --with-cygwin             Add cygwin dependencies under cygwin [no]"
 echo "    --enable-nls              Native Language Support [no]"
 echo "    --with-gettext            Use gettext tools [check]"
-echo "                              "
-echo "    --with-maximum-optimizati Activate maximum possible compile and link optimization"
-echo "    --with-daemon-name        --with-daemon-name"
-echo "    --enable-debug            General debugging [no]"
-echo "                              "
-echo "    --enable-bsd              Use bsd input module. Automatically detected."
-echo "    --enable-linux            Use linux kernel input module. Automatically detected."
-echo "    --enable-udp              Use udp socket input module. Activated by default."
-echo "    --enable-unix             Use unix socket domain input module. Activated by default."
-echo "    --enable-file             Use file/pip input module. Activated by default."
-echo "    --enable-streams          Use streams input module. Activated by default."
-echo "    --enable-classic          Use classic output module. Activated by default."
-echo "    --enable-tcp              Use tcp input and output modules. Activated by default."
-echo "    --enable-oracle8i         Use Oracle8i output module. Activated by default."
-echo "    --enable-mysql            Use mysql MySQL output module. Activated by default."
-echo "    --enable-pgsql            Use pgsql PostgreSQL output module. Activated by default."
-echo "    --enable-peo              Use peo log integrity verification module. Activated by default."
-echo "    --enable-regex            Use regex pattern matching output module. Activated by default."
 exit 1
 fi
 
@@ -1672,6 +1654,15 @@ fi
 SOSYSLOG_DAEMON_NAME="${PROGNAME}d"
 echo "SOSYSLOG_DAEMON_NAME=$SOSYSLOG_DAEMON_NAME" >>Makefile.config
 echo "mdefs[\"SOSYSLOG_DAEMON_NAME\"] = \"$SOSYSLOG_DAEMON_NAME\"" >>configure.lua
+check_header_exist ()
+{
+    if [ -f "${PREFIX}/$1" ]
+ then
+	return "yes"
+    else
+	return "no"
+    fi
+}
 echo -n "checking Operating System to set libraries flags... "
 UNAME=`uname`
 if test "${UNAME}" = "OpenBSD" 
@@ -1853,6 +1844,143 @@ echo "#undef SY_DEBUG" >config/sy_debug.h
 echo "hdefs[\"SY_DEBUG\"] = nil" >>configure.lua
     END_WITH_DEBUG="no"
 fi
+temp_res="no"
+if test "$UNAME" = "OpenBSD" -o "$UNAME" = "NetBSD"	\
+    	-o "$UNAME" = "FreeBSD" -o "$UNAME" = "BSDi"	\
+	-o "$UNAME" = "386BSD"  -o "$UNAME" = "ArchBSD"	\
+	-o "$UNAME" = "TrustedBSD" 
+ then
+	temp_res="yes"
+fi
+if [ "${tem_res}" = "yes" ]
+ then
+    MSRCS="${MSRCS} im_bsd.c"
+    MANPAGES="${MANPAGES} im_bsd.8"
+HAVE_BSD_MODULE="1"
+echo "#ifndef HAVE_BSD_MODULE" > config/have_bsd_module.h
+echo "#define HAVE_BSD_MODULE \"$HAVE_BSD_MODULE\"" >> config/have_bsd_module.h
+echo "#endif" >> config/have_bsd_module.h
+echo "hdefs[\"HAVE_BSD_MODULE\"] = \"$HAVE_BSD_MODULE\"" >>configure.lua
+    want_bsd=yes
+else
+    want_bsd=no
+fi
+temp_res=no
+if [ "$UNAME" = "Linux" ]
+ then
+    temp_res=yes
+fi
+if [ "${temp_res}" = "yes" ]
+ then
+    foo = check_header_exist "sys/klog.h"
+    if [ "${foo}" = "yes" ]
+ then
+	MSRCS="${MSRCS} im_linux.c"
+	MANPAGES="${MANPAGES} im_linux.8"
+HAVE_LINUX_MODULE="1"
+echo "#ifndef HAVE_LINUX_MODULE" > config/have_linux_module.h
+echo "#define HAVE_LINUX_MODULE \"$HAVE_LINUX_MODULE\"" >> config/have_linux_module.h
+echo "#endif" >> config/have_linux_module.h
+echo "hdefs[\"HAVE_LINUX_MODULE\"] = \"$HAVE_LINUX_MODULE\"" >>configure.lua
+	want_linux=yes
+    else
+	echo "Could not find header \"sys/klog.h\" please check your $$PREFIX or ./configure --some-options --prefix="
+	exit 1
+	want_linux=no
+    fi
+else
+    want_linux=no
+fi
+if [ "${enable_}" = "yes" ]
+ then
+    MSRCS="${MSRCS} "
+HAVE__MODULE="1"
+echo "#ifndef HAVE__MODULE" > config/have__module.h
+echo "#define HAVE__MODULE \"$HAVE__MODULE\"" >> config/have__module.h
+echo "#endif" >> config/have__module.h
+echo "hdefs[\"HAVE__MODULE\"] = \"$HAVE__MODULE\"" >>configure.lua
+else
+fi
+if [ "${enable_}" = "yes" ]
+ then
+    MSRCS="${MSRCS} "
+HAVE__MODULE="1"
+echo "#ifndef HAVE__MODULE" > config/have__module.h
+echo "#define HAVE__MODULE \"$HAVE__MODULE\"" >> config/have__module.h
+echo "#endif" >> config/have__module.h
+echo "hdefs[\"HAVE__MODULE\"] = \"$HAVE__MODULE\"" >>configure.lua
+else
+fi
+if [ "${enable_}" = "yes" ]
+ then
+    MSRCS="${MSRCS} "
+HAVE__MODULE="1"
+echo "#ifndef HAVE__MODULE" > config/have__module.h
+echo "#define HAVE__MODULE \"$HAVE__MODULE\"" >> config/have__module.h
+echo "#endif" >> config/have__module.h
+echo "hdefs[\"HAVE__MODULE\"] = \"$HAVE__MODULE\"" >>configure.lua
+else
+fi
+if [ "${enable_}" = "yes" ]
+ then
+    MSRCS="${MSRCS} "
+HAVE__MODULE="1"
+echo "#ifndef HAVE__MODULE" > config/have__module.h
+echo "#define HAVE__MODULE \"$HAVE__MODULE\"" >> config/have__module.h
+echo "#endif" >> config/have__module.h
+echo "hdefs[\"HAVE__MODULE\"] = \"$HAVE__MODULE\"" >>configure.lua
+else
+fi
+if [ "${enable_}" = "yes" ]
+ then
+    MSRCS="${MSRCS} "
+HAVE__MODULE="1"
+echo "#ifndef HAVE__MODULE" > config/have__module.h
+echo "#define HAVE__MODULE \"$HAVE__MODULE\"" >> config/have__module.h
+echo "#endif" >> config/have__module.h
+echo "hdefs[\"HAVE__MODULE\"] = \"$HAVE__MODULE\"" >>configure.lua
+else
+fi
+if [ "${enable_}" = "yes" ]
+ then
+    MSRCS="${MSRCS} "
+HAVE__MODULE="1"
+echo "#ifndef HAVE__MODULE" > config/have__module.h
+echo "#define HAVE__MODULE \"$HAVE__MODULE\"" >> config/have__module.h
+echo "#endif" >> config/have__module.h
+echo "hdefs[\"HAVE__MODULE\"] = \"$HAVE__MODULE\"" >>configure.lua
+else
+fi
+if [ "${enable_}" = "yes" ]
+ then
+    MSRCS="${MSRCS} "
+HAVE__MODULE="1"
+echo "#ifndef HAVE__MODULE" > config/have__module.h
+echo "#define HAVE__MODULE \"$HAVE__MODULE\"" >> config/have__module.h
+echo "#endif" >> config/have__module.h
+echo "hdefs[\"HAVE__MODULE\"] = \"$HAVE__MODULE\"" >>configure.lua
+else
+fi
+if [ "${enable_}" = "yes" ]
+ then
+    MSRCS="${MSRCS} "
+HAVE__MODULE="1"
+echo "#ifndef HAVE__MODULE" > config/have__module.h
+echo "#define HAVE__MODULE \"$HAVE__MODULE\"" >> config/have__module.h
+echo "#endif" >> config/have__module.h
+echo "hdefs[\"HAVE__MODULE\"] = \"$HAVE__MODULE\"" >>configure.lua
+else
+fi
+if [ "${enable_}" = "yes" ]
+ then
+    MSRCS="${MSRCS} "
+HAVE__MODULE="1"
+echo "#ifndef HAVE__MODULE" > config/have__module.h
+echo "#define HAVE__MODULE \"$HAVE__MODULE\"" >> config/have__module.h
+echo "#endif" >> config/have__module.h
+echo "hdefs[\"HAVE__MODULE\"] = \"$HAVE__MODULE\"" >>configure.lua
+else
+fi
 ARCH=`uname -s`
 echo
 echo "Building ${PROGNAME}-${VERSION} on ${ARCH}"
@@ -1861,6 +1989,9 @@ echo "          CC: ${CC}"
 echo
 echo "Build with:"
 echo "      Debug: ${END_WITH_DEBUG}"
+echo "      Modules:"
+echo "          BSD: ${want_bsd}"
+echo "        Linux: ${want_linux}"
 echo
 echo "* Configuration successful."
 echo "* Use \"make\" and \"make install\" to build and install ${PROGNAME}"
