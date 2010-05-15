@@ -1,0 +1,54 @@
+# This is a BSDBuild configure script source. The ./configure script is
+# generated from this file via mkconfigure(1). For more information, see:
+# http://bsdbuild.hypertriton.com/.
+
+REGISTER("", "")
+REGISTER("--enable-maximum-optimization",	"Activate maximum possible compile and link optimization")
+REGISTER("--enable-debug",	"General debugging [no]")
+
+REGISTER("", "")
+REGISTER("--enable-bsd",	"Use bsd input module. Automatically detected.")
+REGISTER("--enable-linux",	"Use linux kernel input module. Automatically detected.")
+REGISTER("--enable-udp",	"Use udp socket input module. Activated by default.")
+REGISTER("--enable-unix",	"Use unix socket domain input module. Activated by default.")
+REGISTER("--enable-file",	"Use file/pip input module. Activated by default.")
+REGISTER("--enable-streams",	"Use streams input module. Activated by default.")
+REGISTER("--enable-classic",	"Use classic output module. Activated by default.")
+REGISTER("--enable-tcp",	"Use tcp input and output modules. Activated by default.")
+REGISTER("--enable-oracle8i",	"Use Oracle8i output module. Activated by default.")
+REGISTER("--enable-mysql",	"Use mysql MySQL output module. Activated by default.")
+REGISTER("--enable-pgsql",	"Use pgsql PostgreSQL output module. Activated by default.")
+REGISTER("--enable-peo",	"Use peo log integrity verification module. Activated by default.")
+REGISTER("--enable-regex",	"Use regex pattern matching output module. Activated by default.")
+
+# Name and version
+HDEFINE(PROGNAME, "sosyslog")
+HDEFINE(VERSION, "1.3.3")
+
+# Check for a C compiler. If one exists, ${HAVE_CC} will be set
+CHECK(cc)
+
+MANPAGES="syslog.conf.5 syslogd.3"
+
+if [ "${enable_debug}" = "yes" ]; then
+    HDEFINE(SY_DEBUG, "yes")
+    MDEFINE(DEBUG_FLAGS, "-g -ggdb3 -fno-inline")
+    END_WITH_DEBUG="yes"
+else
+    HUNDEF(SY_DEBUG)
+    END_WITH_DEBUG="no"
+fi
+
+
+
+ARCH=`uname -s`
+echo
+echo "Building ${PROGNAME}-${VERSION} on ${ARCH}"
+echo "      Prefix: ${PREFIX}"
+echo "          CC: ${CC}"
+echo
+echo "Build with:"
+echo "      Debug: ${END_WITH_DEBUG}"
+echo
+echo "* Configuration successful."
+echo "* Use \"make\" and \"make install\" to build and install ${PROGNAME}"
