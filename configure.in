@@ -4,6 +4,7 @@
 
 REGISTER("", "")
 REGISTER("--with-maximum-optimization",	"Activate maximum possible compile and link optimization")
+REGISTER("--with-daemon-name",		"Set a different daemon name, instead of sosyslogd")
 REGISTER("--enable-debug",	"General debugging [no]")
 
 REGISTER("", "")
@@ -40,11 +41,14 @@ else
     L_SYSLOGD_LIBS="-ldl"
 fi
 
-if [ "${with_maximum_optimization}" = "yes" ] ; then
+if [ "${with_maximum_optimization}" = "yes" -o ] ; then
     MAXOPT="yes"
 else
     MAXOPT="no"
 fi
+
+# TODO: use --with-daemon-name=blah
+MDEFINE(SOSYSLOG_DAEMON_NAME,	${PROGNAME}d)
 
 echo -n "checking Operating System to set libraries flags... "
 UNAME=`uname`

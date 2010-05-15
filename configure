@@ -332,6 +332,7 @@ echo "    --enable-nls              Native Language Support [no]"
 echo "    --with-gettext            Use gettext tools [check]"
 echo "                              "
 echo "    --with-maximum-optimizati Activate maximum possible compile and link optimization"
+echo "    --with-daemon-name        --with-daemon-name"
 echo "    --enable-debug            General debugging [no]"
 echo "                              "
 echo "    --enable-bsd              Use bsd input module. Automatically detected."
@@ -1662,12 +1663,15 @@ if [ "${HAVE_DLOPEN}" != "yes" ]
 else
     L_SYSLOGD_LIBS="-ldl"
 fi
-if [ "${with_maximum_optimization}" = "yes" ] 
+if [ "${with_maximum_optimization}" = "yes" -o ] 
  then
     MAXOPT="yes"
 else
     MAXOPT="no"
 fi
+SOSYSLOG_DAEMON_NAME="${PROGNAME}d"
+echo "SOSYSLOG_DAEMON_NAME=$SOSYSLOG_DAEMON_NAME" >>Makefile.config
+echo "mdefs[\"SOSYSLOG_DAEMON_NAME\"] = \"$SOSYSLOG_DAEMON_NAME\"" >>configure.lua
 echo -n "checking Operating System to set libraries flags... "
 UNAME=`uname`
 if test "${UNAME}" = "OpenBSD" 
