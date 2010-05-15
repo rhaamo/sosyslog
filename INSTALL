@@ -90,12 +90,6 @@ makefiles for your system.
 change this, you may specify prefix when running configure (ie.:
 "configure --prefix=/usr").
 
-  NOTE: If you are compiling on a new OS you may want to start a new
-configuration file, using the autoconf package available at
-http://www.gnu.org/. We would like to help new plataform ports, please
-contact the developer's mailing list (see note on mailing-lists). It should be
-quite easy, since most branches of the *nix family tree are working already.
-
 
 1.d. Compiling
 

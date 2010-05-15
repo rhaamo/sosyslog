@@ -1,5 +1,7 @@
 New TODO of sosyslog.
 
+Update NEWS
+
 FOR 1.x
 - sigsetmask deprecated on linux (signal.h:199)
 
