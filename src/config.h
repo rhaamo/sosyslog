@@ -1,3 +1,5 @@
+#include "TODO.h"
+
 #include "config/enable_nls.h"
 #include "config/prefix.h"
 #include "config/bindir.h"
@@ -26,6 +28,11 @@
 #include "config/have_warn_unused_result_attribute.h"
 #include "config/have_long_double.h"
 #include "config/have_long_long.h"
+#include "config/mlibname_str.h"
+#include "config/sosyslog_version_str.h"
+#include "config/install_libdir.h"
+#include "config/pid_dir.h"
+#include "config/pid_file.h"
 #include "config/have_dlfcn_h.h"
 #include "config/have_dlopen.h"
 #include "config/dso_cflags.h"

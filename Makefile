@@ -1,12 +1,9 @@
 TOP=	.
 
 SUBDIR=	src/peo		\
-	src/modules
-
-#SUBDIR=	src/peo		\
-#	src/modules	\
-#	src		\
-#	src/man
+	src/modules	\
+	src		\
+	src/man
 
 MAN3=	${MANPAGES3}
 MAN5=	${MANPAGES5}
@@ -26,7 +23,7 @@ gen-include:
 	    echo "#include \"$$i\"" >> src/config.h ;	\
 	done
 
-re-configure:
+reconfigure:
 	rm configure
 	cat configure.in | mkconfigure > configure
 	chmod 755 configure

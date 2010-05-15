@@ -1469,7 +1469,8 @@ if [ "${MK_COMPILE_STATUS}" = "OK" ]; then
 		echo "*"
 	fi
 fi
-MANPAGES="syslog.conf.5 syslogd.3"
+MANPAGES5="syslog.conf.5"
+MANPAGES3="syslogd.3"
 MLIBNAME="lib${PROGNAME}.so.${VERSION}"
 echo "MLIBNAME=$MLIBNAME" >>Makefile.config
 echo "mdefs[\"MLIBNAME\"] = \"$MLIBNAME\"" >>configure.lua
@@ -1478,6 +1479,31 @@ echo "MLIBNAME_NOPREFIX=$MLIBNAME_NOPREFIX" >>Makefile.config
 echo "mdefs[\"MLIBNAME_NOPREFIX\"] = \"$MLIBNAME_NOPREFIX\"" >>configure.lua
 MAIL_CONTACT="rhaamo@gruik.at"
 check_header_state=no
+MLIBNAME_STR="${MLIBNAME}"
+echo "#ifndef MLIBNAME_STR" > config/mlibname_str.h
+echo "#define MLIBNAME_STR \"$MLIBNAME_STR\"" >> config/mlibname_str.h
+echo "#endif" >> config/mlibname_str.h
+echo "hdefs[\"MLIBNAME_STR\"] = \"$MLIBNAME_STR\"" >>configure.lua
+SOSYSLOG_VERSION_STR="${VERSION}"
+echo "#ifndef SOSYSLOG_VERSION_STR" > config/sosyslog_version_str.h
+echo "#define SOSYSLOG_VERSION_STR \"$SOSYSLOG_VERSION_STR\"" >> config/sosyslog_version_str.h
+echo "#endif" >> config/sosyslog_version_str.h
+echo "hdefs[\"SOSYSLOG_VERSION_STR\"] = \"$SOSYSLOG_VERSION_STR\"" >>configure.lua
+INSTALL_LIBDIR="${PREFIX}/lib"
+echo "#ifndef INSTALL_LIBDIR" > config/install_libdir.h
+echo "#define INSTALL_LIBDIR \"$INSTALL_LIBDIR\"" >> config/install_libdir.h
+echo "#endif" >> config/install_libdir.h
+echo "hdefs[\"INSTALL_LIBDIR\"] = \"$INSTALL_LIBDIR\"" >>configure.lua
+PID_DIR="/var/run"
+echo "#ifndef PID_DIR" > config/pid_dir.h
+echo "#define PID_DIR \"$PID_DIR\"" >> config/pid_dir.h
+echo "#endif" >> config/pid_dir.h
+echo "hdefs[\"PID_DIR\"] = \"$PID_DIR\"" >>configure.lua
+PID_FILE="syslog.pid"
+echo "#ifndef PID_FILE" > config/pid_file.h
+echo "#define PID_FILE \"$PID_FILE\"" >> config/pid_file.h
+echo "#endif" >> config/pid_file.h
+echo "hdefs[\"PID_FILE\"] = \"$PID_FILE\"" >>configure.lua
 $ECHO_N "checking for dlopen() interface..."
 $ECHO_N "checking for dlopen() interface..." >> config.log
 DSO_CFLAGS=""
@@ -1871,7 +1897,7 @@ fi
 if [ "${temp_res}" = "yes" ]
  then
     MSRCS="${MSRCS} im_bsd.c"
-    MANPAGES="${MANPAGES} im_bsd.8"
+    MANPAGES8="${MANPAGES8} im_bsd.8"
 HAVE_BSD_IMODULE="1"
 echo "#ifndef HAVE_BSD_IMODULE" > config/have_bsd_imodule.h
 echo "#define HAVE_BSD_IMODULE \"$HAVE_BSD_IMODULE\"" >> config/have_bsd_imodule.h
@@ -1892,7 +1918,7 @@ if [ "${temp_res}" = "yes" ]
     if [ "${check_header_state}" = "yes" ]
  then
 	MSRCS="${MSRCS} im_linux.c"
-	MANPAGES="${MANPAGES} im_linux.8"
+	MANPAGES8="${MANPAGES8} im_linux.8"
 HAVE_LINUX_IMODULE="1"
 echo "#ifndef HAVE_LINUX_IMODULE" > config/have_linux_imodule.h
 echo "#define HAVE_LINUX_IMODULE \"$HAVE_LINUX_IMODULE\"" >> config/have_linux_imodule.h
@@ -1915,7 +1941,7 @@ else
     if [ "${check_header_state}" = "yes" ]
  then
     	MSRCS="${MSRCS} im_udp.c om_udp.c"
-	MANPAGES="${MANPAGES} im_udp.8 om_udp.8"
+	MANPAGES8="${MANPAGES8} im_udp.8 om_udp.8"
 HAVE_UDP_IMODULE="1"
 echo "#ifndef HAVE_UDP_IMODULE" > config/have_udp_imodule.h
 echo "#define HAVE_UDP_IMODULE \"$HAVE_UDP_IMODULE\"" >> config/have_udp_imodule.h
@@ -1934,7 +1960,7 @@ else
     if [ "${check_header_state}" = "yes" ]
  then
     	MSRCS="${MSRCS} im_unix.c"
-	MANPAGES="${MANPAGES} im_unix.c"
+	MANPAGES8="${MANPAGES8} im_unix.c"
 HAVE_UNIX_IMODULE="1"
 echo "#ifndef HAVE_UNIX_IMODULE" > config/have_unix_imodule.h
 echo "#define HAVE_UNIX_IMODULE \"$HAVE_UNIX_IMODULE\"" >> config/have_unix_imodule.h
@@ -1963,7 +1989,7 @@ fi
 if test "$temp_res" = "yes"
  then
     MSRCS="${MSRCS} im_streams.c"
-    MANPAGES="${MANPAGES} im_streams.8"
+    MANPAGES8="${MANPAGES8} im_streams.8"
     SYSLOGD_LIBS="${SYSLOGD_LIBS} -lthread -ldoor"
 HAVE_STREAMS_IMODULE="1"
 echo "#ifndef HAVE_STREAMS_IMODULE" > config/have_streams_imodule.h
@@ -1980,7 +2006,7 @@ if [ "${enable_classic}" = "no" ]
     want_classic=no
 else
     MSRCS="${MSRCS} om_classic.c ttymsg.c"
-    MANPAGES="${MANPAGES} om_classic.8"
+    MANPAGES8="${MANPAGES8} om_classic.8"
 HAVE_CLASSIC_IMODULE="1"
 echo "#ifndef HAVE_CLASSIC_IMODULE" > config/have_classic_imodule.h
 echo "#define HAVE_CLASSIC_IMODULE \"$HAVE_CLASSIC_IMODULE\"" >> config/have_classic_imodule.h
@@ -1996,7 +2022,7 @@ else
     if [ "$check_header_state" = "yes" ]
  then
     	MSRCS="${MSRCS} om_tcp.c im_tcp.c ip_misc.c"
-    	MANPAGES="${MANPAGES} om_tcp.8 im_tcp.8"
+    	MANPAGES8="${MANPAGES8} om_tcp.8 im_tcp.8"
 HAVE_TCP_IMODULE="1"
 echo "#ifndef HAVE_TCP_IMODULE" > config/have_tcp_imodule.h
 echo "#define HAVE_TCP_IMODULE \"$HAVE_TCP_IMODULE\"" >> config/have_tcp_imodule.h
@@ -2014,7 +2040,7 @@ if [ "${enable_oracle8i}" = "no" ]
 else
     want_oracle8i=yes
     MSRCS="${MSRCS} om_oracle8i.c"
-    MANPAGES="${MANPAGES} om_oracle8i.8"
+    MANPAGES8="${MANPAGES8} om_oracle8i.8"
 HAVE_ORACLE8I_IMODULE="1"
 echo "#ifndef HAVE_ORACLE8I_IMODULE" > config/have_oracle8i_imodule.h
 echo "#define HAVE_ORACLE8I_IMODULE \"$HAVE_ORACLE8I_IMODULE\"" >> config/have_oracle8i_imodule.h
@@ -2027,7 +2053,7 @@ if [ "${enable_mysql}" = "no" ]
     want_mysql=no
 else
     MSRCS="${MSRCS} om_mysql.c"
-    MANPAGES="${MANPAGES} om_mysql.8"
+    MANPAGES8="${MANPAGES8} om_mysql.8"
 HAVE_MYSQL_IMODULE="1"
 echo "#ifndef HAVE_MYSQL_IMODULE" > config/have_mysql_imodule.h
 echo "#define HAVE_MYSQL_IMODULE \"$HAVE_MYSQL_IMODULE\"" >> config/have_mysql_imodule.h
@@ -2041,7 +2067,7 @@ if [ "${enable_pgsql}" = "no" ]
     want_pgsql=no
 else
     MSRCS="${MSRCS} om_pgsql.c"
-    MANPAGES="${MANPAGES} om_pgsql.8"
+    MANPAGES8="${MANPAGES8} om_pgsql.8"
 HAVE_PGSQL_IMODULE="1"
 echo "#ifndef HAVE_PGSQL_IMODULE" > config/have_pgsql_imodule.h
 echo "#define HAVE_PGSQL_IMODULE \"$HAVE_PGSQL_IMODULE\"" >> config/have_pgsql_imodule.h
@@ -2063,8 +2089,8 @@ fi
 if [ "${PEO}" = "yes" ]
  then
     MSRCS="${MSRCS} om_peo.c"
-    MANPAGES="${MANPAGES} om_peo.8 peochk.8"
-    HASH_SRCS="hash.c"
+    MANPAGES8="${MANPAGES8} om_peo.8 peochk.8"
+    HASH_SRCS="../peo/hash.c"
     HASH_SRCS_MODULES="../peo/hash.c"
 $ECHO_N "checking for MD5 functions..."
 $ECHO_N "checking for MD5 functions..." >> config.log
@@ -2121,7 +2147,7 @@ fi
 rm -f conftest.c $testdir/conftest$EXECSUFFIX
     if [ "${HAVE_MD5}" = "yes" ]
  then
-	HASH_SRCS="${HASH_SRCS} md5c.c"
+	HASH_SRCS="${HASH_SRCS} ../peo/md5c.c"
 	HASH_SRCS_MODULES="${HASH_SRCS_MODULES} ../peo/md5c.c"
     fi
 $ECHO_N "checking for SHA1 functions..."
@@ -2179,7 +2205,7 @@ fi
 rm -f conftest.c $testdir/conftest$EXECSUFFIX
     if [ "${HAVE_SHA1}" = "yes" ]
  then
-	HASH_SRCS="${HASH_SRCS} sha1.c"
+	HASH_SRCS="${HASH_SRCS} ../peo/sha1.c"
 	HASH_SRCS_MODULES="${HASH_SRCS_MODULES} ../peo/sha1.c"
     fi
 $ECHO_N "checking for RMD160 functions..."
@@ -2237,7 +2263,7 @@ fi
 rm -f conftest.c $testdir/conftest$EXECSUFFIX
     if [ "${HAVE_RMD160}" = "yes" ]
  then
-	HASH_SRCS="${HASH_SRCS} rmd160.c"
+	HASH_SRCS="${HASH_SRCS} ../peo/rmd160.c"
 	HASH_SRCS_MODULES="${HASH_SRCS_MODULES} ../peo/rmd160.c"
     fi
     if [ -r /dev/srandom ]
@@ -2264,9 +2290,15 @@ echo "mdefs[\"HASH_SRCS_MODULES\"] = \"$HASH_SRCS_MODULES\"" >>configure.lua
 MODULES_SRCS="${MSRCS}"
 echo "MODULES_SRCS=$MODULES_SRCS" >>Makefile.config
 echo "mdefs[\"MODULES_SRCS\"] = \"$MODULES_SRCS\"" >>configure.lua
-MANPAGES="${MANPAGES}"
-echo "MANPAGES=$MANPAGES" >>Makefile.config
-echo "mdefs[\"MANPAGES\"] = \"$MANPAGES\"" >>configure.lua
+MANPAGES3="${MANPAGES3}"
+echo "MANPAGES3=$MANPAGES3" >>Makefile.config
+echo "mdefs[\"MANPAGES3\"] = \"$MANPAGES3\"" >>configure.lua
+MANPAGES5="${MANPAGES5}"
+echo "MANPAGES5=$MANPAGES5" >>Makefile.config
+echo "mdefs[\"MANPAGES5\"] = \"$MANPAGES5\"" >>configure.lua
+MANPAGES8="${MANPAGES8}"
+echo "MANPAGES8=$MANPAGES8" >>Makefile.config
+echo "mdefs[\"MANPAGES8\"] = \"$MANPAGES8\"" >>configure.lua
 ARCH=`uname -s`
 echo
 echo "Building ${PROGNAME}-${VERSION} on ${ARCH}"

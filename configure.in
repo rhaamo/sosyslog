@@ -339,21 +339,21 @@ if [ "${PEO}" = "yes" ]; then
     MSRCS="${MSRCS} om_peo.c"
     MANPAGES8="${MANPAGES8} om_peo.8 peochk.8"
 
-    HASH_SRCS="hash.c"
+    HASH_SRCS="../peo/hash.c"
     HASH_SRCS_MODULES="../peo/hash.c";
     CHECK(md5)
     if [ "${HAVE_MD5}" = "yes" ]; then
-	HASH_SRCS="${HASH_SRCS} md5c.c"
+	HASH_SRCS="${HASH_SRCS} ../peo/md5c.c"
 	HASH_SRCS_MODULES="${HASH_SRCS_MODULES} ../peo/md5c.c"
     fi
     CHECK(sha1)
     if [ "${HAVE_SHA1}" = "yes" ]; then
-	HASH_SRCS="${HASH_SRCS} sha1.c"
+	HASH_SRCS="${HASH_SRCS} ../peo/sha1.c"
 	HASH_SRCS_MODULES="${HASH_SRCS_MODULES} ../peo/sha1.c"
     fi
     CHECK(rmd160)
     if [ "${HAVE_RMD160}" = "yes" ]; then
-	HASH_SRCS="${HASH_SRCS} rmd160.c"
+	HASH_SRCS="${HASH_SRCS} ../peo/rmd160.c"
 	HASH_SRCS_MODULES="${HASH_SRCS_MODULES} ../peo/rmd160.c"
     fi
     if [ -r /dev/srandom ]; then
