@@ -95,7 +95,7 @@ elif test "${UNAME}" = "SunOS" ; then
 	    MDEFINE(OUR_CFLAGS,	"-g3 -Ofast")
 	fi
     fi
-    MDEFINE(SHARED_PARAMS,	"-shared -soname ${MLIBNAME} -all")	# XXX
+    MDEFINE(SHARED_PARAMS,	"-shared -soname ${MLIBNAME} -all")
 
     echo "SunOS"
 elif test "${UNAME}" = "AIX" ; then

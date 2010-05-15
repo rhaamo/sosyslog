@@ -7,7 +7,8 @@ SRCS=	syslogd.c	\
 # Defined in ${TOP}/Makefile.config:
 # 	${DEBUG_FLAGS}
 # 	${SYSLOGD_LIBS}
-CFLAGS+=	-02 -Wall ${DEBUG_FLAGS} ${SYSLOGD_LIBS}
+PROG_FLAGS=	${CFLAGS} ${CPPFLAGS} ${LIBS} ${SYSLOGD_LIBS} ${MAIN_CPPFLAGS}
+CFLAGS+=	-02 -Wall ${DEBUG_FLAGS} ${PROG_FLAGS}
 LDFLAGS+=
 
 include ${TOP}/Makefile.config
