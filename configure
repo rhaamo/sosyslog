@@ -1656,13 +1656,6 @@ fi
 SOSYSLOG_DAEMON_NAME="${PROGNAME}d"
 echo "SOSYSLOG_DAEMON_NAME=$SOSYSLOG_DAEMON_NAME" >>Makefile.config
 echo "mdefs[\"SOSYSLOG_DAEMON_NAME\"] = \"$SOSYSLOG_DAEMON_NAME\"" >>configure.lua
-check_your_prefix ()
-{
-    echo "Please check your $$PREFIX or use something like:"
-    echo "  ./configure --prefix=/your/prefix --some-options"
-    echo "If you _realy_ have this header please contact the author:"
-    echo "${MAIL_CONTACT}"
-}
 check_header_exist ()
 {
     check_header_state="no"
@@ -1680,7 +1673,6 @@ check_header_exist ()
     else
         che_state="no"
 	echo "no"
-	check_your_prefix
     fi
     rm testhead.* 2>/dev/null
     cd .. 2>/dev/null
@@ -1849,9 +1841,6 @@ SHARED_PARAMS="-Bshareable"
 echo "SHARED_PARAMS=$SHARED_PARAMS" >>Makefile.config
 echo "mdefs[\"SHARED_PARAMS\"] = \"$SHARED_PARAMS\"" >>configure.lua
 fi
-SYSLOGD_LIBS="${L_SYSLOGD_LIBS}"
-echo "SYSLOGD_LIBS=$SYSLOGD_LIBS" >>Makefile.config
-echo "mdefs[\"SYSLOGD_LIBS\"] = \"$SYSLOGD_LIBS\"" >>configure.lua
 if [ "${enable_debug}" = "yes" ]
  then
 SY_DEBUG="yes"
@@ -1880,11 +1869,11 @@ if [ "${temp_res}" = "yes" ]
  then
     MSRCS="${MSRCS} im_bsd.c"
     MANPAGES="${MANPAGES} im_bsd.8"
-HAVE_BSD_MODULE="1"
-echo "#ifndef HAVE_BSD_MODULE" > config/have_bsd_module.h
-echo "#define HAVE_BSD_MODULE \"$HAVE_BSD_MODULE\"" >> config/have_bsd_module.h
-echo "#endif" >> config/have_bsd_module.h
-echo "hdefs[\"HAVE_BSD_MODULE\"] = \"$HAVE_BSD_MODULE\"" >>configure.lua
+HAVE_BSD_IMODULE="1"
+echo "#ifndef HAVE_BSD_IMODULE" > config/have_bsd_imodule.h
+echo "#define HAVE_BSD_IMODULE \"$HAVE_BSD_IMODULE\"" >> config/have_bsd_imodule.h
+echo "#endif" >> config/have_bsd_imodule.h
+echo "hdefs[\"HAVE_BSD_IMODULE\"] = \"$HAVE_BSD_IMODULE\"" >>configure.lua
     want_bsd=yes
 else
     want_bsd=no
@@ -1901,11 +1890,11 @@ if [ "${temp_res}" = "yes" ]
  then
 	MSRCS="${MSRCS} im_linux.c"
 	MANPAGES="${MANPAGES} im_linux.8"
-HAVE_LINUX_MODULE="1"
-echo "#ifndef HAVE_LINUX_MODULE" > config/have_linux_module.h
-echo "#define HAVE_LINUX_MODULE \"$HAVE_LINUX_MODULE\"" >> config/have_linux_module.h
-echo "#endif" >> config/have_linux_module.h
-echo "hdefs[\"HAVE_LINUX_MODULE\"] = \"$HAVE_LINUX_MODULE\"" >>configure.lua
+HAVE_LINUX_IMODULE="1"
+echo "#ifndef HAVE_LINUX_IMODULE" > config/have_linux_imodule.h
+echo "#define HAVE_LINUX_IMODULE \"$HAVE_LINUX_IMODULE\"" >> config/have_linux_imodule.h
+echo "#endif" >> config/have_linux_imodule.h
+echo "hdefs[\"HAVE_LINUX_IMODULE\"] = \"$HAVE_LINUX_IMODULE\"" >>configure.lua
 	want_linux=yes
     else
 	exit 1
@@ -1924,96 +1913,345 @@ else
  then
     	MSRCS="${MSRCS} im_udp.c om_udp.c"
 	MANPAGES="${MANPAGES} im_udp.8 om_udp.8"
-HAVE_UDP_MODULE="1"
-echo "#ifndef HAVE_UDP_MODULE" > config/have_udp_module.h
-echo "#define HAVE_UDP_MODULE \"$HAVE_UDP_MODULE\"" >> config/have_udp_module.h
-echo "#endif" >> config/have_udp_module.h
-echo "hdefs[\"HAVE_UDP_MODULE\"] = \"$HAVE_UDP_MODULE\"" >>configure.lua
+HAVE_UDP_IMODULE="1"
+echo "#ifndef HAVE_UDP_IMODULE" > config/have_udp_imodule.h
+echo "#define HAVE_UDP_IMODULE \"$HAVE_UDP_IMODULE\"" >> config/have_udp_imodule.h
+echo "#endif" >> config/have_udp_imodule.h
+echo "hdefs[\"HAVE_UDP_IMODULE\"] = \"$HAVE_UDP_IMODULE\"" >>configure.lua
 	want_udp=yes
     else
 	want_udp=no
     fi
 fi
-if [ "${enable_}" = "yes" ]
+if [ "${enable_unix}" = "no" ]
  then
-    MSRCS="${MSRCS} "
-HAVE__MODULE="1"
-echo "#ifndef HAVE__MODULE" > config/have__module.h
-echo "#define HAVE__MODULE \"$HAVE__MODULE\"" >> config/have__module.h
-echo "#endif" >> config/have__module.h
-echo "hdefs[\"HAVE__MODULE\"] = \"$HAVE__MODULE\"" >>configure.lua
+    want_unix=no
 else
-fi
-if [ "${enable_}" = "yes" ]
+    check_header_exist "sys/un.h"
+    if [ "${check_header_state}" = "yes" ]
  then
-    MSRCS="${MSRCS} "
-HAVE__MODULE="1"
-echo "#ifndef HAVE__MODULE" > config/have__module.h
-echo "#define HAVE__MODULE \"$HAVE__MODULE\"" >> config/have__module.h
-echo "#endif" >> config/have__module.h
-echo "hdefs[\"HAVE__MODULE\"] = \"$HAVE__MODULE\"" >>configure.lua
-else
+    	MSRCS="${MSRCS} im_unix.c"
+	MANPAGES="${MANPAGES} im_unix.c"
+HAVE_UNIX_IMODULE="1"
+echo "#ifndef HAVE_UNIX_IMODULE" > config/have_unix_imodule.h
+echo "#define HAVE_UNIX_IMODULE \"$HAVE_UNIX_IMODULE\"" >> config/have_unix_imodule.h
+echo "#endif" >> config/have_unix_imodule.h
+echo "hdefs[\"HAVE_UNIX_IMODULE\"] = \"$HAVE_UNIX_IMODULE\"" >>configure.lua
+	want_unix=yes
+    else
+	want_unix=no
+    fi
 fi
-if [ "${enable_}" = "yes" ]
+temp_res=no
+if [ "${enable_streams}" = "no" ]
  then
-    MSRCS="${MSRCS} "
-HAVE__MODULE="1"
-echo "#ifndef HAVE__MODULE" > config/have__module.h
-echo "#define HAVE__MODULE \"$HAVE__MODULE\"" >> config/have__module.h
-echo "#endif" >> config/have__module.h
-echo "hdefs[\"HAVE__MODULE\"] = \"$HAVE__MODULE\"" >>configure.lua
-else
-fi
-if [ "${enable_}" = "yes" ]
+    temp_res=yes
+    check_header_exist "sys/strlog.h"
+    strlog_h=check_header_state
+    check_header_exist "door.h"
+    door_h=check_header_state
+    if test "$strlog_h" = "yes" -a "$door_h" = "yes"
  then
-    MSRCS="${MSRCS} "
-HAVE__MODULE="1"
-echo "#ifndef HAVE__MODULE" > config/have__module.h
-echo "#define HAVE__MODULE \"$HAVE__MODULE\"" >> config/have__module.h
-echo "#endif" >> config/have__module.h
-echo "hdefs[\"HAVE__MODULE\"] = \"$HAVE__MODULE\"" >>configure.lua
-else
+	temp_res=yes
+    else
+	temp_res=no
+    fi
 fi
-if [ "${enable_}" = "yes" ]
+if test "$temp_res" = "yes"
  then
-    MSRCS="${MSRCS} "
-HAVE__MODULE="1"
-echo "#ifndef HAVE__MODULE" > config/have__module.h
-echo "#define HAVE__MODULE \"$HAVE__MODULE\"" >> config/have__module.h
-echo "#endif" >> config/have__module.h
-echo "hdefs[\"HAVE__MODULE\"] = \"$HAVE__MODULE\"" >>configure.lua
+    MSRCS="${MSRCS} im_streams.c"
+    MANPAGES="${MANPAGES} im_streams.8"
+    SYSLOGD_LIBS="${SYSLOGD_LIBS} -lthread -ldoor"
+HAVE_STREAMS_IMODULE="1"
+echo "#ifndef HAVE_STREAMS_IMODULE" > config/have_streams_imodule.h
+echo "#define HAVE_STREAMS_IMODULE \"$HAVE_STREAMS_IMODULE\"" >> config/have_streams_imodule.h
+echo "#endif" >> config/have_streams_imodule.h
+echo "hdefs[\"HAVE_STREAMS_IMODULE\"] = \"$HAVE_STREAMS_IMODULE\"" >>configure.lua
+    want_streams=yes
 else
+    want_streams=no
 fi
-if [ "${enable_}" = "yes" ]
+temp_res=no
+if [ "${enable_classic}" = "no" ]
  then
-    MSRCS="${MSRCS} "
-HAVE__MODULE="1"
-echo "#ifndef HAVE__MODULE" > config/have__module.h
-echo "#define HAVE__MODULE \"$HAVE__MODULE\"" >> config/have__module.h
-echo "#endif" >> config/have__module.h
-echo "hdefs[\"HAVE__MODULE\"] = \"$HAVE__MODULE\"" >>configure.lua
+    want_classic=no
 else
+    MSRCS="${MSRCS} om_classic.c ttymsg.c"
+    MANPAGES="${MANPAGES} om_classic.8"
+HAVE_CLASSIC_IMODULE="1"
+echo "#ifndef HAVE_CLASSIC_IMODULE" > config/have_classic_imodule.h
+echo "#define HAVE_CLASSIC_IMODULE \"$HAVE_CLASSIC_IMODULE\"" >> config/have_classic_imodule.h
+echo "#endif" >> config/have_classic_imodule.h
+echo "hdefs[\"HAVE_CLASSIC_IMODULE\"] = \"$HAVE_CLASSIC_IMODULE\"" >>configure.lua
+    want_classic=yes
 fi
-if [ "${enable_}" = "yes" ]
+if [ "${enable_tcp}" = "no" ]
  then
-    MSRCS="${MSRCS} "
-HAVE__MODULE="1"
-echo "#ifndef HAVE__MODULE" > config/have__module.h
-echo "#define HAVE__MODULE \"$HAVE__MODULE\"" >> config/have__module.h
-echo "#endif" >> config/have__module.h
-echo "hdefs[\"HAVE__MODULE\"] = \"$HAVE__MODULE\"" >>configure.lua
+    want_tcp=no
 else
-fi
-if [ "${enable_}" = "yes" ]
+    check_header_exist "sys/socket.h"
+    if [ "$check_header_state" = "yes" ]
  then
-    MSRCS="${MSRCS} "
-HAVE__MODULE="1"
-echo "#ifndef HAVE__MODULE" > config/have__module.h
-echo "#define HAVE__MODULE \"$HAVE__MODULE\"" >> config/have__module.h
-echo "#endif" >> config/have__module.h
-echo "hdefs[\"HAVE__MODULE\"] = \"$HAVE__MODULE\"" >>configure.lua
-else
+    	MSRCS="${MSRCS} om_tcp.c im_tcp.c ip_misc.c"
+    	MANPAGES="${MANPAGES} om_tcp.8 im_tcp.8"
+HAVE_TCP_IMODULE="1"
+echo "#ifndef HAVE_TCP_IMODULE" > config/have_tcp_imodule.h
+echo "#define HAVE_TCP_IMODULE \"$HAVE_TCP_IMODULE\"" >> config/have_tcp_imodule.h
+echo "#endif" >> config/have_tcp_imodule.h
+echo "hdefs[\"HAVE_TCP_IMODULE\"] = \"$HAVE_TCP_IMODULE\"" >>configure.lua
+    	want_tcp=yes
+    else
+	want_tcp=no
+    fi
 fi
+temp_res=no
+if [ "${enable_oracle8i}" = "no" ]
+ then
+    want_oracle8i=no
+else
+    want_oracle8i=yes
+    MSRCS="${MSRCS} om_oracle8i.c"
+    MANPAGES="${MANPAGES} om_oracle8i.8"
+HAVE_ORACLE8I_IMODULE="1"
+echo "#ifndef HAVE_ORACLE8I_IMODULE" > config/have_oracle8i_imodule.h
+echo "#define HAVE_ORACLE8I_IMODULE \"$HAVE_ORACLE8I_IMODULE\"" >> config/have_oracle8i_imodule.h
+echo "#endif" >> config/have_oracle8i_imodule.h
+echo "hdefs[\"HAVE_ORACLE8I_IMODULE\"] = \"$HAVE_ORACLE8I_IMODULE\"" >>configure.lua
+    USE_SQL="yes"
+fi
+if [ "${enable_mysql}" = "no" ]
+ then
+    want_mysql=no
+else
+    MSRCS="${MSRCS} om_mysql.c"
+    MANPAGES="${MANPAGES} om_mysql.8"
+HAVE_MYSQL_IMODULE="1"
+echo "#ifndef HAVE_MYSQL_IMODULE" > config/have_mysql_imodule.h
+echo "#define HAVE_MYSQL_IMODULE \"$HAVE_MYSQL_IMODULE\"" >> config/have_mysql_imodule.h
+echo "#endif" >> config/have_mysql_imodule.h
+echo "hdefs[\"HAVE_MYSQL_IMODULE\"] = \"$HAVE_MYSQL_IMODULE\"" >>configure.lua
+    USE_SQL="yes"
+    want_mysql=yes
+fi
+if [ "${enable_pgsql}" = "no" ]
+ then
+    want_pgsql=no
+else
+    MSRCS="${MSRCS} om_pgsql.c"
+    MANPAGES="${MANPAGES} om_pgsql.8"
+HAVE_PGSQL_IMODULE="1"
+echo "#ifndef HAVE_PGSQL_IMODULE" > config/have_pgsql_imodule.h
+echo "#define HAVE_PGSQL_IMODULE \"$HAVE_PGSQL_IMODULE\"" >> config/have_pgsql_imodule.h
+echo "#endif" >> config/have_pgsql_imodule.h
+echo "hdefs[\"HAVE_PGSQL_IMODULE\"] = \"$HAVE_PGSQL_IMODULE\"" >>configure.lua
+    USE_SQL="yes"
+    want_pgsql=yes
+fi
+if [ "${USE_SQL}" = "yes" ]
+ then
+    MSRCS="${MSRCS} sql_misc.c"
+fi
+if [ "${enable_peo}" = "no" ]
+ then
+    PEO=no
+else
+    PEO=yes
+fi
+if [ "${PEO}" = "yes" ]
+ then
+    MSRCS="${MSRCS} om_peo.c"
+    MANPAGES="${MANPAGES} om_peo.8 peochk.8"
+    HASH_SRCS="hash.c"
+    HASH_SRCS_MODULES="../peo/hash.c"
+$ECHO_N "checking for MD5 functions..."
+$ECHO_N "checking for MD5 functions..." >> config.log
+MK_CACHED="No"
+MK_COMPILE_STATUS="OK"
+if [ "${cache}" != "" ]; then
+	if [ -e "${cache}/ctest-HAVE_MD5" ]; then
+		HAVE_MD5=`cat ${cache}/ctest-HAVE_MD5`
+		MK_COMPILE_STATUS=`cat ${cache}/ctest-status-HAVE_MD5`
+		MK_CACHED="Yes"
+	fi
+fi
+if [ "${MK_CACHED}" = "No" ]; then
+	cat << EOT > conftest.c
+#include <sys/types.h>
+#include <md5.h>
+
+int
+main(int argc, char *argv[])
+{
+	MD5_CTX md5;
+
+	MD5Init(&md5);
+	return (0);
+}
+
+EOT
+	echo "$CC $CFLAGS $TEST_CFLAGS -o $testdir/conftest conftest.c" >>config.log
+	$CC $CFLAGS $TEST_CFLAGS -o $testdir/conftest conftest.c 2>>config.log
+	if [ $? != 0 ]; then
+		echo "-> failed ($?)" >> config.log
+		MK_COMPILE_STATUS="FAIL($?)"
+	fi
+fi
+if [ "${MK_COMPILE_STATUS}" = "OK" ]; then
+echo "yes"
+echo "yes" >> config.log
+HAVE_MD5="yes"
+echo "#ifndef HAVE_MD5" > config/have_md5.h
+echo "#define HAVE_MD5 \"$HAVE_MD5\"" >> config/have_md5.h
+echo "#endif" >> config/have_md5.h
+echo "hdefs[\"HAVE_MD5\"] = \"$HAVE_MD5\"" >>configure.lua
+else
+echo "no"
+echo "no" >> config.log
+HAVE_MD5="no"
+echo "#undef HAVE_MD5" >config/have_md5.h
+echo "hdefs[\"HAVE_MD5\"] = nil" >>configure.lua
+fi;
+if [ "${cache}" != "" ]; then
+	echo "$HAVE_MD5" > ${cache}/ctest-HAVE_MD5
+	echo $MK_COMPILE_STATUS > ${cache}/ctest-status-HAVE_MD5
+fi
+rm -f conftest.c $testdir/conftest$EXECSUFFIX
+    if [ "${HAVE_MD5}" = "yes" ]
+ then
+	HASH_SRCS="${HASH_SRCS} md5c.c"
+	HASH_SRCS_MODULES="${HASH_SRCS_MODULES} ../peo/md5c.c"
+    fi
+$ECHO_N "checking for SHA1 functions..."
+$ECHO_N "checking for SHA1 functions..." >> config.log
+MK_CACHED="No"
+MK_COMPILE_STATUS="OK"
+if [ "${cache}" != "" ]; then
+	if [ -e "${cache}/ctest-HAVE_SHA1" ]; then
+		HAVE_SHA1=`cat ${cache}/ctest-HAVE_SHA1`
+		MK_COMPILE_STATUS=`cat ${cache}/ctest-status-HAVE_SHA1`
+		MK_CACHED="Yes"
+	fi
+fi
+if [ "${MK_CACHED}" = "No" ]; then
+	cat << EOT > conftest.c
+#include <sys/types.h>
+#include <sha1.h>
+
+int
+main(int argc, char *argv[])
+{
+	SHA1_CTX sha1;
+
+	SHA1Init(&sha1);
+	return (0);
+}
+
+EOT
+	echo "$CC $CFLAGS $TEST_CFLAGS -o $testdir/conftest conftest.c" >>config.log
+	$CC $CFLAGS $TEST_CFLAGS -o $testdir/conftest conftest.c 2>>config.log
+	if [ $? != 0 ]; then
+		echo "-> failed ($?)" >> config.log
+		MK_COMPILE_STATUS="FAIL($?)"
+	fi
+fi
+if [ "${MK_COMPILE_STATUS}" = "OK" ]; then
+echo "yes"
+echo "yes" >> config.log
+HAVE_SHA1="yes"
+echo "#ifndef HAVE_SHA1" > config/have_sha1.h
+echo "#define HAVE_SHA1 \"$HAVE_SHA1\"" >> config/have_sha1.h
+echo "#endif" >> config/have_sha1.h
+echo "hdefs[\"HAVE_SHA1\"] = \"$HAVE_SHA1\"" >>configure.lua
+else
+echo "no"
+echo "no" >> config.log
+HAVE_SHA1="no"
+echo "#undef HAVE_SHA1" >config/have_sha1.h
+echo "hdefs[\"HAVE_SHA1\"] = nil" >>configure.lua
+fi;
+if [ "${cache}" != "" ]; then
+	echo "$HAVE_SHA1" > ${cache}/ctest-HAVE_SHA1
+	echo $MK_COMPILE_STATUS > ${cache}/ctest-status-HAVE_SHA1
+fi
+rm -f conftest.c $testdir/conftest$EXECSUFFIX
+    if [ "${HAVE_SHA1}" = "yes" ]
+ then
+	HASH_SRCS="${HASH_SRCS} sha1.c"
+	HASH_SRCS_MODULES="${HASH_SRCS_MODULES} ../peo/sha1.c"
+    fi
+$ECHO_N "checking for RMD160 functions..."
+$ECHO_N "checking for RMD160 functions..." >> config.log
+MK_CACHED="No"
+MK_COMPILE_STATUS="OK"
+if [ "${cache}" != "" ]; then
+	if [ -e "${cache}/ctest-HAVE_RMD160" ]; then
+		HAVE_RMD160=`cat ${cache}/ctest-HAVE_RMD160`
+		MK_COMPILE_STATUS=`cat ${cache}/ctest-status-HAVE_RMD160`
+		MK_CACHED="Yes"
+	fi
+fi
+if [ "${MK_CACHED}" = "No" ]; then
+	cat << EOT > conftest.c
+#include <sys/types.h>
+#include <rmd160.h>
+
+int
+main(int argc, char *argv[])
+{
+	RMD160_CTX rmd160;
+
+	RMD160Init(&rmd160);
+	return (0);
+}
+
+EOT
+	echo "$CC $CFLAGS $TEST_CFLAGS -o $testdir/conftest conftest.c" >>config.log
+	$CC $CFLAGS $TEST_CFLAGS -o $testdir/conftest conftest.c 2>>config.log
+	if [ $? != 0 ]; then
+		echo "-> failed ($?)" >> config.log
+		MK_COMPILE_STATUS="FAIL($?)"
+	fi
+fi
+if [ "${MK_COMPILE_STATUS}" = "OK" ]; then
+echo "yes"
+echo "yes" >> config.log
+HAVE_RMD160="yes"
+echo "#ifndef HAVE_RMD160" > config/have_rmd160.h
+echo "#define HAVE_RMD160 \"$HAVE_RMD160\"" >> config/have_rmd160.h
+echo "#endif" >> config/have_rmd160.h
+echo "hdefs[\"HAVE_RMD160\"] = \"$HAVE_RMD160\"" >>configure.lua
+else
+echo "no"
+echo "no" >> config.log
+HAVE_RMD160="no"
+echo "#undef HAVE_RMD160" >config/have_rmd160.h
+echo "hdefs[\"HAVE_RMD160\"] = nil" >>configure.lua
+fi;
+if [ "${cache}" != "" ]; then
+	echo "$HAVE_RMD160" > ${cache}/ctest-HAVE_RMD160
+	echo $MK_COMPILE_STATUS > ${cache}/ctest-status-HAVE_RMD160
+fi
+rm -f conftest.c $testdir/conftest$EXECSUFFIX
+    if [ "${HAVE_RMD160}" = "yes" ]
+ then
+	HASH_SRCS="${HASH_SRCS} rmd160.c"
+	HASH_SRCS_MODULES="${HASH_SRCS_MODULES} ../peo/rmd160.c"
+    fi
+    if [ -r /dev/srandom ]
+ then
+HAVE_SRANDOM="1"
+echo "#ifndef HAVE_SRANDOM" > config/have_srandom.h
+echo "#define HAVE_SRANDOM \"$HAVE_SRANDOM\"" >> config/have_srandom.h
+echo "#endif" >> config/have_srandom.h
+echo "hdefs[\"HAVE_SRANDOM\"] = \"$HAVE_SRANDOM\"" >>configure.lua
+    fi
+    want_peo=yes
+else
+    want_peo=no
+fi
+SYSLOGD_LIBS="${L_SYSLOGD_LIBS}"
+echo "SYSLOGD_LIBS=$SYSLOGD_LIBS" >>Makefile.config
+echo "mdefs[\"SYSLOGD_LIBS\"] = \"$SYSLOGD_LIBS\"" >>configure.lua
 ARCH=`uname -s`
 echo
 echo "Building ${PROGNAME}-${VERSION} on ${ARCH}"
@@ -2023,9 +2261,17 @@ echo
 echo "Build with:"
 echo "      Debug: ${END_WITH_DEBUG}"
 echo "      Modules:"
-echo "          BSD: ${want_bsd}"
-echo "        Linux: ${want_linux}"
-echo "          UDP: ${want_udp}"
+echo "          bsd: ${want_bsd}"
+echo "        linux: ${want_linux}"
+echo "          udp: ${want_udp}"
+echo "         unix: ${want_unix}"
+echo "      streams: ${want_streams}"
+echo "      classic: ${want_classic}"
+echo "          tcp: ${want_tcp}"
+echo "     oracle8i: ${want_oracle8i}"
+echo "        mysql: ${want_mysql}"
+echo "        pgsql: ${want_pgsql}"
+echo "          peo: ${want_peo}"
 echo
 echo "* Configuration successful."
 echo "* Use \"make\" and \"make install\" to build and install ${PROGNAME}"

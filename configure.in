@@ -50,14 +50,6 @@ fi
 # TODO: use --with-daemon-name=blah
 MDEFINE(SOSYSLOG_DAEMON_NAME,	${PROGNAME}d)
 
-check_your_prefix ()
-{
-    echo "Please check your $$PREFIX or use something like:"
-    echo "  ./configure --prefix=/your/prefix --some-options"
-    echo "If you _realy_ have this header please contact the author:"
-    echo "${MAIL_CONTACT}"
-}
-
 check_header_exist ()
 {
     check_header_state="no"
@@ -75,7 +67,6 @@ check_header_exist ()
     else
         che_state="no"
 	echo "no"
-	check_your_prefix
     fi
     rm testhead.* 2>/dev/null
     cd .. 2>/dev/null
@@ -162,7 +153,7 @@ else
 
     MDEFINE(SHARED_PARAMS,	"-Bshareable")
 fi
-MDEFINE(SYSLOGD_LIBS, ${L_SYSLOGD_LIBS})
+
 
 
 
@@ -187,7 +178,7 @@ fi
 if [ "${temp_res}" = "yes" ]; then
     MSRCS="${MSRCS} im_bsd.c"
     MANPAGES="${MANPAGES} im_bsd.8"
-    HDEFINE(HAVE_BSD_MODULE,	1)
+    HDEFINE(HAVE_BSD_IMODULE,	1)
     want_bsd=yes
 else
     want_bsd=no
@@ -203,7 +194,7 @@ if [ "${temp_res}" = "yes" ]; then
     if [ "${check_header_state}" = "yes" ]; then
 	MSRCS="${MSRCS} im_linux.c"
 	MANPAGES="${MANPAGES} im_linux.8"
-	HDEFINE(HAVE_LINUX_MODULE,  1)
+	HDEFINE(HAVE_LINUX_IMODULE,  1)
 	want_linux=yes
     else
 	exit 1
@@ -221,61 +212,151 @@ else
     if [ "${check_header_state}" = "yes" ]; then
     	MSRCS="${MSRCS} im_udp.c om_udp.c"
 	MANPAGES="${MANPAGES} im_udp.8 om_udp.8"
-    	HDEFINE(HAVE_UDP_MODULE,	1)
+    	HDEFINE(HAVE_UDP_IMODULE,	1)
 	want_udp=yes
     else
 	want_udp=no
     fi
 fi
 
-if [ "${enable_}" = "yes" ]; then
-    MSRCS="${MSRCS} "
-    HDEFINE(HAVE__MODULE,	1)
+if [ "${enable_unix}" = "no" ]; then
+    want_unix=no
 else
+    check_header_exist "sys/un.h"
+    if [ "${check_header_state}" = "yes" ]; then
+    	MSRCS="${MSRCS} im_unix.c"
+	MANPAGES="${MANPAGES} im_unix.c"
+    	HDEFINE(HAVE_UNIX_IMODULE,	1)
+	want_unix=yes
+    else
+	want_unix=no
+    fi
 fi
 
-if [ "${enable_}" = "yes" ]; then
-    MSRCS="${MSRCS} "
-    HDEFINE(HAVE__MODULE,	1)
-else
+# Doors should only be used with streams
+temp_res=no
+if [ "${enable_streams}" = "no" ]; then
+    temp_res=yes
+
+    check_header_exist "sys/strlog.h"
+    strlog_h=check_header_state
+
+    check_header_exist "door.h"
+    door_h=check_header_state
+
+    if test "$strlog_h" = "yes" -a "$door_h" = "yes"; then
+	temp_res=yes
+    else
+	temp_res=no
+    fi
 fi
 
-if [ "${enable_}" = "yes" ]; then
-    MSRCS="${MSRCS} "
-    HDEFINE(HAVE__MODULE,	1)
+if test "$temp_res" = "yes"; then
+    MSRCS="${MSRCS} im_streams.c"
+    MANPAGES="${MANPAGES} im_streams.8"
+    SYSLOGD_LIBS="${SYSLOGD_LIBS} -lthread -ldoor"
+    HDEFINE(HAVE_STREAMS_IMODULE,	1)
+    want_streams=yes
 else
+    want_streams=no
 fi
 
-if [ "${enable_}" = "yes" ]; then
-    MSRCS="${MSRCS} "
-    HDEFINE(HAVE__MODULE,	1)
+temp_res=no
+if [ "${enable_classic}" = "no" ]; then
+    want_classic=no
 else
+    MSRCS="${MSRCS} om_classic.c ttymsg.c"
+    MANPAGES="${MANPAGES} om_classic.8"
+    HDEFINE(HAVE_CLASSIC_IMODULE,	1)
+    want_classic=yes
 fi
 
-if [ "${enable_}" = "yes" ]; then
-    MSRCS="${MSRCS} "
-    HDEFINE(HAVE__MODULE,	1)
+if [ "${enable_tcp}" = "no" ]; then
+    want_tcp=no
 else
+    check_header_exist "sys/socket.h"
+    if [ "$check_header_state" = "yes" ]; then
+    	MSRCS="${MSRCS} om_tcp.c im_tcp.c ip_misc.c"
+    	MANPAGES="${MANPAGES} om_tcp.8 im_tcp.8"
+    	HDEFINE(HAVE_TCP_IMODULE,	1)
+    	want_tcp=yes
+    else
+	want_tcp=no
+    fi
 fi
 
-if [ "${enable_}" = "yes" ]; then
-    MSRCS="${MSRCS} "
-    HDEFINE(HAVE__MODULE,	1)
+temp_res=no
+if [ "${enable_oracle8i}" = "no" ]; then
+    want_oracle8i=no
 else
+    want_oracle8i=yes
+    MSRCS="${MSRCS} om_oracle8i.c"
+    MANPAGES="${MANPAGES} om_oracle8i.8"
+    HDEFINE(HAVE_ORACLE8I_IMODULE,	1)
+    USE_SQL="yes"
 fi
 
-if [ "${enable_}" = "yes" ]; then
-    MSRCS="${MSRCS} "
-    HDEFINE(HAVE__MODULE,	1)
+if [ "${enable_mysql}" = "no" ]; then
+    want_mysql=no
 else
+    MSRCS="${MSRCS} om_mysql.c"
+    MANPAGES="${MANPAGES} om_mysql.8"
+    HDEFINE(HAVE_MYSQL_IMODULE,	1)
+    USE_SQL="yes"
+    want_mysql=yes
 fi
 
-if [ "${enable_}" = "yes" ]; then
-    MSRCS="${MSRCS} "
-    HDEFINE(HAVE__MODULE,	1)
+if [ "${enable_pgsql}" = "no" ]; then
+    want_pgsql=no
 else
+    MSRCS="${MSRCS} om_pgsql.c"
+    MANPAGES="${MANPAGES} om_pgsql.8"
+    HDEFINE(HAVE_PGSQL_IMODULE,	1)
+    USE_SQL="yes"
+    want_pgsql=yes
 fi
 
+if [ "${USE_SQL}" = "yes" ]; then
+    MSRCS="${MSRCS} sql_misc.c"
+fi
+
+if [ "${enable_peo}" = "no" ]; then
+    PEO=no
+else
+    PEO=yes
+fi
+
+if [ "${PEO}" = "yes" ]; then
+    MSRCS="${MSRCS} om_peo.c"
+    MANPAGES="${MANPAGES} om_peo.8 peochk.8"
+
+    HASH_SRCS="hash.c"
+    HASH_SRCS_MODULES="../peo/hash.c";
+    CHECK(md5)
+    if [ "${HAVE_MD5}" = "yes" ]; then
+	HASH_SRCS="${HASH_SRCS} md5c.c"
+	HASH_SRCS_MODULES="${HASH_SRCS_MODULES} ../peo/md5c.c"
+    fi
+    CHECK(sha1)
+    if [ "${HAVE_SHA1}" = "yes" ]; then
+	HASH_SRCS="${HASH_SRCS} sha1.c"
+	HASH_SRCS_MODULES="${HASH_SRCS_MODULES} ../peo/sha1.c"
+    fi
+    CHECK(rmd160)
+    if [ "${HAVE_RMD160}" = "yes" ]; then
+	HASH_SRCS="${HASH_SRCS} rmd160.c"
+	HASH_SRCS_MODULES="${HASH_SRCS_MODULES} ../peo/rmd160.c"
+    fi
+    if [ -r /dev/srandom ]; then
+	HDEFINE(HAVE_SRANDOM,	1)
+    fi
+    want_peo=yes
+else
+    want_peo=no
+fi
+
+# Last defines
+MDEFINE(SYSLOGD_LIBS, ${L_SYSLOGD_LIBS})
 
 ARCH=`uname -s`
 echo
@@ -286,9 +367,17 @@ echo
 echo "Build with:"
 echo "      Debug: ${END_WITH_DEBUG}"
 echo "      Modules:"
-echo "          BSD: ${want_bsd}"
-echo "        Linux: ${want_linux}"
-echo "          UDP: ${want_udp}"
+echo "          bsd: ${want_bsd}"
+echo "        linux: ${want_linux}"
+echo "          udp: ${want_udp}"
+echo "         unix: ${want_unix}"
+echo "      streams: ${want_streams}"
+echo "      classic: ${want_classic}"
+echo "          tcp: ${want_tcp}"
+echo "     oracle8i: ${want_oracle8i}"
+echo "        mysql: ${want_mysql}"
+echo "        pgsql: ${want_pgsql}"
+echo "          peo: ${want_peo}"
 echo
 echo "* Configuration successful."
 echo "* Use \"make\" and \"make install\" to build and install ${PROGNAME}"
