@@ -331,7 +331,7 @@ echo "    --with-cygwin             Add cygwin dependencies under cygwin [no]"
 echo "    --enable-nls              Native Language Support [no]"
 echo "    --with-gettext            Use gettext tools [check]"
 echo "                              "
-echo "    --enable-maximum-optimiza Activate maximum possible compile and link optimization"
+echo "    --with-maximum-optimizati Activate maximum possible compile and link optimization"
 echo "    --enable-debug            General debugging [no]"
 echo "                              "
 echo "    --enable-bsd              Use bsd input module. Automatically detected."
@@ -1487,6 +1487,352 @@ if [ "${MK_COMPILE_STATUS}" = "OK" ]; then
 	fi
 fi
 MANPAGES="syslog.conf.5 syslogd.3"
+MLIBNAME="lib${PROGNAME}.so.${VERSION}"
+echo "MLIBNAME=$MLIBNAME" >>Makefile.config
+echo "mdefs[\"MLIBNAME\"] = \"$MLIBNAME\"" >>configure.lua
+$ECHO_N "checking for dlopen() interface..."
+$ECHO_N "checking for dlopen() interface..." >> config.log
+DSO_CFLAGS=""
+DSO_LIBS=""
+TEST_CFLAGS_ORIG="${TEST_CFLAGS}"
+TEST_HEADERS="Yes"
+echo > conftest.c
+echo "#include <dlfcn.h>" >> conftest.c
+echo "int main (int argc, char *argv[]) { return (0); }" >> conftest.c
+MK_COMPILE_STATUS="OK"
+echo "$CC $CFLAGS $TEST_CFLAGS -o $testdir/conftest conftest.c" >>config.log
+$CC $CFLAGS $TEST_CFLAGS -o $testdir/conftest conftest.c 2>>config.log
+if [ $? != 0 ]; then
+	echo "-> failed ($?)" >> config.log
+	MK_COMPILE_STATUS="FAIL($?)"
+fi
+rm -f conftest.c $testdir/conftest$EXECSUFFIX
+if [ "${MK_COMPILE_STATUS}" = "OK" ]; then
+HAVE_DLFCN_H="yes"
+echo "#ifndef HAVE_DLFCN_H" > config/have_dlfcn_h.h
+echo "#define HAVE_DLFCN_H \"$HAVE_DLFCN_H\"" >> config/have_dlfcn_h.h
+echo "#endif" >> config/have_dlfcn_h.h
+echo "hdefs[\"HAVE_DLFCN_H\"] = \"$HAVE_DLFCN_H\"" >>configure.lua
+if [ "${TEST_HEADERS}" = "Yes" ]; then
+TEST_CFLAGS="${TEST_CFLAGS} -DHAVE_DLFCN_H"
+fi;
+else
+HAVE_DLFCN_H="no"
+echo "#undef HAVE_DLFCN_H" >config/have_dlfcn_h.h
+echo "hdefs[\"HAVE_DLFCN_H\"] = nil" >>configure.lua
+fi;
+MK_CACHED="No"
+MK_COMPILE_STATUS="OK"
+if [ "${cache}" != "" ]; then
+	if [ -e "${cache}/ctest-HAVE_DLOPEN" ]; then
+		HAVE_DLOPEN=`cat ${cache}/ctest-HAVE_DLOPEN`
+		MK_COMPILE_STATUS=`cat ${cache}/ctest-status-HAVE_DLOPEN`
+		MK_CACHED="Yes"
+	fi
+fi
+if [ "${MK_CACHED}" = "No" ]; then
+	cat << EOT > conftest.c
+#ifdef HAVE_DLFCN_H
+#include <dlfcn.h>
+#endif
+
+int
+main(int argc, char *argv[])
+{
+	void *handle;
+	char *error;
+	handle = dlopen("foo.so", 0);
+	error = dlerror();
+	(void)dlsym(handle, "foo");
+	return (0);
+}
+
+EOT
+	echo "$CC $CFLAGS $TEST_CFLAGS -o $testdir/conftest conftest.c" >>config.log
+	$CC $CFLAGS $TEST_CFLAGS -o $testdir/conftest conftest.c 2>>config.log
+	if [ $? != 0 ]; then
+		echo "-> failed ($?)" >> config.log
+		MK_COMPILE_STATUS="FAIL($?)"
+	fi
+fi
+if [ "${MK_COMPILE_STATUS}" = "OK" ]; then
+echo "yes"
+echo "yes" >> config.log
+HAVE_DLOPEN="yes"
+echo "#ifndef HAVE_DLOPEN" > config/have_dlopen.h
+echo "#define HAVE_DLOPEN \"$HAVE_DLOPEN\"" >> config/have_dlopen.h
+echo "#endif" >> config/have_dlopen.h
+echo "hdefs[\"HAVE_DLOPEN\"] = \"$HAVE_DLOPEN\"" >>configure.lua
+else
+echo "no"
+echo "no" >> config.log
+HAVE_DLOPEN="no"
+echo "#undef HAVE_DLOPEN" >config/have_dlopen.h
+echo "hdefs[\"HAVE_DLOPEN\"] = nil" >>configure.lua
+fi;
+if [ "${cache}" != "" ]; then
+	echo "$HAVE_DLOPEN" > ${cache}/ctest-HAVE_DLOPEN
+	echo $MK_COMPILE_STATUS > ${cache}/ctest-status-HAVE_DLOPEN
+fi
+rm -f conftest.c $testdir/conftest$EXECSUFFIX
+if [ "${HAVE_DLOPEN}" != "yes" ]; then
+$ECHO_N "checking for dlopen() in -ldl..."
+$ECHO_N "checking for dlopen() in -ldl..." >> config.log
+MK_CACHED="No"
+MK_COMPILE_STATUS="OK"
+if [ "${cache}" != "" ]; then
+	if [ -e "${cache}/ctest-HAVE_DLOPEN" ]; then
+		HAVE_DLOPEN=`cat ${cache}/ctest-HAVE_DLOPEN`
+		MK_COMPILE_STATUS=`cat ${cache}/ctest-status-HAVE_DLOPEN`
+		MK_CACHED="Yes"
+	fi
+fi
+if [ "${MK_CACHED}" = "No" ]; then
+	cat << EOT > conftest.c
+#ifdef HAVE_DLFCN_H
+#include <dlfcn.h>
+#endif
+
+int
+main(int argc, char *argv[])
+{
+	void *handle;
+	char *error;
+	handle = dlopen("foo.so", 0);
+	error = dlerror();
+	(void)dlsym(handle, "foo");
+	return (0);
+}
+
+EOT
+	echo "$CC $CFLAGS $TEST_CFLAGS -ldl -o $testdir/conftest conftest.c" >>config.log
+	$CC $CFLAGS $TEST_CFLAGS -ldl -o $testdir/conftest conftest.c 2>>config.log
+	if [ $? != 0 ]; then
+		echo "-> failed ($?)" >> config.log
+		MK_COMPILE_STATUS="FAIL($?)"
+	fi
+fi
+if [ "${MK_COMPILE_STATUS}" = "OK" ]; then
+echo "yes"
+echo "yes" >> config.log
+HAVE_DLOPEN="yes"
+echo "HAVE_DLOPEN=$HAVE_DLOPEN" >>Makefile.config
+echo "mdefs[\"HAVE_DLOPEN\"] = \"$HAVE_DLOPEN\"" >>configure.lua
+echo "#ifndef HAVE_DLOPEN" > config/have_dlopen.h
+echo "#define HAVE_DLOPEN \"$HAVE_DLOPEN\"" >> config/have_dlopen.h
+echo "#endif" >> config/have_dlopen.h
+echo "hdefs[\"HAVE_DLOPEN\"] = \"$HAVE_DLOPEN\"" >>configure.lua
+else
+echo "no"
+echo "no" >> config.log
+HAVE_DLOPEN="no"
+echo "HAVE_DLOPEN=$HAVE_DLOPEN" >>Makefile.config
+echo "mdefs[\"HAVE_DLOPEN\"] = \"$HAVE_DLOPEN\"" >>configure.lua
+echo "#undef HAVE_DLOPEN" >config/have_dlopen.h
+echo "hdefs[\"HAVE_DLOPEN\"] = nil" >>configure.lua
+fi;
+if [ "${cache}" != "" ]; then
+	echo "$HAVE_DLOPEN" > ${cache}/ctest-HAVE_DLOPEN
+	echo $MK_COMPILE_STATUS > ${cache}/ctest-status-HAVE_DLOPEN
+fi
+rm -f conftest.c $testdir/conftest
+if [ "${HAVE_DLOPEN}" = "yes" ]; then
+DSO_CFLAGS=""
+DSO_LIBS="-ldl"
+fi;
+fi;
+TEST_CFLAGS="${TEST_CFLAGS_ORIG}"
+TEST_HEADERS=""
+echo "DSO_CFLAGS=$DSO_CFLAGS" >>Makefile.config
+echo "mdefs[\"DSO_CFLAGS\"] = \"$DSO_CFLAGS\"" >>configure.lua
+echo "DSO_LIBS=$DSO_LIBS" >>Makefile.config
+echo "mdefs[\"DSO_LIBS\"] = \"$DSO_LIBS\"" >>configure.lua
+echo "#ifndef DSO_CFLAGS" > config/dso_cflags.h
+echo "#define DSO_CFLAGS \"$DSO_CFLAGS\"" >> config/dso_cflags.h
+echo "#endif" >> config/dso_cflags.h
+echo "hdefs[\"DSO_CFLAGS\"] = \"$DSO_CFLAGS\"" >>configure.lua
+echo "#ifndef DSO_LIBS" > config/dso_libs.h
+echo "#define DSO_LIBS \"$DSO_LIBS\"" >> config/dso_libs.h
+echo "#endif" >> config/dso_libs.h
+echo "hdefs[\"DSO_LIBS\"] = \"$DSO_LIBS\"" >>configure.lua
+if [ "${HAVE_DLOPEN}" != "yes" ]
+ then
+    echo "Could not find DLOPEN"
+    exit 1
+else
+    L_SYSLOGD_LIBS="-ldl"
+fi
+if [ "${with_maximum_optimization}" = "yes" ] 
+ then
+    MAXOPT="yes"
+else
+    MAXOPT="no"
+fi
+echo -n "checking Operating System to set libraries flags... "
+UNAME=`uname`
+if test "${UNAME}" = "OpenBSD" 
+ then
+DLOPEN_FLAGS="RTLD_LAZY"
+echo "#ifndef DLOPEN_FLAGS" > config/dlopen_flags.h
+echo "#define DLOPEN_FLAGS \"$DLOPEN_FLAGS\"" >> config/dlopen_flags.h
+echo "#endif" >> config/dlopen_flags.h
+echo "hdefs[\"DLOPEN_FLAGS\"] = \"$DLOPEN_FLAGS\"" >>configure.lua
+SYMBOL_PREFIX="_"
+echo "#ifndef SYMBOL_PREFIX" > config/symbol_prefix.h
+echo "#define SYMBOL_PREFIX \"$SYMBOL_PREFIX\"" >> config/symbol_prefix.h
+echo "#endif" >> config/symbol_prefix.h
+echo "hdefs[\"SYMBOL_PREFIX\"] = \"$SYMBOL_PREFIX\"" >>configure.lua
+SHARED_PARAMS="-Bshareable"
+echo "SHARED_PARAMS=$SHARED_PARAMS" >>Makefile.config
+echo "mdefs[\"SHARED_PARAMS\"] = \"$SHARED_PARAMS\"" >>configure.lua
+DCCFLAGS="-fPIC"
+echo "DCCFLAGS=$DCCFLAGS" >>Makefile.config
+echo "mdefs[\"DCCFLAGS\"] = \"$DCCFLAGS\"" >>configure.lua
+    echo "OpenBSD"
+elif test "${UNAME}" = "FreeBSD" 
+ then
+DLOPEN_FLAGS="RTLD_LAZY"
+echo "#ifndef DLOPEN_FLAGS" > config/dlopen_flags.h
+echo "#define DLOPEN_FLAGS \"$DLOPEN_FLAGS\"" >> config/dlopen_flags.h
+echo "#endif" >> config/dlopen_flags.h
+echo "hdefs[\"DLOPEN_FLAGS\"] = \"$DLOPEN_FLAGS\"" >>configure.lua
+SYMBOL_PREFIX=""
+echo "#ifndef SYMBOL_PREFIX" > config/symbol_prefix.h
+echo "#define SYMBOL_PREFIX \"$SYMBOL_PREFIX\"" >> config/symbol_prefix.h
+echo "#endif" >> config/symbol_prefix.h
+echo "hdefs[\"SYMBOL_PREFIX\"] = \"$SYMBOL_PREFIX\"" >>configure.lua
+SHARED_PARAMS="-Bshareable"
+echo "SHARED_PARAMS=$SHARED_PARAMS" >>Makefile.config
+echo "mdefs[\"SHARED_PARAMS\"] = \"$SHARED_PARAMS\"" >>configure.lua
+DCCFLAGS="-fPIC"
+echo "DCCFLAGS=$DCCFLAGS" >>Makefile.config
+echo "mdefs[\"DCCFLAGS\"] = \"$DCCFLAGS\"" >>configure.lua
+    L_SYSLOGD_LIBS="${L_SYSLOGD_LIBS} -Wl,-E"
+    echo "FreeBSD"
+elif test "${UNAME}" = "NetBSD" 
+ then
+DLOPEN_FLAGS="RTLD_LAZY"
+echo "#ifndef DLOPEN_FLAGS" > config/dlopen_flags.h
+echo "#define DLOPEN_FLAGS \"$DLOPEN_FLAGS\"" >> config/dlopen_flags.h
+echo "#endif" >> config/dlopen_flags.h
+echo "hdefs[\"DLOPEN_FLAGS\"] = \"$DLOPEN_FLAGS\"" >>configure.lua
+SYMBOL_PREFIX=""
+echo "#ifndef SYMBOL_PREFIX" > config/symbol_prefix.h
+echo "#define SYMBOL_PREFIX \"$SYMBOL_PREFIX\"" >> config/symbol_prefix.h
+echo "#endif" >> config/symbol_prefix.h
+echo "hdefs[\"SYMBOL_PREFIX\"] = \"$SYMBOL_PREFIX\"" >>configure.lua
+SHARED_PARAMS="-Dshareable"
+echo "SHARED_PARAMS=$SHARED_PARAMS" >>Makefile.config
+echo "mdefs[\"SHARED_PARAMS\"] = \"$SHARED_PARAMS\"" >>configure.lua
+DCCFLAGS="-fPIC"
+echo "DCCFLAGS=$DCCFLAGS" >>Makefile.config
+echo "mdefs[\"DCCFLAGS\"] = \"$DCCFLAGS\"" >>configure.lua
+    L_SYSLOGD_LIBS="${L_SYSLOGD_LIBS} -Wl,-E"
+    echo "NetBSD"
+elif test "${UNAME}" = "Linux" 
+ then
+DLOPEN_FLAGS="RTLD_LAZY | RTLD_GLOBAL"
+echo "#ifndef DLOPEN_FLAGS" > config/dlopen_flags.h
+echo "#define DLOPEN_FLAGS \"$DLOPEN_FLAGS\"" >> config/dlopen_flags.h
+echo "#endif" >> config/dlopen_flags.h
+echo "hdefs[\"DLOPEN_FLAGS\"] = \"$DLOPEN_FLAGS\"" >>configure.lua
+SYMBOL_PREFIX=""
+echo "#ifndef SYMBOL_PREFIX" > config/symbol_prefix.h
+echo "#define SYMBOL_PREFIX \"$SYMBOL_PREFIX\"" >> config/symbol_prefix.h
+echo "#endif" >> config/symbol_prefix.h
+echo "hdefs[\"SYMBOL_PREFIX\"] = \"$SYMBOL_PREFIX\"" >>configure.lua
+MAIN_CPPFLAGS="-Xlinker -E"
+echo "MAIN_CPPFLAGS=$MAIN_CPPFLAGS" >>Makefile.config
+echo "mdefs[\"MAIN_CPPFLAGS\"] = \"$MAIN_CPPFLAGS\"" >>configure.lua
+SHARED_PARAMS="-Bshareable"
+echo "SHARED_PARAMS=$SHARED_PARAMS" >>Makefile.config
+echo "mdefs[\"SHARED_PARAMS\"] = \"$SHARED_PARAMS\"" >>configure.lua
+DCCFLAGS=""
+echo "DCCFLAGS=$DCCFLAGS" >>Makefile.config
+echo "mdefs[\"DCCFLAGS\"] = \"$DCCFLAGS\"" >>configure.lua
+    echo "Linux"
+elif test "${UNAME}" = "SunOS" 
+ then
+DLOPEN_FLAGS="RTLD_LAZY"
+echo "#ifndef DLOPEN_FLAGS" > config/dlopen_flags.h
+echo "#define DLOPEN_FLAGS \"$DLOPEN_FLAGS\"" >> config/dlopen_flags.h
+echo "#endif" >> config/dlopen_flags.h
+echo "hdefs[\"DLOPEN_FLAGS\"] = \"$DLOPEN_FLAGS\"" >>configure.lua
+_REENTRANT="1"
+echo "#ifndef _REENTRANT" > config/_reentrant.h
+echo "#define _REENTRANT \"$_REENTRANT\"" >> config/_reentrant.h
+echo "#endif" >> config/_reentrant.h
+echo "hdefs[\"_REENTRANT\"] = \"$_REENTRANT\"" >>configure.lua
+SYMBOL_PREFIX=""
+echo "#ifndef SYMBOL_PREFIX" > config/symbol_prefix.h
+echo "#define SYMBOL_PREFIX \"$SYMBOL_PREFIX\"" >> config/symbol_prefix.h
+echo "#endif" >> config/symbol_prefix.h
+echo "hdefs[\"SYMBOL_PREFIX\"] = \"$SYMBOL_PREFIX\"" >>configure.lua
+    if test "${CC}" = "gcc" 
+ then
+DCCFLAGS="-Bshared"
+echo "DCCFLAGS=$DCCFLAGS" >>Makefile.config
+echo "mdefs[\"DCCFLAGS\"] = \"$DCCFLAGS\"" >>configure.lua
+    else
+	if test "${MAXOPT}" = "yes" 
+ then
+OUR_CFLAGS="-g3 -Ofast"
+echo "OUR_CFLAGS=$OUR_CFLAGS" >>Makefile.config
+echo "mdefs[\"OUR_CFLAGS\"] = \"$OUR_CFLAGS\"" >>configure.lua
+	fi
+    fi
+SHARED_PARAMS="-shared -soname ${MLIBNAME} -all"
+echo "SHARED_PARAMS=$SHARED_PARAMS" >>Makefile.config
+echo "mdefs[\"SHARED_PARAMS\"] = \"$SHARED_PARAMS\"" >>configure.lua
+    echo "SunOS"
+elif test "${UNAME}" = "AIX" 
+ then
+DLOPEN_FLAGS="RTLD_LAZY | RTLD_GLOBAL"
+echo "#ifndef DLOPEN_FLAGS" > config/dlopen_flags.h
+echo "#define DLOPEN_FLAGS \"$DLOPEN_FLAGS\"" >> config/dlopen_flags.h
+echo "#endif" >> config/dlopen_flags.h
+echo "hdefs[\"DLOPEN_FLAGS\"] = \"$DLOPEN_FLAGS\"" >>configure.lua
+NEEDS_DLOPEN_NULL="1"
+echo "#ifndef NEEDS_DLOPEN_NULL" > config/needs_dlopen_null.h
+echo "#define NEEDS_DLOPEN_NULL \"$NEEDS_DLOPEN_NULL\"" >> config/needs_dlopen_null.h
+echo "#endif" >> config/needs_dlopen_null.h
+echo "hdefs[\"NEEDS_DLOPEN_NULL\"] = \"$NEEDS_DLOPEN_NULL\"" >>configure.lua
+SYMBOL_PREFIX=""
+echo "#ifndef SYMBOL_PREFIX" > config/symbol_prefix.h
+echo "#define SYMBOL_PREFIX \"$SYMBOL_PREFIX\"" >> config/symbol_prefix.h
+echo "#endif" >> config/symbol_prefix.h
+echo "hdefs[\"SYMBOL_PREFIX\"] = \"$SYMBOL_PREFIX\"" >>configure.lua
+DCCFLAGS="-shared"
+echo "DCCFLAGS=$DCCFLAGS" >>Makefile.config
+echo "mdefs[\"DCCFLAGS\"] = \"$DCCFLAGS\"" >>configure.lua
+SHARED_PARAMS="-lc -bI:libsosyslog.imp -bexpall -bnoentry -brtl"
+echo "SHARED_PARAMS=$SHARED_PARAMS" >>Makefile.config
+echo "mdefs[\"SHARED_PARAMS\"] = \"$SHARED_PARAMS\"" >>configure.lua
+    cat > src/modules/libsosyslog.imp <<-EOF
+	m_dprintf
+	logerror
+	add_fd_input
+	place_signal
+	remove_fd_input
+	printline
+	EOF
+    L_SYSLOGD_LIBS="${L_SYSLOGD_LIBS} -Wl,-bexpall"
+    echo "AIX"
+else
+    echo "fail"
+    echo "cannot determine system type, failling to defaults"
+SYMBOL_PREFIX=""
+echo "#ifndef SYMBOL_PREFIX" > config/symbol_prefix.h
+echo "#define SYMBOL_PREFIX \"$SYMBOL_PREFIX\"" >> config/symbol_prefix.h
+echo "#endif" >> config/symbol_prefix.h
+echo "hdefs[\"SYMBOL_PREFIX\"] = \"$SYMBOL_PREFIX\"" >>configure.lua
+SHARED_PARAMS="-Bshareable"
+echo "SHARED_PARAMS=$SHARED_PARAMS" >>Makefile.config
+echo "mdefs[\"SHARED_PARAMS\"] = \"$SHARED_PARAMS\"" >>configure.lua
+fi
+SYSLOGD_LIBS="${L_SYSLOGD_LIBS}"
+echo "SYSLOGD_LIBS=$SYSLOGD_LIBS" >>Makefile.config
+echo "mdefs[\"SYSLOGD_LIBS\"] = \"$SYSLOGD_LIBS\"" >>configure.lua
 if [ "${enable_debug}" = "yes" ]
  then
 SY_DEBUG="yes"

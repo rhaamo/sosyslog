@@ -1,9 +1,13 @@
 TOP=	../
 PROG=	${SYSLOGD_DAEMON_NAME}
-SRCS=	FIXME
+SRCS=	syslogd.c	\
+	options.c	\
+	modules.c
 
-# ${DEBUG_FLAGS} defined in ${TOP}/Makefile.config
-CFLAGS+=	-02 -Wall ${DEBUG_FLAGS}
+# Defined in ${TOP}/Makefile.config:
+# 	${DEBUG_FLAGS}
+# 	${SYSLOGD_LIBS}
+CFLAGS+=	-02 -Wall ${DEBUG_FLAGS} ${SYSLOGD_LIBS}
 LDFLAGS+=
 
 include ${TOP}/Makefile.config

@@ -3,7 +3,7 @@
 # http://bsdbuild.hypertriton.com/.
 
 REGISTER("", "")
-REGISTER("--enable-maximum-optimization",	"Activate maximum possible compile and link optimization")
+REGISTER("--with-maximum-optimization",	"Activate maximum possible compile and link optimization")
 REGISTER("--enable-debug",	"General debugging [no]")
 
 REGISTER("", "")
@@ -28,7 +28,105 @@ HDEFINE(VERSION, "1.3.3")
 # Check for a C compiler. If one exists, ${HAVE_CC} will be set
 CHECK(cc)
 
+# VARS
 MANPAGES="syslog.conf.5 syslogd.3"
+MDEFINE(MLIBNAME,	"lib${PROGNAME}.so.${VERSION}")
+
+CHECK(dlopen)
+if [ "${HAVE_DLOPEN}" != "yes" ]; then
+    echo "Could not find DLOPEN"
+    exit 1
+else
+    L_SYSLOGD_LIBS="-ldl"
+fi
+
+if [ "${with_maximum_optimization}" = "yes" ] ; then
+    MAXOPT="yes"
+else
+    MAXOPT="no"
+fi
+
+echo -n "checking Operating System to set libraries flags... "
+UNAME=`uname`
+if test "${UNAME}" = "OpenBSD" ; then
+    HDEFINE(DLOPEN_FLAGS,	RTLD_LAZY)
+    HDEFINE(SYMBOL_PREFIX,	"_")
+
+    MDEFINE(SHARED_PARAMS,	"-Bshareable")
+    MDEFINE(DCCFLAGS,		"-fPIC")
+
+    echo "OpenBSD"
+elif test "${UNAME}" = "FreeBSD" ; then
+    HDEFINE(DLOPEN_FLAGS,	RTLD_LAZY)
+    HDEFINE(SYMBOL_PREFIX,	)
+
+    MDEFINE(SHARED_PARAMS,	"-Bshareable")
+    MDEFINE(DCCFLAGS,		"-fPIC")
+    L_SYSLOGD_LIBS="${L_SYSLOGD_LIBS} -Wl,-E"
+
+    echo "FreeBSD"
+elif test "${UNAME}" = "NetBSD" ; then
+    HDEFINE(DLOPEN_FLAGS,	RTLD_LAZY)
+    HDEFINE(SYMBOL_PREFIX,	)
+
+    MDEFINE(SHARED_PARAMS,	"-Dshareable")
+    MDEFINE(DCCFLAGS,		"-fPIC")
+    L_SYSLOGD_LIBS="${L_SYSLOGD_LIBS} -Wl,-E"
+
+    echo "NetBSD"
+elif test "${UNAME}" = "Linux" ; then
+    HDEFINE(DLOPEN_FLAGS,	"RTLD_LAZY | RTLD_GLOBAL")
+    HDEFINE(SYMBOL_PREFIX,	)
+
+    MDEFINE(MAIN_CPPFLAGS,	"-Xlinker -E")
+    MDEFINE(SHARED_PARAMS,	"-Bshareable")
+    MDEFINE(DCCFLAGS,		)
+
+    echo "Linux"
+elif test "${UNAME}" = "SunOS" ; then
+    HDEFINE(DLOPEN_FLAGS,	RTLD_LAZY)
+    HDEFINE(_REENTRANT,		1)
+    HDEFINE(SYMBOL_PREFIX,	)
+
+    if test "${CC}" = "gcc" ; then
+	MDEFINE(DCCFLAGS,	"-Bshared")
+    else
+	if test "${MAXOPT}" = "yes" ; then
+	    MDEFINE(OUR_CFLAGS,	"-g3 -Ofast")
+	fi
+    fi
+    MDEFINE(SHARED_PARAMS,	"-shared -soname ${MLIBNAME} -all")	# XXX
+
+    echo "SunOS"
+elif test "${UNAME}" = "AIX" ; then
+    HDEFINE(DLOPEN_FLAGS,	RTLD_LAZY | RTLD_GLOBAL)
+    HDEFINE(NEEDS_DLOPEN_NULL,	1)
+    HDEFINE(SYMBOL_PREFIX,	)
+
+    MDEFINE(DCCFLAGS,		"-shared")
+    MDEFINE(SHARED_PARAMS,	"-lc -bI:libsosyslog.imp -bexpall -bnoentry -brtl")
+    cat > src/modules/libsosyslog.imp <<-EOF
+    	#! .
+	m_dprintf
+	logerror
+	add_fd_input
+	place_signal
+	remove_fd_input
+	printline
+	EOF
+    L_SYSLOGD_LIBS="${L_SYSLOGD_LIBS} -Wl,-bexpall"
+    echo "AIX"
+else
+    echo "fail"
+    echo "cannot determine system type, failling to defaults"
+    HDEFINE(SYMBOL_PREFIX,	)
+    HDEFIME(DLOPEN_FLAGS,	RTLD_LAZY)
+
+    MDEFINE(SHARED_PARAMS,	"-Bshareable")
+fi
+MDEFINE(SYSLOGD_LIBS, ${L_SYSLOGD_LIBS})
+
+
 
 if [ "${enable_debug}" = "yes" ]; then
     HDEFINE(SY_DEBUG, "yes")
@@ -52,3 +150,4 @@ echo "      Debug: ${END_WITH_DEBUG}"
 echo
 echo "* Configuration successful."
 echo "* Use \"make\" and \"make install\" to build and install ${PROGNAME}"
+
