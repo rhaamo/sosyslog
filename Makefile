@@ -1,6 +1,7 @@
 TOP=	.
 
-SUBDIR=	src/peo
+SUBDIR=	src/peo		\
+	src/modules
 
 #SUBDIR=	src/peo		\
 #	src/modules	\

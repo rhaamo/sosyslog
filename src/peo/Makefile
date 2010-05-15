@@ -4,7 +4,8 @@ SRCS=	peochk.c	\
 	../options.c	\
 	hash.c
 
-CFLAGS+=	-O2 -Wall ${DEBUG_FLAGS} -I..
+CPPFLAGS=	-I.. ${CPPFLAGS}
+CFLAGS+=	-O2 -Wall ${DEBUG_FLAGS} ${CPPFLAGS}
 LDFLAGS+=
 
 include ${TOP}/Makefile.config
