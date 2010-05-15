@@ -1,12 +1,7 @@
 *.o
-autom4te.cache/
+Makefile.config
+configure.lua
 Makefile
-config.log
-config.status
-packaging/Makefile
-packaging/OpenBSD-devel/Makefile
-packaging/OpenBSD/Makefile
-packaging/OpenBSD/pkg/PLIST
 src/Makefile
 src/config.h
 src/man/BSDmakefile
