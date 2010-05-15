@@ -2264,6 +2264,9 @@ echo "mdefs[\"HASH_SRCS_MODULES\"] = \"$HASH_SRCS_MODULES\"" >>configure.lua
 MODULES_SRCS="${MSRCS}"
 echo "MODULES_SRCS=$MODULES_SRCS" >>Makefile.config
 echo "mdefs[\"MODULES_SRCS\"] = \"$MODULES_SRCS\"" >>configure.lua
+MANPAGES="${MANPAGES}"
+echo "MANPAGES=$MANPAGES" >>Makefile.config
+echo "mdefs[\"MANPAGES\"] = \"$MANPAGES\"" >>configure.lua
 ARCH=`uname -s`
 echo
 echo "Building ${PROGNAME}-${VERSION} on ${ARCH}"

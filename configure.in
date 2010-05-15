@@ -28,7 +28,8 @@ HDEFINE(VERSION, "1.3.3")
 CHECK(cc)
 
 # VARS
-MANPAGES="syslog.conf.5 syslogd.3"
+MANPAGES5="syslog.conf.5"
+MANPAGES3="syslogd.3"
 MDEFINE(MLIBNAME,	"lib${PROGNAME}.so.${VERSION}")
 MDEFINE(MLIBNAME_NOPREFIX,	"${PROGNAME}.so.${VERSION}")
 MAIL_CONTACT="rhaamo@gruik.at"
@@ -178,7 +179,7 @@ fi
 
 if [ "${temp_res}" = "yes" ]; then
     MSRCS="${MSRCS} im_bsd.c"
-    MANPAGES="${MANPAGES} im_bsd.8"
+    MANPAGES8="${MANPAGES8} im_bsd.8"
     HDEFINE(HAVE_BSD_IMODULE,	1)
     want_bsd=yes
 else
@@ -194,7 +195,7 @@ if [ "${temp_res}" = "yes" ]; then
     check_header_exist "sys/klog.h"
     if [ "${check_header_state}" = "yes" ]; then
 	MSRCS="${MSRCS} im_linux.c"
-	MANPAGES="${MANPAGES} im_linux.8"
+	MANPAGES8="${MANPAGES8} im_linux.8"
 	HDEFINE(HAVE_LINUX_IMODULE,  1)
 	want_linux=yes
     else
@@ -212,7 +213,7 @@ else
     check_header_exist "sys/socket.h"
     if [ "${check_header_state}" = "yes" ]; then
     	MSRCS="${MSRCS} im_udp.c om_udp.c"
-	MANPAGES="${MANPAGES} im_udp.8 om_udp.8"
+	MANPAGES8="${MANPAGES8} im_udp.8 om_udp.8"
     	HDEFINE(HAVE_UDP_IMODULE,	1)
 	want_udp=yes
     else
@@ -226,7 +227,7 @@ else
     check_header_exist "sys/un.h"
     if [ "${check_header_state}" = "yes" ]; then
     	MSRCS="${MSRCS} im_unix.c"
-	MANPAGES="${MANPAGES} im_unix.c"
+	MANPAGES8="${MANPAGES8} im_unix.c"
     	HDEFINE(HAVE_UNIX_IMODULE,	1)
 	want_unix=yes
     else
@@ -254,7 +255,7 @@ fi
 
 if test "$temp_res" = "yes"; then
     MSRCS="${MSRCS} im_streams.c"
-    MANPAGES="${MANPAGES} im_streams.8"
+    MANPAGES8="${MANPAGES8} im_streams.8"
     SYSLOGD_LIBS="${SYSLOGD_LIBS} -lthread -ldoor"
     HDEFINE(HAVE_STREAMS_IMODULE,	1)
     want_streams=yes
@@ -267,7 +268,7 @@ if [ "${enable_classic}" = "no" ]; then
     want_classic=no
 else
     MSRCS="${MSRCS} om_classic.c ttymsg.c"
-    MANPAGES="${MANPAGES} om_classic.8"
+    MANPAGES8="${MANPAGES8} om_classic.8"
     HDEFINE(HAVE_CLASSIC_IMODULE,	1)
     want_classic=yes
 fi
@@ -278,7 +279,7 @@ else
     check_header_exist "sys/socket.h"
     if [ "$check_header_state" = "yes" ]; then
     	MSRCS="${MSRCS} om_tcp.c im_tcp.c ip_misc.c"
-    	MANPAGES="${MANPAGES} om_tcp.8 im_tcp.8"
+    	MANPAGES8="${MANPAGES8} om_tcp.8 im_tcp.8"
     	HDEFINE(HAVE_TCP_IMODULE,	1)
     	want_tcp=yes
     else
@@ -292,7 +293,7 @@ if [ "${enable_oracle8i}" = "no" ]; then
 else
     want_oracle8i=yes
     MSRCS="${MSRCS} om_oracle8i.c"
-    MANPAGES="${MANPAGES} om_oracle8i.8"
+    MANPAGES8="${MANPAGES8} om_oracle8i.8"
     HDEFINE(HAVE_ORACLE8I_IMODULE,	1)
     USE_SQL="yes"
 fi
@@ -301,7 +302,7 @@ if [ "${enable_mysql}" = "no" ]; then
     want_mysql=no
 else
     MSRCS="${MSRCS} om_mysql.c"
-    MANPAGES="${MANPAGES} om_mysql.8"
+    MANPAGES8="${MANPAGES8} om_mysql.8"
     HDEFINE(HAVE_MYSQL_IMODULE,	1)
     USE_SQL="yes"
     want_mysql=yes
@@ -311,7 +312,7 @@ if [ "${enable_pgsql}" = "no" ]; then
     want_pgsql=no
 else
     MSRCS="${MSRCS} om_pgsql.c"
-    MANPAGES="${MANPAGES} om_pgsql.8"
+    MANPAGES8="${MANPAGES8} om_pgsql.8"
     HDEFINE(HAVE_PGSQL_IMODULE,	1)
     USE_SQL="yes"
     want_pgsql=yes
@@ -329,7 +330,7 @@ fi
 
 if [ "${PEO}" = "yes" ]; then
     MSRCS="${MSRCS} om_peo.c"
-    MANPAGES="${MANPAGES} om_peo.8 peochk.8"
+    MANPAGES8="${MANPAGES8} om_peo.8 peochk.8"
 
     HASH_SRCS="hash.c"
     HASH_SRCS_MODULES="../peo/hash.c";
@@ -361,6 +362,9 @@ MDEFINE(SYSLOGD_LIBS, ${L_SYSLOGD_LIBS})
 MDEFINE(HASH_SRCS,	${HASH_SRCS})
 MDEFINE(HASH_SRCS_MODULES,	${HASH_SRCS_MODULES})
 MDEFINE(MODULES_SRCS,	${MSRCS})
+MDEFINE(MANPAGES3,	${MANPAGES3})
+MDEFINE(MANPAGES5,	${MANPAGES5})
+MDEFINE(MANPAGES8,	${MANPAGES8})
 
 ARCH=`uname -s`
 echo
