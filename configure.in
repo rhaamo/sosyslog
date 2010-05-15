@@ -35,6 +35,13 @@ MDEFINE(MLIBNAME_NOPREFIX,	"${PROGNAME}.so.${VERSION}")
 MAIL_CONTACT="rhaamo@gruik.at"
 check_header_state=no
 
+# Defines
+HDEFINE(MLIBNAME_STR, ${MLIBNAME})
+HDEFINE(SOSYSLOG_VERSION_STR, ${VERSION})
+HDEFINE(INSTALL_LIBDIR,	"${PREFIX}/lib")
+HDEFINE(PID_DIR, "/var/run")	# FIXME
+HDEFINE(PID_FILE, "syslog.pid")	# FIXME
+
 CHECK(dlopen)
 if [ "${HAVE_DLOPEN}" != "yes" ]; then
     echo "Could not find DLOPEN"

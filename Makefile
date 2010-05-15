@@ -19,6 +19,13 @@ clean:		clean-subdir
 cleandir:	cleandir-subdir
 depend:		depend-subdir
 
+gen-include:
+	rm src/config.h
+	touch src/config.h
+	for i in `find config -type f`; do	\
+	    echo "#include \"$$i\"" >> src/config.h ;	\
+	done
+
 re-configure:
 	rm configure
 	cat configure.in | mkconfigure > configure

@@ -6,7 +6,6 @@ config/*
 src/.depend
 src/peo/.depend
 src/modules/.depend
-src/config.h
 src/modules/libsosyslog.so.*
 src/peo/peochk
 src/sosyslogd

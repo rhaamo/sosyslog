@@ -4,7 +4,7 @@ SRCS=	peochk.c	\
 	../options.c	\
 	${HASH_SRCS}
 
-CPPFLAGS=	-I..
+CPPFLAGS=	-I.. -I../..
 CFLAGS+=	-O2 -Wall ${DEBUG_FLAGS} ${CPPFLAGS}
 LDFLAGS+=
 

@@ -6,7 +6,7 @@ SRCS=	modules.c	\
 
 # Defined in ${TOP}/Makefile.config
 PROG_FLAGS=	${CFLAGS} ${LIBS} ${SYSLOGD_LIBS} ${MAIN_CPPFLAGS}
-CFLAGS+=	-02 -Wall ${DEBUG_FLAGS} ${PROG_FLAGS}
+CFLAGS+=	-02 -Wall ${DEBUG_FLAGS} ${PROG_FLAGS} -I../
 LDFLAGS+=
 
 include ${TOP}/Makefile.config
