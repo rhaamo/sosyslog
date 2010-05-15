@@ -1473,6 +1473,9 @@ MANPAGES="syslog.conf.5 syslogd.3"
 MLIBNAME="lib${PROGNAME}.so.${VERSION}"
 echo "MLIBNAME=$MLIBNAME" >>Makefile.config
 echo "mdefs[\"MLIBNAME\"] = \"$MLIBNAME\"" >>configure.lua
+MLIBNAME_NOPREFIX="${PROGNAME}.so.${VERSION}"
+echo "MLIBNAME_NOPREFIX=$MLIBNAME_NOPREFIX" >>Makefile.config
+echo "mdefs[\"MLIBNAME_NOPREFIX\"] = \"$MLIBNAME_NOPREFIX\"" >>configure.lua
 MAIL_CONTACT="rhaamo@gruik.at"
 check_header_state=no
 $ECHO_N "checking for dlopen() interface..."

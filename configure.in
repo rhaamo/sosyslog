@@ -30,6 +30,7 @@ CHECK(cc)
 # VARS
 MANPAGES="syslog.conf.5 syslogd.3"
 MDEFINE(MLIBNAME,	"lib${PROGNAME}.so.${VERSION}")
+MDEFINE(MLIBNAME_NOPREFIX,	"${PROGNAME}.so.${VERSION}")
 MAIL_CONTACT="rhaamo@gruik.at"
 check_header_state=no
 
