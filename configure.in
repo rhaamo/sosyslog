@@ -64,7 +64,7 @@ if test "${UNAME}" = "OpenBSD" ; then
     echo "OpenBSD"
 elif test "${UNAME}" = "FreeBSD" ; then
     HDEFINE_UNQUOTED(DLOPEN_FLAGS,	RTLD_LAZY)
-    HDEFINE(SYMBOL_PREFIX,	)
+    HDEFINE(SYMBOL_PREFIX,	"")
 
     MDEFINE(SHARED_PARAMS,	"-Bshareable")
     MDEFINE(DCCFLAGS,		"-fPIC")
@@ -73,7 +73,7 @@ elif test "${UNAME}" = "FreeBSD" ; then
     echo "FreeBSD"
 elif test "${UNAME}" = "NetBSD" ; then
     HDEFINE_UNQUOTED(DLOPEN_FLAGS,	RTLD_LAZY)
-    HDEFINE(SYMBOL_PREFIX,	)
+    HDEFINE(SYMBOL_PREFIX,	"")
 
     MDEFINE(SHARED_PARAMS,	"-Dshareable")
     MDEFINE(DCCFLAGS,		"-fPIC")
@@ -81,8 +81,8 @@ elif test "${UNAME}" = "NetBSD" ; then
 
     echo "NetBSD"
 elif test "${UNAME}" = "Linux" ; then
-    HDEFINE_UNQUOTED(DLOPEN_FLAGS,	"RTLD_LAZY | RTLD_GLOBAL")
-    HDEFINE(SYMBOL_PREFIX,	)
+    HDEFINE_UNQUOTED(DLOPEN_FLAGS,	RTLD_LAZY | RTLD_GLOBAL)
+    HDEFINE(SYMBOL_PREFIX,	"")
 
     MDEFINE(MAIN_CPPFLAGS,	"-Xlinker -E")
     MDEFINE(SHARED_PARAMS,	"-Bshareable")
@@ -92,7 +92,7 @@ elif test "${UNAME}" = "Linux" ; then
 elif test "${UNAME}" = "SunOS" ; then
     HDEFINE_UNQUOTED(DLOPEN_FLAGS,	RTLD_LAZY)
     HDEFINE_UNQUOTED(_REENTRANT,		1)
-    HDEFINE(SYMBOL_PREFIX,	)
+    HDEFINE(SYMBOL_PREFIX,	"")
 
     if test "${CC}" = "gcc" ; then
 	MDEFINE(DCCFLAGS,	"-Bshared")
@@ -107,7 +107,7 @@ elif test "${UNAME}" = "SunOS" ; then
 elif test "${UNAME}" = "AIX" ; then
     HDEFINE_UNQUOTED(DLOPEN_FLAGS,	RTLD_LAZY | RTLD_GLOBAL)
     HDEFINE_UNQUOTED(NEEDS_DLOPEN_NULL,	1)
-    HDEFINE(SYMBOL_PREFIX,	)
+    HDEFINE(SYMBOL_PREFIX,	"")
 
     MDEFINE(DCCFLAGS,		"-shared")
     MDEFINE(SHARED_PARAMS,	"-lc -bI:libsosyslog.imp -bexpall -bnoentry -brtl")
@@ -125,7 +125,7 @@ elif test "${UNAME}" = "AIX" ; then
 else
     echo "fail"
     echo "cannot determine system type, failling to defaults"
-    HDEFINE(SYMBOL_PREFIX,	)
+    HDEFINE(SYMBOL_PREFIX,	"")
     HDEFINE_UNQUOTED(DLOPEN_FLAGS,	RTLD_LAZY)
 
     MDEFINE(SHARED_PARAMS,	"-Bshareable")
@@ -301,6 +301,8 @@ else
 fi
 
 if [ "${PEO}" = "yes" ]; then
+    MDEFINE(WITH_PEO_DIR,	src/peo/)
+    echo "checking for peo required stuff... "
     MSRCS="${MSRCS} om_peo.c"
     MANPAGES8="${MANPAGES8} om_peo.8 peochk.8"
 
@@ -308,16 +310,19 @@ if [ "${PEO}" = "yes" ]; then
     HASH_SRCS_MODULES="../peo/hash.c";
     CHECK(md5)
     if [ "${HAVE_MD5}" = "yes" ]; then
+	HDEFINE_UNQUOTED(HAVE_MD5_H,		1)
 	HASH_SRCS="${HASH_SRCS} ../peo/md5c.c"
 	HASH_SRCS_MODULES="${HASH_SRCS_MODULES} ../peo/md5c.c"
     fi
     CHECK(sha1)
     if [ "${HAVE_SHA1}" = "yes" ]; then
+	HDEFINE_UNQUOTED(HAVE_SHA1_H,		1)
 	HASH_SRCS="${HASH_SRCS} ../peo/sha1.c"
 	HASH_SRCS_MODULES="${HASH_SRCS_MODULES} ../peo/sha1.c"
     fi
     CHECK(rmd160)
     if [ "${HAVE_RMD160}" = "yes" ]; then
+	HDEFINE_UNQUOTED(HAVE_RMD160_H,		1)
 	HASH_SRCS="${HASH_SRCS} ../peo/rmd160.c"
 	HASH_SRCS_MODULES="${HASH_SRCS_MODULES} ../peo/rmd160.c"
     fi

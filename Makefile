@@ -1,6 +1,6 @@
 TOP=	.
 
-SUBDIR=	src/peo		\
+SUBDIR=	${WITH_PEO_DIR}	\
 	src/modules	\
 	src		\
 	src/man

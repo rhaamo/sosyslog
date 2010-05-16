@@ -3,6 +3,7 @@ Makefile.config
 configure.lua
 config.log
 config/*
+src/config.h
 src/.depend
 src/peo/.depend
 src/modules/.depend

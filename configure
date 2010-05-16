@@ -1798,7 +1798,7 @@ if [ "${HAVE_DLOPEN}" != "yes" ]
  then
     L_SYSLOGD_LIBS="-ldl"
 fi
-if [ "${with_maximum_optimization}" = "yes"]
+if [ "${with_maximum_optimization}" = "yes" ]
  then
     MAXOPT="yes"
 else
@@ -1835,7 +1835,7 @@ echo "#ifndef DLOPEN_FLAGS" > config/dlopen_flags.h
 echo "#define DLOPEN_FLAGS $DLOPEN_FLAGS" >> config/dlopen_flags.h
 echo "#endif" >> config/dlopen_flags.h
 echo "hdefs[\"DLOPEN_FLAGS\"] = $DLOPEN_FLAGS" >>configure.lua
-SYMBOL_PREFIX=""
+SYMBOL_PREFIX=""""
 echo "#ifndef SYMBOL_PREFIX" > config/symbol_prefix.h
 echo "#define SYMBOL_PREFIX \"$SYMBOL_PREFIX\"" >> config/symbol_prefix.h
 echo "#endif" >> config/symbol_prefix.h
@@ -1855,7 +1855,7 @@ echo "#ifndef DLOPEN_FLAGS" > config/dlopen_flags.h
 echo "#define DLOPEN_FLAGS $DLOPEN_FLAGS" >> config/dlopen_flags.h
 echo "#endif" >> config/dlopen_flags.h
 echo "hdefs[\"DLOPEN_FLAGS\"] = $DLOPEN_FLAGS" >>configure.lua
-SYMBOL_PREFIX=""
+SYMBOL_PREFIX=""""
 echo "#ifndef SYMBOL_PREFIX" > config/symbol_prefix.h
 echo "#define SYMBOL_PREFIX \"$SYMBOL_PREFIX\"" >> config/symbol_prefix.h
 echo "#endif" >> config/symbol_prefix.h
@@ -1875,7 +1875,7 @@ echo "#ifndef DLOPEN_FLAGS" > config/dlopen_flags.h
 echo "#define DLOPEN_FLAGS $DLOPEN_FLAGS" >> config/dlopen_flags.h
 echo "#endif" >> config/dlopen_flags.h
 echo "hdefs[\"DLOPEN_FLAGS\"] = $DLOPEN_FLAGS" >>configure.lua
-SYMBOL_PREFIX=""
+SYMBOL_PREFIX=""""
 echo "#ifndef SYMBOL_PREFIX" > config/symbol_prefix.h
 echo "#define SYMBOL_PREFIX \"$SYMBOL_PREFIX\"" >> config/symbol_prefix.h
 echo "#endif" >> config/symbol_prefix.h
@@ -1902,7 +1902,7 @@ echo "#ifndef _REENTRANT" > config/_reentrant.h
 echo "#define _REENTRANT $_REENTRANT" >> config/_reentrant.h
 echo "#endif" >> config/_reentrant.h
 echo "hdefs[\"_REENTRANT\"] = $_REENTRANT" >>configure.lua
-SYMBOL_PREFIX=""
+SYMBOL_PREFIX=""""
 echo "#ifndef SYMBOL_PREFIX" > config/symbol_prefix.h
 echo "#define SYMBOL_PREFIX \"$SYMBOL_PREFIX\"" >> config/symbol_prefix.h
 echo "#endif" >> config/symbol_prefix.h
@@ -1936,7 +1936,7 @@ echo "#ifndef NEEDS_DLOPEN_NULL" > config/needs_dlopen_null.h
 echo "#define NEEDS_DLOPEN_NULL $NEEDS_DLOPEN_NULL" >> config/needs_dlopen_null.h
 echo "#endif" >> config/needs_dlopen_null.h
 echo "hdefs[\"NEEDS_DLOPEN_NULL\"] = $NEEDS_DLOPEN_NULL" >>configure.lua
-SYMBOL_PREFIX=""
+SYMBOL_PREFIX=""""
 echo "#ifndef SYMBOL_PREFIX" > config/symbol_prefix.h
 echo "#define SYMBOL_PREFIX \"$SYMBOL_PREFIX\"" >> config/symbol_prefix.h
 echo "#endif" >> config/symbol_prefix.h
@@ -1960,7 +1960,7 @@ echo "mdefs[\"SHARED_PARAMS\"] = \"$SHARED_PARAMS\"" >>configure.lua
 else
     echo "fail"
     echo "cannot determine system type, failling to defaults"
-SYMBOL_PREFIX=""
+SYMBOL_PREFIX=""""
 echo "#ifndef SYMBOL_PREFIX" > config/symbol_prefix.h
 echo "#define SYMBOL_PREFIX \"$SYMBOL_PREFIX\"" >> config/symbol_prefix.h
 echo "#endif" >> config/symbol_prefix.h
@@ -2472,6 +2472,10 @@ else
 fi
 if [ "${PEO}" = "yes" ]
  then
+WITH_PEO_DIR="src/peo/"
+echo "WITH_PEO_DIR=$WITH_PEO_DIR" >>Makefile.config
+echo "mdefs[\"WITH_PEO_DIR\"] = \"$WITH_PEO_DIR\"" >>configure.lua
+    echo "checking for peo required stuff... "
     MSRCS="${MSRCS} om_peo.c"
     MANPAGES8="${MANPAGES8} om_peo.8 peochk.8"
     HASH_SRCS="../peo/hash.c"
@@ -2531,6 +2535,11 @@ fi
 rm -f conftest.c $testdir/conftest$EXECSUFFIX
     if [ "${HAVE_MD5}" = "yes" ]
  then
+HAVE_MD5_H="1"
+echo "#ifndef HAVE_MD5_H" > config/have_md5_h.h
+echo "#define HAVE_MD5_H $HAVE_MD5_H" >> config/have_md5_h.h
+echo "#endif" >> config/have_md5_h.h
+echo "hdefs[\"HAVE_MD5_H\"] = $HAVE_MD5_H" >>configure.lua
 	HASH_SRCS="${HASH_SRCS} ../peo/md5c.c"
 	HASH_SRCS_MODULES="${HASH_SRCS_MODULES} ../peo/md5c.c"
     fi
@@ -2589,6 +2598,11 @@ fi
 rm -f conftest.c $testdir/conftest$EXECSUFFIX
     if [ "${HAVE_SHA1}" = "yes" ]
  then
+HAVE_SHA1_H="1"
+echo "#ifndef HAVE_SHA1_H" > config/have_sha1_h.h
+echo "#define HAVE_SHA1_H $HAVE_SHA1_H" >> config/have_sha1_h.h
+echo "#endif" >> config/have_sha1_h.h
+echo "hdefs[\"HAVE_SHA1_H\"] = $HAVE_SHA1_H" >>configure.lua
 	HASH_SRCS="${HASH_SRCS} ../peo/sha1.c"
 	HASH_SRCS_MODULES="${HASH_SRCS_MODULES} ../peo/sha1.c"
     fi
@@ -2647,6 +2661,11 @@ fi
 rm -f conftest.c $testdir/conftest$EXECSUFFIX
     if [ "${HAVE_RMD160}" = "yes" ]
  then
+HAVE_RMD160_H="1"
+echo "#ifndef HAVE_RMD160_H" > config/have_rmd160_h.h
+echo "#define HAVE_RMD160_H $HAVE_RMD160_H" >> config/have_rmd160_h.h
+echo "#endif" >> config/have_rmd160_h.h
+echo "hdefs[\"HAVE_RMD160_H\"] = $HAVE_RMD160_H" >>configure.lua
 	HASH_SRCS="${HASH_SRCS} ../peo/rmd160.c"
 	HASH_SRCS_MODULES="${HASH_SRCS_MODULES} ../peo/rmd160.c"
     fi
