@@ -1,10 +1,8 @@
 New TODO of sosyslog.
 
 TODO FOR CMAKE BRANCHE:
-	- Avoid the double "" for HAVE_xxx_IMODULE and DLOPEN FLAGS
-	- See TODO.h :( -> can probably go into BSDBuild modules
+	- See TODO.h :( -> can probably go into BSDBuild modules => WIP ==> CHECK_FUNC() CHECK_FUNC_OPTS() and HDEFINE_UNQUOTED()
 	- CHECK FOR DLOPEN -ldl if VERY NEEDED !!!
-	- need to add MANUALLY #include "TODO.h" at the top of src/config.h...
 
 Update NEWS
 

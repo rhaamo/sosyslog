@@ -359,6 +359,11 @@ if [ "${HAVE__DOPRNT}" = "yes" ]; then
     HDEFINE_UNQUOTED(HAVE__DOPRNT,	1)
 fi
 
+CHECK(getaddrinfo)
+if [ "${HAVE_GETADDRINFO}" ]; then
+    HDEFINE_UNQUOTED(HAVE_GETADDRINFO,	1)
+fi
+
 # Last defines
 MDEFINE(SYSLOGD_LIBS, ${L_SYSLOGD_LIBS})
 MDEFINE(HASH_SRCS,	${HASH_SRCS})

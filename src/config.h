@@ -63,3 +63,4 @@
 #include "config/time_with_sys_time.h"
 #include "config/have_vprintf.h"
 #include "config/have__doprnt.h"
+#include "config/have_getaddrinfo.h"

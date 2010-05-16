@@ -2988,6 +2988,75 @@ echo "#define HAVE__DOPRNT $HAVE__DOPRNT" >> config/have__doprnt.h
 echo "#endif" >> config/have__doprnt.h
 echo "hdefs[\"HAVE__DOPRNT\"] = $HAVE__DOPRNT" >>configure.lua
 fi
+$ECHO_N "checking for the getaddrinfo() function..."
+$ECHO_N "checking for the getaddrinfo() function..." >> config.log
+MK_CACHED="No"
+MK_COMPILE_STATUS="OK"
+if [ "${cache}" != "" ]; then
+	if [ -e "${cache}/ctest-HAVE_GETADDRINFO" ]; then
+		HAVE_GETADDRINFO=`cat ${cache}/ctest-HAVE_GETADDRINFO`
+		MK_COMPILE_STATUS=`cat ${cache}/ctest-status-HAVE_GETADDRINFO`
+		MK_CACHED="Yes"
+	fi
+fi
+if [ "${MK_CACHED}" = "No" ]; then
+	cat << EOT > conftest.c
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+
+int
+main(int argc, char *argv[])
+{
+	struct addrinfo hints, *res0;
+	const char *s;
+	int rv;
+
+	hints.ai_family = PF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+	rv = getaddrinfo("hostname", "port", &hints, &res0);
+	s = gai_strerror(rv);
+	freeaddrinfo(res0);
+	return (0);
+}
+
+EOT
+	echo "$CC $CFLAGS $TEST_CFLAGS -o $testdir/conftest conftest.c" >>config.log
+	$CC $CFLAGS $TEST_CFLAGS -o $testdir/conftest conftest.c 2>>config.log
+	if [ $? != 0 ]; then
+		echo "-> failed ($?)" >> config.log
+		MK_COMPILE_STATUS="FAIL($?)"
+	fi
+fi
+if [ "${MK_COMPILE_STATUS}" = "OK" ]; then
+echo "yes"
+echo "yes" >> config.log
+HAVE_GETADDRINFO="yes"
+echo "#ifndef HAVE_GETADDRINFO" > config/have_getaddrinfo.h
+echo "#define HAVE_GETADDRINFO \"$HAVE_GETADDRINFO\"" >> config/have_getaddrinfo.h
+echo "#endif" >> config/have_getaddrinfo.h
+echo "hdefs[\"HAVE_GETADDRINFO\"] = \"$HAVE_GETADDRINFO\"" >>configure.lua
+else
+echo "no"
+echo "no" >> config.log
+HAVE_GETADDRINFO="no"
+echo "#undef HAVE_GETADDRINFO" >config/have_getaddrinfo.h
+echo "hdefs[\"HAVE_GETADDRINFO\"] = nil" >>configure.lua
+fi;
+if [ "${cache}" != "" ]; then
+	echo "$HAVE_GETADDRINFO" > ${cache}/ctest-HAVE_GETADDRINFO
+	echo $MK_COMPILE_STATUS > ${cache}/ctest-status-HAVE_GETADDRINFO
+fi
+rm -f conftest.c $testdir/conftest$EXECSUFFIX
+if [ "${HAVE_GETADDRINFO}" ]
+ then
+HAVE_GETADDRINFO="1"
+echo "#ifndef HAVE_GETADDRINFO" > config/have_getaddrinfo.h
+echo "#define HAVE_GETADDRINFO $HAVE_GETADDRINFO" >> config/have_getaddrinfo.h
+echo "#endif" >> config/have_getaddrinfo.h
+echo "hdefs[\"HAVE_GETADDRINFO\"] = $HAVE_GETADDRINFO" >>configure.lua
+fi
 SYSLOGD_LIBS="${L_SYSLOGD_LIBS}"
 echo "SYSLOGD_LIBS=$SYSLOGD_LIBS" >>Makefile.config
 echo "mdefs[\"SYSLOGD_LIBS\"] = \"$SYSLOGD_LIBS\"" >>configure.lua
