@@ -40,13 +40,10 @@ HDEFINE(PID_FILE, "syslog.pid")	# FIXME
 
 CHECK(dlopen)
 if [ "${HAVE_DLOPEN}" != "yes" ]; then
-    echo "Could not find DLOPEN"
-    exit 1
-else
     L_SYSLOGD_LIBS="-ldl"
 fi
 
-if [ "${with_maximum_optimization}" = "yes" -o ] ; then
+if [ "${with_maximum_optimization}" = "yes" ]; then
     MAXOPT="yes"
 else
     MAXOPT="no"
@@ -188,7 +185,7 @@ temp_res=no
 if [ "${enable_udp}" = "no" ]; then
     want_udp=no
 else
-    CHECK_HEADER(sys/socket.h)
+    CHECK_HEADER_OPTS(, -include sys/types.h, sys/socket.h)
     if [ "${HAVE_SYS_SOCKET_H}" = "yes" ]; then
     	MSRCS="${MSRCS} im_udp.c om_udp.c"
 	MANPAGES8="${MANPAGES8} im_udp.8 om_udp.8"
@@ -251,7 +248,7 @@ fi
 if [ "${enable_tcp}" = "no" ]; then
     want_tcp=no
 else
-    CHECK_HEADER(sys/socket.h)
+    CHECK_HEADER_OPTS(, -include sys/types.h, sys/socket.h)
     if [ "${HAVE_SYS_SOCKET_H}" = "yes" ]; then
     	MSRCS="${MSRCS} om_tcp.c im_tcp.c ip_misc.c"
     	MANPAGES8="${MANPAGES8} om_tcp.8 im_tcp.8"
@@ -399,4 +396,5 @@ echo "          peo: ${want_peo}"
 echo
 echo "* Configuration successful."
 echo "* Use \"make\" and \"make install\" to build and install ${PROGNAME}"
-
+echo "* Running \"make gen-include\" to generate the good 'src/config.h'"
+make gen-include

@@ -1796,12 +1796,9 @@ echo "#endif" >> config/dso_libs.h
 echo "hdefs[\"DSO_LIBS\"] = \"$DSO_LIBS\"" >>configure.lua
 if [ "${HAVE_DLOPEN}" != "yes" ]
  then
-    echo "Could not find DLOPEN"
-    exit 1
-else
     L_SYSLOGD_LIBS="-ldl"
 fi
-if [ "${with_maximum_optimization}" = "yes" -o ] 
+if [ "${with_maximum_optimization}" = "yes"]
  then
     MAXOPT="yes"
 else
@@ -2091,8 +2088,8 @@ if [ "${enable_udp}" = "no" ]
  then
     want_udp=no
 else
-$ECHO_N "checking for <sys/socket.h> (HAVE_SYS_SOCKET_H)..."
-$ECHO_N "checking for <sys/socket.h> (HAVE_SYS_SOCKET_H)..." >> config.log
+$ECHO_N "checking for <sys/socket.h>..."
+$ECHO_N "checking for <sys/socket.h>..." >> config.log
 MK_CACHED="No"
 MK_COMPILE_STATUS="OK"
 if [ "${cache}" != "" ]; then
@@ -2108,8 +2105,8 @@ if [ "${MK_CACHED}" = "No" ]; then
 int main (int argc, char *argv[]) { return (0); }
 
 EOT
-	echo "$CC $CFLAGS $TEST_CFLAGS  -o $testdir/conftest conftest.c " >>config.log
-	$CC $CFLAGS $TEST_CFLAGS  -o $testdir/conftest conftest.c  2>>config.log
+	echo "$CC $CFLAGS $TEST_CFLAGS  -o $testdir/conftest conftest.c -include sys/types.h" >>config.log
+	$CC $CFLAGS $TEST_CFLAGS  -o $testdir/conftest conftest.c -include sys/types.h 2>>config.log
 	if [ $? != 0 ]; then
 		echo "-> failed ($?)" >> config.log
 		MK_COMPILE_STATUS="FAIL($?)"
@@ -2358,8 +2355,8 @@ if [ "${enable_tcp}" = "no" ]
  then
     want_tcp=no
 else
-$ECHO_N "checking for <sys/socket.h> (HAVE_SYS_SOCKET_H)..."
-$ECHO_N "checking for <sys/socket.h> (HAVE_SYS_SOCKET_H)..." >> config.log
+$ECHO_N "checking for <sys/socket.h>..."
+$ECHO_N "checking for <sys/socket.h>..." >> config.log
 MK_CACHED="No"
 MK_COMPILE_STATUS="OK"
 if [ "${cache}" != "" ]; then
@@ -2375,8 +2372,8 @@ if [ "${MK_CACHED}" = "No" ]; then
 int main (int argc, char *argv[]) { return (0); }
 
 EOT
-	echo "$CC $CFLAGS $TEST_CFLAGS  -o $testdir/conftest conftest.c " >>config.log
-	$CC $CFLAGS $TEST_CFLAGS  -o $testdir/conftest conftest.c  2>>config.log
+	echo "$CC $CFLAGS $TEST_CFLAGS  -o $testdir/conftest conftest.c -include sys/types.h" >>config.log
+	$CC $CFLAGS $TEST_CFLAGS  -o $testdir/conftest conftest.c -include sys/types.h 2>>config.log
 	if [ $? != 0 ]; then
 		echo "-> failed ($?)" >> config.log
 		MK_COMPILE_STATUS="FAIL($?)"
@@ -2720,6 +2717,9 @@ echo "#ifndef HAVE_CODE" > config/have_code.h
 echo "#define HAVE_CODE $HAVE_CODE" >> config/have_code.h
 echo "#endif" >> config/have_code.h
 echo "hdefs[\"HAVE_CODE\"] = $HAVE_CODE" >>configure.lua
+else
+    echo "You need syslog.h header"
+    exit 1
 fi
 $ECHO_N "checking for <paths.h> (HAVE_PATHS_H)..."
 $ECHO_N "checking for <paths.h> (HAVE_PATHS_H)..." >> config.log
@@ -3101,3 +3101,5 @@ echo "          peo: ${want_peo}"
 echo
 echo "* Configuration successful."
 echo "* Use \"make\" and \"make install\" to build and install ${PROGNAME}"
+echo "* Running \"make gen-include\" to generate the good 'src/config.h'"
+make gen-include
