@@ -61,3 +61,5 @@
 #include "config/have_paths_h.h"
 #include "config/have_time_h.h"
 #include "config/time_with_sys_time.h"
+#include "config/have_vprintf.h"
+#include "config/have__doprnt.h"

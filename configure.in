@@ -58,7 +58,7 @@ MDEFINE(SOSYSLOG_DAEMON_NAME,	${PROGNAME}d)
 echo -n "checking Operating System to set libraries flags... "
 UNAME=`uname`
 if test "${UNAME}" = "OpenBSD" ; then
-    HDEFINE(DLOPEN_FLAGS,	RTLD_LAZY)
+    HDEFINE_UNQUOTED(DLOPEN_FLAGS,	RTLD_LAZY)
     HDEFINE(SYMBOL_PREFIX,	"_")
 
     MDEFINE(SHARED_PARAMS,	"-Bshareable")
@@ -66,7 +66,7 @@ if test "${UNAME}" = "OpenBSD" ; then
 
     echo "OpenBSD"
 elif test "${UNAME}" = "FreeBSD" ; then
-    HDEFINE(DLOPEN_FLAGS,	RTLD_LAZY)
+    HDEFINE_UNQUOTED(DLOPEN_FLAGS,	RTLD_LAZY)
     HDEFINE(SYMBOL_PREFIX,	)
 
     MDEFINE(SHARED_PARAMS,	"-Bshareable")
@@ -75,7 +75,7 @@ elif test "${UNAME}" = "FreeBSD" ; then
 
     echo "FreeBSD"
 elif test "${UNAME}" = "NetBSD" ; then
-    HDEFINE(DLOPEN_FLAGS,	RTLD_LAZY)
+    HDEFINE_UNQUOTED(DLOPEN_FLAGS,	RTLD_LAZY)
     HDEFINE(SYMBOL_PREFIX,	)
 
     MDEFINE(SHARED_PARAMS,	"-Dshareable")
@@ -84,7 +84,7 @@ elif test "${UNAME}" = "NetBSD" ; then
 
     echo "NetBSD"
 elif test "${UNAME}" = "Linux" ; then
-    HDEFINE(DLOPEN_FLAGS,	"RTLD_LAZY | RTLD_GLOBAL")
+    HDEFINE_UNQUOTED(DLOPEN_FLAGS,	"RTLD_LAZY | RTLD_GLOBAL")
     HDEFINE(SYMBOL_PREFIX,	)
 
     MDEFINE(MAIN_CPPFLAGS,	"-Xlinker -E")
@@ -93,8 +93,8 @@ elif test "${UNAME}" = "Linux" ; then
 
     echo "Linux"
 elif test "${UNAME}" = "SunOS" ; then
-    HDEFINE(DLOPEN_FLAGS,	RTLD_LAZY)
-    HDEFINE(_REENTRANT,		1)
+    HDEFINE_UNQUOTED(DLOPEN_FLAGS,	RTLD_LAZY)
+    HDEFINE_UNQUOTED(_REENTRANT,		1)
     HDEFINE(SYMBOL_PREFIX,	)
 
     if test "${CC}" = "gcc" ; then
@@ -108,8 +108,8 @@ elif test "${UNAME}" = "SunOS" ; then
 
     echo "SunOS"
 elif test "${UNAME}" = "AIX" ; then
-    HDEFINE(DLOPEN_FLAGS,	RTLD_LAZY | RTLD_GLOBAL)
-    HDEFINE(NEEDS_DLOPEN_NULL,	1)
+    HDEFINE_UNQUOTED(DLOPEN_FLAGS,	RTLD_LAZY | RTLD_GLOBAL)
+    HDEFINE_UNQUOTED(NEEDS_DLOPEN_NULL,	1)
     HDEFINE(SYMBOL_PREFIX,	)
 
     MDEFINE(DCCFLAGS,		"-shared")
@@ -129,7 +129,7 @@ else
     echo "fail"
     echo "cannot determine system type, failling to defaults"
     HDEFINE(SYMBOL_PREFIX,	)
-    HDEFINE(DLOPEN_FLAGS,	RTLD_LAZY)
+    HDEFINE_UNQUOTED(DLOPEN_FLAGS,	RTLD_LAZY)
 
     MDEFINE(SHARED_PARAMS,	"-Bshareable")
 fi
@@ -140,10 +140,10 @@ fi
 if [ "${enable_debug}" = "yes" ]; then
     HDEFINE(SY_DEBUG, "yes")
     MDEFINE(DEBUG_FLAGS, "-g -ggdb3 -fno-inline")
-    END_WITH_DEBUG="yes"
+    want_debug=yes
 else
     HUNDEF(SY_DEBUG)
-    END_WITH_DEBUG="no"
+    want_debug=no
 fi
 
 # Modules
@@ -158,7 +158,7 @@ fi
 if [ "${temp_res}" = "yes" ]; then
     MSRCS="${MSRCS} im_bsd.c"
     MANPAGES8="${MANPAGES8} im_bsd.8"
-    HDEFINE(HAVE_BSD_IMODULE,	1)
+    HDEFINE_UNQUOTED(HAVE_BSD_IMODULE,	1)
     want_bsd=yes
 else
     want_bsd=no
@@ -174,7 +174,7 @@ if [ "${temp_res}" = "yes" ]; then
     if [ "${HAVE_SYS_KLOG_H}" = "yes" ]; then
 	MSRCS="${MSRCS} im_linux.c"
 	MANPAGES8="${MANPAGES8} im_linux.8"
-	HDEFINE(HAVE_LINUX_IMODULE,  1)
+	HDEFINE_UNQUOTED(HAVE_LINUX_IMODULE,  1)
 	want_linux=yes
     else
 	exit 1
@@ -192,7 +192,7 @@ else
     if [ "${HAVE_SYS_SOCKET_H}" = "yes" ]; then
     	MSRCS="${MSRCS} im_udp.c om_udp.c"
 	MANPAGES8="${MANPAGES8} im_udp.8 om_udp.8"
-    	HDEFINE(HAVE_UDP_IMODULE,	1)
+    	HDEFINE_UNQUOTED(HAVE_UDP_IMODULE,	1)
 	want_udp=yes
     else
 	want_udp=no
@@ -206,7 +206,7 @@ else
     if [ "${HAVE_SYS_UN_H}" = "yes" ]; then
     	MSRCS="${MSRCS} im_unix.c"
 	MANPAGES8="${MANPAGES8} im_unix.c"
-    	HDEFINE(HAVE_UNIX_IMODULE,	1)
+    	HDEFINE_UNQUOTED(HAVE_UNIX_IMODULE,	1)
 	want_unix=yes
     else
 	want_unix=no
@@ -232,7 +232,7 @@ if test "$temp_res" = "yes"; then
     MSRCS="${MSRCS} im_streams.c"
     MANPAGES8="${MANPAGES8} im_streams.8"
     SYSLOGD_LIBS="${SYSLOGD_LIBS} -lthread -ldoor"
-    HDEFINE(HAVE_STREAMS_IMODULE,	1)
+    HDEFINE_UNQUOTED(HAVE_STREAMS_IMODULE,	1)
     want_streams=yes
 else
     want_streams=no
@@ -244,7 +244,7 @@ if [ "${enable_classic}" = "no" ]; then
 else
     MSRCS="${MSRCS} om_classic.c ttymsg.c"
     MANPAGES8="${MANPAGES8} om_classic.8"
-    HDEFINE(HAVE_CLASSIC_IMODULE,	1)
+    HDEFINE_UNQUOTED(HAVE_CLASSIC_IMODULE,	1)
     want_classic=yes
 fi
 
@@ -255,7 +255,7 @@ else
     if [ "${HAVE_SYS_SOCKET_H}" = "yes" ]; then
     	MSRCS="${MSRCS} om_tcp.c im_tcp.c ip_misc.c"
     	MANPAGES8="${MANPAGES8} om_tcp.8 im_tcp.8"
-    	HDEFINE(HAVE_TCP_IMODULE,	1)
+    	HDEFINE_UNQUOTED(HAVE_TCP_IMODULE,	1)
     	want_tcp=yes
     else
 	want_tcp=no
@@ -269,7 +269,7 @@ else
     want_oracle8i=yes
     MSRCS="${MSRCS} om_oracle8i.c"
     MANPAGES8="${MANPAGES8} om_oracle8i.8"
-    HDEFINE(HAVE_ORACLE8I_IMODULE,	1)
+    HDEFINE_UNQUOTED(HAVE_ORACLE8I_IMODULE,	1)
     USE_SQL="yes"
 fi
 
@@ -278,7 +278,7 @@ if [ "${enable_mysql}" = "no" ]; then
 else
     MSRCS="${MSRCS} om_mysql.c"
     MANPAGES8="${MANPAGES8} om_mysql.8"
-    HDEFINE(HAVE_MYSQL_IMODULE,	1)
+    HDEFINE_UNQUOTED(HAVE_MYSQL_IMODULE,	1)
     USE_SQL="yes"
     want_mysql=yes
 fi
@@ -288,7 +288,7 @@ if [ "${enable_pgsql}" = "no" ]; then
 else
     MSRCS="${MSRCS} om_pgsql.c"
     MANPAGES8="${MANPAGES8} om_pgsql.8"
-    HDEFINE(HAVE_PGSQL_IMODULE,	1)
+    HDEFINE_UNQUOTED(HAVE_PGSQL_IMODULE,	1)
     USE_SQL="yes"
     want_pgsql=yes
 fi
@@ -325,7 +325,7 @@ if [ "${PEO}" = "yes" ]; then
 	HASH_SRCS_MODULES="${HASH_SRCS_MODULES} ../peo/rmd160.c"
     fi
     if [ -r /dev/srandom ]; then
-	HDEFINE(HAVE_SRANDOM,	1)
+	HDEFINE_UNQUOTED(HAVE_SRANDOM,	1)
     fi
     want_peo=yes
 else
@@ -335,19 +335,28 @@ fi
 # Check if we have CODE in syslog.h header
 CHECK_HEADER_OPTS(, -DSYSLOG_NAMES -include stdio.h, syslog.h)
 if [ "${HAVE_SYSLOG_H}" = "yes" ]; then
-    HDEFINE(HAVE_CODE,		1)
+    HDEFINE_UNQUOTED(HAVE_CODE,		1)
 fi
 
 # See L3793
 CHECK_HEADER(paths.h)
 if [ "${HAVE_PATHS_H}" = "yes" ]; then
-    HDEFINE(HAVE_PATHS_H,		1)
+    HDEFINE_UNQUOTED(HAVE_PATHS_H,		1)
 fi
 
 CHECK_HEADER_OPTS(, -include sys/types.h -include sys/time.h, time.h)
 if [ "${HAVE_TIME_H}" = "yes" ]; then
-    HDEFINE(TIME_WITH_SYS_TIME,		1)
+    HDEFINE_UNQUOTED(TIME_WITH_SYS_TIME,		1)
     echo "This test for sys/time.h with time.h is probably not powerfull..."
+fi
+
+CHECK_FUNC(vprintf)
+if [ "${HAVE_VPRINTF}" = "yes" ]; then
+    HDEFINE_UNQUOTED(HAVE_VPRINTF,	1)
+fi
+CHECK_FUNC(_doprnt)
+if [ "${HAVE__DOPRNT}" = "yes" ]; then
+    HDEFINE_UNQUOTED(HAVE__DOPRNT,	1)
 fi
 
 # Last defines
@@ -366,7 +375,7 @@ echo "      Prefix: ${PREFIX}"
 echo "          CC: ${CC}"
 echo
 echo "Build with:"
-echo "      Debug: ${END_WITH_DEBUG}"
+echo "      Debug: ${want_debug}"
 echo "      Modules:"
 echo "          bsd: ${want_bsd}"
 echo "        linux: ${want_linux}"
