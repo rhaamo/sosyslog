@@ -56,4 +56,8 @@
 #include "config/have_md5.h"
 #include "config/have_sha1.h"
 #include "config/have_rmd160.h"
+#include "config/have_code.h"
 #include "config/have_syslog_h.h"
+#include "config/have_paths_h.h"
+#include "config/have_time_h.h"
+#include "config/time_with_sys_time.h"

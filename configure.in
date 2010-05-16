@@ -335,7 +335,19 @@ fi
 # Check if we have CODE in syslog.h header
 CHECK_HEADER_OPTS(, -DSYSLOG_NAMES -include stdio.h, syslog.h)
 if [ "${HAVE_SYSLOG_H}" = "yes" ]; then
-    MDEFINE(HAVE_CODE,		1)
+    HDEFINE(HAVE_CODE,		1)
+fi
+
+# See L3793
+CHECK_HEADER(paths.h)
+if [ "${HAVE_PATHS_H}" = "yes" ]; then
+    HDEFINE(HAVE_PATHS_H,		1)
+fi
+
+CHECK_HEADER_OPTS(, -include sys/types.h -include sys/time.h, time.h)
+if [ "${HAVE_TIME_H}" = "yes" ]; then
+    HDEFINE(TIME_WITH_SYS_TIME,		1)
+    echo "This test for sys/time.h with time.h is probably not powerfull..."
 fi
 
 # Last defines
