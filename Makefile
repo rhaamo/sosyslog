@@ -5,10 +5,6 @@ SUBDIR=	${WITH_PEO_DIR}	\
 	src		\
 	src/man
 
-MAN3=	${MANPAGES3}
-MAN5=	${MANPAGES5}
-MAN8=	${MANPAGES8}
-
 all:		all-subdir
 install:	install-subdir
 deinstall:	deinstall-subdir
