@@ -19,6 +19,10 @@ depend:		depend-subdir
 gen-include:
 	rm src/config.h
 	touch src/config.h
+	@echo "!!!WARNING!!!"
+	@echo "ADDING #include \"TODO.h\""
+	@echo "!!!WARNING!!!"
+	echo "#include \"TODO.h\"" >> src/config.h
 	for i in `find config -type f`; do	\
 	    echo "#include \"$$i\"" >> src/config.h ;	\
 	done
