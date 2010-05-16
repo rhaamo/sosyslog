@@ -390,6 +390,36 @@ if [ "${HAVE_SOCKLEN_T}" = "yes" ]; then
     HDEFINE_UNQUOTED(HAVE_SOCKLEN_T,	1)
 fi
 
+CHECK_TYPE(uint32_t,	stdio.h sys/types.h)
+if [ "${HAVE_UINT32_T}" = "yes" ]; then
+    HDEFINE_UNQUOTED(HAVE_UINT32_T,	1)
+fi
+
+CHECK_TYPE(uint64_t,	stdio.h sys/types.h)
+if [ "${HAVE_UINT64_T}" = "yes" ]; then
+    HDEFINE_UNQUOTED(HAVE_UINT64_T,	1)
+fi
+
+CHECK_TYPE(u_int32_t,	stdio.h sys/types.h)
+if [ "${HAVE_U_INT32_T}" = "yes" ]; then
+    HDEFINE_UNQUOTED(HAVE_U_INT32_T,	1)
+fi
+
+CHECK_TYPE(u_int64_t,	stdio.h sys/types.h)
+if [ "${HAVE_U_INT64_T}" = "yes" ]; then
+    HDEFINE_UNQUOTED(HAVE_U_INT64_T,	1)
+fi
+
+CHECK_TYPE(__uint32_t,	stdio.h sys/types.h)
+if [ "${HAVE___UINT32_T}" = "yes" ]; then
+    HDEFINE_UNQUOTED(HAVE___UINT32_T,	1)
+fi
+
+CHECK_TYPE(__uint64_t,	stdio.h sys/types.h)
+if [ "${HAVE___UINT64_T}" = "yes" ]; then
+    HDEFINE_UNQUOTED(HAVE___UINT64_T,	1)
+fi
+
 # Last defines
 MDEFINE(SYSLOGD_LIBS, ${L_SYSLOGD_LIBS})
 MDEFINE(HASH_SRCS,	${HASH_SRCS})
