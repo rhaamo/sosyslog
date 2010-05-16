@@ -2,23 +2,19 @@
 # generated from this file via mkconfigure(1). For more information, see:
 # http://bsdbuild.hypertriton.com/.
 
-REGISTER_SECTION("General")
-REGISTER("--with-maximum-optimization",	"Activate maximum possible compile and link optimization")
-REGISTER("--with-daemon-name",		"Set a different daemon name, instead of sosyslogd")
-REGISTER("--enable-debug",	"General debugging [no]")
-
-REGISTER_SECTION("Modules")
-REGISTER("--disable-udp",	"Use udp socket input module. Activated by default.")
-REGISTER("--disable-unix",	"Use unix socket domain input module. Activated by default.")
-REGISTER("--disable-file",	"Use file/pip input module. Activated by default.")
-REGISTER("--disable-streams",	"Use streams input module. Activated by default.")
-REGISTER("--disable-classic",	"Use classic output module. Activated by default.")
-REGISTER("--disable-tcp",	"Use tcp input and output modules. Activated by default.")
-REGISTER("--disable-oracle8i",	"Use Oracle8i output module. Activated by default.")
-REGISTER("--disable-mysql",	"Use mysql MySQL output module. Activated by default.")
-REGISTER("--disable-pgsql",	"Use pgsql PostgreSQL output module. Activated by default.")
-REGISTER("--disable-peo",	"Use peo log integrity verification module. Activated by default.")
-REGISTER("--disable-regex",	"Use regex pattern matching output module. Activated by default.")
+REGISTER("--with-maximum-optimization",	"Activate maximum possible compile and link optimization"		)
+REGISTER("--enable-debug",		"General debugging. Deactivated by default."				)
+REGISTER("--disable-udp",		"Use udp socket input module. Activated by default."			)
+REGISTER("--disable-unix",		"Use unix socket domain input module. Activated by default."		)
+REGISTER("--disable-file",		"Use file/pip input module. Activated by default."			)
+REGISTER("--disable-streams",		"Use streams input module. Activated by default."			)
+REGISTER("--disable-classic",		"Use classic output module. Activated by default."			)
+REGISTER("--disable-tcp",		"Use tcp input and output modules. Activated by default."		)
+REGISTER("--disable-oracle8i",		"Use Oracle8i output module. Activated by default."			)
+REGISTER("--disable-mysql",		"Use mysql MySQL output module. Activated by default."			)
+REGISTER("--disable-pgsql",		"Use pgsql PostgreSQL output module. Activated by default."		)
+REGISTER("--disable-peo",		"Use peo log integrity verification module. Activated by default."	)
+REGISTER("--disable-regex",		"Use regex pattern matching output module. Activated by default."	)
 
 # Name and version
 HDEFINE(PROGNAME, "sosyslog")
@@ -58,31 +54,6 @@ fi
 
 # TODO: use --with-daemon-name=blah
 MDEFINE(SOSYSLOG_DAEMON_NAME,	${PROGNAME}d)
-
-check_header_exist ()
-{
-    check_header_state="no"
-    echo -n "checking for $1... "
-
-    rm -r configure_testdir 2>/dev/null
-    mkdir configure_testdir 2>/dev/null
-    cd configure_testdir 2>/dev/null
-    rm testhead.h 2>/dev/null
-    echo "#include <$1>" >> testhead.h
-    gcc testhead.h 2>testhead.err
-    if [ "$?" = "0" ]; then
-        che_state="yes"
-	echo "yes"
-    else
-        che_state="no"
-	echo "no"
-    fi
-    rm testhead.* 2>/dev/null
-    cd .. 2>/dev/null
-    rm -r configure_testdir 2>/dev/null
-
-    check_header_state=$che_state
-}
 
 echo -n "checking Operating System to set libraries flags... "
 UNAME=`uname`
@@ -158,7 +129,7 @@ else
     echo "fail"
     echo "cannot determine system type, failling to defaults"
     HDEFINE(SYMBOL_PREFIX,	)
-    HDEFIME(DLOPEN_FLAGS,	RTLD_LAZY)
+    HDEFINE(DLOPEN_FLAGS,	RTLD_LAZY)
 
     MDEFINE(SHARED_PARAMS,	"-Bshareable")
 fi
@@ -199,8 +170,8 @@ if [ "$UNAME" = "Linux" ]; then
 fi
 
 if [ "${temp_res}" = "yes" ]; then
-    check_header_exist "sys/klog.h"
-    if [ "${check_header_state}" = "yes" ]; then
+    CHECK_HEADER(sys/klog.h)
+    if [ "${HAVE_SYS_KLOG_H}" = "yes" ]; then
 	MSRCS="${MSRCS} im_linux.c"
 	MANPAGES8="${MANPAGES8} im_linux.8"
 	HDEFINE(HAVE_LINUX_IMODULE,  1)
@@ -217,8 +188,8 @@ temp_res=no
 if [ "${enable_udp}" = "no" ]; then
     want_udp=no
 else
-    check_header_exist "sys/socket.h"
-    if [ "${check_header_state}" = "yes" ]; then
+    CHECK_HEADER(sys/socket.h)
+    if [ "${HAVE_SYS_SOCKET_H}" = "yes" ]; then
     	MSRCS="${MSRCS} im_udp.c om_udp.c"
 	MANPAGES8="${MANPAGES8} im_udp.8 om_udp.8"
     	HDEFINE(HAVE_UDP_IMODULE,	1)
@@ -231,8 +202,8 @@ fi
 if [ "${enable_unix}" = "no" ]; then
     want_unix=no
 else
-    check_header_exist "sys/un.h"
-    if [ "${check_header_state}" = "yes" ]; then
+    CHECK_HEADER(sys/un.h)
+    if [ "${HAVE_SYS_UN_H}" = "yes" ]; then
     	MSRCS="${MSRCS} im_unix.c"
 	MANPAGES8="${MANPAGES8} im_unix.c"
     	HDEFINE(HAVE_UNIX_IMODULE,	1)
@@ -247,13 +218,10 @@ temp_res=no
 if [ "${enable_streams}" = "no" ]; then
     temp_res=yes
 
-    check_header_exist "sys/strlog.h"
-    strlog_h=check_header_state
+    CHECK_HEADER(sys/strlog.h)
+    CHECK_HEADER(door.h)
 
-    check_header_exist "door.h"
-    door_h=check_header_state
-
-    if test "$strlog_h" = "yes" -a "$door_h" = "yes"; then
+    if test "${HAVE_SYS_STRLOG_H}" = "yes" -a "${HAVE_DOOR_H}" = "yes"; then
 	temp_res=yes
     else
 	temp_res=no
@@ -283,8 +251,8 @@ fi
 if [ "${enable_tcp}" = "no" ]; then
     want_tcp=no
 else
-    check_header_exist "sys/socket.h"
-    if [ "$check_header_state" = "yes" ]; then
+    CHECK_HEADER(sys/socket.h)
+    if [ "${HAVE_SYS_SOCKET_H}" = "yes" ]; then
     	MSRCS="${MSRCS} om_tcp.c im_tcp.c ip_misc.c"
     	MANPAGES8="${MANPAGES8} om_tcp.8 im_tcp.8"
     	HDEFINE(HAVE_TCP_IMODULE,	1)
