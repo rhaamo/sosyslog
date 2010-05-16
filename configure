@@ -3069,13 +3069,244 @@ if [ "${cache}" != "" ]; then
 	echo $MK_COMPILE_STATUS > ${cache}/ctest-status-HAVE_GETADDRINFO
 fi
 rm -f conftest.c $testdir/conftest$EXECSUFFIX
-if [ "${HAVE_GETADDRINFO}" ]
+if [ "${HAVE_GETADDRINFO}" = "yes" ]
  then
 HAVE_GETADDRINFO="1"
 echo "#ifndef HAVE_GETADDRINFO" > config/have_getaddrinfo.h
 echo "#define HAVE_GETADDRINFO $HAVE_GETADDRINFO" >> config/have_getaddrinfo.h
 echo "#endif" >> config/have_getaddrinfo.h
 echo "hdefs[\"HAVE_GETADDRINFO\"] = $HAVE_GETADDRINFO" >>configure.lua
+fi
+$ECHO_N "checking for inet_ntop..."
+$ECHO_N "checking for inet_ntop..." >> config.log
+TEST_CFLAGS="-Wall"
+MK_CACHED="No"
+MK_COMPILE_STATUS="OK"
+if [ "${cache}" != "" ]; then
+	if [ -e "${cache}/ctest-HAVE_INET_NTOP" ]; then
+		HAVE_INET_NTOP=`cat ${cache}/ctest-HAVE_INET_NTOP`
+		MK_COMPILE_STATUS=`cat ${cache}/ctest-status-HAVE_INET_NTOP`
+		MK_CACHED="Yes"
+	fi
+fi
+if [ "${MK_CACHED}" = "No" ]; then
+	cat << EOT > conftest.c
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef inet_ntop
+
+#ifdef __cplusplus
+extern "C"
+#endif
+
+char inet_ntop();
+#if defined __stub_inet_ntop || defined __stub___inet_ntop
+choke me
+#endif
+
+int main() {
+    return inet_ntop();
+    ;
+    return 0;
+}
+
+EOT
+	echo "$CC $CFLAGS $TEST_CFLAGS  -o $testdir/conftest conftest.c " >>config.log
+	$CC $CFLAGS $TEST_CFLAGS  -o $testdir/conftest conftest.c  2>>config.log
+	if [ $? != 0 ]; then
+		echo "-> failed ($?)" >> config.log
+		MK_COMPILE_STATUS="FAIL($?)"
+	fi
+fi
+if [ "${MK_COMPILE_STATUS}" = "OK" ]; then
+echo "yes"
+echo "yes" >> config.log
+HAVE_INET_NTOP="yes"
+echo "HAVE_INET_NTOP=$HAVE_INET_NTOP" >>Makefile.config
+echo "mdefs[\"HAVE_INET_NTOP\"] = \"$HAVE_INET_NTOP\"" >>configure.lua
+echo "#ifndef HAVE_INET_NTOP" > config/have_inet_ntop.h
+echo "#define HAVE_INET_NTOP \"$HAVE_INET_NTOP\"" >> config/have_inet_ntop.h
+echo "#endif" >> config/have_inet_ntop.h
+echo "hdefs[\"HAVE_INET_NTOP\"] = \"$HAVE_INET_NTOP\"" >>configure.lua
+else
+echo "no"
+echo "no" >> config.log
+HAVE_INET_NTOP="no"
+echo "HAVE_INET_NTOP=$HAVE_INET_NTOP" >>Makefile.config
+echo "mdefs[\"HAVE_INET_NTOP\"] = \"$HAVE_INET_NTOP\"" >>configure.lua
+echo "#undef HAVE_INET_NTOP" >config/have_inet_ntop.h
+echo "hdefs[\"HAVE_INET_NTOP\"] = nil" >>configure.lua
+fi;
+if [ "${cache}" != "" ]; then
+	echo "$HAVE_INET_NTOP" > ${cache}/ctest-HAVE_INET_NTOP
+	echo $MK_COMPILE_STATUS > ${cache}/ctest-status-HAVE_INET_NTOP
+fi
+rm -f conftest.c $testdir/conftest$EXECSUFFIX
+if [ "${HAVE_INET_NTOP}" = "yes" ]
+ then
+HAVE_INET_NTOP="1"
+echo "#ifndef HAVE_INET_NTOP" > config/have_inet_ntop.h
+echo "#define HAVE_INET_NTOP $HAVE_INET_NTOP" >> config/have_inet_ntop.h
+echo "#endif" >> config/have_inet_ntop.h
+echo "hdefs[\"HAVE_INET_NTOP\"] = $HAVE_INET_NTOP" >>configure.lua
+fi
+$ECHO_N "checking for inet_aton..."
+$ECHO_N "checking for inet_aton..." >> config.log
+TEST_CFLAGS="-Wall"
+MK_CACHED="No"
+MK_COMPILE_STATUS="OK"
+if [ "${cache}" != "" ]; then
+	if [ -e "${cache}/ctest-HAVE_INET_ATON" ]; then
+		HAVE_INET_ATON=`cat ${cache}/ctest-HAVE_INET_ATON`
+		MK_COMPILE_STATUS=`cat ${cache}/ctest-status-HAVE_INET_ATON`
+		MK_CACHED="Yes"
+	fi
+fi
+if [ "${MK_CACHED}" = "No" ]; then
+	cat << EOT > conftest.c
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef inet_aton
+
+#ifdef __cplusplus
+extern "C"
+#endif
+
+char inet_aton();
+#if defined __stub_inet_aton || defined __stub___inet_aton
+choke me
+#endif
+
+int main() {
+    return inet_aton();
+    ;
+    return 0;
+}
+
+EOT
+	echo "$CC $CFLAGS $TEST_CFLAGS  -o $testdir/conftest conftest.c " >>config.log
+	$CC $CFLAGS $TEST_CFLAGS  -o $testdir/conftest conftest.c  2>>config.log
+	if [ $? != 0 ]; then
+		echo "-> failed ($?)" >> config.log
+		MK_COMPILE_STATUS="FAIL($?)"
+	fi
+fi
+if [ "${MK_COMPILE_STATUS}" = "OK" ]; then
+echo "yes"
+echo "yes" >> config.log
+HAVE_INET_ATON="yes"
+echo "HAVE_INET_ATON=$HAVE_INET_ATON" >>Makefile.config
+echo "mdefs[\"HAVE_INET_ATON\"] = \"$HAVE_INET_ATON\"" >>configure.lua
+echo "#ifndef HAVE_INET_ATON" > config/have_inet_aton.h
+echo "#define HAVE_INET_ATON \"$HAVE_INET_ATON\"" >> config/have_inet_aton.h
+echo "#endif" >> config/have_inet_aton.h
+echo "hdefs[\"HAVE_INET_ATON\"] = \"$HAVE_INET_ATON\"" >>configure.lua
+else
+echo "no"
+echo "no" >> config.log
+HAVE_INET_ATON="no"
+echo "HAVE_INET_ATON=$HAVE_INET_ATON" >>Makefile.config
+echo "mdefs[\"HAVE_INET_ATON\"] = \"$HAVE_INET_ATON\"" >>configure.lua
+echo "#undef HAVE_INET_ATON" >config/have_inet_aton.h
+echo "hdefs[\"HAVE_INET_ATON\"] = nil" >>configure.lua
+fi;
+if [ "${cache}" != "" ]; then
+	echo "$HAVE_INET_ATON" > ${cache}/ctest-HAVE_INET_ATON
+	echo $MK_COMPILE_STATUS > ${cache}/ctest-status-HAVE_INET_ATON
+fi
+rm -f conftest.c $testdir/conftest$EXECSUFFIX
+if [ "${HAVE_INET_ATON}" = "yes" ]
+ then
+HAVE_INET_ATON="1"
+echo "#ifndef HAVE_INET_ATON" > config/have_inet_aton.h
+echo "#define HAVE_INET_ATON $HAVE_INET_ATON" >> config/have_inet_aton.h
+echo "#endif" >> config/have_inet_aton.h
+echo "hdefs[\"HAVE_INET_ATON\"] = $HAVE_INET_ATON" >>configure.lua
+fi
+$ECHO_N "checking for inet_addr..."
+$ECHO_N "checking for inet_addr..." >> config.log
+TEST_CFLAGS="-Wall"
+MK_CACHED="No"
+MK_COMPILE_STATUS="OK"
+if [ "${cache}" != "" ]; then
+	if [ -e "${cache}/ctest-HAVE_INET_ADDR" ]; then
+		HAVE_INET_ADDR=`cat ${cache}/ctest-HAVE_INET_ADDR`
+		MK_COMPILE_STATUS=`cat ${cache}/ctest-status-HAVE_INET_ADDR`
+		MK_CACHED="Yes"
+	fi
+fi
+if [ "${MK_CACHED}" = "No" ]; then
+	cat << EOT > conftest.c
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef inet_addr
+
+#ifdef __cplusplus
+extern "C"
+#endif
+
+char inet_addr();
+#if defined __stub_inet_addr || defined __stub___inet_addr
+choke me
+#endif
+
+int main() {
+    return inet_addr();
+    ;
+    return 0;
+}
+
+EOT
+	echo "$CC $CFLAGS $TEST_CFLAGS  -o $testdir/conftest conftest.c " >>config.log
+	$CC $CFLAGS $TEST_CFLAGS  -o $testdir/conftest conftest.c  2>>config.log
+	if [ $? != 0 ]; then
+		echo "-> failed ($?)" >> config.log
+		MK_COMPILE_STATUS="FAIL($?)"
+	fi
+fi
+if [ "${MK_COMPILE_STATUS}" = "OK" ]; then
+echo "yes"
+echo "yes" >> config.log
+HAVE_INET_ADDR="yes"
+echo "HAVE_INET_ADDR=$HAVE_INET_ADDR" >>Makefile.config
+echo "mdefs[\"HAVE_INET_ADDR\"] = \"$HAVE_INET_ADDR\"" >>configure.lua
+echo "#ifndef HAVE_INET_ADDR" > config/have_inet_addr.h
+echo "#define HAVE_INET_ADDR \"$HAVE_INET_ADDR\"" >> config/have_inet_addr.h
+echo "#endif" >> config/have_inet_addr.h
+echo "hdefs[\"HAVE_INET_ADDR\"] = \"$HAVE_INET_ADDR\"" >>configure.lua
+else
+echo "no"
+echo "no" >> config.log
+HAVE_INET_ADDR="no"
+echo "HAVE_INET_ADDR=$HAVE_INET_ADDR" >>Makefile.config
+echo "mdefs[\"HAVE_INET_ADDR\"] = \"$HAVE_INET_ADDR\"" >>configure.lua
+echo "#undef HAVE_INET_ADDR" >config/have_inet_addr.h
+echo "hdefs[\"HAVE_INET_ADDR\"] = nil" >>configure.lua
+fi;
+if [ "${cache}" != "" ]; then
+	echo "$HAVE_INET_ADDR" > ${cache}/ctest-HAVE_INET_ADDR
+	echo $MK_COMPILE_STATUS > ${cache}/ctest-status-HAVE_INET_ADDR
+fi
+rm -f conftest.c $testdir/conftest$EXECSUFFIX
+if [ "${HAVE_INET_ADDR}" = "yes" ]
+ then
+HAVE_INET_ADDR="1"
+echo "#ifndef HAVE_INET_ADDR" > config/have_inet_addr.h
+echo "#define HAVE_INET_ADDR $HAVE_INET_ADDR" >> config/have_inet_addr.h
+echo "#endif" >> config/have_inet_addr.h
+echo "hdefs[\"HAVE_INET_ADDR\"] = $HAVE_INET_ADDR" >>configure.lua
 fi
 SYSLOGD_LIBS="${L_SYSLOGD_LIBS}"
 echo "SYSLOGD_LIBS=$SYSLOGD_LIBS" >>Makefile.config

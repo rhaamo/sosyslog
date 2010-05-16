@@ -14,8 +14,4 @@
 #define HAVE_U_INT64_T 1
 #define HAVE___UINT64_T 1
 
-#define HAVE_INET_NTOP 1
-#define HAVE_INET_ATON 1
-#define HAVE_INET_ADDR 1
-
 #define HAVE_SYS_WAIT_H 1

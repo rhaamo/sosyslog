@@ -366,9 +366,25 @@ if [ "${HAVE__DOPRNT}" = "yes" ]; then
 fi
 
 CHECK(getaddrinfo)
-if [ "${HAVE_GETADDRINFO}" ]; then
+if [ "${HAVE_GETADDRINFO}" = "yes" ]; then
     HDEFINE_UNQUOTED(HAVE_GETADDRINFO,	1)
 fi
+
+CHECK_FUNC(inet_ntop)
+if [ "${HAVE_INET_NTOP}" = "yes" ]; then
+    HDEFINE_UNQUOTED(HAVE_INET_NTOP,	1)
+fi
+
+CHECK_FUNC(inet_aton)
+if [ "${HAVE_INET_ATON}" = "yes" ]; then
+    HDEFINE_UNQUOTED(HAVE_INET_ATON,	1)
+fi
+
+CHECK_FUNC(inet_addr)
+if [ "${HAVE_INET_ADDR}" = "yes" ]; then
+    HDEFINE_UNQUOTED(HAVE_INET_ADDR,	1)
+fi
+
 
 # Last defines
 MDEFINE(SYSLOGD_LIBS, ${L_SYSLOGD_LIBS})
