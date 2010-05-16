@@ -17,7 +17,7 @@ cleandir:	cleandir-subdir
 depend:		depend-subdir
 
 gen-include:
-	rm src/config.h
+	rm -f src/config.h
 	touch src/config.h
 	@echo "!!!WARNING!!!"
 	@echo "ADDING #include \"TODO.h\""
