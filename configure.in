@@ -332,6 +332,12 @@ else
     want_peo=no
 fi
 
+# Check if we have CODE in syslog.h header
+CHECK_HEADER_OPTS(, -DSYSLOG_NAMES -include stdio.h, syslog.h)
+if [ "${HAVE_SYSLOG_H}" = "yes" ]; then
+    MDEFINE(HAVE_CODE,		1)
+fi
+
 # Last defines
 MDEFINE(SYSLOGD_LIBS, ${L_SYSLOGD_LIBS})
 MDEFINE(HASH_SRCS,	${HASH_SRCS})

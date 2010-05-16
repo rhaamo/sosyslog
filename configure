@@ -2665,6 +2665,58 @@ echo "hdefs[\"HAVE_SRANDOM\"] = \"$HAVE_SRANDOM\"" >>configure.lua
 else
     want_peo=no
 fi
+$ECHO_N "checking for <syslog.h>..."
+$ECHO_N "checking for <syslog.h>..." >> config.log
+MK_CACHED="No"
+MK_COMPILE_STATUS="OK"
+if [ "${cache}" != "" ]; then
+	if [ -e "${cache}/ctest-HAVE_SYSLOG_H" ]; then
+		HAVE_SYSLOG_H=`cat ${cache}/ctest-HAVE_SYSLOG_H`
+		MK_COMPILE_STATUS=`cat ${cache}/ctest-status-HAVE_SYSLOG_H`
+		MK_CACHED="Yes"
+	fi
+fi
+if [ "${MK_CACHED}" = "No" ]; then
+	cat << EOT > conftest.c
+#include <syslog.h>
+int main (int argc, char *argv[]) { return (0); }
+
+EOT
+	echo "$CC $CFLAGS $TEST_CFLAGS  -o $testdir/conftest conftest.c -DSYSLOG_NAMES -include stdio.h" >>config.log
+	$CC $CFLAGS $TEST_CFLAGS  -o $testdir/conftest conftest.c -DSYSLOG_NAMES -include stdio.h 2>>config.log
+	if [ $? != 0 ]; then
+		echo "-> failed ($?)" >> config.log
+		MK_COMPILE_STATUS="FAIL($?)"
+	fi
+fi
+if [ "${MK_COMPILE_STATUS}" = "OK" ]; then
+echo "yes"
+echo "yes" >> config.log
+HAVE_SYSLOG_H="yes"
+echo "HAVE_SYSLOG_H=$HAVE_SYSLOG_H" >>Makefile.config
+echo "mdefs[\"HAVE_SYSLOG_H\"] = \"$HAVE_SYSLOG_H\"" >>configure.lua
+echo "#ifndef HAVE_SYSLOG_H" > config/have_syslog_h.h
+echo "#define HAVE_SYSLOG_H \"$HAVE_SYSLOG_H\"" >> config/have_syslog_h.h
+echo "#endif" >> config/have_syslog_h.h
+echo "hdefs[\"HAVE_SYSLOG_H\"] = \"$HAVE_SYSLOG_H\"" >>configure.lua
+else
+echo "no"
+echo "no" >> config.log
+HAVE_SYSLOG_H="no"
+echo "HAVE_SYSLOG_H=$HAVE_SYSLOG_H" >>Makefile.config
+echo "mdefs[\"HAVE_SYSLOG_H\"] = \"$HAVE_SYSLOG_H\"" >>configure.lua
+echo "#undef HAVE_SYSLOG_H" >config/have_syslog_h.h
+echo "hdefs[\"HAVE_SYSLOG_H\"] = nil" >>configure.lua
+fi;
+if [ "${cache}" != "" ]; then
+	echo "$HAVE_SYSLOG_H" > ${cache}/ctest-HAVE_SYSLOG_H
+	echo $MK_COMPILE_STATUS > ${cache}/ctest-status-HAVE_SYSLOG_H
+fi
+rm -f conftest.c $testdir/conftest$EXECSUFFIX
+if [ "${HAVE_SYSLOG_H}" = "yes" ]
+ then
+    echo "yeaaaaA"
+fi
 SYSLOGD_LIBS="${L_SYSLOGD_LIBS}"
 echo "SYSLOGD_LIBS=$SYSLOGD_LIBS" >>Makefile.config
 echo "mdefs[\"SYSLOGD_LIBS\"] = \"$SYSLOGD_LIBS\"" >>configure.lua
