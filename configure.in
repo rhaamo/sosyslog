@@ -336,6 +336,9 @@ fi
 CHECK_HEADER_OPTS(, -DSYSLOG_NAMES -include stdio.h, syslog.h)
 if [ "${HAVE_SYSLOG_H}" = "yes" ]; then
     HDEFINE_UNQUOTED(HAVE_CODE,		1)
+else
+    echo "You need syslog.h header"
+    exit 1
 fi
 
 # See L3793
