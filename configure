@@ -3308,6 +3308,79 @@ echo "#define HAVE_INET_ADDR $HAVE_INET_ADDR" >> config/have_inet_addr.h
 echo "#endif" >> config/have_inet_addr.h
 echo "hdefs[\"HAVE_INET_ADDR\"] = $HAVE_INET_ADDR" >>configure.lua
 fi
+$ECHO_N "plop #include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+"
+$ECHO_N "plop #include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+" >> config.log
+$ECHO_N "checking for socklen_t..."
+$ECHO_N "checking for socklen_t..." >> config.log
+MK_CACHED="No"
+MK_COMPILE_STATUS="OK"
+if [ "${cache}" != "" ]; then
+	if [ -e "${cache}/ctest-HAVE_SOCKLEN_T" ]; then
+		HAVE_SOCKLEN_T=`cat ${cache}/ctest-HAVE_SOCKLEN_T`
+		MK_COMPILE_STATUS=`cat ${cache}/ctest-status-HAVE_SOCKLEN_T`
+		MK_CACHED="Yes"
+	fi
+fi
+if [ "${MK_CACHED}" = "No" ]; then
+	cat << EOT > conftest.c
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+
+int
+main () {
+    if (sizeof (socklen_t))
+	return 0;
+;
+return 0;
+}
+
+EOT
+	echo "$CC $CFLAGS $TEST_CFLAGS  -o $testdir/conftest conftest.c " >>config.log
+	$CC $CFLAGS $TEST_CFLAGS  -o $testdir/conftest conftest.c  2>>config.log
+	if [ $? != 0 ]; then
+		echo "-> failed ($?)" >> config.log
+		MK_COMPILE_STATUS="FAIL($?)"
+	fi
+fi
+if [ "${MK_COMPILE_STATUS}" = "OK" ]; then
+echo "yes"
+echo "yes" >> config.log
+HAVE_SOCKLEN_T="yes"
+echo "HAVE_SOCKLEN_T=$HAVE_SOCKLEN_T" >>Makefile.config
+echo "mdefs[\"HAVE_SOCKLEN_T\"] = \"$HAVE_SOCKLEN_T\"" >>configure.lua
+echo "#ifndef HAVE_SOCKLEN_T" > config/have_socklen_t.h
+echo "#define HAVE_SOCKLEN_T \"$HAVE_SOCKLEN_T\"" >> config/have_socklen_t.h
+echo "#endif" >> config/have_socklen_t.h
+echo "hdefs[\"HAVE_SOCKLEN_T\"] = \"$HAVE_SOCKLEN_T\"" >>configure.lua
+else
+echo "no"
+echo "no" >> config.log
+HAVE_SOCKLEN_T="no"
+echo "HAVE_SOCKLEN_T=$HAVE_SOCKLEN_T" >>Makefile.config
+echo "mdefs[\"HAVE_SOCKLEN_T\"] = \"$HAVE_SOCKLEN_T\"" >>configure.lua
+echo "#undef HAVE_SOCKLEN_T" >config/have_socklen_t.h
+echo "hdefs[\"HAVE_SOCKLEN_T\"] = nil" >>configure.lua
+fi;
+if [ "${cache}" != "" ]; then
+	echo "$HAVE_SOCKLEN_T" > ${cache}/ctest-HAVE_SOCKLEN_T
+	echo $MK_COMPILE_STATUS > ${cache}/ctest-status-HAVE_SOCKLEN_T
+fi
+rm -f conftest.c $testdir/conftest$EXECSUFFIX
+if [ "${HAVE_SOCKLEN_T}" = "yes" ]
+ then
+HAVE_SOCKLEN_T="1"
+echo "#ifndef HAVE_SOCKLEN_T" > config/have_socklen_t.h
+echo "#define HAVE_SOCKLEN_T $HAVE_SOCKLEN_T" >> config/have_socklen_t.h
+echo "#endif" >> config/have_socklen_t.h
+echo "hdefs[\"HAVE_SOCKLEN_T\"] = $HAVE_SOCKLEN_T" >>configure.lua
+fi
 SYSLOGD_LIBS="${L_SYSLOGD_LIBS}"
 echo "SYSLOGD_LIBS=$SYSLOGD_LIBS" >>Makefile.config
 echo "mdefs[\"SYSLOGD_LIBS\"] = \"$SYSLOGD_LIBS\"" >>configure.lua

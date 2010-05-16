@@ -385,6 +385,10 @@ if [ "${HAVE_INET_ADDR}" = "yes" ]; then
     HDEFINE_UNQUOTED(HAVE_INET_ADDR,	1)
 fi
 
+CHECK_TYPE(socklen_t, stdio.h sys/types.h sys/socket.h)
+if [ "${HAVE_SOCKLEN_T}" = "yes" ]; then
+    HDEFINE_UNQUOTED(HAVE_SOCKLEN_T,	1)
+fi
 
 # Last defines
 MDEFINE(SYSLOGD_LIBS, ${L_SYSLOGD_LIBS})
