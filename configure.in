@@ -87,6 +87,7 @@ elif test "${UNAME}" = "Linux" ; then
     MDEFINE(MAIN_CPPFLAGS,	"-Xlinker -E")
     MDEFINE(SHARED_PARAMS,	"-Bshareable")
     MDEFINE(DCCFLAGS,		)
+    L_SYSLOGD_LIBS="${L_SYSLOGD_LIBS} -ldl"
 
     echo "Linux"
 elif test "${UNAME}" = "SunOS" ; then

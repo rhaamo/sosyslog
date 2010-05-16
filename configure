@@ -1889,6 +1889,7 @@ echo "mdefs[\"SHARED_PARAMS\"] = \"$SHARED_PARAMS\"" >>configure.lua
 DCCFLAGS=""
 echo "DCCFLAGS=$DCCFLAGS" >>Makefile.config
 echo "mdefs[\"DCCFLAGS\"] = \"$DCCFLAGS\"" >>configure.lua
+    L_SYSLOGD_LIBS="${L_SYSLOGD_LIBS} -ldl"
     echo "Linux"
 elif test "${UNAME}" = "SunOS" 
  then
