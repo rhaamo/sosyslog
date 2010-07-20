@@ -10,6 +10,11 @@ FOR 1.x
 - sigsetmask deprecated on linux (signal.h:199)
 
 FOR 2.x
+- Rewrite TOTALLY the plugins stuff.
+- Load sosyslog_foo_plugin.so which IS linked to it's own libraries
+  Instead of linking the .so to sosyslog and the plugin use dlopen to use it's libs
+
+Then:
 - %subst module like s/blah/moo/
 - %dbus module
 
