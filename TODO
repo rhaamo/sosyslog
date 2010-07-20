@@ -1,7 +1,7 @@
 New TODO of sosyslog.
 
 TODO FOR CMAKE BRANCHE:
-	- See TODO.h :( -> can probably go into BSDBuild modules => WIP ==> CHECK_FUNC() CHECK_FUNC_OPTS() and HDEFINE_UNQUOTED()
+	- See TODO.h :( -> can probably go into BSDBuild modules => WIP
 	- -lnsl what this . ? (linux)
 
 Update NEWS
